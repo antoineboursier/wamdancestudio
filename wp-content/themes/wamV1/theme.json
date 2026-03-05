@@ -66,12 +66,66 @@
                 {
                     "fontFamily": "Inter, sans-serif",
                     "name": "Inter",
-                    "slug": "inter"
+                    "slug": "inter",
+                    "fontFace": [
+                        {
+                            "fontFamily": "Inter",
+                            "fontWeight": "100 900",
+                            "fontStyle": "normal",
+                            "fontDisplay": "swap",
+                            "src": [
+                                "https://fonts.bunny.net/inter/files/inter-latin-variable-wghtOnly-normal.woff2"
+                            ]
+                        }
+                    ]
                 },
                 {
                     "fontFamily": "Outfit, sans-serif",
                     "name": "Outfit",
-                    "slug": "outfit"
+                    "slug": "outfit",
+                    "fontFace": [
+                        {
+                            "fontFamily": "Outfit",
+                            "fontWeight": "100 900",
+                            "fontStyle": "normal",
+                            "fontDisplay": "swap",
+                            "src": [
+                                "https://fonts.bunny.net/outfit/files/outfit-latin-variable-wghtOnly-normal.woff2"
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "fontFamily": "'Cholo Rhita', sans-serif",
+                    "name": "Cholo Rhita",
+                    "slug": "cholo-rhita",
+                    "fontFace": [
+                        {
+                            "fontFamily": "Cholo Rhita",
+                            "fontWeight": "400",
+                            "fontStyle": "normal",
+                            "fontDisplay": "swap",
+                            "src": [
+                                "file:./fonts/Cholo Rhita.otf"
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "fontFamily": "'Mallia', sans-serif",
+                    "name": "Mallia",
+                    "slug": "mallia",
+                    "fontFace": [
+                        {
+                            "fontFamily": "Mallia",
+                            "fontWeight": "400",
+                            "fontStyle": "normal",
+                            "fontDisplay": "swap",
+                            "src": [
+                                "file:./fonts/Mallia.ttf"
+                            ]
+                        }
+                    ]
                 }
             ]
         },

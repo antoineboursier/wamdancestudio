@@ -6,12 +6,15 @@
  * @package wamv1
  */
 
-get_template_part('template-parts/header', null, array('variant' => 'home'));
+get_header(); // → charge header.php (html, head, wp_head())
+
 ?>
+<?php get_template_part('template-parts/site-header', null, array('variant' => 'home')); ?>
 <main id="primary" class="site-main page-home">
 
     <?php /* 1. HERO ---------------------------------------------------------- */ ?>
     <?php get_template_part('template-parts/hero-home'); ?>
+
 
     <?php /* 2. CARD ARTICLE (sticky posts) ------------------------------------ */ ?>
     <?php get_template_part('template-parts/card-article-featured'); ?>

@@ -1,12 +1,10 @@
 <?php
 /**
- * Footer template
+ * Footer WordPress — balise </body> + wp_footer()
  *
  * @package wamv1
  */
 ?>
-</main><!-- end .site-main -->
 <?php wp_footer(); ?>
 </body>
-
 </html>

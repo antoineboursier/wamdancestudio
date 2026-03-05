@@ -1,0 +1,33 @@
+/*
+Theme Name: WAM V1
+Description: Theme sur-mesure pour WAM Dance Studio (Refonte)
+Author: Vous
+Version: 1.0.0
+Text Domain: wamv1
+*/
+
+:root {
+  /* Variables globales du Design System (à définir) */
+  --font-primary: 'Inter', sans-serif;
+  --font-secondary: 'Outfit', sans-serif;
+  
+  --color-primary: #000000;
+  --color-secondary: #ffffff;
+  --color-accent: #ff0055;
+  
+  --spacing-xs: 0.25rem;
+  --spacing-sm: 0.5rem;
+  --spacing-md: 1rem;
+  --spacing-lg: 2rem;
+  --spacing-xl: 4rem;
+  
+  --radius-sm: 4px;
+  --radius-md: 8px;
+  --radius-lg: 16px;
+}
+
+body {
+  font-family: var(--font-primary);
+  margin: 0;
+  padding: 0;
+}

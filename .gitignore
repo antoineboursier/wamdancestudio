@@ -1,0 +1,24 @@
+# Ignorer tout le répertoire WordPress par défaut
+/*
+!/.gitignore
+!/wp-content/
+!/.ddev/
+
+# Dans wp-content on ignore tout...
+/wp-content/*
+# ...sauf notre thème
+!/wp-content/themes/
+/wp-content/themes/*
+!/wp-content/themes/wamV1/
+
+# On ignore les fichiers de configuration et les dumps SQL !
+*.sql
+*.sql.gz
+*.tar.gz
+*.zip
+wp-config.php
+wp-config-local.php
+
+# Fichiers système mac/windows
+.DS_Store
+Thumbs.db

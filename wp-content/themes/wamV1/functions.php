@@ -10,6 +10,7 @@ if (!function_exists('wamv1_setup')):
     {
         add_theme_support('title-tag');
         add_theme_support('post-thumbnails');
+        add_theme_support('editor-styles');
         add_theme_support('html5', array(
             'search-form',
             'comment-form',

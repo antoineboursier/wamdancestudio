@@ -15,5 +15,5 @@
     <?php wp_head(); ?>
 </head>
 
-<body <?php body_class(); ?>>
+<body <?php body_class('font-outfit text-wam-text'); ?>>
     <?php wp_body_open(); ?>

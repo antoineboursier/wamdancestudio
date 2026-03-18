@@ -1,0 +1,499 @@
+/* =====================================================
+   MODULE ACCESSIBILITÉ WAM
+   Variables héritées du design system
+   ===================================================== */
+
+/* =====================================
+   BOUTON FLOTTANT
+   ===================================== */
+.wam-a11y-trigger-wrap {
+    position: fixed;
+    bottom: var(--wp--preset--spacing--xl);
+    right: var(--wp--preset--spacing--xl);
+    z-index: 9000;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: var(--wp--preset--spacing--xs);
+}
+
+.wam-a11y-trigger {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--wp--preset--spacing--2xs);
+    /* 8px */
+    padding: var(--wp--preset--spacing--sm) var(--wp--preset--spacing--lg);
+    /* 16px 24px */
+    background: var(--wp--preset--color--background-600);
+    border: 1px solid var(--wp--preset--color--background-500);
+    border-radius: 999px;
+    /* pill */
+    color: var(--wp--preset--color--text-subtext);
+    font-family: var(--wp--preset--font-family--outfit);
+    font-size: 14px;
+    cursor: pointer;
+    box-shadow: 0 8px 32px rgba(6, 8, 14, 0.5);
+    transition: background 0.2s ease, border-color 0.2s ease, color 0.2s ease;
+    white-space: nowrap;
+}
+
+.wam-a11y-trigger:hover,
+.wam-a11y-trigger:focus-visible,
+.wam-edit-trigger:hover,
+.wam-edit-trigger:focus-visible {
+    background: var(--wp--preset--color--background-500);
+    border-color: var(--wp--preset--color--text-normal);
+    color: var(--wp--preset--color--text-normal);
+    outline: 2px solid var(--wp--preset--color--accent-green);
+    outline-offset: 3px;
+}
+
+.wam-edit-trigger {
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    gap: var(--wp--preset--spacing--2xs);
+    padding: var(--wp--preset--spacing--sm) var(--wp--preset--spacing--lg);
+    background: var(--wp--preset--color--background-600);
+    border: 1px solid var(--wp--preset--color--background-500);
+    border-radius: 999px;
+    color: var(--wp--preset--color--text-subtext);
+    font-family: var(--wp--preset--font-family--outfit);
+    font-size: 14px;
+    cursor: pointer;
+    box-shadow: 0 8px 32px rgba(6, 8, 14, 0.5);
+    transition: background 0.2s ease, border-color 0.2s ease, color 0.2s ease, transform 0.2s ease;
+}
+
+.wam-edit-trigger:hover {
+    transform: scale(1.05);
+}
+
+.wam-a11y-trigger__label {
+    display: inline;
+}
+
+/* =====================================
+   BACKDROP (mobile)
+   ===================================== */
+.wam-a11y-backdrop {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(6, 8, 14, 0.6);
+    z-index: 8900;
+    backdrop-filter: blur(2px);
+}
+
+.wam-a11y-backdrop.is-visible {
+    display: block;
+}
+
+/* =====================================
+   PANEL PRINCIPAL
+   ===================================== */
+.wam-a11y-panel {
+    position: fixed;
+    bottom: calc(var(--wp--preset--spacing--xl) + 56px);
+    /* au-dessus du bouton */
+    right: var(--wp--preset--spacing--xl);
+    z-index: 9100;
+    width: 360px;
+    max-width: calc(100vw - 2 * var(--wp--preset--spacing--xl));
+    max-height: calc(100vh - 120px);
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+
+    background: var(--wp--preset--color--background-600);
+    border: 1px solid var(--wp--preset--color--background-500);
+    border-radius: 20px;
+    box-shadow: 0 16px 64px rgba(6, 8, 14, 0.65);
+
+    font-family: var(--wp--preset--font-family--outfit);
+    color: var(--wp--preset--color--text-normal);
+
+    /* Animation d'ouverture */
+    transform: translateY(12px);
+    opacity: 0;
+    transition: transform 0.25s cubic-bezier(0.34, 1.4, 0.64, 1), opacity 0.2s ease;
+    pointer-events: none;
+}
+
+.wam-a11y-panel:not([hidden]) {
+    transform: translateY(0);
+    opacity: 1;
+    pointer-events: auto;
+}
+
+/* Reset hidden natif pour l'animer */
+.wam-a11y-panel[hidden] {
+    display: flex !important;
+    /* on garde flex pour l'animation */
+    pointer-events: none;
+}
+
+/* =====================================
+   HEADER DU PANEL
+   ===================================== */
+.wam-a11y-panel__header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: var(--wp--preset--spacing--lg) var(--wp--preset--spacing--lg) var(--wp--preset--spacing--sm);
+    border-bottom: 1px solid var(--wp--preset--color--background-500);
+    position: sticky;
+    top: 0;
+    background: var(--wp--preset--color--background-600);
+    z-index: 1;
+    border-radius: 20px 20px 0 0;
+}
+
+.wam-a11y-panel__title {
+    font-family: 'Mallia', serif;
+    font-size: 20px;
+    font-style: normal;
+    line-height: 1.1;
+    margin: 0;
+    color: var(--wp--preset--color--text-normal);
+}
+
+.wam-a11y-panel__close {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    background: rgba(249, 244, 236, 0.06);
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: background 0.2s ease;
+}
+
+.wam-a11y-panel__close:hover {
+    background: rgba(249, 244, 236, 0.14);
+}
+
+.wam-a11y-panel__close img {
+    width: 14px;
+    height: 14px;
+    filter: opacity(0.7);
+    display: block;
+}
+
+/* =====================================
+   BODY DU PANEL
+   ===================================== */
+.wam-a11y-panel__body {
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+    padding: var(--wp--preset--spacing--sm) 0;
+    overflow-y: auto;
+}
+
+/* =====================================
+   GROUPES D'OPTIONS (fieldset)
+   ===================================== */
+.a11y-group {
+    border: none;
+    padding: var(--wp--preset--spacing--sm) var(--wp--preset--spacing--lg);
+    margin: 0;
+    border-bottom: 1px solid var(--wp--preset--color--background-500);
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.a11y-group:last-child {
+    border-bottom: none;
+}
+
+.a11y-group__legend {
+    font-weight: 700;
+    font-size: 14px;
+    color: var(--wp--preset--color--text-normal);
+    padding: 0;
+    float: left;
+    width: 100%;
+    margin-bottom: 4px;
+    line-height: 1.4;
+}
+
+.a11y-group__desc {
+    font-size: 12px;
+    color: var(--wp--preset--color--text-disabled);
+    margin: 0;
+    line-height: 1.4;
+}
+
+/* =====================================
+   TOGGLE BUTTONS (radio comme boutons)
+   ===================================== */
+.a11y-toggles {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.a11y-toggle-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 12px;
+    background: rgba(249, 244, 236, 0.06);
+    border: 1px solid transparent;
+    border-radius: 10px;
+    cursor: pointer;
+    font-size: 14px;
+    color: var(--wp--preset--color--text-subtext);
+    line-height: 1.25;
+    transition: background 0.15s ease, border-color 0.15s ease, color 0.15s ease;
+    user-select: none;
+}
+
+.a11y-toggle-btn:hover {
+    background: rgba(249, 244, 236, 0.1);
+    color: var(--wp--preset--color--text-normal);
+}
+
+/* Cacher le radio natif */
+.a11y-toggle-btn input[type="radio"] {
+    position: absolute;
+    opacity: 0;
+    width: 0;
+    height: 0;
+    pointer-events: none;
+}
+
+/* État actif (radio sélectionné) */
+.a11y-toggle-btn:has(input[type="radio"]:checked) {
+    background: rgba(1, 227, 189, 0.12);
+    border-color: var(--wp--preset--color--accent-green);
+    color: var(--wp--preset--color--text-normal);
+}
+
+/* Swatches thème */
+.a11y-toggle-btn__swatch {
+    width: 14px;
+    height: 14px;
+    border-radius: 50%;
+    border: 1px solid rgba(249, 244, 236, 0.2);
+    flex-shrink: 0;
+}
+
+.a11y-toggle-btn__swatch--dark {
+    background: #131620;
+}
+
+.a11y-toggle-btn__swatch--light {
+    background: #f9f6f1;
+}
+
+/* =====================================
+   SWITCH ON/OFF (checkbox)
+   ===================================== */
+.a11y-switch-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    cursor: pointer;
+}
+
+.a11y-switch {
+    position: relative;
+    flex-shrink: 0;
+}
+
+.a11y-switch input[type="checkbox"] {
+    position: absolute;
+    opacity: 0;
+    width: 0;
+    height: 0;
+}
+
+.a11y-switch__track {
+    display: block;
+    width: 40px;
+    height: 22px;
+    background: rgba(249, 244, 236, 0.12);
+    border: 1px solid rgba(249, 244, 236, 0.15);
+    border-radius: 999px;
+    position: relative;
+    transition: background 0.2s ease, border-color 0.2s ease;
+}
+
+.a11y-switch__thumb {
+    position: absolute;
+    top: 2px;
+    left: 2px;
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    background: var(--wp--preset--color--text-subtext);
+    transition: transform 0.2s cubic-bezier(0.34, 1.4, 0.64, 1), background 0.2s ease;
+}
+
+/* État coché */
+.a11y-switch input[type="checkbox"]:checked+.a11y-switch__track {
+    background: rgba(1, 227, 189, 0.2);
+    border-color: var(--wp--preset--color--accent-green);
+}
+
+.a11y-switch input[type="checkbox"]:checked+.a11y-switch__track .a11y-switch__thumb {
+    transform: translateX(18px);
+    background: var(--wp--preset--color--accent-green);
+}
+
+/* Focus */
+.a11y-switch input[type="checkbox"]:focus-visible+.a11y-switch__track {
+    outline: 2px solid var(--wp--preset--color--accent-green);
+    outline-offset: 2px;
+}
+
+.a11y-switch-row__label {
+    font-size: 14px;
+    color: var(--wp--preset--color--text-normal);
+    line-height: 1.4;
+}
+
+/* =====================================
+   SELECT
+   ===================================== */
+.a11y-select {
+    width: 100%;
+    padding: 8px 12px;
+    background: rgba(249, 244, 236, 0.06);
+    border: 1px solid var(--wp--preset--color--background-500);
+    border-radius: 10px;
+    color: var(--wp--preset--color--text-normal);
+    font-family: var(--wp--preset--font-family--outfit);
+    font-size: 14px;
+    cursor: pointer;
+    appearance: none;
+    -webkit-appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg width='12' height='8' viewBox='0 0 12 8' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M1 1L6 6L11 1' stroke='%23e1cdad' stroke-width='1.5' stroke-linecap='round'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 12px center;
+    padding-right: 32px;
+    transition: border-color 0.2s ease;
+}
+
+.a11y-select:hover,
+.a11y-select:focus {
+    border-color: var(--wp--preset--color--accent-green);
+    outline: none;
+}
+
+.a11y-select option {
+    background: var(--wp--preset--color--background-600);
+    color: var(--wp--preset--color--text-normal);
+}
+
+/* =====================================
+   FOOTER DU PANEL
+   ===================================== */
+.wam-a11y-panel__footer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: var(--wp--preset--spacing--sm) var(--wp--preset--spacing--lg);
+    border-top: 1px solid var(--wp--preset--color--background-500);
+    background: var(--wp--preset--color--background-600);
+    border-radius: 0 0 20px 20px;
+    gap: 12px;
+    position: sticky;
+    bottom: 0;
+}
+
+.a11y-save-hint {
+    font-size: 11px;
+    color: var(--wp--preset--color--text-disabled);
+    margin: 0;
+    line-height: 1.3;
+    text-align: right;
+}
+
+/* =====================================
+   CLASSES APPLIQUÉES SUR <html>
+   ===================================== */
+
+/* --- Thème clair --- */
+html.wam-theme-light {
+    /* Inversion du design system pour le mode clair */
+    --wp--preset--color--background-800: #f9f6f1;
+    --wp--preset--color--background-600: #f6f2e9;
+    --wp--preset--color--background-500: #e9e3d8;
+    --wp--preset--color--text-normal: #1d367f;
+    --wp--preset--color--text-subtext: #5f6e9b;
+    --wp--preset--color--text-disabled: #707070;
+    --wp--preset--color--accent-green: #0c6e7d;
+    --wp--preset--color--accent-yellow: #8e600a;
+    --wp--preset--color--accent-orange: #bd3f00;
+    --wp--preset--color--accent-pink: #b71088;
+}
+
+/* Bouton trigger adapté au thème clair */
+html.wam-theme-light .wam-a11y-panel,
+html.wam-theme-light .wam-a11y-panel__header,
+html.wam-theme-light .wam-a11y-panel__footer {
+    background: var(--wp--preset--color--background-600);
+}
+
+/* --- Polices graphiques désactivées --- */
+html.wam-no-graphical-fonts {
+    --font-mallia: var(--wp--preset--font-family--outfit);
+    --font-cholo-rhita: var(--wp--preset--font-family--outfit);
+}
+
+html.wam-no-graphical-fonts h1,
+html.wam-no-graphical-fonts h2,
+html.wam-no-graphical-fonts h3,
+html.wam-no-graphical-fonts .kw-mallia,
+html.wam-no-graphical-fonts .kw-cholo,
+html.wam-no-graphical-fonts .card-article__title,
+html.wam-no-graphical-fonts .videos-title__we-are,
+html.wam-no-graphical-fonts .videos-title__move,
+html.wam-no-graphical-fonts .section-teachers__title h2,
+html.wam-no-graphical-fonts .section-teachers__title p {
+    font-family: var(--wp--preset--font-family--outfit) !important;
+    font-style: normal !important;
+}
+
+/* --- Police de substitution --- */
+html.wam-font-comic-sans * {
+    font-family: 'Comic Sans MS', 'Comic Sans', cursive !important;
+}
+
+html.wam-font-arial * {
+    /* Update: Avoid Arial on the Dys font as the user prefers Outfit everywhere strictly if possible, or dys fonts only. 
+       Replaced with wam font body to avoid helvetica overriding */
+    font-family: var(--wp--preset--font-family--outfit) !important;
+}
+
+html.wam-font-times * {
+    font-family: var(--wp--preset--font-family--outfit) !important;
+}
+
+/* --- Taille des textes --- */
+html.wam-text-120 {
+    font-size: 120%;
+}
+
+html.wam-text-150 {
+    font-size: 150%;
+}
+
+/* --- Interlignage augmenté (+25%) --- */
+html.wam-line-height-increased * {
+    line-height: 1.6 !important;
+    /* ~ +25% par rapport à 1.25 */
+}
+
+/* =====================================================
+   SR-ONLY et reduce-motion sont définis dans base.css.
+   Les règles d'animation sont appliquées à deux endroits :
+   - base.css  : règle générale sur * (toutes les pages)
+   - home.css  : règles spécifiques sections (particules, kw-char...)
+   ===================================================== */

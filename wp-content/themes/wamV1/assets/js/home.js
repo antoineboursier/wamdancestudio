@@ -1,93 +1,179 @@
 /**
  * WAM Dance Studio — Home animations
- * Animations de la page d'accueil : keywords + vidéos
+ * - Cursive Live : boucle infinie sur les mots (cycle permanent)
+ * - Vidéos : pause globale
+ * - Icônes play/pause dynamiques via wamIconsDir
  */
 
-;(function () {
+; (function () {
     'use strict';
 
+    const prefersReduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    const iconDir = (window.wamIconsDir || '').replace(/\/$/, '');
+
     /* =====================================================
-       KEYWORDS — Animation douce séquentielle
+       HELPER — Changer l'icône d'un bouton pause
+       img.icon-pause-state → play ou pause
        ===================================================== */
-    const keywordsEl = document.querySelectorAll('.keyword-word');
-    const pauseKeywordBtn = document.getElementById('pause-keywords');
+    function setPauseIcon(btn, isNowPaused) {
+        const iconSpan = btn.querySelector('.btn-icon');
+        const name = isNowPaused ? 'play' : 'pause';
+        if (iconSpan) {
+            iconSpan.style.setProperty('--icon-url', `url('${iconDir}/${name}.svg')`);
+        }
+    }
 
-    if (keywordsEl.length) {
-        let current = 0;
-        let timer = null;
-        let isPaused = false;
-        const duration = 2800; // ms entre les mots
+    /* =====================================================
+       KEYWORDS — Cursive Live — Boucle infinie
+       Les mots tournent en cycle permanent :
+       kw-0 → kw-1 → kw-2 → kw-0 → kw-1 → ...
+       ===================================================== */
+    const wordsData = window.wamKeywords || [];
+    const pauseBtn = document.getElementById('pause-keywords');
+    const particlesC = document.getElementById('keywords-particles');
 
-        function showWord(index) {
-            // Retire les états des mots précédents
-            keywordsEl.forEach((el, i) => {
-                if (i === index) return;
-                if (el.classList.contains('is-active')) {
-                    el.classList.remove('is-active');
-                    el.classList.add('is-leaving');
-                    setTimeout(() => el.classList.remove('is-leaving'), 600);
-                }
+    if (wordsData.length) {
+
+        // 1. Construction des spans lettre par lettre
+        wordsData.forEach(({ text, id }) => {
+            const el = document.getElementById(id);
+            if (!el) return;
+            [...text].forEach(char => {
+                const s = document.createElement('span');
+                s.className = 'kw-char';
+                s.textContent = char === ' ' ? '\u00a0' : char;
+                el.appendChild(s);
             });
-            keywordsEl[index].classList.add('is-active');
+        });
+
+        // 2. Particules colorées
+        if (particlesC && !prefersReduced) {
+            const colors = [
+                'var(--wp--preset--color--accent-yellow)',
+                'var(--wp--preset--color--accent-pink)',
+                'var(--wp--preset--color--accent-green)',
+                'var(--wp--preset--color--accent-orange)',
+            ];
+            for (let i = 0; i < 240; i++) {
+                const p = document.createElement('div');
+                p.className = 'keywords-particle';
+                p.style.left = Math.random() * 100 + '%';
+                p.style.top = (20 + Math.random() * 60) + '%';
+                p.style.background = colors[Math.floor(Math.random() * colors.length)];
+                p.style.setProperty('--dur', (3 + Math.random() * 4) + 's');
+                p.style.setProperty('--delay', (Math.random() * 7) + 's');
+                p.style.setProperty('--drift', ((Math.random() - 0.5) * 100) + 'px');
+                const sz = Math.random() < 0.2 ? 3 : 2;
+                p.style.width = sz + 'px';
+                p.style.height = sz + 'px';
+                particlesC.appendChild(p);
+            }
         }
 
-        function next() {
-            current = (current + 1) % keywordsEl.length;
+        // 3. Animation — cycle infini
+        let current = 0;
+        let mainTimer = null;
+        let isPaused = false;
+        let charTimers = [];
+
+        function clearCharTimers() {
+            charTimers.forEach(clearTimeout);
+            charTimers = [];
+        }
+
+        function showWord(i) {
+            const el = document.getElementById(wordsData[i].id);
+            if (!el) return;
+            el.classList.add('kw-visible');
+            const chars = el.querySelectorAll('.kw-char');
+            chars.forEach((c, j) => {
+                const t = setTimeout(() => c.classList.add('kw-char--visible'), j * 55 + 40);
+                charTimers.push(t);
+            });
+        }
+
+        function hideWord(i) {
+            const el = document.getElementById(wordsData[i].id);
+            if (!el) return;
+            el.classList.add('kw-leaving');
+            const chars = [...el.querySelectorAll('.kw-char')].reverse();
+            chars.forEach((c, j) => {
+                const t = setTimeout(() => c.classList.remove('kw-char--visible'), j * 28);
+                charTimers.push(t);
+            });
+            const totalDelay = chars.length * 28 + 350;
+            charTimers.push(setTimeout(() => {
+                el.classList.remove('kw-visible', 'kw-leaving');
+            }, totalDelay));
+        }
+
+        function advanceWord() {
+            clearCharTimers();
+            hideWord(current);
+            // Boucle infinie : retour à 0 après le dernier mot
+            current = (current + 1) % wordsData.length;
+            charTimers.push(setTimeout(() => showWord(current), 420));
+        }
+
+        function startAnim() {
             showWord(current);
+            mainTimer = setInterval(advanceWord, 3600); // 3.6s par mot
         }
 
-        function start() {
-            showWord(current);
-            timer = setInterval(next, duration);
-        }
-
-        function pause() {
-            clearInterval(timer);
+        function pauseAnim() {
+            clearInterval(mainTimer);
+            clearCharTimers(); // Stop current letter animations
             isPaused = true;
-            if (pauseKeywordBtn) {
-                pauseKeywordBtn.setAttribute('aria-pressed', 'true');
-                pauseKeywordBtn.querySelector('.btn-pause__label').textContent = 'Reprendre l\'animation';
+            const sect = document.querySelector('.section-keywords');
+            if (sect) sect.classList.add('is-paused');
+            if (pauseBtn) {
+                pauseBtn.setAttribute('aria-pressed', 'true');
+                const lbl = pauseBtn.querySelector('span:not(.btn-icon)');
+                if (lbl) lbl.textContent = "Reprendre l'animation";
+                setPauseIcon(pauseBtn, true);
             }
         }
 
-        function resume() {
+        function resumeAnim() {
             isPaused = false;
-            timer = setInterval(next, duration);
-            if (pauseKeywordBtn) {
-                pauseKeywordBtn.setAttribute('aria-pressed', 'false');
-                pauseKeywordBtn.querySelector('.btn-pause__label').textContent = 'Mettre en pause l\'animation';
+            const sect = document.querySelector('.section-keywords');
+            if (sect) sect.classList.remove('is-paused');
+            advanceWord(); // Restart immediately
+            mainTimer = setInterval(advanceWord, 3600);
+            if (pauseBtn) {
+                pauseBtn.setAttribute('aria-pressed', 'false');
+                const lbl = pauseBtn.querySelector('span:not(.btn-icon)');
+                if (lbl) lbl.textContent = "Mettre en pause l'animation";
+                setPauseIcon(pauseBtn, false);
             }
         }
 
-        // Respect de prefers-reduced-motion
-        const prefersReduced = window.matchMedia('(prefers-reduced-motion: reduce)');
-        if (prefersReduced.matches) {
-            // Affiche tous les mots empilés, pas d'animation
-            keywordsEl.forEach(el => {
+        // prefers-reduced-motion → statique
+        if (prefersReduced) {
+            wordsData.forEach(({ id }) => {
+                const el = document.getElementById(id);
+                if (!el) return;
                 el.style.position = 'static';
-                el.style.opacity = '1';
-                el.style.transform = 'none';
                 el.style.display = 'block';
+                el.classList.add('kw-visible');
+                el.querySelectorAll('.kw-char').forEach(c => c.classList.add('kw-char--visible'));
             });
         } else {
-            start();
+            startAnim();
         }
 
-        if (pauseKeywordBtn) {
-            pauseKeywordBtn.addEventListener('click', () => {
-                isPaused ? resume() : pause();
-            });
+        if (pauseBtn) {
+            pauseBtn.addEventListener('click', () => isPaused ? resumeAnim() : pauseAnim());
         }
 
-        // Pause quand la page perd le focus (accessibilité)
+        // Pause automatique quand page cachée
         document.addEventListener('visibilitychange', () => {
-            if (document.hidden && !isPaused) pause();
-            else if (!document.hidden && isPaused && !pauseKeywordBtn?.getAttribute('aria-pressed') === 'true') resume();
+            if (document.hidden && !isPaused) pauseAnim();
         });
     }
 
     /* =====================================================
-       VIDÉOS — Pause globale
+       VIDÉOS — Pause globale avec icône play/pause
        ===================================================== */
     const pauseVideoBtn = document.getElementById('pause-videos');
     const videos = document.querySelectorAll('.video-card video');
@@ -95,17 +181,34 @@
     if (pauseVideoBtn && videos.length) {
         let videosPaused = false;
 
+        if (prefersReduced) {
+            videos.forEach(v => { v.pause(); v.removeAttribute('autoplay'); });
+            videosPaused = true;
+            pauseVideoBtn.setAttribute('aria-pressed', 'true');
+            setPauseIcon(pauseVideoBtn, true);
+            const lbl = pauseVideoBtn.querySelector('.btn-pause__label');
+            if (lbl) lbl.textContent = 'Reprendre les vidéos';
+        }
+
         pauseVideoBtn.addEventListener('click', () => {
             videosPaused = !videosPaused;
-            videos.forEach(v => videosPaused ? v.pause() : v.play().catch(() => {}));
+            videos.forEach(v => videosPaused ? v.pause() : v.play().catch(() => { }));
             pauseVideoBtn.setAttribute('aria-pressed', videosPaused ? 'true' : 'false');
-            pauseVideoBtn.querySelector('.btn-pause__label').textContent =
-                videosPaused ? 'Reprendre les vidéos' : 'Mettre en pause les vidéos';
+            setPauseIcon(pauseVideoBtn, videosPaused);
+            const lbl = pauseVideoBtn.querySelector('span:not(.btn-icon)');
+            if (lbl) lbl.textContent = videosPaused ? 'Reprendre les vidéos' : 'Mettre en pause les vidéos';
         });
+    }
 
-        // Respect prefers-reduced-motion → auto pause
-        if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
-            videos.forEach(v => { v.pause(); v.removeAttribute('autoplay'); });
+    /* =====================================================
+       SECTION TEACHERS — bg pattern inline
+       (injecte le bg-pattern si php ne le fait pas via style)
+       ===================================================== */
+    const sectTeachers = document.querySelector('.section-teachers');
+    if (sectTeachers && iconDir) {
+        const patternUrl = iconDir + '/bg_pattern_color_black.svg';
+        if (!sectTeachers.style.backgroundImage) {
+            sectTeachers.style.backgroundImage = "url('" + patternUrl + "')";
         }
     }
 

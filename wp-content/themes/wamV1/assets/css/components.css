@@ -1,0 +1,646 @@
+/* =====================================================
+   COMPONENTS CSS — WAM Dance Studio
+   Composants réutilisables sur TOUTES les pages.
+   Chargé globalement : boutons, header, footer, cards, etc.
+   ===================================================== */
+
+/* =====================================================
+   BOUTON — Icône commune
+   ===================================================== */
+.btn-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 12px;
+    height: 12px;
+    flex-shrink: 0;
+}
+
+.btn-icon--sm {
+    width: 10px;
+    height: 10px;
+}
+
+.btn-icon img {
+    width: 100%;
+    height: 100%;
+    display: block;
+}
+
+/* =====================================================
+   BOUTON PLAIN (Primary)
+   Figma: bg accent-yellow, texte dark, hover border green
+   ===================================================== */
+.btn-primary {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--wp--preset--spacing--2xs);
+    padding: var(--wp--preset--spacing--sm) var(--wp--preset--spacing--xl);
+    background: var(--wam-color-yellow);
+    border: 3px solid transparent;
+    border-radius: var(--wam-radius-lg);
+    color: var(--wp--preset--color--background-500);
+    font-family: var(--wam-font-body);
+    font-weight: 700;
+    font-size: 1.25rem;
+    /* 20px */
+    text-decoration: none;
+    white-space: nowrap;
+    line-height: 1.25;
+    cursor: pointer;
+    transition: border-color var(--wam-transition), box-shadow var(--wam-transition);
+}
+
+.btn-primary:hover {
+    border-color: var(--wam-color-green);
+}
+
+/* Icône sombre sur fond jaune */
+.btn-primary .btn-icon img,
+.btn-primary .icon-colorable {
+    filter: brightness(0);
+}
+
+/* =====================================================
+   BOUTON OUTLINED (Secondary)
+   Figma: border yellow, texte yellow, hover bg glass-yellow
+   ===================================================== */
+.btn-secondary,
+.btn-outlined {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--wp--preset--spacing--2xs);
+    padding: var(--wp--preset--spacing--sm) var(--wp--preset--spacing--xl);
+    background: transparent;
+    border: 2px solid var(--wam-color-yellow);
+    border-radius: var(--wam-radius-lg);
+    color: var(--wam-color-yellow);
+    font-family: var(--wam-font-body);
+    font-weight: 700;
+    font-size: 1.25rem;
+    /* 20px */
+    text-decoration: none;
+    white-space: nowrap;
+    line-height: 1.25;
+    cursor: pointer;
+    transition: background var(--wam-transition);
+}
+
+.btn-secondary:hover,
+.btn-outlined:hover {
+    background: var(--wam-color-glass-yellow);
+}
+
+/* =====================================================
+   BOUTON SMART
+   Figma: bg glass-white, texte normal 16px, radius 12px
+   Hover: border white + bg glass-white-hover
+   ===================================================== */
+.btn-smart {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--wp--preset--spacing--2xs);
+    padding: var(--wp--preset--spacing--2xs) var(--wp--preset--spacing--sm);
+    background: var(--wam-color-glass-white);
+    border: 1px solid transparent;
+    border-radius: var(--wam-radius-md);
+    color: var(--wam-color-text);
+    font-family: var(--wam-font-body);
+    font-weight: 400;
+    font-size: 1rem;
+    /* 16px */
+    text-decoration: none;
+    white-space: nowrap;
+    line-height: 1.25;
+    cursor: pointer;
+    transition: border-color var(--wam-transition), background var(--wam-transition);
+}
+
+.btn-smart:hover {
+    border-color: var(--wam-color-text);
+    background: var(--wam-color-glass-white-hover);
+}
+
+/* =====================================================
+   BOUTON PAUSE (icon button Smart carré)
+   Figma: bg glass-white, p-8, radius 8px
+   ===================================================== */
+.btn-pause {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background: var(--wam-color-glass-white);
+    border: none;
+    border-radius: var(--wam-radius-sm);
+    padding: 8px;
+    color: var(--wam-color-disabled);
+    font-family: var(--wam-font-body);
+    font-size: 0.875rem;
+    /* 14px */
+    cursor: pointer;
+    transition: background var(--wam-transition);
+    line-height: 1.25;
+}
+
+.btn-pause:hover {
+    background: var(--wam-color-glass-white-hover);
+}
+
+.btn-pause__icon {
+    width: 10px;
+    height: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+.btn-pause__icon img {
+    width: 100%;
+    height: 100%;
+    display: block;
+    filter: opacity(0.5);
+}
+
+/* =====================================================
+   COMPATIBILITÉ A11Y — Boutons
+   ===================================================== */
+
+/* Thème clair : les couleurs des boutons s'adaptent via
+   les overrides CSS vars dans accessibility.css.
+   Pas de règle supplémentaire nécessaire ici pour les
+   couleurs (les variables se propagent automatiquement).
+   On override uniquement les styles hardcodés. */
+
+html.wam-theme-light .btn-primary {
+    background: var(--wam-color-yellow);
+    color: var(--wp--preset--color--background-500);
+}
+
+html.wam-theme-light .btn-secondary,
+html.wam-theme-light .btn-outlined {
+    border-color: var(--wam-color-yellow);
+    color: var(--wam-color-yellow);
+}
+
+/* =====================================================
+   HEADER DU SITE
+   Figma: UI Kit — sticky, blur, pill menu button
+   ===================================================== */
+.wam-header {
+    position: sticky;
+    top: 0;
+    z-index: var(--wam-z-header);
+    width: 100%;
+    /* Léger fond flou pour lisibilité en scroll */
+    backdrop-filter: blur(6px);
+    -webkit-backdrop-filter: blur(6px);
+    background: rgba(19, 22, 32, 0.7);
+    border-bottom: 1px solid transparent;
+    transition: border-color var(--wam-transition), background var(--wam-transition);
+}
+
+.wam-header.scrolled {
+    border-bottom-color: var(--wp--preset--color--background-500);
+}
+
+.wam-header--home {
+    /* Sur homepage : header transparent (pas de bande en haut selon brief) */
+    background: transparent;
+    border-bottom: none !important;
+}
+
+.wam-header__inner {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    max-width: var(--wam-max-screen);
+    margin: 0 auto;
+    padding: var(--wp--preset--spacing--lg) var(--wam-page-mx);
+    gap: var(--wp--preset--spacing--xl);
+}
+
+/* Logo */
+.wam-header__logo {
+    height: 58px;
+    width: auto;
+    display: block;
+}
+
+.wam-header__logo-text {
+    height: 19px;
+    width: auto;
+    display: block;
+}
+
+/* Bouton menu burger pill */
+.wam-header__menu-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--wp--preset--spacing--sm);
+    padding: var(--wp--preset--spacing--sm) var(--wp--preset--spacing--lg);
+    background: var(--wp--preset--color--background-600);
+    border: 1px solid var(--wp--preset--color--background-500);
+    border-radius: var(--wam-radius-pill);
+    cursor: pointer;
+    box-shadow: var(--wam-shadow-card);
+    color: var(--wam-color-subtext);
+    font-family: var(--wam-font-body);
+    font-size: 0.875rem;
+    /* 14px */
+    text-decoration: none;
+    transition: background var(--wam-transition), border-color var(--wam-transition);
+}
+
+.wam-header__menu-btn:hover {
+    background: var(--wp--preset--color--background-500);
+    border-color: var(--wam-color-subtext);
+}
+
+/* Hamburger 4 lignes colorées */
+.wam-header__hamburger {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    flex-shrink: 0;
+}
+
+.wam-header__hamburger span {
+    display: block;
+    height: 4px;
+    width: 32px;
+    border-radius: 80px;
+}
+
+.wam-header__hamburger span:nth-child(1) {
+    background: var(--wam-color-green);
+}
+
+.wam-header__hamburger span:nth-child(2) {
+    background: var(--wam-color-yellow);
+}
+
+.wam-header__hamburger span:nth-child(3) {
+    background: var(--wam-color-orange);
+}
+
+.wam-header__hamburger span:nth-child(4) {
+    background: var(--wam-color-pink);
+}
+
+/* =====================================================
+   COMPATIBILITÉ A11Y — Header
+   ===================================================== */
+html.wam-theme-light .wam-header {
+    background: rgba(249, 246, 241, 0.9);
+}
+
+html.wam-theme-light .wam-header--home {
+    background: transparent;
+}
+
+
+/* =====================================================
+   CARD ARTICLE (sticky posts) — Réutilisable
+   Figma: Horizontale, thumbnail 233px, corps flex-1
+   ===================================================== */
+.card-article {
+    display: flex;
+    align-items: stretch;
+    gap: var(--wp--preset--spacing--sm);
+    padding: var(--wp--preset--spacing--2xs);
+    border-radius: var(--wam-radius-3xl);
+    border: 2px solid transparent;
+    background:
+        linear-gradient(90deg, var(--wam-color-glass-green), var(--wam-color-glass-green)),
+        linear-gradient(270deg, var(--wam-color-page-bg) 0%, var(--wam-color-card-bg) 100%);
+    position: relative;
+    box-sizing: border-box;
+    transition: border-color var(--wam-transition), background var(--wam-transition);
+}
+
+.card-article:hover {
+    border-color: var(--wam-color-green);
+}
+
+/* Thumbnail 233px */
+.card-article__image {
+    width: 233px;
+    flex-shrink: 0;
+    border-radius: var(--wam-radius-xl);
+    overflow: hidden;
+    position: relative;
+    background: var(--wam-color-input-bg);
+}
+
+.card-article__image img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+    mix-blend-mode: luminosity;
+}
+
+.card-article__image-placeholder {
+    width: 100%;
+    height: 100%;
+    min-height: 180px;
+}
+
+/* Corps */
+.card-article__body {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    gap: var(--wp--preset--spacing--sm);
+    padding: var(--wp--preset--spacing--lg);
+}
+
+/* Titre : Cholo Rhita 48px vert — Figma node 224:7806 */
+.card-article__title {
+    font-family: var(--wam-font-graphical-2);
+    font-size: clamp(2rem, 4vw, 3rem);
+    /* ~48px Figma */
+    line-height: 1;
+    color: var(--wam-color-green);
+    margin: 0;
+    font-style: normal;
+}
+
+.card-article__content-bottom {
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: var(--wp--preset--spacing--2xl);
+    width: 100%;
+}
+
+/* Excerpt — Outfit 14px */
+.card-article__excerpt {
+    flex: 1;
+    font-family: var(--wam-font-body);
+    font-size: 0.875rem;
+    /* 14px */
+    color: var(--wam-color-text);
+    line-height: 1.6;
+    margin: 0;
+}
+
+/* Pastille notification animée */
+.card-article__notif {
+    position: absolute;
+    top: 4px;
+    left: 32px;
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    background: var(--wam-color-green);
+    animation: wam-pulse 1.8s ease-in-out infinite;
+    z-index: 2;
+}
+
+.card-article__notif::after {
+    content: '';
+    position: absolute;
+    inset: -4px;
+    border-radius: 50%;
+    border: 2px solid var(--wam-color-green);
+    opacity: 0;
+    animation: wam-pulse-ring 1.8s ease-in-out infinite;
+}
+
+@keyframes wam-pulse {
+
+    0%,
+    100% {
+        transform: scale(1);
+        opacity: 1;
+    }
+
+    50% {
+        transform: scale(1.15);
+        opacity: 0.85;
+    }
+}
+
+@keyframes wam-pulse-ring {
+    0% {
+        transform: scale(0.6);
+        opacity: 0.5;
+    }
+
+    80% {
+        transform: scale(1.6);
+        opacity: 0;
+    }
+
+    100% {
+        transform: scale(1.6);
+        opacity: 0;
+    }
+}
+
+/* =====================================================
+   TEACHER CARD — Carte professeur·e réutilisable
+   ===================================================== */
+.teacher-card {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: var(--wp--preset--spacing--xl);
+    padding: var(--wp--preset--spacing--sm);
+    background: var(--wam-color-card-bg);
+    border-radius: var(--wam-radius-lg);
+    width: 240px;
+    text-decoration: none;
+    transition: transform var(--wam-transition-slow), background var(--wam-transition);
+}
+
+.teacher-card:hover {
+    transform: translateY(-4px);
+    background: var(--wam-color-input-bg);
+}
+
+.teacher-card__photo {
+    width: 100%;
+    height: 160px;
+    border-radius: var(--wam-radius-md);
+    overflow: hidden;
+    background: var(--wam-color-input-bg);
+}
+
+.teacher-card__photo img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+    mix-blend-mode: luminosity;
+}
+
+.teacher-card__photo--placeholder {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.teacher-card__photo--placeholder svg {
+    width: 60px;
+    height: 60px;
+    fill: var(--wam-color-disabled);
+}
+
+.teacher-card__info {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: var(--wp--preset--spacing--xs);
+    width: 100%;
+    text-align: center;
+}
+
+/* Nom : Mallia 24px */
+.teacher-card__name {
+    font-family: var(--wam-font-graphical-1);
+    font-size: 1.5rem;
+    /* 24px */
+    line-height: 1.1;
+    color: var(--wam-color-text);
+    margin: 0;
+    font-style: normal;
+}
+
+/* Spécialité : Outfit 20px, subtext */
+.teacher-card__specialty {
+    font-family: var(--wam-font-body);
+    font-size: 1.25rem;
+    /* 20px */
+    color: var(--wam-color-subtext);
+    margin: 0;
+    line-height: 1.25;
+}
+
+/* Lien icône */
+.teacher-card__link-icon {
+    width: 10px;
+    height: 10px;
+    background: var(--wam-color-glass-white);
+    border-radius: var(--wam-radius-sm);
+    padding: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background var(--wam-transition);
+}
+
+.teacher-card:hover .teacher-card__link-icon {
+    background: var(--wam-color-glass-white-hover);
+}
+
+.teacher-card__link-icon img {
+    width: 10px;
+    height: 10px;
+    display: block;
+    filter: opacity(0.6);
+}
+
+/* =====================================================
+   SÉPARATEUR — Pattern avec fondu vertical
+   ===================================================== */
+.wam-separator {
+    height: 80px;
+    width: 100%;
+    display: block;
+    background-image: var(--wam-pattern-dark-url);
+    background-size: 500px auto;
+    background-repeat: repeat;
+    background-position: center;
+    position: relative;
+    overflow: hidden;
+}
+
+.wam-separator::before,
+.wam-separator::after {
+    content: '';
+    position: absolute;
+    left: 0;
+    right: 0;
+    height: 35px;
+    pointer-events: none;
+    z-index: 1;
+}
+
+.wam-separator::before {
+    top: 0;
+    background: linear-gradient(to bottom, var(--wam-color-page-bg), transparent);
+}
+
+.wam-separator::after {
+    bottom: 0;
+    background: linear-gradient(to top, var(--wam-color-page-bg), transparent);
+}
+
+/* =====================================================
+   IMAGE BLEND — Filtre artistique brand WAM
+   Figma: background-800 (#131620) en mix-blend lighten
+   sur toutes les images thumbnail/média (pas les SVG).
+
+   Usage wrapper :  ajouter .wam-img sur le div conteneur.
+   L'overlay ::after remplace le div inline bg/mix-blend-lighten.
+
+   Usage contenu :  règles globales sur .entry-content
+                    pour les blocks Gutenberg (wp-block-image…)
+   ===================================================== */
+
+/* Utilitaire wrapper --------------------------------- */
+.wam-img {
+    position: relative;
+    overflow: hidden;
+}
+
+.wam-img img {
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.wam-img::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: var(--wam-color-page-bg, #131620);
+    mix-blend-mode: lighten;
+    pointer-events: none;
+    z-index: 1;
+}
+
+/* Images dans le contenu Gutenberg (the_content()) --- */
+.entry-content figure img,
+.entry-content .wp-block-image img,
+.entry-content .wp-block-media-text__media img,
+.entry-content .wp-block-cover__image-background {
+    mix-blend-mode: lighten;
+}
+
+/* Featured image (single/page) ----------------------- */
+.site-main .wp-post-image {
+    mix-blend-mode: lighten;
+}
+
+/* =====================================================
+   COMPATIBILITÉ A11Y — Composants
+   ===================================================== */
+
+/* Polices graphiques désactivées */
+html.wam-no-graphical-fonts .card-article__title,
+html.wam-no-graphical-fonts .teacher-card__name {
+    font-family: var(--wam-font-body) !important;
+    font-style: normal !important;
+}
+
+/* Animations désactivées */
+html.wam-reduce-motion .card-article__notif,
+html.wam-reduce-motion .card-article__notif::after {
+    animation: none !important;
+}

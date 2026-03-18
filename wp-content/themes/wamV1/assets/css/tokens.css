@@ -1,0 +1,126 @@
+/* =====================================================
+   TOKENS CSS — WAM Dance Studio
+   Variables personnalisées complémentaires à theme.json.
+   theme.json génère déjà :
+     --wp--preset--color--*
+     --wp--preset--spacing--*
+     --wp--preset--font-family--*
+   Ce fichier ajoute les tokens que WP ne génère pas.
+   ===================================================== */
+
+:root {
+
+    /* -------------------------------------------------------
+       Alias sémantiques forcés (Light on Dark vs Dark on Light)
+       ------------------------------------------------------- */
+    --wam-color-on-light-bg: var(--wp--preset--color--text-normal);
+    /* #F9F4EB */
+    --wam-color-on-light-text: #1D367F;
+    /* Bleu WAM (text/normal en mode light) */
+    --wam-color-on-light-subtext: #5F6E9B;
+    /* Bleu atténué (text/subtext en mode light) */
+
+    /* -------------------------------------------------------
+       Rayon de bordure
+       ------------------------------------------------------- */
+    --wam-radius-xs: 4px;
+    --wam-radius-sm: 8px;
+    --wam-radius-md: 12px;
+    --wam-radius-lg: 16px;
+    --wam-radius-xl: 20px;
+    --wam-radius-2xl: 24px;
+    --wam-radius-3xl: 32px;
+    --wam-radius-pill: 999px;
+
+    /* -------------------------------------------------------
+       Ombres
+       ------------------------------------------------------- */
+    --wam-shadow-sm: 0 4px 16px rgba(6, 8, 14, 0.3);
+    --wam-shadow-md: 0 8px 32px rgba(6, 8, 14, 0.45);
+    --wam-shadow-card: 0 8px 44px rgba(6, 8, 14, 0.39);
+    --wam-shadow-panel: 0 16px 64px rgba(6, 8, 14, 0.65);
+
+    /* -------------------------------------------------------
+       Transitions
+       ------------------------------------------------------- */
+    --wam-transition: 0.2s ease;
+    --wam-transition-slow: 0.35s ease;
+    --wam-transition-spring: 0.4s cubic-bezier(0.34, 1.4, 0.64, 1);
+
+    /* -------------------------------------------------------
+       Z-index
+       ------------------------------------------------------- */
+    --wam-z-base: 1;
+    --wam-z-above: 10;
+    --wam-z-header: 100;
+    --wam-z-modal: 500;
+    --wam-z-a11y: 9000;
+    --wam-z-panel: 9100;
+
+    /* -------------------------------------------------------
+       Scrollbars
+       ------------------------------------------------------- */
+    --wam-scrollbar-track: rgba(29, 54, 127, 0.05);
+    --wam-scrollbar-thumb: rgba(29, 54, 127, 0.2);
+    --wam-scrollbar-thumb-hover: rgba(29, 54, 127, 0.4);
+
+    /* -------------------------------------------------------
+       Dimensions max
+       ------------------------------------------------------- */
+    --wam-max-content: 1200px;
+    /* largeur contenu éditorial */
+    --wam-max-screen: 1536px;
+    /* largeur écran max (UI/screenMW-lg Figma) */
+    --wam-page-mx: var(--wp--preset--spacing--9xl);
+    /* 96px marge latérale (UI/section-mx Figma) */
+
+    /* -------------------------------------------------------
+       Assets de fond
+       ------------------------------------------------------- */
+    --wam-pattern-dark-url: url('../images/bg_pattern_color_black.svg');
+    /* --wam-pattern-light-url: url('../images/bg_pattern_color_white.svg'); */
+    /* à ajouter quand disponible */
+
+    /* -------------------------------------------------------
+       Couleurs sémantiques UI (raccourcis Figma UI/*)
+       Les vraies valeurs viennent de --wp--preset--color--*
+       Ces alias améliorent la lisibilité dans le code
+       ------------------------------------------------------- */
+    --wam-color-page-bg: var(--wp--preset--color--background-800);
+    --wam-color-card-bg: var(--wp--preset--color--background-600);
+    --wam-color-input-bg: var(--wp--preset--color--background-500);
+    --wam-color-text: var(--wp--preset--color--text-normal);
+    --wam-color-subtext: var(--wp--preset--color--text-subtext);
+    --wam-color-disabled: var(--wp--preset--color--text-disabled);
+    --wam-color-green: var(--wp--preset--color--accent-green);
+    --wam-color-yellow: var(--wp--preset--color--accent-yellow);
+    --wam-color-orange: var(--wp--preset--color--accent-orange);
+    --wam-color-pink: var(--wp--preset--color--accent-pink);
+    --wam-color-accent-tertiary-bg: rgba(1, 227, 189, 0.12);
+    /* UI/accent-tertiary-bg Figma */
+
+    /* -------------------------------------------------------
+       Classes utilitaires forcées pour le Menu Light
+       ------------------------------------------------------- */
+    --wam-nav-bg: var(--wam-color-on-light-bg);
+    --wam-nav-text: var(--wam-color-on-light-text);
+    --wam-nav-subtext: var(--wam-color-on-light-subtext);
+
+    /* -------------------------------------------------------
+       Couleurs sémantiques UI semi-transparentes
+       ------------------------------------------------------- */
+    --wam-color-glass-white: rgba(249, 244, 236, 0.06);
+    /* UI/opacity-white-bg Figma */
+    --wam-color-glass-white-hover: rgba(249, 244, 236, 0.12);
+    --wam-color-glass-green: rgba(1, 227, 189, 0.12);
+    --wam-color-glass-yellow: rgba(253, 217, 0, 0.10);
+    /* UI/accent-secondary-bg Figma */
+
+    /* -------------------------------------------------------
+       Polices graphiques (aliases pour a11y override)
+       ------------------------------------------------------- */
+    --wam-font-graphical-1: 'Mallia', 'Georgia', serif;
+    --wam-font-graphical-2: 'Cholo Rhita', sans-serif;
+    --wam-font-body: var(--wp--preset--font-family--outfit);
+    --wam-font-system: var(--wp--preset--font-family--outfit);
+}

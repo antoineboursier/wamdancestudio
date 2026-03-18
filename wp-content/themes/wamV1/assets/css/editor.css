@@ -1,0 +1,238 @@
+/* =====================================================
+   EDITOR CSS — WAM Dance Studio
+   Styles du back-office Gutenberg.
+   Chargé uniquement dans l'éditeur via add_editor_style().
+   Préfixés .editor-styles-wrapper pour cibler uniquement
+   le contenu éditable (pas la barre d'outils WP).
+   ===================================================== */
+
+/* -------------------------------------------------------
+   Fond sombre, texte clair — fidèle au front
+   ------------------------------------------------------- */
+.editor-styles-wrapper {
+    background-color: var(--wp--preset--color--background-800) !important;
+    color: var(--wp--preset--color--text-normal);
+    font-family: var(--wp--preset--font-family--outfit);
+    font-size: 16px;
+    line-height: 1.25;
+    -webkit-font-smoothing: antialiased;
+}
+
+/* -------------------------------------------------------
+   Titres sémantiques H1 → H5
+   ------------------------------------------------------- */
+
+.editor-styles-wrapper h1 {
+    font-family: var(--wp--preset--font-family--mallia);
+    font-size: 46px;
+    font-weight: 400;
+    line-height: 1.3;
+    color: var(--wp--preset--color--accent-yellow);
+}
+
+.editor-styles-wrapper h2 {
+    font-family: var(--wp--preset--font-family--outfit);
+    font-size: 32px;
+    font-weight: 700;
+    line-height: 1.1;
+    color: var(--wp--preset--color--accent-yellow);
+}
+
+.editor-styles-wrapper h3 {
+    font-family: var(--wp--preset--font-family--outfit);
+    font-size: 28px;
+    font-weight: 700;
+    line-height: 1.1;
+    color: var(--wp--preset--color--accent-yellow);
+}
+
+.editor-styles-wrapper h4 {
+    font-family: var(--wp--preset--font-family--outfit);
+    font-size: 22px;
+    font-weight: 700;
+    line-height: 1.1;
+    color: var(--wp--preset--color--accent-yellow);
+}
+
+.editor-styles-wrapper h5 {
+    font-family: var(--wp--preset--font-family--outfit);
+    font-size: 26px;
+    font-weight: 400;
+    line-height: 1.25;
+    color: var(--wp--preset--color--accent-yellow);
+}
+
+.editor-styles-wrapper h6 {
+    font-family: var(--wp--preset--font-family--outfit);
+    font-size: 16px;
+    font-weight: 700;
+    line-height: 1.25;
+    color: var(--wp--preset--color--text-subtext);
+}
+
+/* -------------------------------------------------------
+   Tailles de texte Gutenberg (has-*-font-size)
+   ------------------------------------------------------- */
+
+.editor-styles-wrapper .has-xs-font-size {
+    font-size: 14px;
+    line-height: 1.25;
+}
+
+.editor-styles-wrapper .has-sm-font-size {
+    font-size: 16px;
+    line-height: 1.25;
+}
+
+.editor-styles-wrapper .has-md-font-size {
+    font-size: 20px;
+    line-height: 1.25;
+}
+
+.editor-styles-wrapper .has-lg-font-size {
+    font-size: 26px;
+    line-height: 1.25;
+}
+
+/* -------------------------------------------------------
+   Couleurs de texte Gutenberg (has-*-color)
+   ------------------------------------------------------- */
+
+.editor-styles-wrapper .has-text-normal-color {
+    color: var(--wp--preset--color--text-normal) !important;
+}
+
+.editor-styles-wrapper .has-text-subtext-color {
+    color: var(--wp--preset--color--text-subtext) !important;
+}
+
+.editor-styles-wrapper .has-text-disabled-color {
+    color: var(--wp--preset--color--text-disabled) !important;
+}
+
+.editor-styles-wrapper .has-accent-green-color {
+    color: var(--wp--preset--color--accent-green) !important;
+}
+
+.editor-styles-wrapper .has-accent-yellow-color {
+    color: var(--wp--preset--color--accent-yellow) !important;
+}
+
+.editor-styles-wrapper .has-accent-orange-color {
+    color: var(--wp--preset--color--accent-orange) !important;
+}
+
+.editor-styles-wrapper .has-accent-pink-color {
+    color: var(--wp--preset--color--accent-pink) !important;
+}
+
+.editor-styles-wrapper .has-background-800-color {
+    color: var(--wp--preset--color--background-800) !important;
+}
+
+.editor-styles-wrapper .has-background-600-color {
+    color: var(--wp--preset--color--background-600) !important;
+}
+
+.editor-styles-wrapper .has-background-500-color {
+    color: var(--wp--preset--color--background-500) !important;
+}
+
+/* -------------------------------------------------------
+   Couleurs de fond Gutenberg (has-*-background-color)
+   ------------------------------------------------------- */
+
+.editor-styles-wrapper .has-text-normal-background-color {
+    background-color: var(--wp--preset--color--text-normal) !important;
+}
+
+.editor-styles-wrapper .has-accent-green-background-color {
+    background-color: var(--wp--preset--color--accent-green) !important;
+}
+
+.editor-styles-wrapper .has-accent-yellow-background-color {
+    background-color: var(--wp--preset--color--accent-yellow) !important;
+}
+
+.editor-styles-wrapper .has-accent-orange-background-color {
+    background-color: var(--wp--preset--color--accent-orange) !important;
+}
+
+.editor-styles-wrapper .has-accent-pink-background-color {
+    background-color: var(--wp--preset--color--accent-pink) !important;
+}
+
+.editor-styles-wrapper .has-background-800-background-color {
+    background-color: var(--wp--preset--color--background-800) !important;
+}
+
+.editor-styles-wrapper .has-background-600-background-color {
+    background-color: var(--wp--preset--color--background-600) !important;
+}
+
+.editor-styles-wrapper .has-background-500-background-color {
+    background-color: var(--wp--preset--color--background-500) !important;
+}
+
+/* -------------------------------------------------------
+   Styles de display custom (is-style-*)
+   ------------------------------------------------------- */
+
+/* Title Norm — Outfit Bold */
+.editor-styles-wrapper .is-style-title-norm-lg {
+    font-family: var(--wp--preset--font-family--outfit);
+    font-size: 32px;
+    font-weight: 700;
+    line-height: 1.1;
+}
+
+.editor-styles-wrapper .is-style-title-norm-md {
+    font-family: var(--wp--preset--font-family--outfit);
+    font-size: 28px;
+    font-weight: 700;
+    line-height: 1.1;
+}
+
+.editor-styles-wrapper .is-style-title-norm-sm {
+    font-family: var(--wp--preset--font-family--outfit);
+    font-size: 22px;
+    font-weight: 700;
+    line-height: 1.1;
+}
+
+/* Title Cool — Cholo Rhita */
+.editor-styles-wrapper .is-style-title-cool-lg {
+    font-family: var(--wp--preset--font-family--cholo-rhita);
+    font-size: 48px;
+    font-weight: 400;
+    line-height: 1;
+}
+
+.editor-styles-wrapper .is-style-title-cool-md {
+    font-family: var(--wp--preset--font-family--cholo-rhita);
+    font-size: 36px;
+    font-weight: 400;
+    line-height: 1;
+}
+
+/* Title Sign — Mallia */
+.editor-styles-wrapper .is-style-title-sign-lg {
+    font-family: var(--wp--preset--font-family--mallia);
+    font-size: 46px;
+    font-weight: 400;
+    line-height: 1.3;
+}
+
+.editor-styles-wrapper .is-style-title-sign-md {
+    font-family: var(--wp--preset--font-family--mallia);
+    font-size: 32px;
+    font-weight: 400;
+    line-height: 1.1;
+}
+
+.editor-styles-wrapper .is-style-title-sign-sm {
+    font-family: var(--wp--preset--font-family--mallia);
+    font-size: 24px;
+    font-weight: 400;
+    line-height: 1.1;
+}

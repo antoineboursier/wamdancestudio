@@ -1,0 +1,14 @@
+{
+    "name": "wamv1",
+    "version": "1.0.0",
+    "description": "WAM Dance Studio — Thème WordPress",
+    "private": true,
+    "scripts": {
+        "dev": "tailwindcss -i ./assets/css/src/main.css -o ./assets/css/dist/main.css --watch",
+        "build": "tailwindcss -i ./assets/css/src/main.css -o ./assets/css/dist/main.css --minify"
+    },
+    "devDependencies": {
+        "tailwindcss": "^3.4.0",
+        "@tailwindcss/typography": "^0.5.0"
+    }
+}

@@ -1,0 +1,93 @@
+/* =====================================================
+   LAYOUT CSS — WAM Dance Studio
+   Structure générale du site, commun à toutes les pages.
+   Chargé globalement après components.css.
+   ===================================================== */
+
+/* =====================================================
+   SITE GLOBAL
+   ===================================================== */
+
+/* Zone principale du contenu */
+.site-main {
+    flex: 1;
+    background-color: var(--wam-color-page-bg);
+    color: var(--wam-color-text);
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+/* =====================================================
+   PAGE HOMEPAGE — Structure principale
+   ===================================================== */
+
+/* Conteneur global des sections de la page d'accueil */
+.page-home__main {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: var(--wp--preset--spacing--4xl);
+    /* 56px — gap inter-sections Figma */
+    padding: var(--wp--preset--spacing--3xl) 0;
+    /* py-48px */
+    width: 100%;
+}
+
+/* =====================================================
+   SECTION BOUTONS DE NAVIGATION
+   ===================================================== */
+.section-buttons {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: var(--wp--preset--spacing--lg);
+    /* 24px */
+    width: 100%;
+}
+
+.section-buttons__row {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--wp--preset--spacing--sm);
+    /* 16px */
+    flex-wrap: wrap;
+}
+
+/* =====================================================
+   SECTION ARTICLE — Wrapper pleine largeur
+   ===================================================== */
+.section-featured {
+    width: 100%;
+    max-width: var(--wam-max-content);
+    padding: 0 var(--wam-page-mx);
+    box-sizing: border-box;
+}
+
+/* =====================================================
+   SECTION CONTENU ÉDITORIAL (Gutenberg)
+   ===================================================== */
+.section-content {
+    max-width: var(--wam-max-content);
+    width: 100%;
+    margin: 0 auto;
+    padding: 0 var(--wam-page-mx);
+    box-sizing: border-box;
+}
+
+/* =====================================================
+   GRILLE PROFS — Layout réutilisable
+   ===================================================== */
+.teachers-grid {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--wp--preset--spacing--lg);
+    /* 24px */
+    justify-content: center;
+    max-width: var(--wam-max-content);
+    width: 100%;
+    padding: 0 var(--wam-page-mx);
+    box-sizing: border-box;
+}

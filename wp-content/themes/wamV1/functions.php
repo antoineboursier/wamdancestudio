@@ -139,6 +139,13 @@ function wamv1_scripts()
     wp_enqueue_style('wamv1-accessibility', $css . 'accessibility.css', array('wamv1-main'), $ver);
 
     // -------------------------------------------------------
+    // Page d'accueil uniquement
+    // -------------------------------------------------------
+    if (is_front_page()) {
+        wp_enqueue_style('wamv1-home', $css . 'home.css', array('wamv1-main'), $ver);
+    }
+
+    // -------------------------------------------------------
     // Scripts JS
     // -------------------------------------------------------
     wp_enqueue_script('wamv1-main', $js . 'main.js', array(), $ver, true);

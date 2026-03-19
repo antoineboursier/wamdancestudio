@@ -393,12 +393,11 @@ get_template_part('template-parts/site-header', null, ['variant' => 'center-forc
                     </div>
                     <?php if ($photo_cours) : ?>
                         <div class="relative rounded-wam-3xl overflow-hidden shrink-0 w-[440px] h-[240px]">
-                            <img src="<?php echo esc_url($photo_cours['url']); ?>"
-                                alt="<?php echo esc_attr($photo_cours['alt']); ?>"
-                                class="absolute inset-0 object-cover w-full h-full">
-                            <div
-                                class="absolute inset-0 bg-wam-bg800 mix-blend-lighten pointer-events-none">
-                            </div>
+                            <?php echo wp_get_attachment_image($photo_cours['id'], 'wam-card', false, [
+                                'class' => 'absolute inset-0 object-cover w-full h-full',
+                                'alt'   => esc_attr($photo_cours['alt']),
+                            ]); ?>
+                            <div class="absolute inset-0 bg-wam-bg800 mix-blend-lighten pointer-events-none"></div>
                         </div>
                     <?php endif; ?>
                 </div>
@@ -554,12 +553,11 @@ get_template_part('template-parts/site-header', null, ['variant' => 'center-forc
                     </div>
                     <?php if ($photo_tenue) : ?>
                         <div class="relative rounded-wam-3xl overflow-hidden shrink-0 w-[440px] h-[248px]">
-                            <img src="<?php echo esc_url($photo_tenue['url']); ?>"
-                                alt="<?php echo esc_attr($photo_tenue['alt']); ?>"
-                                class="absolute inset-0 object-cover w-full h-full">
-                            <div
-                                class="absolute inset-0 bg-wam-bg800 mix-blend-lighten pointer-events-none">
-                            </div>
+                            <?php echo wp_get_attachment_image($photo_tenue['id'], 'wam-card', false, [
+                                'class' => 'absolute inset-0 object-cover w-full h-full',
+                                'alt'   => esc_attr($photo_tenue['alt']),
+                            ]); ?>
+                            <div class="absolute inset-0 bg-wam-bg800 mix-blend-lighten pointer-events-none"></div>
                         </div>
                     <?php endif; ?>
                 </div>

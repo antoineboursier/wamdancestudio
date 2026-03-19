@@ -108,6 +108,49 @@ body {
 }
 
 /* =====================================================
+   COMPOSANTS RÉUTILISABLES
+   ===================================================== */
+
+/* --- Page fallback (index.php — template générique) --- */
+.page-fallback {
+    padding: var(--wp--preset--spacing--xl);
+    text-align: center;
+}
+
+.page-fallback h1 {
+    color: var(--wp--preset--color--accent-pink);
+}
+
+/* --- Card article (featured — fond tertiary) --- */
+.card-article {
+    background: var(--wam-color-accent-tertiary-bg);
+}
+
+/* --- Carte professeur·e --- */
+/* Photo avec blend luminosity pour cohérence visuelle dark theme */
+.teacher-card__avatar {
+    mix-blend-mode: luminosity;
+}
+
+/* Pastille flèche sur les cartes prof */
+.teacher-card__arrow {
+    background: rgba(249, 244, 236, 0.06);
+}
+
+/* Placeholder cartes prof (aucun user avec rôle professeur/directrice) */
+.teacher-card--placeholder {
+    pointer-events: none;
+}
+
+.teacher-card--placeholder .title-sign-sm {
+    opacity: 0.3;
+}
+
+.teacher-card--placeholder .text-wam-md {
+    opacity: 0.2;
+}
+
+/* =====================================================
    UTILITAIRES ACCESSIBILITÉ
    ===================================================== */
 

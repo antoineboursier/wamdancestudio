@@ -29,8 +29,7 @@ $icon_dir = get_template_directory_uri() . '/assets/images/';
         $query->the_post(); ?>
 
         <article
-            class="card-article relative flex items-stretch gap-4 p-2 rounded-wam-3xl border-2 border-transparent box-border transition-colors duration-200"
-            style="background: var(--wam-color-accent-tertiary-bg);">
+            class="card-article relative flex items-stretch gap-4 p-2 rounded-wam-3xl border-2 border-transparent box-border transition-colors duration-200">
 
             <?php /* Pastille notification animée */ ?>
             <span class="card-article__notif absolute top-1 left-8 w-4 h-4 rounded-full bg-wam-green z-10"

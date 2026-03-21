@@ -85,7 +85,6 @@ get_template_part('template-parts/site-header');
         $heure_fin = $has_acf ? get_field('heure_de_fin') : '';
 
         // Tarifs
-        $tarif_label = is_string($tarif_obj) ? $tarif_obj : (($tarif_obj instanceof WP_Post) ? $tarif_obj->post_title : '');
 
         // Colors matching single-cours.php logic
         $ic = $is_enfant ? [

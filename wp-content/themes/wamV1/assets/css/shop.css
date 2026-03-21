@@ -1,0 +1,91 @@
+/* =====================================================
+   SHOP CSS — WAM Dance Studio
+   Intégration WooCommerce au Design System
+   ===================================================== */
+
+.wam-shop {
+    padding-top: var(--wam-spacing-xl);
+    padding-bottom: var(--wam-spacing-9xl);
+}
+
+/* Grille de produits */
+.woocommerce ul.products {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: var(--wam-spacing-xl);
+    margin: var(--wam-spacing-xl) 0;
+}
+
+.woocommerce ul.products::before,
+.woocommerce ul.products::after {
+    display: none; /* Reset floats Woocommerce */
+}
+
+/* Card Produit */
+.woocommerce ul.products li.product {
+    width: 100% !important;
+    margin: 0 !important;
+    background: var(--wam-color-card-bg);
+    border-radius: var(--wam-radius-lg);
+    overflow: hidden;
+    transition: transform var(--wam-transition);
+    border: 1px solid rgba(249, 244, 236, 0.05);
+}
+
+.woocommerce ul.products li.product:hover {
+    transform: translateY(-4px);
+}
+
+.woocommerce ul.products li.product .woocommerce-loop-product__title {
+    font-family: var(--wam-font-body);
+    font-size: 1.25rem;
+    font-weight: 700;
+    padding: var(--wam-spacing-md) var(--wam-spacing-md) 0;
+    color: var(--wam-color-text);
+}
+
+.woocommerce ul.products li.product .price {
+    padding: 0 var(--wam-spacing-md) var(--wam-spacing-md);
+    color: var(--wam-color-yellow);
+    font-weight: 600;
+    font-size: 1.1rem;
+}
+
+/* Boutons */
+.woocommerce #respond input#submit, 
+.woocommerce a.button, 
+.woocommerce button.button, 
+.woocommerce input.button {
+    background-color: var(--wam-color-yellow);
+    color: var(--wam-color-on-light-text);
+    font-family: var(--wam-font-body);
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    border-radius: var(--wam-radius-pill);
+    padding: 12px 24px;
+    border: none;
+    transition: all var(--wam-transition);
+}
+
+.woocommerce #respond input#submit:hover, 
+.woocommerce a.button:hover, 
+.woocommerce button.button:hover, 
+.woocommerce input.button:hover {
+    background-color: var(--wam-color-text);
+    color: var(--wam-color-page-bg);
+}
+
+/* Notifications */
+.woocommerce-message, 
+.woocommerce-info, 
+.woocommerce-error {
+    background-color: var(--wam-color-card-bg) !important;
+    color: var(--wam-color-text) !important;
+    border-top-color: var(--wam-color-yellow) !important;
+    border-radius: var(--wam-radius-md);
+}
+
+.woocommerce-message::before {
+    color: var(--wam-color-yellow) !important;
+}

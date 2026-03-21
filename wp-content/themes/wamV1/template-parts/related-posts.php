@@ -35,12 +35,15 @@ if ($related_query->have_posts()):
     ?>
 
     <!-- Articles similaires -->
-    <div id="section-similaires" class="flex flex-col gap-10 items-center max-w-wam-screen w-full px-24 relative shrink-0">
-        <h2 class="font-cholo leading-none text-wam-cool-md text-wam-yellow text-center w-full m-0">
-            ça peut vous faire kiffer :
-        </h2>
+    <div id="section-similaires" class="section-similaires">
+        <div class="section-similaires__heading">
+            <span class="btn-icon section-similaires__icon" style="--icon-url: url('<?php echo get_template_directory_uri(); ?>/assets/images/dancer_kiff.svg'); --icon-size: 48px;"></span>
+            <h2 class="section-similaires__title title-cool-md color-yellow">
+                ça peut vous faire kiffer :
+            </h2>
+        </div>
 
-        <div class="flex flex-wrap gap-8 items-stretch justify-center relative w-full">
+        <div class="section-similaires__grid">
             <?php
             while ($related_query->have_posts()):
                 $related_query->the_post();

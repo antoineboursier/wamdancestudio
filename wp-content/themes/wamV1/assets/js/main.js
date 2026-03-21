@@ -119,7 +119,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const container = document.querySelector('.js-nav-particles');
         if (!container) return;
 
-        const particleCount = 40;
+        const particleCount = 44;
         const colors = [
             'var(--wam-color-green)',
             'var(--wam-color-yellow)',
@@ -143,7 +143,7 @@ document.addEventListener('DOMContentLoaded', () => {
             p.style.boxShadow = `0 0 10px ${color}`;
 
             const dur = 3 + Math.random() * 5;
-            const delay = Math.random() * 5;
+            const delay = -Math.random() * dur;
             const drift = (Math.random() - 0.5) * 100;
 
             p.style.setProperty('--dur', `${dur}s`);
@@ -151,6 +151,34 @@ document.addEventListener('DOMContentLoaded', () => {
             p.style.setProperty('--drift', `${drift}px`);
 
             container.appendChild(p);
+        }
+    }
+
+    /* =====================================================
+       4. STAGE DATES TOGGLE
+       ===================================================== */
+    const toggleDatesBtn = document.getElementById('toggle-dates-list');
+    const closeDatesBtn = document.getElementById('close-dates-list');
+    const datesList = document.getElementById('dates-list');
+
+    if (toggleDatesBtn && datesList) {
+        toggleDatesBtn.addEventListener('click', () => {
+            const isHidden = datesList.hasAttribute('hidden');
+            if (isHidden) {
+                datesList.removeAttribute('hidden');
+                toggleDatesBtn.setAttribute('aria-expanded', 'true');
+            } else {
+                datesList.setAttribute('hidden', '');
+                toggleDatesBtn.setAttribute('aria-expanded', 'false');
+            }
+        });
+
+        if (closeDatesBtn) {
+            closeDatesBtn.addEventListener('click', () => {
+                datesList.setAttribute('hidden', '');
+                toggleDatesBtn.setAttribute('aria-expanded', 'false');
+                toggleDatesBtn.focus();
+            });
         }
     }
 });

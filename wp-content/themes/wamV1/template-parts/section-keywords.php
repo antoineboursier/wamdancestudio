@@ -15,21 +15,21 @@ $keywords = array(
     array('text' => '{ confiance }',   'class' => 'kw-outfit',  'id' => 'kw-2'),
 );
 ?>
-<section class="section-keywords relative flex flex-col items-center justify-center gap-6 py-14 text-center min-h-[400px] overflow-hidden w-full"
+<section class="section-keywords"
          aria-label="<?php esc_attr_e('Nos valeurs', 'wamv1'); ?>">
 
     <?php /* Particules flottantes (JS piloté) */ ?>
-    <div class="keywords-particles absolute inset-0 pointer-events-none overflow-hidden z-0"
+    <div class="keywords-particles"
          id="keywords-particles"
          aria-hidden="true"></div>
 
-    <?php /* Intro — .text-wam-sm .text-wam-subtext */ ?>
-    <p class="relative z-10 text-wam-sm text-wam-subtext font-outfit max-w-[495px] m-0">
+    <?php /* Intro — subtext 16px */ ?>
+    <p class="section-keywords__intro">
         <?php esc_html_e('Rejoins le studio pour un moment de :', 'wamv1'); ?>
     </p>
 
     <?php /* Scène — hauteur fixe pour éviter les sauts */ ?>
-    <div class="keywords-stage relative z-10 min-h-[110px] flex items-center justify-center w-full"
+    <div class="keywords-stage"
          aria-live="polite"
          aria-atomic="true">
         <?php foreach ($keywords as $kw): ?>
@@ -39,9 +39,9 @@ $keywords = array(
     </div>
 
     <?php /* Bouton pause */ ?>
-    <div class="relative z-10">
+    <div class="section-keywords__pause">
         <button id="pause-keywords" class="btn-pause" aria-pressed="false" type="button">
-            <span class="btn-icon w-2.5 h-2.5"
+            <span class="btn-icon btn-icon--xs"
                   style="--icon-url: url('<?php echo esc_url($icon_dir . 'pause.svg'); ?>');"
                   aria-hidden="true"
                   id="pause-keywords-icon">

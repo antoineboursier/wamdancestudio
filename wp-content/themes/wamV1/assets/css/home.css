@@ -4,12 +4,195 @@
    ===================================================== */
 
 /* =====================================================
+   SECTION HERO — Logo + adresse
+   Figma : fond pattern + dégradé latéral
+   ===================================================== */
+.section-hero {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: var(--wam-spacing-3xl);
+    padding: var(--wam-spacing-4xl) 0;
+    overflow: hidden;
+    width: 100%;
+    background-image: var(--wam-pattern-dark-url);
+    background-size: 60%;
+    background-repeat: repeat;
+    background-position: top center;
+}
+
+/* Dégradé latéral pour fondre le pattern sur les bords */
+.section-hero::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    z-index: 0;
+    background: linear-gradient(to right,
+            transparent 0%,
+            var(--wam-color-page-bg) 30%,
+            var(--wam-color-page-bg) 70%,
+            transparent 100%);
+}
+
+.section-hero__logo,
+.section-hero__address {
+    position: relative;
+    z-index: 10;
+}
+
+/* Image du logo hero (taille Figma, max-width responsive) */
+.section-hero__logo-img {
+    width: 400px;
+    max-width: 90vw;
+    height: auto;
+    filter: drop-shadow(0px 4px 8px rgba(33, 44, 80, 0.5));
+}
+
+.section-hero__address {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+    text-align: center;
+    font-style: normal;
+    color: var(--wam-color-subtext);
+    font-family: var(--wam-font-body);
+}
+/* =====================================================
+   SECTION ARTICLE ÉPINGLÉ
+   ===================================================== */
+.section-featured {
+    width: 100%;
+    max-width: var(--wam-max-content);
+    box-sizing: border-box;
+}
+
+/* =====================================================
+   SECTION KEYWORDS — Animation mots-clés
+   Figma : mots en fondu avec particules flottantes
+   ===================================================== */
+.section-keywords {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: var(--wam-spacing-xl);
+    padding: var(--wam-spacing-4xl) 0;
+    text-align: center;
+    min-height: 400px;
+    overflow: hidden;
+    width: 100%;
+}
+
+/* Conteneur des particules flottantes */
+.keywords-particles {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    overflow: hidden;
+    z-index: 0;
+}
+
+
+/* Animation déplacée vers components.css pour disponibilité globale (menu) */
+.section-keywords.is-paused .keywords-particle {
+    animation-play-state: paused;
+}
+
+/* Scène — hauteur fixe pour éviter les sauts de layout */
+.keywords-stage {
+    position: relative;
+    z-index: 10;
+    min-height: 110px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+}
+
+/* Mot (absolu, un seul visible à la fois) */
+.keyword-word {
+    position: absolute;
+    opacity: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    white-space: nowrap;
+    color: var(--wam-color-text);
+    pointer-events: none;
+    transition: opacity 0.3s ease;
+}
+
+.keyword-word.kw-visible {
+    opacity: 1;
+}
+
+/* Lettre individuelle (animée au character level) */
+.kw-char {
+    display: inline-block;
+    opacity: 0;
+    transform: translateY(10px) rotate(2deg);
+    transition: opacity 0.3s ease, transform 0.4s cubic-bezier(0.34, 1.4, 0.64, 1);
+}
+
+.kw-char.kw-char--visible {
+    opacity: 1;
+    transform: translateY(0) rotate(0deg);
+}
+
+.keyword-word.kw-leaving .kw-char {
+    animation: kw-char-out 0.35s ease forwards;
+}
+
+@keyframes kw-char-out {
+    to {
+        opacity: 0;
+        transform: translateY(-8px);
+    }
+}
+
+/* Polices des mots (3 styles : Mallia / Cholo / Outfit) */
+.kw-mallia {
+    font-family: var(--wam-font-graphical-1);
+    font-size: var(--wam-font-size-h1);
+    font-weight: 400;
+}
+
+.kw-cholo {
+    font-family: var(--wam-font-graphical-2);
+    font-size: var(--wam-font-size-display-lg);
+    font-weight: 400;
+}
+
+.kw-outfit {
+    font-size: 59px;
+    /* One-off spécifique à l'animation keywords */
+    line-height: 1.375;
+}
+
+/* =====================================================
    SECTION VIDÉOS — grille collage Figma
    Structure : colonne gauche | texte centré | colonne droite
    Les grid-column/row sont propres à cette section.
    ===================================================== */
+.section-videos {
+    position: relative;
+    width: 100%;
+    padding-bottom: var(--wam-spacing-lg);
+    /* pb-6 = 24px */
+}
+
 .videos-wrapper {
+    position: relative;
     display: grid;
+    gap: var(--wam-spacing-xs);
+    max-width: 920px;
+    margin: 0 auto;
+    align-items: stretch;
     grid-template-columns: 1fr auto 1fr;
     grid-template-rows: 1fr 1fr;
 }
@@ -17,15 +200,188 @@
 .videos-col--left {
     grid-column: 1;
     grid-row: 1 / 3;
+    align-items: flex-end;
+    /* items-end : vidéos et titre alignés à droite */
 }
 
-/* Bloc texte centré entre les deux colonnes vidéo */
+/* Bloc texte "We are / move" — flex child dans la colonne gauche */
 .videos-title {
-    grid-column: 2;
-    grid-row: 1 / 3;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    /* items-end : textes alignés à droite */
+    justify-content: center;
+    pointer-events: none;
+    padding: 0 var(--wam-spacing-lg);
+    min-width: 200px;
+}
+
+/* Texte "We are" (Cholo Rhita — couleur texte normale) */
+.videos-title__we-are {
+    display: block;
+    color: var(--wam-color-text);
+}
+
+/* Texte "move" (Cholo Rhita — jaune, font-size 6.25rem via style inline documenté) */
+.videos-title__move {
+    display: block;
+    font-family: var(--wam-font-graphical-2);
+    font-style: normal;
+    line-height: 1;
+    color: var(--wam-color-yellow);
 }
 
 .videos-col--right {
     grid-column: 3;
     grid-row: 1 / 3;
+    position: relative;
+    /* nécessaire pour le positionnement absolu du bouton pause */
+}
+
+/* Colonne générique (flex col gap) */
+.videos-col {
+    display: flex;
+    flex-direction: column;
+    gap: var(--wam-spacing-xs);
+    /* 12px = gap-3 */
+}
+
+/* Carte vidéo individuelle */
+.video-card {
+    border-radius: var(--wam-radius-2xl);
+    overflow: hidden;
+    position: relative;
+    background-color: var(--wam-color-card-bg);
+    flex: 1;
+}
+
+.video-card video {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+    min-height: 160px;
+}
+
+/* Bouton pause — positionné en haut à droite de la colonne vidéo droite */
+.videos-pause-wrapper {
+    top: calc(-1 * var(--wam-spacing-2xs));
+    right: calc(-1 * var(--wam-spacing-2xs));
+    z-index: 10;
+}
+
+/* Proportions Figma pour le collage de 4 vidéos (max-width par position) */
+.video-card--v1 {
+    max-width: 485px;
+}
+
+.video-card--v2 {
+    max-width: 309px;
+}
+
+.video-card--v3 {
+    max-width: 377px;
+}
+
+.video-card--v4 {
+    max-width: 449px;
+    margin-top: var(--wam-spacing-xs);
+}
+
+/* mt-3 extra */
+
+/* Hauteur minimale Figma pour maintenir les proportions visuelles */
+.video-card--v1 video,
+.video-card--v2 video {
+    min-height: 265px;
+}
+
+.video-card--v4 video {
+    min-height: 297px;
+}
+
+/* =====================================================
+   SECTION KEYWORDS — Éléments hors animation
+   ===================================================== */
+
+/* Phrase d'introduction (au-dessus du canvas de particules) */
+.section-keywords__intro {
+    position: relative;
+    z-index: 10;
+    font-size: var(--wam-font-size-sm);
+    color: var(--wam-color-subtext);
+    max-width: 495px;
+    margin: 0;
+    text-align: center;
+}
+
+/* Wrapper du bouton pause — z-index au-dessus des particules */
+.section-keywords__pause {
+    position: relative;
+    z-index: 10;
+}
+
+/* =====================================================
+   SECTION SIGNATURE — Fin de page (Équipe WAM)
+   Figma : Photo team + texte Mallia / Cholo
+   ===================================================== */
+
+.section-signature__container {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--wam-spacing-2xl);
+    max-width: var(--wam-max-content);
+    margin: 0 auto;
+}
+
+.section-signature__photo-wrapper {
+    flex: 1;
+    position: relative;
+    border-radius: var(--wam-radius-3xl);
+    aspect-ratio: 16 / 8;
+    width: 100%;
+    /* box-shadow via .wam-effect-4-layers (style global) */
+}
+
+.section-signature__photo {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    border-radius: var(--wam-radius-3xl);
+    display: block;
+}
+
+.section-signature__photo-overlay {
+    position: absolute;
+    inset: 0;
+    background: var(--wp--preset--color--background-800);
+    mix-blend-mode: lighten;
+    pointer-events: none;
+    border-radius: var(--wam-radius-3xl);
+}
+
+.section-signature__content {
+    flex: 1;
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    gap: var(--wam-spacing-xl);
+}
+
+@media (max-width: 768px) {
+    .section-signature {
+        padding: 0 var(--wam-spacing-lg);
+    }
+
+    .section-signature__container {
+        flex-direction: column;
+        gap: var(--wam-spacing-xl);
+    }
+
+    .section-signature__photo-wrapper {
+        width: 100%;
+        height: auto;
+        aspect-ratio: 16/9;
+    }
 }

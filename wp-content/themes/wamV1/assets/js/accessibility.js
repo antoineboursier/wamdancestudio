@@ -172,6 +172,24 @@
 
         /* ----- Sync initiale ----- */
         syncUI();
+
+        /* ----- Mode icône au scroll ----- */
+        const triggerWrap = document.getElementById('wam-a11y-trigger-wrap');
+        if (triggerWrap) {
+            const SCROLL_THRESHOLD = 80;
+            const ICON_CLASS = 'wam-a11y-trigger-wrap--icon';
+
+            function updateIconMode() {
+                if (window.scrollY > SCROLL_THRESHOLD) {
+                    triggerWrap.classList.add(ICON_CLASS);
+                } else {
+                    triggerWrap.classList.remove(ICON_CLASS);
+                }
+            }
+
+            window.addEventListener('scroll', updateIconMode, { passive: true });
+            updateIconMode();
+        }
     });
 
 })();

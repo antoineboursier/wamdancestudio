@@ -1,0 +1,308 @@
+/**
+ * planning.css — Page Planning hebdomadaire des cours
+ *
+ * Vue grille CSS lun→dim positionnant chaque cours par heure de début/fin.
+ * Dépend de cours-stages.css (breadcrumb, is-style-title-*, variables tokens).
+ *
+ * Granularité : 15 min = 1 grid-row = 20px (1h = 4 rows = 80px).
+ * Plage : 8h00 → 22h00 (56 rows, index 2→58, row 1 = header jours).
+ *
+ * Système de couleur des cards :
+ *   --card-accent (custom property) → color-mix() teinté sur bg-600.
+ *   Les variantes (enfant, complet) ne redéclarent que --card-accent.
+ *
+ * @package wamv1
+ */
+
+/* ===============================================
+   PAGE LAYOUT
+   =============================================== */
+
+.page-planning {
+    padding-block: var(--wam-spacing-3xl);
+}
+
+.page-planning__header {
+    display: flex;
+    flex-direction: column;
+    gap: var(--wam-spacing-sm);
+    margin-bottom: var(--wam-spacing-xl);
+}
+
+.page-planning__desc {
+    font-family: var(--wam-font-body);
+    font-size: var(--wam-font-size-sm);
+    color: var(--wp--preset--color--text-subtext);
+    max-width: 56ch;
+}
+
+/* ===============================================
+   LÉGENDE / FILTRES
+   =============================================== */
+
+.planning-legend {
+    display: flex;
+    align-items: center;
+    gap: var(--wam-spacing-xs);
+    flex-wrap: wrap;
+    margin: 0 0 var(--wam-spacing-xl);
+}
+
+/* Bouton-filtre : la légende est aussi le système de filtrage */
+.planning-legend__item {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--wam-spacing-2xs);
+    padding: var(--wam-spacing-2xs) var(--wam-spacing-xs);
+    border-radius: var(--wam-radius-sm);
+    border: 1px solid transparent;
+    background: none;
+    font-family: var(--wam-font-body);
+    font-size: var(--wam-font-size-xs);
+    color: var(--wp--preset--color--text-subtext);
+    cursor: pointer;
+    transition:
+        background var(--wam-transition),
+        border-color var(--wam-transition),
+        color var(--wam-transition);
+}
+
+.planning-legend__item:hover {
+    background: var(--wp--preset--color--background-600);
+    color: var(--wp--preset--color--text-normal);
+}
+
+/* État actif — filtre sélectionné */
+.planning-legend__item.is-active {
+    background: var(--wp--preset--color--background-600);
+    border-color: var(--wp--preset--color--background-500);
+    color: var(--wp--preset--color--text-normal);
+    font-weight: 700;
+}
+
+/* Échantillon de couleur (miniature de card) */
+.planning-legend__dot {
+    --dot-accent: var(--wam-color-yellow);
+    width: 28px;
+    height: 14px;
+    border-radius: var(--wam-radius-xs);
+    background: color-mix(in srgb, var(--dot-accent) 20%, var(--wp--preset--color--background-600));
+    border: 1px solid color-mix(in srgb, var(--dot-accent) 40%, transparent);
+    flex-shrink: 0;
+    transition: background var(--wam-transition);
+}
+
+.planning-legend__item.is-active .planning-legend__dot {
+    /* Plus saturé quand le filtre est actif */
+    background: color-mix(in srgb, var(--dot-accent) 40%, var(--wp--preset--color--background-600));
+}
+
+.planning-legend__dot--standard { --dot-accent: var(--wam-color-yellow); }
+.planning-legend__dot--enfant   { --dot-accent: var(--wam-color-pink); }
+.planning-legend__dot--complet  { --dot-accent: var(--wam-color-orange); }
+
+/* ===============================================
+   SCROLL WRAPPER
+   =============================================== */
+
+.planning-scroll-wrapper {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    border-radius: var(--wam-radius-xl);
+    border: 1px solid var(--wp--preset--color--background-500);
+    background: var(--wp--preset--color--background-800);
+}
+
+/* ===============================================
+   GRILLE PRINCIPALE
+   =============================================== */
+
+.planning-grid {
+    display: grid;
+    /* Col 1 : labels horaires (60px) | Cols 2-8 : jours (flexibles, min 120px) */
+    grid-template-columns: 60px repeat(7, minmax(120px, 1fr));
+    /* grid-template-rows défini en inline PHP (dynamique) */
+    position: relative;
+    min-width: 780px;
+}
+
+/* ---- Coin supérieur gauche ---- */
+.planning-corner {
+    position: sticky;
+    left: 0;
+    top: 0;
+    z-index: 12;
+    background: var(--wp--preset--color--background-800);
+    border-right: 1px solid var(--wp--preset--color--background-500);
+    border-bottom: 1px solid var(--wp--preset--color--background-500);
+}
+
+/* ---- En-têtes jours ---- */
+.planning-header-day {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding-block: var(--wam-spacing-sm);
+    padding-inline: var(--wam-spacing-xs);
+    font-family: var(--wam-font-body);
+    font-size: var(--wam-font-size-sm);
+    font-weight: 700;
+    color: var(--wp--preset--color--text-normal);
+    background: var(--wp--preset--color--background-800);
+    border-bottom: 1px solid var(--wp--preset--color--background-500);
+    border-right: 1px solid var(--wp--preset--color--background-500);
+    position: sticky;
+    top: 0;
+    z-index: 10;
+}
+
+/* ---- Labels horaires (col 1) ---- */
+.planning-time-label {
+    grid-column: 1;
+    display: flex;
+    align-items: flex-start;
+    justify-content: flex-end;
+    padding-right: var(--wam-spacing-xs);
+    font-family: var(--wam-font-body);
+    font-size: var(--wam-font-size-xs);
+    color: var(--wp--preset--color--text-disabled);
+    line-height: 1;
+    /*
+     * translateY(-0.5em) aligne le label avec la bordure supérieure du row
+     * (même trick que les grilles de type Google Calendar).
+     */
+    transform: translateY(-0.5em);
+    position: sticky;
+    left: 0;
+    background: var(--wp--preset--color--background-800);
+    border-right: 1px solid var(--wp--preset--color--background-500);
+    z-index: 5;
+}
+
+/* ---- Lignes horizontales d'heure ---- */
+.planning-hour-line {
+    grid-column: 2 / -1;
+    border-top: 1px solid var(--wp--preset--color--background-500);
+    pointer-events: none;
+}
+
+/* ===============================================
+   CARD COURS DANS LE PLANNING
+   =============================================== */
+
+/*
+ * Système --card-accent :
+ * Toutes les variantes (enfant, complet) ne font que changer --card-accent.
+ * Le background et la border sont calculés via color-mix() depuis cette valeur.
+ */
+.planning-card {
+    --card-accent: var(--wam-color-yellow);
+
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    overflow: hidden;
+    margin: 2px 3px;
+    padding: var(--wam-spacing-2xs) var(--wam-spacing-xs);
+    border-radius: var(--wam-radius-sm);
+    background: color-mix(in srgb, var(--card-accent) 15%, var(--wp--preset--color--background-600));
+    border: 1px solid color-mix(in srgb, var(--card-accent) 35%, transparent);
+    text-decoration: none;
+    transition:
+        background var(--wam-transition),
+        box-shadow var(--wam-transition),
+        transform var(--wam-transition),
+        opacity var(--wam-transition);
+    z-index: 1;
+    min-height: 0;
+}
+
+.planning-card:hover,
+.planning-card:focus-visible {
+    background: color-mix(in srgb, var(--card-accent) 30%, var(--wp--preset--color--background-600));
+    box-shadow: var(--wam-shadow-md);
+    transform: scale(1.02);
+    z-index: 5;
+    outline: none;
+}
+
+/* Variante enfants — accent pink */
+.planning-card--enfant {
+    --card-accent: var(--wam-color-pink);
+}
+
+/* Variante cours complet — accent orange, légèrement atténué */
+.planning-card--complet {
+    --card-accent: var(--wam-color-orange);
+    opacity: 0.6;
+}
+
+/* Atténuation par le filtre JS — carte toujours visible et cliquable */
+.planning-card--hidden {
+    opacity: 0.15;
+}
+
+/* ---- Contenu de la card ---- */
+
+.planning-card__title {
+    font-family: var(--wam-font-body);
+    font-size: var(--wam-font-size-xs); /* 14px */
+    font-weight: 700;
+    color: var(--wp--preset--color--text-normal);
+    line-height: 1.2;
+    overflow: hidden;
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+}
+
+.planning-card__subtitle {
+    font-family: var(--wam-font-body);
+    font-size: 12px;
+    color: var(--wp--preset--color--text-subtext);
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+}
+
+.planning-card__time {
+    font-family: var(--wam-font-body);
+    font-size: 12px;
+    font-weight: 700;
+    /*
+     * La couleur du temps reprend --card-accent via color-mix :
+     * légèrement éclairci pour être lisible sur le fond teinté.
+     */
+    color: color-mix(in srgb, var(--card-accent) 80%, var(--wp--preset--color--text-normal));
+    margin-top: auto;
+    white-space: nowrap;
+}
+
+/* Badge "Complet" */
+.planning-card__complet-badge {
+    position: absolute;
+    top: 4px;
+    right: 4px;
+    font-family: var(--wam-font-body);
+    font-size: 10px;
+    font-weight: 700;
+    color: var(--wp--preset--color--background-800);
+    background: var(--wam-color-orange);
+    padding: 2px 5px;
+    border-radius: var(--wam-radius-xs);
+    line-height: 1;
+    white-space: nowrap;
+}
+
+/* ===============================================
+   ÉTAT VIDE
+   =============================================== */
+
+.planning-empty {
+    font-family: var(--wam-font-body);
+    font-size: var(--wam-font-size-sm);
+    color: var(--wp--preset--color--text-subtext);
+    padding: var(--wam-spacing-2xl);
+    text-align: center;
+}

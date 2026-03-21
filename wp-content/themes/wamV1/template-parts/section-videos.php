@@ -16,51 +16,49 @@ $videos = array(
     'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerFun.mp4',
 );
 ?>
-<section class="section-videos relative w-full pb-6" aria-label="<?php esc_attr_e('Nos danses en vidéo', 'wamv1'); ?>">
+<section class="section-videos" aria-label="<?php esc_attr_e('Nos danses en vidéo', 'wamv1'); ?>">
 
-    <div class="videos-wrapper relative grid gap-3 max-w-[920px] mx-auto items-stretch">
+    <div class="videos-wrapper">
 
-        <?php /* Colonne gauche : 2 vidéos empilées + text */ ?>
-        <div class="videos-col videos-col--left flex flex-col gap-3">
-            <div class="video-card rounded-wam-2xl overflow-hidden relative bg-wam-bg600 flex-1">
-                <video src="<?php echo esc_url($videos[0]); ?>" class="w-full h-full object-cover block min-h-[160px]"
+        <?php /* Colonne gauche : 2 vidéos empilées + titre "We are move" */ ?>
+        <div class="videos-col videos-col--left">
+            <div class="video-card video-card--v1">
+                <video src="<?php echo esc_url($videos[0]); ?>"
                     autoplay muted loop playsinline
                     aria-label="<?php esc_attr_e('Vidéo de danse 1', 'wamv1'); ?>"></video>
             </div>
-            <div class="videos-title flex flex-col items-center justify-center text-center pointer-events-none px-6 min-w-[200px]"
-                aria-hidden="true">
+            <div class="videos-title" aria-hidden="true">
                 <?php /* "We are" — .title-cool-lg */ ?>
-                <span class="title-cool-lg text-wam-text block">We are</span>
+                <span class="title-cool-lg videos-title__we-are">We are</span>
                 <?php /* "move" — Cholo Rhita 100px yellow — style inline car taille hors token */ ?>
-                <span class="font-cholo text-wam-yellow block leading-none"
-                    style="font-size: 6.25rem; font-style: normal;">move</span>
+                <span class="videos-title__move" style="font-size: 6.25rem;">move</span>
             </div>
-            <div class="video-card rounded-wam-2xl overflow-hidden relative bg-wam-bg600 flex-1 max-w-[200px]">
-                <video src="<?php echo esc_url($videos[2]); ?>" class="w-full h-full object-cover block min-h-[160px]"
+            <div class="video-card video-card--v3">
+                <video src="<?php echo esc_url($videos[2]); ?>"
                     autoplay muted loop playsinline
                     aria-label="<?php esc_attr_e('Vidéo de danse 3', 'wamv1'); ?>"></video>
             </div>
         </div>
 
-        <?php /* Colonne droite : 2 vidéos empilées */ ?>
-        <div class="videos-col videos-col--right flex flex-col gap-3">
-            <?php /* Bouton pause vidéos */ ?>
-            <div class="videos-pause-wrapper absolute -top-2 -right-2 z-10">
+        <?php /* Colonne droite : 2 vidéos empilées + bouton pause */ ?>
+        <div class="videos-col videos-col--right">
+            <?php /* Bouton pause — positionné en absolu dans la colonne */ ?>
+            <div class="videos-pause-wrapper">
                 <button id="pause-videos" class="btn-pause" aria-pressed="false" type="button">
-                    <span class="btn-icon w-2.5 h-2.5"
+                    <span class="btn-icon btn-icon--xs"
                         style="--icon-url: url('<?php echo esc_url($icon_dir . 'pause.svg'); ?>');" aria-hidden="true"
                         id="pause-videos-icon">
                     </span>
                     <span><?php esc_html_e("Mettre en pause les vidéos", 'wamv1'); ?></span>
                 </button>
             </div>
-            <div class="video-card rounded-wam-2xl overflow-hidden relative bg-wam-bg600 flex-1">
-                <video src="<?php echo esc_url($videos[1]); ?>" class="w-full h-full object-cover block min-h-[160px]"
+            <div class="video-card video-card--v2">
+                <video src="<?php echo esc_url($videos[1]); ?>"
                     autoplay muted loop playsinline
                     aria-label="<?php esc_attr_e('Vidéo de danse 2', 'wamv1'); ?>"></video>
             </div>
-            <div class="video-card rounded-wam-2xl overflow-hidden relative bg-wam-bg600 flex-1 mt-3">
-                <video src="<?php echo esc_url($videos[3]); ?>" class="w-full h-full object-cover block min-h-[160px]"
+            <div class="video-card video-card--v4">
+                <video src="<?php echo esc_url($videos[3]); ?>"
                     autoplay muted loop playsinline
                     aria-label="<?php esc_attr_e('Vidéo de danse 4', 'wamv1'); ?>"></video>
             </div>

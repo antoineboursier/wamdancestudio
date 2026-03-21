@@ -3,38 +3,44 @@
    Variables héritées du design system
    ===================================================== */
 
+:root {
+    /* Couleur light bg pour l'aperçu du swatch — absente de theme.json, valeur statique intentionnelle */
+    --wam-a11y-light-bg: #f9f6f1;
+}
+
 /* =====================================
    BOUTON FLOTTANT
    ===================================== */
 .wam-a11y-trigger-wrap {
     position: fixed;
-    bottom: var(--wp--preset--spacing--xl);
-    right: var(--wp--preset--spacing--xl);
+    bottom: var(--wam-spacing-xl);
+    right: var(--wam-spacing-xl);
     z-index: 9000;
     display: flex;
     flex-direction: column;
     align-items: flex-end;
-    gap: var(--wp--preset--spacing--xs);
+    gap: var(--wam-spacing-xs);
 }
 
 .wam-a11y-trigger {
     display: inline-flex;
     align-items: center;
-    gap: var(--wp--preset--spacing--2xs);
+    gap: var(--wam-spacing-2xs);
     /* 8px */
-    padding: var(--wp--preset--spacing--sm) var(--wp--preset--spacing--lg);
+    padding: var(--wam-spacing-sm) var(--wam-spacing-lg);
     /* 16px 24px */
     background: var(--wp--preset--color--background-600);
     border: 1px solid var(--wp--preset--color--background-500);
     border-radius: 999px;
     /* pill */
     color: var(--wp--preset--color--text-subtext);
-    font-family: var(--wp--preset--font-family--outfit);
-    font-size: 14px;
+    font-size: var(--wam-font-size-sm);
     cursor: pointer;
-    box-shadow: 0 8px 32px rgba(6, 8, 14, 0.5);
-    transition: background 0.2s ease, border-color 0.2s ease, color 0.2s ease;
+    box-shadow: var(--wam-shadow-md);
+    transition: background 0.2s ease, border-color 0.2s ease, color 0.2s ease,
+                padding 0.3s ease;
     white-space: nowrap;
+    overflow: hidden;
 }
 
 .wam-a11y-trigger:hover,
@@ -52,17 +58,18 @@
     text-decoration: none;
     display: inline-flex;
     align-items: center;
-    gap: var(--wp--preset--spacing--2xs);
-    padding: var(--wp--preset--spacing--sm) var(--wp--preset--spacing--lg);
+    gap: var(--wam-spacing-2xs);
+    padding: var(--wam-spacing-sm) var(--wam-spacing-lg);
     background: var(--wp--preset--color--background-600);
     border: 1px solid var(--wp--preset--color--background-500);
     border-radius: 999px;
     color: var(--wp--preset--color--text-subtext);
-    font-family: var(--wp--preset--font-family--outfit);
-    font-size: 14px;
+    font-size: var(--wam-font-size-sm);
     cursor: pointer;
-    box-shadow: 0 8px 32px rgba(6, 8, 14, 0.5);
-    transition: background 0.2s ease, border-color 0.2s ease, color 0.2s ease, transform 0.2s ease;
+    box-shadow: var(--wam-shadow-md);
+    transition: background 0.2s ease, border-color 0.2s ease, color 0.2s ease,
+                transform 0.2s ease, padding 0.3s ease;
+    overflow: hidden;
 }
 
 .wam-edit-trigger:hover {
@@ -71,6 +78,35 @@
 
 .wam-a11y-trigger__label {
     display: inline;
+    max-width: 120px;
+    opacity: 1;
+    transition: max-width 0.3s ease, opacity 0.2s ease;
+    overflow: hidden;
+}
+
+/* Mode icône : label masqué, bouton réduit à un carré */
+.wam-a11y-trigger-wrap--icon .wam-a11y-trigger__label,
+.wam-a11y-trigger-wrap--icon .wam-edit-trigger .wam-a11y-trigger__label {
+    max-width: 0;
+    opacity: 0;
+}
+
+.wam-a11y-trigger-wrap--icon .wam-a11y-trigger,
+.wam-a11y-trigger-wrap--icon .wam-edit-trigger {
+    padding: var(--wam-spacing-sm);
+}
+
+/* Mobile : toujours en mode icône dès le départ */
+@media (max-width: 767px) {
+    .wam-a11y-trigger__label {
+        max-width: 0;
+        opacity: 0;
+    }
+
+    .wam-a11y-trigger,
+    .wam-edit-trigger {
+        padding: var(--wam-spacing-sm);
+    }
 }
 
 /* =====================================
@@ -94,12 +130,12 @@
    ===================================== */
 .wam-a11y-panel {
     position: fixed;
-    bottom: calc(var(--wp--preset--spacing--xl) + 56px);
+    bottom: calc(var(--wam-spacing-xl) + 56px);
     /* au-dessus du bouton */
-    right: var(--wp--preset--spacing--xl);
+    right: var(--wam-spacing-xl);
     z-index: 9100;
     width: 360px;
-    max-width: calc(100vw - 2 * var(--wp--preset--spacing--xl));
+    max-width: calc(100vw - 2 * var(--wam-spacing-xl));
     max-height: calc(100vh - 120px);
     overflow-y: auto;
     display: flex;
@@ -108,9 +144,8 @@
     background: var(--wp--preset--color--background-600);
     border: 1px solid var(--wp--preset--color--background-500);
     border-radius: 20px;
-    box-shadow: 0 16px 64px rgba(6, 8, 14, 0.65);
+    box-shadow: var(--wam-shadow-panel);
 
-    font-family: var(--wp--preset--font-family--outfit);
     color: var(--wp--preset--color--text-normal);
 
     /* Animation d'ouverture */
@@ -140,7 +175,7 @@
     display: flex;
     align-items: center;
     justify-content: space-between;
-    padding: var(--wp--preset--spacing--lg) var(--wp--preset--spacing--lg) var(--wp--preset--spacing--sm);
+    padding: var(--wam-spacing-lg) var(--wam-spacing-lg) var(--wam-spacing-sm);
     border-bottom: 1px solid var(--wp--preset--color--background-500);
     position: sticky;
     top: 0;
@@ -150,8 +185,8 @@
 }
 
 .wam-a11y-panel__title {
-    font-family: 'Mallia', serif;
-    font-size: 20px;
+    font-family: var(--wam-font-graphical-1);
+    font-size: var(--wam-font-size-lg);
     font-style: normal;
     line-height: 1.1;
     margin: 0;
@@ -164,7 +199,7 @@
     justify-content: center;
     width: 32px;
     height: 32px;
-    background: rgba(249, 244, 236, 0.06);
+    background: var(--wam-color-glass-white);
     border: none;
     border-radius: 8px;
     cursor: pointer;
@@ -172,7 +207,7 @@
 }
 
 .wam-a11y-panel__close:hover {
-    background: rgba(249, 244, 236, 0.14);
+    background: var(--wam-color-glass-white-hover);
 }
 
 .wam-a11y-panel__close img {
@@ -189,7 +224,7 @@
     display: flex;
     flex-direction: column;
     gap: 0;
-    padding: var(--wp--preset--spacing--sm) 0;
+    padding: var(--wam-spacing-sm) 0;
     overflow-y: auto;
 }
 
@@ -198,7 +233,7 @@
    ===================================== */
 .a11y-group {
     border: none;
-    padding: var(--wp--preset--spacing--sm) var(--wp--preset--spacing--lg);
+    padding: var(--wam-spacing-sm) var(--wam-spacing-lg);
     margin: 0;
     border-bottom: 1px solid var(--wp--preset--color--background-500);
     display: flex;
@@ -212,7 +247,7 @@
 
 .a11y-group__legend {
     font-weight: 700;
-    font-size: 14px;
+    font-size: var(--wam-font-size-sm);
     color: var(--wp--preset--color--text-normal);
     padding: 0;
     float: left;
@@ -222,7 +257,7 @@
 }
 
 .a11y-group__desc {
-    font-size: 12px;
+    font-size: var(--wam-font-size-xs);
     color: var(--wp--preset--color--text-disabled);
     margin: 0;
     line-height: 1.4;
@@ -242,11 +277,11 @@
     align-items: center;
     gap: 6px;
     padding: 6px 12px;
-    background: rgba(249, 244, 236, 0.06);
+    background: var(--wam-color-glass-white);
     border: 1px solid transparent;
     border-radius: 10px;
     cursor: pointer;
-    font-size: 14px;
+    font-size: var(--wam-font-size-sm);
     color: var(--wp--preset--color--text-subtext);
     line-height: 1.25;
     transition: background 0.15s ease, border-color 0.15s ease, color 0.15s ease;
@@ -254,7 +289,7 @@
 }
 
 .a11y-toggle-btn:hover {
-    background: rgba(249, 244, 236, 0.1);
+    background: var(--wam-color-glass-white-hover);
     color: var(--wp--preset--color--text-normal);
 }
 
@@ -269,7 +304,7 @@
 
 /* État actif (radio sélectionné) */
 .a11y-toggle-btn:has(input[type="radio"]:checked) {
-    background: rgba(1, 227, 189, 0.12);
+    background: var(--wam-color-glass-green);
     border-color: var(--wp--preset--color--accent-green);
     color: var(--wp--preset--color--text-normal);
 }
@@ -288,7 +323,7 @@
 }
 
 .a11y-toggle-btn__swatch--light {
-    background: #f9f6f1;
+    background: var(--wam-a11y-light-bg);
 }
 
 /* =====================================
@@ -317,7 +352,7 @@
     display: block;
     width: 40px;
     height: 22px;
-    background: rgba(249, 244, 236, 0.12);
+    background: var(--wam-color-glass-white-hover);
     border: 1px solid rgba(249, 244, 236, 0.15);
     border-radius: 999px;
     position: relative;
@@ -353,7 +388,7 @@
 }
 
 .a11y-switch-row__label {
-    font-size: 14px;
+    font-size: var(--wam-font-size-sm);
     color: var(--wp--preset--color--text-normal);
     line-height: 1.4;
 }
@@ -368,8 +403,7 @@
     border: 1px solid var(--wp--preset--color--background-500);
     border-radius: 10px;
     color: var(--wp--preset--color--text-normal);
-    font-family: var(--wp--preset--font-family--outfit);
-    font-size: 14px;
+    font-size: var(--wam-font-size-sm);
     cursor: pointer;
     appearance: none;
     -webkit-appearance: none;
@@ -398,7 +432,7 @@
     display: flex;
     align-items: center;
     justify-content: space-between;
-    padding: var(--wp--preset--spacing--sm) var(--wp--preset--spacing--lg);
+    padding: var(--wam-spacing-sm) var(--wam-spacing-lg);
     border-top: 1px solid var(--wp--preset--color--background-500);
     background: var(--wp--preset--color--background-600);
     border-radius: 0 0 20px 20px;

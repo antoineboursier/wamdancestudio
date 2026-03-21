@@ -6,13 +6,13 @@
 get_header();
 $icon_dir = get_template_directory_uri() . '/assets/images/';
 ?>
-<?php get_template_part('template-parts/site-header', null, array('variant' => 'home')); ?>
+<?php get_template_part('template-parts/site-header'); ?>
 
-<main id="primary" class="site-main flex flex-col items-center w-full bg-wam-bg800">
+<main id="primary" class="site-main">
 
     <?php get_template_part('template-parts/hero-home'); ?>
 
-    <div class="flex flex-col items-center gap-14 py-12 w-full">
+    <div class="page-home__main">
 
         <?php
         /*
@@ -23,32 +23,40 @@ $icon_dir = get_template_directory_uri() . '/assets/images/';
         ?>
 
         <?php /* Raccourcis de navigation : liens rapides vers les sections principales */ ?>
-        <nav id="section-nav-shortcuts" class="flex flex-col items-center gap-6 w-full" aria-label="<?php esc_attr_e('Raccourcis', 'wamv1'); ?>">
+        <nav id="section-nav-shortcuts" class="section-buttons"
+            aria-label="<?php esc_attr_e('Raccourcis', 'wamv1'); ?>">
 
-            <div class="flex items-center justify-center gap-4 flex-wrap">
-                <a href="#cours" class="btn-primary" id="btn-cours-hebdo">
-                    <?php esc_html_e('Cours hebdo', 'wamv1'); ?>
-                    <span class="btn-icon w-3 h-3" style="--icon-url: url('<?php echo esc_url($icon_dir . 'chevron right.svg'); ?>');" aria-hidden="true"></span>
+            <div class="section-buttons__row">
+                <a href="<?php echo esc_url(home_url('/cours-collectifs/')); ?>" class="btn-primary" id="btn-cours-hebdo">
+                    <?php esc_html_e('Cours de danse collectifs', 'wamv1'); ?>
+                    <span class="btn-icon btn-icon--sm"
+                        style="--icon-url: url('<?php echo esc_url($icon_dir . 'chevron right.svg'); ?>');"
+                        aria-hidden="true"></span>
                 </a>
-                <a href="#stages" class="btn-secondary" id="btn-stages">
-                    <?php esc_html_e('Stages / ateliers / workshop', 'wamv1'); ?>
-                    <span class="btn-icon w-3 h-3" style="--icon-url: url('<?php echo esc_url($icon_dir . 'chevron right.svg'); ?>');" aria-hidden="true"></span>
+                <a href="<?php echo esc_url(home_url('/stages-workshop-ateliers/')); ?>" class="btn-secondary" id="btn-stages">
+                    <?php esc_html_e('Stages & Workshop', 'wamv1'); ?>
+                    <span class="btn-icon btn-icon--sm"
+                        style="--icon-url: url('<?php echo esc_url($icon_dir . 'chevron right.svg'); ?>');"
+                        aria-hidden="true"></span>
                 </a>
             </div>
 
-            <div class="flex items-center justify-center gap-4 flex-wrap">
+            <div class="section-buttons__row">
                 <?php
                 $smart_btns = array(
-                    array('href' => '#ecole', 'id' => 'btn-ecole', 'label' => "L'école"),
-                    array('href' => '#particuliers', 'id' => 'btn-particuliers', 'label' => 'Cours particuliers'),
-                    array('href' => '#evjf', 'id' => 'btn-evjf', 'label' => 'EVJF / EVG'),
-                    array('href' => '#mariage', 'id' => 'btn-mariage', 'label' => 'Mariage'),
+                    array('href' => home_url('/tarifs/'), 'id' => 'btn-tarifs', 'label' => 'Nos tarifs'),
+                    array('href' => home_url('/notre-ecole-wam-dance-studio/'), 'id' => 'btn-ecole', 'label' => "L'école"),
+                    array('href' => home_url('/cours-particulier-prive/'), 'id' => 'btn-particuliers', 'label' => 'Cours particuliers'),
+                    array('href' => home_url('/evjf-evg-animation-danse/'), 'id' => 'btn-evjf', 'label' => 'EVJF / EVG'),
+                    array('href' => home_url('/choregraphie-de-mariage-ouvertures-de-bal/'), 'id' => 'btn-mariage', 'label' => 'Mariage'),
                 );
                 foreach ($smart_btns as $btn): ?>
                     <a href="<?php echo esc_url($btn['href']); ?>" class="btn-smart"
                         id="<?php echo esc_attr($btn['id']); ?>">
                         <?php echo esc_html($btn['label']); ?>
-                        <span class="btn-icon w-2.5 h-2.5" style="--icon-url: url('<?php echo esc_url($icon_dir . 'chevron right.svg'); ?>');" aria-hidden="true"></span>
+                        <span class="btn-icon btn-icon--xs"
+                            style="--icon-url: url('<?php echo esc_url($icon_dir . 'chevron right.svg'); ?>');"
+                            aria-hidden="true"></span>
                     </a>
                 <?php endforeach; ?>
             </div>
@@ -65,7 +73,7 @@ $icon_dir = get_template_directory_uri() . '/assets/images/';
         ?>
 
         <!-- Contenu éditorial Gutenberg de la page d'accueil -->
-        <div id="section-content" class="max-w-wam-content w-full mx-auto px-24 box-border">
+        <div id="section-content" class="section-content">
             <?php
             /*
              * Boucle WP standard sur le contenu de la page d'accueil (page statique définie
@@ -81,9 +89,11 @@ $icon_dir = get_template_directory_uri() . '/assets/images/';
         </div>
 
         <?php
-        get_template_part('template-parts/separator');
-        // Section professeur·es : récupère les users rôle 'professeur' et 'directrice'
+        // Section professeur·es
         get_template_part('template-parts/section-teachers');
+
+        // Section Signature (A bientôt sur le parquet)
+        get_template_part('template-parts/section-signature');
         ?>
 
     </div>

@@ -7,36 +7,86 @@
 /* =====================================================
    BOUTON — Icône commune
    ===================================================== */
+/* Icônes colorables via CSS mask — héritent de currentColor
+   Usage : <span class="btn-icon" style="--icon-url: url('chemin/icone.svg')"></span>
+   Taille : 1em par défaut — override avec width/height via style ou classe CSS */
 .btn-icon {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    width: 12px;
-    height: 12px;
+    display: inline-block;
     flex-shrink: 0;
+    background-color: currentColor;
+    -webkit-mask-image: var(--icon-url);
+    mask-image: var(--icon-url);
+    -webkit-mask-repeat: no-repeat;
+    mask-repeat: no-repeat;
+    -webkit-mask-position: center;
+    mask-position: center;
+    -webkit-mask-size: contain;
+    mask-size: contain;
+    width: var(--icon-width, var(--icon-size, 1em));
+    height: var(--icon-height, var(--icon-size, 1em));
+    /* Rendu net des masques SVG sur tous les navigateurs */
+    transform: translateZ(0);
+    -webkit-font-smoothing: antialiased;
+
 }
 
-.btn-icon--sm {
+/* Modificateurs de taille pour btn-icon (override du 1em par défaut) */
+.btn-icon--xs {
     width: 10px;
     height: 10px;
 }
 
-.btn-icon img {
-    width: 100%;
-    height: 100%;
-    display: block;
+/* w-2.5 h-2.5 — boutons pause */
+.btn-icon--sm {
+    width: 12px;
+    height: 12px;
+}
+
+/* w-3 h-3 — boutons chevron */
+.btn-icon--md {
+    width: 24px;
+    height: 24px;
+}
+
+/* w-6 h-6 — bouton fermer nav */
+
+/* =====================================================
+   EFFETS GRAPHIQUES WAM
+   ===================================================== */
+
+/**
+ * Effet "4 Layers Colors" (Shadow-stack du design Figma)
+ */
+.wam-effect-4-layers {
+    box-shadow:
+        -1px -4px 0px 0px var(--wam-color-yellow),
+        4px 6px 0px 0px var(--wam-color-pink),
+        6px -2px 0px 0px var(--wam-color-orange),
+        -5px 4px 0px 0px var(--wam-color-green);
 }
 
 /* =====================================================
    BOUTON PLAIN (Primary)
-   Figma: bg accent-yellow, texte dark, hover border green
+   Figma: bg accent-yellow, texte dark, hover border gradient animé
+   Technique : ::before pseudo-élément avec le gradient border,
+   transitionné en opacity 0→1 pour une apparition fluide.
+   Classes formulaires scopées sous .wamformcss (Gutenberg).
    ===================================================== */
-.btn-primary {
+.btn-primary,
+.wamformcss .ff-btn-submit,
+.wamformcss .ff_btn_style,
+.wamformcss form.fluent_form_3 .ff-btn-submit:not(.ff_btn_no_style),
+#mailpoet_form_1 .mailpoet_submit {
+    position: relative;
+    isolation: isolate;
+    /* ::before z-index:-1 reste dans le stacking context du bouton */
     display: inline-flex;
     align-items: center;
-    gap: var(--wp--preset--spacing--2xs);
-    padding: var(--wp--preset--spacing--sm) var(--wp--preset--spacing--xl);
-    background: var(--wam-color-yellow);
+    gap: var(--wam-spacing-2xs);
+    padding: var(--wam-spacing-sm) var(--wam-spacing-xl);
+    background-color: var(--wam-color-yellow);
+    background-clip: padding-box;
+    /* jaune s'arrête à l'inner edge — laisse le gradient border visible */
     border: 3px solid transparent;
     border-radius: var(--wam-radius-lg);
     color: var(--wp--preset--color--background-500);
@@ -48,11 +98,68 @@
     white-space: nowrap;
     line-height: 1.25;
     cursor: pointer;
-    transition: border-color var(--wam-transition), box-shadow var(--wam-transition);
+    width: fit-content;
 }
 
-.btn-primary:hover {
-    border-color: var(--wam-color-green);
+/* Gradient border — caché au repos, animé au hover.
+   Technique donut : padding = épaisseur bordure (3px), mask-composite exclut
+   la zone content-box → seul l'anneau de bordure reste visible.
+   Le fond jaune du bouton ne saigne plus sous le gradient. */
+.btn-primary::before,
+.wamformcss .ff-btn-submit::before,
+.wamformcss .ff_btn_style::before,
+.wamformcss form.fluent_form_3 .ff-btn-submit:not(.ff_btn_no_style)::before,
+#mailpoet_form_1 .mailpoet_submit::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    padding: 3px;
+    /* épaisseur = border du bouton */
+    border-radius: inherit;
+    background: var(--wam-gradient-brand);
+    -webkit-mask:
+        linear-gradient(#000 0 0) content-box,
+        linear-gradient(#000 0 0);
+    -webkit-mask-composite: destination-out;
+    mask:
+        linear-gradient(#000 0 0) content-box,
+        linear-gradient(#000 0 0);
+    mask-composite: exclude;
+    z-index: -1;
+    opacity: 0;
+    transition: opacity var(--wam-transition);
+}
+
+.btn-primary:hover::before,
+.wamformcss .ff-btn-submit:hover::before,
+.wamformcss .ff_btn_style:hover::before,
+.wamformcss form.fluent_form_3 .ff-btn-submit:hover::before,
+#mailpoet_form_1 .mailpoet_submit:hover::before {
+    opacity: 1;
+}
+
+/* Neutralise l'opacity:0.8 injecté par Fluent Forms au hover */
+.btn-primary:hover,
+.wamformcss .ff-btn-submit:hover,
+.wamformcss .ff_btn_style:hover,
+.wamformcss form.fluent_form_3 .ff-btn-submit:hover,
+#mailpoet_form_1 .mailpoet_submit:hover {
+    opacity: 1 !important;
+    background-color: var(--wam-color-yellow);
+}
+
+/* MailPoet — !important nécessaire : inline styles injectés par le plugin */
+#mailpoet_form_1 .mailpoet_submit {
+    background-color: var(--wam-color-yellow) !important;
+    background-clip: padding-box !important;
+    color: var(--wp--preset--color--background-500) !important;
+    border: 3px solid transparent !important;
+    border-radius: var(--wam-radius-lg) !important;
+    padding: var(--wam-spacing-sm) var(--wam-spacing-xl) !important;
+    font-family: var(--wam-font-body) !important;
+    font-weight: 700 !important;
+    font-size: 1.25rem !important;
+    width: fit-content !important;
 }
 
 /* Icône sombre sur fond jaune */
@@ -69,8 +176,8 @@
 .btn-outlined {
     display: inline-flex;
     align-items: center;
-    gap: var(--wp--preset--spacing--2xs);
-    padding: var(--wp--preset--spacing--sm) var(--wp--preset--spacing--xl);
+    gap: var(--wam-spacing-2xs);
+    padding: var(--wam-spacing-sm) var(--wam-spacing-xl);
     background: transparent;
     border: 2px solid var(--wam-color-yellow);
     border-radius: var(--wam-radius-lg);
@@ -86,6 +193,52 @@
     transition: background var(--wam-transition);
 }
 
+/* =====================================================
+   CHIPS (Composant global)
+   ===================================================== */
+.wam-chip {
+    border: 1px solid var(--wam-color-subtext);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: var(--wam-spacing-2xs) var(--wam-spacing-xs);
+    border-radius: var(--wam-radius-lg);
+    text-decoration: none;
+    /* Pour les chips liens */
+    transition: background var(--wam-transition), border-color var(--wam-transition);
+}
+
+.wam-chip:hover {
+    background: var(--wam-color-card-bg);
+    border-color: var(--wam-color-disabled);
+}
+
+.wam-chip__label {
+    font-size: var(--wam-font-size-sm);
+    color: var(--wam-color-subtext);
+    line-height: 1;
+}
+
+/* =====================================================
+   PROFESSEURS — Liens
+   ===================================================== */
+.prof-link {
+    text-decoration: underline;
+    color: inherit;
+    transition: color var(--wam-transition);
+}
+
+.prof-link:hover {
+    color: var(--wam-color-yellow);
+}
+
+/* =====================================================
+   ICONES — Utilitaires
+   ===================================================== */
+:root {
+    --wam-color-icon-light: var(--wam-color-subtext);
+}
+
 .btn-secondary:hover,
 .btn-outlined:hover {
     background: var(--wam-color-glass-yellow);
@@ -99,8 +252,8 @@
 .btn-smart {
     display: inline-flex;
     align-items: center;
-    gap: var(--wp--preset--spacing--2xs);
-    padding: var(--wp--preset--spacing--2xs) var(--wp--preset--spacing--sm);
+    gap: var(--wam-spacing-2xs);
+    padding: var(--wam-spacing-2xs) var(--wam-spacing-sm);
     background: var(--wam-color-glass-white);
     border: 1px solid transparent;
     border-radius: var(--wam-radius-md);
@@ -128,22 +281,53 @@
 .btn-pause {
     display: inline-flex;
     align-items: center;
-    gap: 8px;
-    background: var(--wam-color-glass-white);
+    gap: var(--wam-spacing-xs);
+    background: transparent;
     border: none;
     border-radius: var(--wam-radius-sm);
-    padding: 8px;
+    padding: 0;
     color: var(--wam-color-disabled);
-    font-family: var(--wam-font-body);
-    font-size: 0.875rem;
-    /* 14px */
+    font-size: var(--wam-font-size-sm);
     cursor: pointer;
-    transition: background var(--wam-transition);
-    line-height: 1.25;
+    transition: color var(--wam-transition);
 }
 
 .btn-pause:hover {
     background: var(--wam-color-glass-white-hover);
+}
+
+/* Variante : btn-icon (mask) à l'intérieur d'un btn-pause (ex: bouton fermer nav) */
+.btn-pause .btn-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    border-radius: var(--wam-radius-sm);
+    background-color: var(--wam-color-glass-white);
+    mask-image: none;
+    -webkit-mask-image: none;
+    transition: background-color var(--wam-transition);
+}
+
+.btn-pause .btn-icon::after {
+    content: '';
+    width: 14px;
+    height: 14px;
+    background-color: currentColor;
+    mask-image: var(--icon-url);
+    -webkit-mask-image: var(--icon-url);
+    mask-size: contain;
+    mask-repeat: no-repeat;
+    mask-position: center;
+}
+
+.btn-pause:hover .btn-icon {
+    background-color: var(--wam-color-glass-white-hover);
+}
+
+.btn-pause:hover {
+    color: var(--wam-color-text);
 }
 
 .btn-pause__icon {
@@ -193,9 +377,9 @@ html.wam-theme-light .btn-outlined {
     z-index: var(--wam-z-header);
     width: 100%;
     /* Léger fond flou pour lisibilité en scroll */
-    backdrop-filter: blur(6px);
-    -webkit-backdrop-filter: blur(6px);
-    background: rgba(19, 22, 32, 0.7);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    background: var(--wam-color-overlay-dark);
     border-bottom: 1px solid transparent;
     transition: border-color var(--wam-transition), background var(--wam-transition);
 }
@@ -210,21 +394,33 @@ html.wam-theme-light .btn-outlined {
     border-bottom: none !important;
 }
 
+.wam-header__separator {
+    width: 100%;
+    height: 32px;
+    flex-shrink: 0;
+    background-color: var(--wam-color-page-bg);
+    background-image: var(--wam-pattern-dark-url);
+    background-size: 800px;
+    background-repeat: repeat;
+    background-position: top;
+}
+
 .wam-header__inner {
     display: flex;
     align-items: center;
     justify-content: space-between;
     max-width: var(--wam-max-screen);
     margin: 0 auto;
-    padding: var(--wp--preset--spacing--lg) var(--wam-page-mx);
-    gap: var(--wp--preset--spacing--xl);
+    padding: var(--wam-spacing-lg) var(--wam-page-mx);
+    gap: var(--wam-spacing-xl);
 }
 
-/* Logo */
+/* Logo — drop-shadow CSS (remplace le filtre Figma supprimé du SVG pour rendu full-res) */
 .wam-header__logo {
-    height: 58px;
+    height: 60px;
     width: auto;
     display: block;
+    filter: drop-shadow(0px 4px 8px rgba(33, 44, 80, 0.5));
 }
 
 .wam-header__logo-text {
@@ -233,21 +429,48 @@ html.wam-theme-light .btn-outlined {
     display: block;
 }
 
+/* Lien logo */
+.wam-header__logo-link {
+    display: flex;
+    align-items: center;
+    transition: opacity var(--wam-transition);
+}
+
+.wam-header__logo-link:hover {
+    opacity: 0.8;
+}
+
+/* "DANCE\nSTUDIO" — texte à droite du logo (center-forced) */
+.wam-header__logo-subtitle {
+    height: 16px;
+    width: auto;
+    display: block;
+}
+
+/* Spacer transparent homepage (compense le logo masqué) */
+.wam-header__logo-spacer {
+    width: 164px;
+}
+
+/* Label "Menu" dans le bouton burger */
+.wam-header__menu-label {
+    letter-spacing: 0.05em;
+    /* tracking-wider */
+}
+
 /* Bouton menu burger pill */
 .wam-header__menu-btn {
     display: inline-flex;
     align-items: center;
-    gap: var(--wp--preset--spacing--sm);
-    padding: var(--wp--preset--spacing--sm) var(--wp--preset--spacing--lg);
+    gap: var(--wam-spacing-sm);
+    padding: var(--wam-spacing-sm) var(--wam-spacing-lg);
     background: var(--wp--preset--color--background-600);
     border: 1px solid var(--wp--preset--color--background-500);
-    border-radius: var(--wam-radius-pill);
+    border-radius: var(--wam-radius-xl);
     cursor: pointer;
     box-shadow: var(--wam-shadow-card);
     color: var(--wam-color-subtext);
-    font-family: var(--wam-font-body);
-    font-size: 0.875rem;
-    /* 14px */
+    font-size: var(--wam-font-size-sm);
     text-decoration: none;
     transition: background var(--wam-transition), border-color var(--wam-transition);
 }
@@ -292,7 +515,7 @@ html.wam-theme-light .btn-outlined {
    COMPATIBILITÉ A11Y — Header
    ===================================================== */
 html.wam-theme-light .wam-header {
-    background: rgba(249, 246, 241, 0.9);
+    background: var(--wam-color-overlay-light);
 }
 
 html.wam-theme-light .wam-header--home {
@@ -306,9 +529,10 @@ html.wam-theme-light .wam-header--home {
    ===================================================== */
 .card-article {
     display: flex;
-    align-items: stretch;
-    gap: var(--wp--preset--spacing--sm);
-    padding: var(--wp--preset--spacing--2xs);
+    align-items: center;
+    /* Centrage vertical de l'image et du corps */
+    gap: var(--wam-spacing-sm);
+    padding: var(--wam-spacing-2xs);
     border-radius: var(--wam-radius-3xl);
     border: 2px solid transparent;
     background:
@@ -323,9 +547,10 @@ html.wam-theme-light .wam-header--home {
     border-color: var(--wam-color-green);
 }
 
-/* Thumbnail 233px */
+/* Thumbnail Figma : 400×196 (card-article-featured.php) */
 .card-article__image {
-    width: 233px;
+    width: 400px;
+    height: 196px;
     flex-shrink: 0;
     border-radius: var(--wam-radius-xl);
     overflow: hidden;
@@ -333,12 +558,15 @@ html.wam-theme-light .wam-header--home {
     background: var(--wam-color-input-bg);
 }
 
+.card-article__image .photo-wrapper {
+    height: 100%;
+}
+
 .card-article__image img {
     width: 100%;
     height: 100%;
     object-fit: cover;
     display: block;
-    mix-blend-mode: luminosity;
 }
 
 .card-article__image-placeholder {
@@ -352,12 +580,11 @@ html.wam-theme-light .wam-header--home {
     flex: 1;
     display: flex;
     flex-direction: column;
-    justify-content: space-between;
-    gap: var(--wp--preset--spacing--sm);
-    padding: var(--wp--preset--spacing--lg);
+    justify-content: center;
+    gap: var(--wam-spacing-sm);
+    padding: var(--wam-spacing-lg);
 }
 
-/* Titre : Cholo Rhita 48px vert — Figma node 224:7806 */
 .card-article__title {
     font-family: var(--wam-font-graphical-2);
     font-size: clamp(2rem, 4vw, 3rem);
@@ -372,19 +599,20 @@ html.wam-theme-light .wam-header--home {
     display: flex;
     align-items: flex-end;
     justify-content: space-between;
-    gap: var(--wp--preset--spacing--2xl);
+    gap: var(--wam-spacing-2xl);
     width: 100%;
 }
 
-/* Excerpt — Outfit 14px */
+/* Excerpt — utiliser .text-xs sur l'élément PHP */
 .card-article__excerpt {
     flex: 1;
-    font-family: var(--wam-font-body);
-    font-size: 0.875rem;
-    /* 14px */
     color: var(--wam-color-text);
-    line-height: 1.6;
     margin: 0;
+    display: -webkit-box;
+    -webkit-line-clamp: 4;
+    line-clamp: 4;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
 }
 
 /* Pastille notification animée */
@@ -442,14 +670,77 @@ html.wam-theme-light .wam-header--home {
 }
 
 /* =====================================================
+   GRILLE PROFS — Layout réutilisable
+   ===================================================== */
+.teachers-grid {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--wam-spacing-lg);
+    justify-content: center;
+    max-width: var(--wam-max-content);
+    width: 100%;
+    padding: 0 var(--wam-page-mx);
+    box-sizing: border-box;
+    position: relative;
+    z-index: 10;
+}
+
+/* =====================================================
+   SECTION TEACHERS — Conteneur générique
+   ===================================================== */
+.section-teachers {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: var(--wam-spacing-3xl);
+    padding: var(--wam-spacing-6xl) 0;
+    width: 100%;
+    overflow: hidden;
+    background-image: var(--wam-pattern-dark-url);
+    background-size: 50%;
+    background-repeat: repeat;
+    background-position: top center;
+}
+
+.section-teachers::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    z-index: 0;
+    background: linear-gradient(to right,
+            transparent 0%,
+            var(--wam-color-page-bg) 30%,
+            var(--wam-color-page-bg) 70%,
+            transparent 100%);
+}
+
+.section-teachers__title {
+    position: relative;
+    z-index: 10;
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+}
+
+.section-teachers__cta {
+    position: relative;
+    z-index: 10;
+}
+
+/* =====================================================
    TEACHER CARD — Carte professeur·e réutilisable
    ===================================================== */
 .teacher-card {
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: var(--wp--preset--spacing--xl);
-    padding: var(--wp--preset--spacing--sm);
+    justify-content: center;
+    gap: var(--wam-spacing-xl);
+    padding: var(--wam-spacing-sm);
     background: var(--wam-color-card-bg);
     border-radius: var(--wam-radius-lg);
     width: 240px;
@@ -475,7 +766,6 @@ html.wam-theme-light .wam-header--home {
     height: 100%;
     object-fit: cover;
     display: block;
-    mix-blend-mode: luminosity;
 }
 
 .teacher-card__photo--placeholder {
@@ -494,7 +784,7 @@ html.wam-theme-light .wam-header--home {
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: var(--wp--preset--spacing--xs);
+    gap: var(--wam-spacing-xs);
     width: 100%;
     text-align: center;
 }
@@ -510,11 +800,8 @@ html.wam-theme-light .wam-header--home {
     font-style: normal;
 }
 
-/* Spécialité : Outfit 20px, subtext */
+/* Spécialité — utiliser .text-md sur l'élément PHP */
 .teacher-card__specialty {
-    font-family: var(--wam-font-body);
-    font-size: 1.25rem;
-    /* 20px */
     color: var(--wam-color-subtext);
     margin: 0;
     line-height: 1.25;
@@ -522,11 +809,9 @@ html.wam-theme-light .wam-header--home {
 
 /* Lien icône */
 .teacher-card__link-icon {
-    width: 10px;
-    height: 10px;
     background: var(--wam-color-glass-white);
     border-radius: var(--wam-radius-sm);
-    padding: 8px;
+    padding: var(--wam-spacing-2xs);
     display: flex;
     align-items: center;
     justify-content: center;
@@ -548,7 +833,7 @@ html.wam-theme-light .wam-header--home {
    SÉPARATEUR — Pattern avec fondu vertical
    ===================================================== */
 .wam-separator {
-    height: 80px;
+    height: 120px;
     width: 100%;
     display: block;
     background-image: var(--wam-pattern-dark-url);
@@ -557,27 +842,6 @@ html.wam-theme-light .wam-header--home {
     background-position: center;
     position: relative;
     overflow: hidden;
-}
-
-.wam-separator::before,
-.wam-separator::after {
-    content: '';
-    position: absolute;
-    left: 0;
-    right: 0;
-    height: 35px;
-    pointer-events: none;
-    z-index: 1;
-}
-
-.wam-separator::before {
-    top: 0;
-    background: linear-gradient(to bottom, var(--wam-color-page-bg), transparent);
-}
-
-.wam-separator::after {
-    bottom: 0;
-    background: linear-gradient(to top, var(--wam-color-page-bg), transparent);
 }
 
 /* =====================================================
@@ -609,7 +873,7 @@ html.wam-theme-light .wam-header--home {
     content: '';
     position: absolute;
     inset: 0;
-    background: var(--wam-color-page-bg, #131620);
+    background: var(--wam-color-page-bg, var(--wp--preset--color--background-800));
     mix-blend-mode: lighten;
     pointer-events: none;
     z-index: 1;
@@ -643,4 +907,1071 @@ html.wam-no-graphical-fonts .teacher-card__name {
 html.wam-reduce-motion .card-article__notif,
 html.wam-reduce-motion .card-article__notif::after {
     animation: none !important;
+}
+
+/* =====================================================
+   MENU OVERLAY (SLIDE OVER) — Navigation principale
+   Figma : panneau latéral gauche, backdrop flouté
+   ===================================================== */
+
+.wam-nav-overlay {
+    position: fixed;
+    inset: 0;
+    background-color: var(--wam-color-overlay-dark);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    transition: opacity var(--wam-transition-slow);
+    opacity: 0;
+    pointer-events: none;
+    z-index: var(--wam-z-panel);
+}
+
+.wam-nav-overlay.wam-nav-overlay--open {
+    opacity: 1;
+    pointer-events: auto;
+}
+
+.wam-nav-panel {
+    position: absolute;
+    top: 0;
+    left: 0;
+    height: 100%;
+    width: 100%;
+    max-width: 480px;
+    box-shadow: var(--wam-shadow-panel);
+    padding: var(--wam-spacing-2xl);
+    /* 40px */
+    display: flex;
+    flex-direction: column;
+    gap: var(--wam-spacing-2xl);
+    /* 40px */
+    transition: transform 0.5s ease-out;
+    transform: translateX(-100%);
+    overflow-y: auto;
+    overflow-x: hidden;
+    background-color: var(--wam-nav-bg);
+    border-top-right-radius: 40px;
+    border-bottom-right-radius: 40px;
+    scrollbar-width: thin;
+    scrollbar-color: var(--wam-scrollbar-thumb) var(--wam-scrollbar-track);
+}
+
+.wam-nav-panel::-webkit-scrollbar {
+    width: 6px;
+}
+
+.wam-nav-panel::-webkit-scrollbar-track {
+    background: var(--wam-scrollbar-track);
+}
+
+.wam-nav-panel::-webkit-scrollbar-thumb {
+    background: var(--wam-scrollbar-thumb);
+    border-radius: 10px;
+}
+
+.wam-nav-panel::-webkit-scrollbar-thumb:hover {
+    background: var(--wam-scrollbar-thumb-hover);
+}
+
+.wam-nav-overlay.wam-nav-overlay--open .wam-nav-panel {
+    transform: translateX(0);
+}
+
+/* Bouton fermer */
+.wam-nav__close {
+    position: absolute;
+    top: var(--wam-spacing-xl);
+    /* 32px */
+    right: var(--wam-spacing-xl);
+    display: inline-flex;
+    transition: opacity var(--wam-transition), transform var(--wam-transition);
+    cursor: pointer;
+    color: var(--wam-nav-text);
+    z-index: 50;
+}
+
+.wam-nav__close:hover {
+    opacity: 0.7;
+    transform: scale(1.1);
+}
+
+/* Animation d'entrée des éléments */
+.wam-nav__anim-item {
+    opacity: 0;
+    transform: translateX(-32px);
+    transition: opacity 0.5s ease-out, transform 0.5s ease-out;
+}
+
+.wam-nav-overlay--open .wam-nav__anim-item {
+    opacity: 1;
+    transform: translateX(0);
+}
+
+/* Conteneur particules */
+.wam-nav__particles {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    z-index: 0;
+}
+
+/* Particule individuelle (positionnée par JS dans main.js) */
+.keywords-particle {
+    position: absolute;
+    width: 2px;
+    height: 2px;
+    border-radius: 50%;
+    opacity: 0;
+    will-change: transform, opacity;
+    animation: kw-float-particle var(--dur, 4s) ease-in-out var(--delay, 0s) infinite;
+}
+
+@keyframes kw-float-particle {
+    0% {
+        opacity: 0;
+        transform: translateY(0) translateX(0);
+    }
+
+    40% {
+        opacity: 0.8;
+    }
+
+    80% {
+        opacity: 0.3;
+    }
+
+    100% {
+        opacity: 0;
+        transform: translateY(-120px) translateX(var(--drift, 20px));
+    }
+}
+
+/* En-tête du panneau (logo) */
+.wam-nav__header {
+    position: relative;
+    z-index: 10;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: var(--wam-spacing-2xs);
+    margin-top: var(--wam-spacing-sm);
+    margin-bottom: var(--wam-spacing-sm);
+    width: 100%;
+}
+
+/* Logo menu inline SVG */
+.wam-logo-menu {
+    width: 280px;
+    height: auto;
+    color: var(--wam-nav-text);
+}
+
+.wam-logo-menu svg {
+    width: 100%;
+    height: auto;
+}
+
+/* Supprime les filtres Figma sur le SVG inline */
+.wam-logo-menu svg g[filter] {
+    filter: none !important;
+}
+
+.wam-logo-menu path[fill="#F9F6F1"],
+.wam-logo-menu path[fill="#E9DFCD"] {
+    fill: currentColor;
+}
+
+/* Menu principal */
+.wam-nav__menu {
+    position: relative;
+    z-index: 10;
+    display: flex;
+    flex-direction: column;
+    gap: var(--wam-spacing-xl);
+    /* 32px */
+    flex: 1;
+    width: 100%;
+}
+
+.wam-nav__list {
+    display: flex;
+    flex-direction: column;
+    gap: var(--wam-spacing-2xs);
+    /* 8px */
+}
+
+.wam-nav__list li {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+}
+
+.wam-nav__list>li>.wam-nav-item-wrap {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    width: 100%;
+    border: none;
+    position: relative;
+}
+
+.wam-nav__list a {
+    font-size: 1.25rem;
+    /* wam-md = 20px */
+    transition: opacity var(--wam-transition);
+    padding-top: var(--wam-spacing-2xs);
+    padding-bottom: var(--wam-spacing-2xs);
+    padding-right: var(--wam-spacing-4xl);
+    border: none;
+    display: block;
+    width: 100%;
+    color: var(--wam-nav-text);
+    text-decoration: none;
+}
+
+.wam-nav__list a:hover {
+    opacity: 0.7;
+}
+
+.wam-nav__list li.current-menu-item>.wam-nav-item-wrap>a,
+.wam-nav__list li.current-menu-item>a {
+    font-weight: 700;
+}
+
+.wam-nav__list li.current-menu-item>.wam-nav-item-wrap>a::after {
+    display: none;
+}
+
+/* Sous-menu (accordéon) */
+.wam-nav__list .wam-nav__sub {
+    padding-left: var(--wam-spacing-xl);
+    /* 32px = pl-8 */
+    margin-top: var(--wam-spacing-2xs);
+    /* 8px = mt-2 */
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    transition: max-height var(--wam-transition-slow), opacity var(--wam-transition-slow);
+    opacity: 0;
+    max-height: 0;
+}
+
+.wam-nav__list .menu-item-has-children.is-expanded>.wam-nav__sub {
+    opacity: 1;
+    padding-bottom: var(--wam-spacing-sm);
+    /* 16px = pb-4 */
+    max-height: 800px;
+}
+
+.wam-nav__list .wam-nav__sub a {
+    font-weight: 400;
+    border: none;
+    padding: 6px 0;
+    font-size: 1rem;
+    /* wam-sm = 16px */
+    color: var(--wam-nav-subtext);
+}
+
+.wam-nav__list .wam-nav__sub a:hover {
+    opacity: 0.7;
+}
+
+.wam-nav__list .wam-nav__sub li {
+    border: none;
+}
+
+/* Bouton chevron (ouvre/ferme sous-menu) */
+.wam-nav__chevron-btn {
+    position: absolute;
+    right: 0;
+    top: 0;
+    bottom: 0;
+    width: 64px;
+    /* w-16 */
+    display: flex;
+    flex-shrink: 0;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: transform var(--wam-transition-slow);
+    border: none;
+    background: transparent;
+    z-index: 10;
+    margin: 0;
+    padding: 0;
+    color: var(--wam-nav-text);
+}
+
+.wam-nav__list .menu-item-has-children.is-expanded>.wam-nav-item-wrap .wam-nav__chevron-btn {
+    transform: rotate(180deg);
+}
+
+/* Réseaux sociaux */
+.wam-nav__socials {
+    position: relative;
+    z-index: 10;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--wam-spacing-2xl);
+    /* 40px = gap-10 */
+    margin-top: auto;
+    padding-top: var(--wam-spacing-xl);
+    /* 32px = pt-8 */
+    border: none;
+}
+
+.wam-nav__social-link {
+    transition: opacity var(--wam-transition), transform var(--wam-transition);
+    color: var(--wam-nav-text);
+    font-size: 2.25rem;
+    /* text-4xl */
+}
+
+.wam-nav__social-link:hover {
+    opacity: 0.7;
+    transform: scale(1.1);
+}
+
+/* =====================================================
+   FOOTER — WAM Dance Studio
+   Figma : node-id 125:828 (desktop) / 129:1372 (mobile)
+   ===================================================== */
+
+.wam-footer {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    background-color: var(--wam-color-card-bg);
+}
+
+.wam-footer__separator {
+    width: 100%;
+    height: 48px;
+    /* h-12 */
+    flex-shrink: 0;
+    background-color: var(--wam-color-page-bg);
+    background-image: var(--wam-pattern-dark-url);
+    background-size: 800px;
+    background-repeat: repeat;
+    background-position: center;
+}
+
+.wam-footer__container {
+    width: 100%;
+    max-width: var(--wam-max-screen);
+    /* 1536px */
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    padding: var(--wam-spacing-xl) var(--wam-page-mx);
+    gap: var(--wam-spacing-3xl);
+    box-sizing: border-box;
+}
+
+.wam-footer__action {
+    width: 100%;
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+    padding-bottom: var(--wam-spacing-sm);
+    /* 16px = pb-4 */
+    box-sizing: border-box;
+    gap: var(--wam-spacing-2xl);
+    /* 40px */
+}
+
+.wam-footer__ctas {
+    display: flex;
+    flex-direction: row;
+    flex-wrap: nowrap;
+    align-items: center;
+    gap: var(--wam-spacing-sm);
+    /* 16px = gap-4 */
+    flex: 1;
+}
+
+.wam-footer__logo {
+    flex-shrink: 0;
+    margin: 0;
+}
+
+.wam-footer__logo:hover {
+    opacity: 0.75;
+}
+
+.wam-footer__logo img {
+    width: 160px !important;
+    height: auto !important;
+    display: block !important;
+    filter: drop-shadow(0px 4px 8px rgba(33, 44, 80, 0.5));
+}
+
+.wam-footer__socials {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    gap: var(--wam-spacing-lg);
+    /* 24px = gap-6 */
+    flex-shrink: 0;
+    margin-left: auto;
+}
+
+.wam-footer__social-link {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: opacity var(--wam-transition), transform var(--wam-transition);
+    color: var(--wam-color-text);
+    opacity: 0.8;
+}
+
+.wam-footer__social-link:hover,
+.wam-footer__social-link:focus-visible {
+    opacity: 1;
+    transform: scale(1.1);
+}
+
+/* Icône réseau social (mask-image, même pattern que .btn-icon) */
+.wam-footer__social-icon {
+    display: block;
+    width: 40px;
+    /* w-10 */
+    height: 40px;
+    flex-shrink: 0;
+    background-color: currentColor;
+    -webkit-mask-repeat: no-repeat;
+    mask-repeat: no-repeat;
+    -webkit-mask-size: contain;
+    mask-size: contain;
+    -webkit-mask-position: center;
+    mask-position: center;
+}
+
+.wam-footer__nav {
+    width: 100%;
+}
+
+.wam-footer__nav-list {
+    display: flex;
+    gap: var(--wam-spacing-lg);
+    /* 24px = gap-6 */
+    width: 100%;
+    list-style: none;
+    margin: 0;
+    padding: 0;
+}
+
+.wam-footer__nav-list>li {
+    flex: 1;
+    min-width: 0;
+    list-style-type: disc;
+}
+
+.wam-footer__nav-list>li::marker {
+    color: var(--wam-color-text);
+}
+
+.wam-footer__nav-list>li>a {
+    font-size: 1rem;
+    /* wam-sm */
+    text-decoration: underline;
+    color: var(--wam-color-text);
+    transition: opacity var(--wam-transition);
+    text-decoration-skip-ink: none;
+}
+
+.wam-footer__nav-list>li>a:hover {
+    opacity: 0.7;
+}
+
+.wam-footer__section {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    width: 100%;
+    gap: var(--wam-spacing-xs);
+    /* 12px = gap-3 */
+}
+
+.wam-footer__section-title {
+    font-family: var(--wam-font-body);
+    font-size: 1.25rem;
+    /* wam-md */
+    font-weight: 700;
+    color: var(--wam-color-text);
+    margin: 0;
+}
+
+.wam-footer__section-cols {
+    display: flex;
+    gap: var(--wam-spacing-xl);
+    /* 32px = gap-8 */
+    width: 100%;
+}
+
+.wam-footer__section-col {
+    display: flex;
+    flex-direction: column;
+    gap: var(--wam-spacing-2xs);
+    /* 8px = gap-2 */
+    flex: 1;
+    min-width: 0;
+    list-style-type: disc;
+    list-style-position: inside;
+    margin: 0;
+    padding: 0;
+}
+
+.wam-footer__section-col li {
+    list-style-type: disc;
+    color: var(--wam-color-subtext);
+}
+
+.wam-footer__section-link {
+    font-family: var(--wam-font-body);
+    font-size: 0.875rem;
+    /* wam-xs = 14px */
+    color: var(--wam-color-subtext);
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    text-decoration: none;
+    position: relative;
+}
+
+/* Soulignement animé sur le titre du lien */
+.wam-footer__section-link .wam-footer__link-title {
+    display: inline-block;
+    transition: background-size var(--wam-transition);
+    background-image: linear-gradient(currentColor, currentColor);
+    background-size: 0% 1px;
+    background-repeat: no-repeat;
+    background-position: 0 100%;
+}
+
+.wam-footer__section-link:hover .wam-footer__link-title,
+.wam-footer__section-link:focus-visible .wam-footer__link-title {
+    background-size: 100% 1px;
+}
+
+.wam-footer__link-sub {
+    font-size: var(--wam-font-size-xs);
+    line-height: 1.2;
+    color: var(--wam-color-disabled);
+    font-style: italic;
+}
+
+.wam-footer__section-link:hover {
+    opacity: 0.8;
+}
+
+.wam-footer__section-empty {
+    font-size: 0.875rem;
+    /* wam-xs */
+    color: var(--wam-color-subtext);
+    font-style: italic;
+}
+
+.wam-footer__section-all {
+    font-family: var(--wam-font-body);
+    font-size: 1rem;
+    /* wam-sm */
+    text-decoration: underline;
+    color: var(--wam-color-yellow);
+    margin-top: 4px;
+    /* mt-1 */
+    transition: opacity var(--wam-transition);
+    text-decoration-skip-ink: none;
+}
+
+.wam-footer__section-all:hover {
+    opacity: 0.7;
+}
+
+/* --- Nouvel affichage catégorisé des cours (Structure Plate) --- */
+.wam-footer__columns {
+    width: 100%;
+}
+
+.wam-footer__flat-list {
+    column-count: 3;
+    column-gap: var(--wam-spacing-xl);
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    width: 100%;
+}
+
+.wam-footer__category-title-li {
+    font-family: var(--wam-font-body);
+    font-size: 1.125rem;
+    font-weight: 700;
+    color: var(--wam-color-text);
+    margin-top: var(--wam-spacing-md);
+    margin-bottom: var(--wam-spacing-2xs);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    break-after: avoid-column;
+    /* Évite de séparer le titre de son premier cours */
+}
+
+/* On retire la marge sur la première catégorie */
+.wam-footer__category-title-li:first-child {
+    margin-top: 0;
+}
+
+.wam-footer__course-li {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 4px;
+    break-inside: avoid;
+}
+
+.wam-footer__course-li::before {
+    content: "•";
+    color: var(--wam-color-text);
+    font-size: 1.2rem;
+}
+
+.wam-footer__category-title {
+    font-family: var(--wam-font-body);
+    font-size: 1.125rem;
+    /* wam-md (proche) */
+    font-weight: 700;
+    color: var(--wam-color-text);
+    margin-bottom: var(--wam-spacing-2xs);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.wam-footer__category-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.wam-footer__category-list li {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.wam-footer__category-list li::before {
+    content: "•";
+    color: var(--wam-color-text);
+    font-size: 1.2rem;
+}
+
+.wam-footer__simple-link {
+    font-family: var(--wam-font-body);
+    font-size: 0.9375rem;
+    /* ~15px */
+    color: var(--wam-color-subtext);
+    text-decoration: none;
+    transition: color var(--wam-transition);
+}
+
+.wam-footer__simple-link:hover {
+    color: var(--wam-color-text);
+    text-decoration: underline;
+}
+
+.wam-footer__simple-link-sub {
+    font-size: 0.8em;
+    font-style: italic;
+    color: var(--wam-color-disabled);
+    margin-left: 6px;
+    font-weight: 400;
+}
+
+.wam-footer__legal {
+    width: 100%;
+    font-family: var(--wam-font-body);
+    font-size: 0.875rem;
+    /* wam-xs */
+    color: var(--wam-color-disabled);
+    margin: 0;
+}
+
+.wam-footer__legal a {
+    color: inherit;
+    text-decoration: underline;
+    transition: color var(--wam-transition);
+}
+
+.wam-footer__legal a:hover {
+    color: var(--wam-color-text);
+}
+
+/* Responsive Mobile */
+@media (max-width: 800px) {
+    .wam-footer__container {
+        padding: var(--wam-spacing-lg) var(--wam-spacing-xl);
+        /* py-6 px-8 */
+        gap: var(--wam-spacing-2xl);
+        /* 40px */
+    }
+
+    .wam-footer__action {
+        flex-direction: column !important;
+        gap: 2rem !important;
+        min-height: auto;
+    }
+
+    .wam-footer__logo {
+        position: static !important;
+        transform: none !important;
+    }
+
+    .wam-footer__ctas {
+        justify-content: center;
+    }
+
+    .wam-footer__socials {
+        display: none !important;
+    }
+
+    .wam-footer__nav-list {
+        flex-direction: column;
+        gap: 4px;
+        /* gap-1 */
+    }
+
+    .wam-footer__section-cols {
+        flex-direction: column;
+        gap: var(--wam-spacing-2xs);
+        /* 8px = gap-2 */
+    }
+
+    .wam-footer__columns,
+    .wam-footer__flat-list {
+        column-count: 1;
+        column-gap: 0;
+    }
+}
+
+/* =====================================================
+   COMPATIBILITÉ A11Y — Titres typographiques
+   Polices graphiques désactivées : repli sur Outfit
+   (complète les overrides de style.css pour card/teacher)
+   ===================================================== */
+html.wam-no-graphical-fonts .title-cool-lg,
+html.wam-no-graphical-fonts .title-cool-md,
+html.wam-no-graphical-fonts .title-sign-lg,
+html.wam-no-graphical-fonts .title-sign-md,
+html.wam-no-graphical-fonts .title-sign-sm {
+    font-family: var(--wam-font-body) !important;
+    font-style: normal !important;
+}
+
+/* =====================================================
+   CARD POST — Carte verticale réutilisable
+   Utilisée dans card-article.php pour articles, cours et stages.
+   Figma : gradient page-bg → card-bg, hover translate, photo aspect-ratio
+   ===================================================== */
+.card-post {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    align-items: center;
+    gap: var(--wam-spacing-sm);
+    /* 16px = gap-4 */
+    min-width: 280px;
+    max-width: 320px;
+    width: 100%;
+    padding: var(--wam-spacing-2xs);
+    /* 8px = p-2 */
+    position: relative;
+    border-radius: var(--wam-radius-xl);
+    background: linear-gradient(to bottom, var(--wam-color-page-bg), var(--wam-color-card-bg));
+    transition: transform var(--wam-transition);
+}
+
+.card-post:hover {
+    transform: translateY(-8px);
+    /* hover:-translate-y-2 */
+}
+
+/* Lien sur le titre — ::after couvre toute la carte sans bloquer l'inspecteur */
+.card-post__link {
+    color: inherit;
+    text-decoration: none;
+}
+
+.card-post__link::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    z-index: 1;
+}
+
+/* Photo — aspect ratio Figma 304:503 */
+.card-post__photo {
+    aspect-ratio: 304 / 503;
+    position: relative;
+    border-radius: var(--wam-radius-lg);
+    width: 100%;
+    overflow: hidden;
+    flex-shrink: 0;
+}
+
+.card-post__img-wrapper {
+    height: 100%;
+}
+
+.card-post__img {
+    position: absolute;
+    inset: 0;
+    object-fit: cover;
+    width: 100%;
+    height: 100%;
+    display: block;
+    transition: transform var(--wam-transition-slow);
+}
+
+.card-post:hover .card-post__img {
+    transform: scale(1.05);
+}
+
+/* Overlay blend-lighten (filtre artistique WAM sur la photo) */
+.card-post__photo-overlay {
+    position: absolute;
+    inset: 0;
+    background: var(--wam-color-overlay-photo);
+    mix-blend-mode: lighten;
+    pointer-events: none;
+    transition: background var(--wam-transition-slow);
+}
+
+.card-post:hover .card-post__photo-overlay {
+    background: var(--wam-color-overlay-photo-hover);
+}
+
+
+/* Corps de la carte */
+.card-post__body {
+    display: flex;
+    flex-direction: column;
+    gap: var(--wam-spacing-xl);
+    /* 32px = gap-8 */
+    align-items: center;
+    padding: var(--wam-spacing-lg) var(--wam-spacing-sm);
+    /* py:24px px:16px */
+    width: 100%;
+    flex-grow: 1;
+}
+
+/* En-tête : titre + sous-titre */
+.card-post__header {
+    display: flex;
+    flex-direction: column;
+    gap: var(--wam-spacing-2xs);
+    /* 8px = gap-2 */
+    align-items: center;
+    text-align: center;
+    width: 100%;
+}
+
+/* Titre (utilise .title-sign-md pour la police/taille) */
+.card-post__title {
+    color: var(--wam-color-text);
+    margin: 0;
+    overflow-wrap: break-word;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+.card-post--cours .card-post__title,
+.card-post--stage .card-post__title {
+    display: block;
+    -webkit-line-clamp: unset;
+    line-clamp: unset;
+    overflow: visible;
+}
+
+/* Sous-titre cours (Outfit Bold jaune) */
+.card-post__subtitle {
+    font-weight: 700;
+    font-size: var(--wam-font-size-lg);
+    line-height: 1.25;
+    color: var(--wam-color-yellow);
+    margin: 0;
+}
+
+/* Bas de carte : méta + CTA */
+.card-post__footer {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: var(--wam-spacing-xl);
+    /* 32px = gap-8 */
+    width: 100%;
+    margin-top: auto;
+}
+
+/* Bloc méta (jour/horaires pour cours, date pour articles) */
+.card-post__meta {
+    display: flex;
+    flex-direction: column;
+    font-family: var(--wam-font-body);
+    font-weight: 400;
+    align-items: center;
+    line-height: 1.25;
+    text-align: center;
+    width: 100%;
+}
+
+/* Jour du cours (.text-lg pour la taille) */
+.card-post__day {
+    text-transform: capitalize;
+    color: var(--wam-color-text);
+    margin: 0;
+}
+
+/* Horaire du cours (.text-md pour la taille) */
+.card-post__time {
+    color: var(--wam-color-subtext);
+    margin: 0;
+}
+
+/* Date de l'article (.text-sm pour la taille) */
+.card-post__date {
+    color: var(--wam-color-pink);
+    margin: 0;
+}
+
+/* Bouton CTA — variante card (rounded-sm, hover border green sur parent:hover) */
+.card-post__cta {
+    display: flex;
+    justify-content: center;
+}
+
+/* =====================================================
+   PROF PROFILE — Page individuelle
+   ===================================================== */
+.prof-header__micro-desc {
+    font-family: var(--wam-font-graphical-1);
+    /* Mallia */
+    font-weight: 400;
+    font-size: var(--wam-font-size-lg);
+    color: var(--wam-color-yellow);
+    margin: var(--wam-spacing-xs) 0 var(--wam-spacing-md);
+    line-height: 1.2;
+}
+
+.prof-header__socials {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--wam-spacing-md);
+    margin-top: var(--wam-spacing-lg);
+}
+
+.prof-social-link {
+    display: inline-flex;
+    transition: transform var(--wam-transition);
+}
+
+.prof-social-link:hover {
+    transform: translateY(-2px);
+}
+
+@media (max-width: 1023px) {
+    .prof-header {
+        text-align: center;
+        align-items: center;
+    }
+
+    .prof-header__meta {
+        align-items: center;
+    }
+}
+
+/* Sections liées (Cours/Stages) sur le profil prof */
+.prof-related-section {
+    margin-top: var(--wam-spacing-3xl);
+    padding-top: var(--wam-spacing-2xl);
+    border-top: 1px solid var(--wam-color-input-bg);
+}
+
+.prof-related-title {
+    font-family: var(--wam-font-graphical-1);
+    font-size: var(--wam-font-size-h3);
+    color: var(--wam-color-text);
+    margin-bottom: var(--wam-spacing-xl);
+}
+
+.prof-related-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: var(--wam-spacing-md);
+}
+
+.prof-related-card {
+    display: flex;
+    align-items: center;
+    gap: var(--wam-spacing-md);
+    padding: var(--wam-spacing-sm);
+    background: var(--wam-color-card-bg);
+    border-radius: var(--wam-radius-lg);
+    text-decoration: none;
+    transition: transform var(--wam-transition), background var(--wam-transition);
+}
+
+.prof-related-card:hover {
+    transform: translateY(-2px);
+    background: var(--wam-color-input-bg);
+}
+
+.prof-related-card__photo {
+    width: 80px;
+    height: 80px;
+    flex-shrink: 0;
+    border-radius: var(--wam-radius-md);
+    overflow: hidden;
+}
+
+.prof-related-card__photo img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.prof-related-card__content {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.prof-related-card__title {
+    font-family: var(--wam-font-body);
+    font-weight: 700;
+    font-size: var(--wam-font-size-md);
+    color: var(--wam-color-text);
+    margin: 0;
+}
+
+.prof-related-card__subtitle {
+    font-family: var(--wam-font-body);
+    font-size: var(--wam-font-size-sm);
+    color: var(--wam-color-subtext);
+    margin: 0;
+}
+
+.prof-related-card__meta {
+    font-family: var(--wam-font-body);
+    font-size: var(--wam-font-size-xs);
+    color: var(--wam-color-yellow);
+    margin: 4px 0 0;
+    font-weight: 600;
 }

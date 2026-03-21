@@ -211,7 +211,7 @@
         },
         "typography": {
             "fontFamily": "var(--wp--preset--font-family--outfit)",
-            "fontSize": "16px",
+            "fontSize": "20px",
             "lineHeight": "1.25"
         },
         "elements": {

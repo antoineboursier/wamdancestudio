@@ -54,7 +54,7 @@
                 'var(--wp--preset--color--accent-green)',
                 'var(--wp--preset--color--accent-orange)',
             ];
-            for (let i = 0; i < 240; i++) {
+            for (let i = 0; i < 264; i++) {
                 const p = document.createElement('div');
                 p.className = 'keywords-particle';
                 p.style.left = Math.random() * 100 + '%';

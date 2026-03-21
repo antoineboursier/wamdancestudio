@@ -66,13 +66,16 @@ blockquote {
 /* Listes sans style de base */
 ul,
 ol {
-    list-style: none;
+    padding: var(--wam-spacing-md) 0 var(--wam-spacing-md) var(--wam-spacing-2xl);
+}
+
+ul li+li {
+    margin-top: var(--wam-spacing-2xs);
 }
 
 /* Liens par défaut */
 a {
     color: inherit;
-    text-decoration: none;
 }
 
 /* Focus visible global */
@@ -105,6 +108,10 @@ h2 {
     color: var(--wp--preset--color--accent-yellow);
 }
 
+.wam-prose h2 {
+    margin: var(--wam-spacing-3xl) 0;
+}
+
 h3 {
     font-family: var(--wam-font-body);
     /* Outfit */
@@ -112,6 +119,10 @@ h3 {
     font-weight: 700;
     line-height: 1.1;
     color: var(--wp--preset--color--accent-yellow);
+}
+
+.wam-prose h3 {
+    margin: var(--wam-spacing-xl) 0;
 }
 
 h4 {
@@ -123,6 +134,10 @@ h4 {
     color: var(--wp--preset--color--accent-yellow);
 }
 
+.wam-prose h4 {
+    margin: var(--wam-spacing-lg) 0;
+}
+
 h5 {
     font-family: var(--wam-font-body);
     /* Outfit */
@@ -130,6 +145,10 @@ h5 {
     font-weight: 400;
     line-height: 1.25;
     color: var(--wp--preset--color--accent-yellow);
+}
+
+.wam-prose h5 {
+    margin: var(--wam-spacing-lg) 0;
 }
 
 h6 {
@@ -140,13 +159,42 @@ h6 {
     color: var(--wam-color-subtext);
 }
 
+.wam-prose h6 {
+    margin: var(--wam-spacing-lg) 0;
+}
+
 /* Paragraphe de base — text-md 20px */
 p {
     font-family: var(--wam-font-body);
     font-size: 20px;
-    line-height: 1.25;
-    color: var(--wam-color-text);
+    line-height: 1.5;
+    color: inherit;
 }
+
+.wam-prose p+p {
+    margin-top: var(--wam-spacing-lg);
+}
+
+.wp-block-separator,
+hr {
+    margin: var(--wam-spacing-2xl) 0;
+    border: none;
+    height: 1px;
+    background-color: var(--wam-color-input-bg);
+}
+
+.wam-prose hr {
+    margin: var(--wam-spacing-2xl);
+}
+
+.wam-prose blockquote {
+    font-style: italic;
+    padding: var(--wam-spacing-md) var(--wam-spacing-lg);
+    border: 1px solid var(--wam-color-card-bg);
+    border-radius: var(--wam-radius-md);
+    margin: var(--wam-spacing-3xl);
+}
+
 
 /* -------------------------------------------------------
    Tailles de texte Gutenberg (has-*-font-size)
@@ -321,6 +369,35 @@ p {
     line-height: 1.1;
 }
 
+/* Raccourcis utilitaires (Workflow Antoine) */
+.title-sign-lg {
+    font-family: var(--wam-font-graphical-1);
+    font-size: 46px;
+    font-weight: 400;
+    line-height: 1.3;
+}
+
+.text-lg {
+    font-size: var(--wam-font-size-lg);
+}
+
+/* 26px */
+.text-md {
+    font-size: var(--wam-font-size-md);
+}
+
+/* 20px */
+.text-sm {
+    font-size: var(--wam-font-size-sm);
+}
+
+/* 16px */
+.text-xs {
+    font-size: var(--wam-font-size-xs);
+}
+
+/* 14px */
+
 /* -------------------------------------------------------
    Utilitaires globaux
    ------------------------------------------------------- */
@@ -348,7 +425,7 @@ p {
 
 /* Conteneur max-width centré */
 .wam-container {
-    max-width: var(--wam-max-content);
+    max-width: var(--wam-max-screen);
     margin-left: auto;
     margin-right: auto;
     padding-left: var(--wam-page-mx);
@@ -382,4 +459,97 @@ html.wam-reduce-motion *::after {
     animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
     scroll-behavior: auto !important;
+}
+
+/* -------------------------------------------------------
+   SYSTÈME PROSE — Ajouté via PHP (page.php, single.php...)
+   Permet de cibler le contenu Gutenberg : .wam-prose h2, .wam-prose p, etc.
+   ------------------------------------------------------- */
+
+.wam-prose {
+    /* Antoine, tu peux ajouter tes styles ici */
+}
+
+/* -------------------------------------------------------
+   ALIGNEMENT IMAGES (Gutenberg) dans .wam-prose
+   ------------------------------------------------------- */
+
+.wam-prose .wp-block-image {
+    margin: var(--wam-spacing-2xl) 0;
+}
+
+.wam-prose .wp-block-image img {
+    border-radius: var(--wam-radius-3xl);
+    /* 32px */
+    box-shadow:
+        -1px -4px 0px 0px var(--wam-color-yellow),
+        4px 6px 0px 0px var(--wam-color-pink),
+        6px -2px 0px 0px var(--wam-color-orange),
+        -5px 4px 0px 0px var(--wam-color-green);
+    display: block;
+    max-width: 100%;
+    height: auto;
+}
+
+.wam-prose .alignleft {
+    float: left;
+    margin-top: 0;
+    margin-right: var(--wam-spacing-4xl);
+    margin-bottom: var(--wam-spacing-lg);
+    max-width: 50%;
+}
+
+.wam-prose .alignright {
+    float: right;
+    margin-top: 0;
+    margin-left: var(--wam-spacing-4xl);
+    margin-bottom: var(--wam-spacing-lg);
+    max-width: 50%;
+}
+
+.wam-prose .aligncenter {
+    display: table;
+    margin-left: auto;
+    margin-right: auto;
+    margin-top: var(--wam-spacing-4xl);
+    margin-bottom: var(--wam-spacing-4xl);
+}
+
+.wam-prose .aligncenter img {
+    margin: 0 auto;
+}
+
+/* Captions */
+.wam-prose figcaption {
+    margin-top: var(--wam-spacing-md);
+    font-size: var(--wam-font-size-sm);
+    color: var(--wam-color-subtext);
+    text-align: center;
+    font-style: italic;
+}
+
+/* Clearfix pour les flottants */
+.wam-prose::after {
+    content: "";
+    display: table;
+    clear: both;
+}
+
+/* Responsive : On empile sur tablette/mobile */
+@media (max-width: 1024px) {
+
+    .wam-prose .alignleft,
+    .wam-prose .alignright {
+        float: none;
+        margin-left: 0;
+        margin-right: 0;
+        max-width: 100%;
+        width: 100%;
+        margin-bottom: var(--wam-spacing-xl);
+    }
+
+    .wam-prose .aligncenter {
+        margin-top: var(--wam-spacing-2xl);
+        margin-bottom: var(--wam-spacing-2xl);
+    }
 }

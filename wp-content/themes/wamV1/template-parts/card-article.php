@@ -42,64 +42,89 @@ if (!$subtitle) {
 }
 ?>
 <article id="post-<?php the_ID(); ?>"
-    <?php post_class('bg-gradient-to-b flex flex-col flex-1 from-wam-bg800 gap-4 items-center min-w-[280px] max-w-[320px] w-full p-2 relative rounded-wam-xl to-wam-bg600 group hover:-translate-y-2 transition-transform duration-300'); ?>>
+    <?php post_class('card-post card-post--' . $variant); ?>>
 
-    <a href="<?php the_permalink(); ?>" class="absolute inset-0 z-10">
-        <span class="sr-only"><?php the_title(); ?></span>
-    </a>
+    <?php $card_title = get_the_title(); ?>
 
-    <!-- Photo (pas de placeholder si absente) -->
-    <div class="aspect-[304/503] relative rounded-wam-lg w-full overflow-hidden shrink-0">
-        <?php if (has_post_thumbnail()) : ?>
-            <?php the_post_thumbnail('medium_large', ['class' => 'absolute inset-0 object-cover w-full h-full group-hover:scale-105 transition-transform duration-500']); ?>
-            <div class="absolute inset-0 bg-[rgba(21,28,50,0.7)] mix-blend-lighten pointer-events-none group-hover:bg-[rgba(21,28,50,0.5)] transition-colors duration-500"></div>
-        <?php else : ?>
-            <div class="absolute inset-0 bg-wam-bg500"></div>
-        <?php endif; ?>
-    </div>
+    <!-- Photo (masquée si absente) -->
+    <?php if (has_post_thumbnail()) : ?>
+        <div class="card-post__photo">
+            <?php echo wamv1_get_image_with_overlay(get_post_thumbnail_id(), 'medium_large', 'card-post__img-wrapper', ['class' => 'card-post__img']); ?>
+        </div>
+    <?php endif; ?>
 
     <!-- Contenu -->
-    <div class="flex flex-col gap-8 items-center px-4 py-6 w-full flex-grow">
+    <div class="card-post__body">
 
         <!-- Titre + sous-titre -->
-        <div class="flex flex-col gap-2 items-center text-center w-full">
-            <h3 class="font-mallia leading-[1.1] text-[32px] text-wam-text m-0 break-words line-clamp-2">
-                <?php the_title(); ?>
+        <div class="card-post__header">
+            <?php
+            /*
+             * Le lien est porté par le titre. L'::after s'étend sur toute la carte
+             * via CSS (position: absolute; inset: 0) — évite le lien overlay
+             * qui bloquait l'inspecteur et les éléments enfants.
+             */
+            ?>
+            <h3 class="card-post__title <?php echo $is_article ? 'title-norm-md' : 'title-sign-md'; ?>">
+                <a href="<?php the_permalink(); ?>" class="card-post__link">
+                    <?php echo esc_html($card_title); ?>
+                </a>
             </h3>
             <?php if ($is_cours && $subtitle) : ?>
-                <p class="font-outfit font-bold leading-[1.25] text-wam-md text-wam-yellow m-0">
+                <p class="card-post__subtitle">
                     <?php echo esc_html($subtitle); ?>
                 </p>
             <?php endif; ?>
         </div>
 
         <!-- Infos + bouton -->
-        <div class="flex flex-col gap-8 items-center w-full mt-auto">
+        <div class="card-post__footer">
 
             <!-- Infos selon variant : jour/horaires (cours) ou date (article) -->
-            <div class="flex flex-col font-outfit font-normal items-center leading-[1.25] text-center w-full">
-                <?php if ($is_cours) : ?>
-                    <p class="text-wam-lg text-wam-text m-0 capitalize">
-                        <?php echo function_exists('get_field') && get_field('jour')
-                            ? esc_html(get_field('jour'))
-                            : get_the_date('l'); ?>
+            <div class="card-post__meta">
+                <?php if ($is_cours) :
+                    $jour_val    = function_exists('get_field') ? get_field('jour_de_cours') : null;
+                    $heure_deb   = function_exists('get_field') ? get_field('heure_debut') : null;
+                    $heure_f     = function_exists('get_field') ? get_field('heure_de_fin') : null;
+
+                    // Mapping jour
+                    $jour_map = [
+                        '01day' => 'Lundi',
+                        '02day' => 'Mardi',
+                        '03day' => 'Mercredi',
+                        '04day' => 'Jeudi',
+                        '05day' => 'Vendredi',
+                        '06day' => 'Samedi',
+                        '07day' => 'Dimanche',
+                    ];
+                    $jour_label = isset($jour_map[$jour_val]) ? $jour_map[$jour_val] : $jour_val;
+
+                    // Formatage horaires
+                    $horaires_label = '';
+                    if ($heure_deb && $heure_f) {
+                        $horaires_label = $heure_deb . ' – ' . $heure_f;
+                    } elseif ($heure_deb) {
+                        $horaires_label = $heure_deb;
+                    }
+                    ?>
+                    <p class="card-post__day text-lg">
+                        <?php echo $jour_label ? esc_html($jour_label) : '&nbsp;'; ?>
                     </p>
-                    <p class="text-wam-md text-wam-subtext m-0">
-                        <?php echo function_exists('get_field') && get_field('horaires')
-                            ? esc_html(get_field('horaires'))
-                            : get_the_time('H:i'); ?>
+                    <p class="card-post__time text-md">
+                        <?php echo $horaires_label ? esc_html($horaires_label) : '&nbsp;'; ?>
                     </p>
                 <?php else : ?>
-                    <p class="text-wam-sm text-wam-pink m-0">
+                    <p class="card-post__date text-sm">
                         <?php echo get_the_date('d/m/Y'); ?>
                     </p>
                 <?php endif; ?>
             </div>
 
-            <!-- Bouton CTA (primary jaune) -->
-            <div class="bg-wam-yellow border-[3px] border-transparent flex gap-2 items-center justify-center px-8 py-4 rounded-wam-sm group-hover:border-wam-green transition-colors duration-300">
-                <span class="font-outfit font-bold leading-[1.25] text-wam-bg800 text-wam-md whitespace-nowrap">
+            <!-- Bouton CTA -->
+            <div class="card-post__cta">
+                <span class="btn-secondary" aria-hidden="true">
                     Découvrir
+                    <span class="btn-icon btn-icon--sm" style="--icon-url: url('<?php echo get_template_directory_uri(); ?>/assets/images/chevron-right.svg');"></span>
                 </span>
             </div>
         </div>

@@ -17,6 +17,13 @@
     display: flex;
     flex-direction: column;
     align-items: center;
+    min-height: 100vh;
+}
+
+/* Pages article/page : padding bas supplémentaire (single.php uniquement) */
+.site-main--with-pb {
+    padding-bottom: var(--wam-spacing-3xl);
+    /* pb-12 = 48px */
 }
 
 /* =====================================================
@@ -28,9 +35,9 @@
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: var(--wp--preset--spacing--4xl);
+    gap: var(--wam-spacing-4xl);
     /* 56px — gap inter-sections Figma */
-    padding: var(--wp--preset--spacing--3xl) 0;
+    padding: var(--wam-spacing-3xl) 0;
     /* py-48px */
     width: 100%;
 }
@@ -42,7 +49,7 @@
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: var(--wp--preset--spacing--lg);
+    gap: var(--wam-spacing-lg);
     /* 24px */
     width: 100%;
 }
@@ -51,20 +58,12 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    gap: var(--wp--preset--spacing--sm);
+    gap: var(--wam-spacing-sm);
     /* 16px */
     flex-wrap: wrap;
 }
 
-/* =====================================================
-   SECTION ARTICLE — Wrapper pleine largeur
-   ===================================================== */
-.section-featured {
-    width: 100%;
-    max-width: var(--wam-max-content);
-    padding: 0 var(--wam-page-mx);
-    box-sizing: border-box;
-}
+
 
 /* =====================================================
    SECTION CONTENU ÉDITORIAL (Gutenberg)
@@ -77,17 +76,289 @@
     box-sizing: border-box;
 }
 
+
+
 /* =====================================================
-   GRILLE PROFS — Layout réutilisable
+   SECTION ARTICLES SIMILAIRES — related-posts.php
    ===================================================== */
-.teachers-grid {
+.section-similaires {
     display: flex;
-    flex-wrap: wrap;
-    gap: var(--wp--preset--spacing--lg);
-    /* 24px */
-    justify-content: center;
-    max-width: var(--wam-max-content);
+    flex-direction: column;
+    gap: var(--wam-spacing-2xl);
+    /* 40px = gap-10 */
+    align-items: center;
+    max-width: var(--wam-max-screen);
     width: 100%;
     padding: 0 var(--wam-page-mx);
+    position: relative;
+    flex-shrink: 0;
     box-sizing: border-box;
+}
+
+/* Titre de la section (h2 — couleur jaune héritée de base.css + title-cool-md) */
+.section-similaires__title {
+    text-align: center;
+    margin: 0;
+}
+
+/* Grille des cartes similaires */
+.section-similaires__grid {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--wam-spacing-xl);
+    /* 32px = gap-8 */
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    width: 100%;
+}
+
+/* =====================================================
+   PAGE LAYOUT — Wrapper intérieur commun (single / page / front-page)
+   ===================================================== */
+.page-layout__inner {
+    display: flex;
+    flex-direction: column;
+    gap: var(--wam-spacing-4xl);
+    /* 56px = gap-14 */
+    align-items: center;
+    padding: var(--wam-spacing-3xl) 0;
+    /* py-12 = 48px */
+    position: relative;
+    width: 100%;
+}
+
+/* =====================================================
+   BREADCRUMB — Fil d'Ariane (single + page)
+   ===================================================== */
+.page-breadcrumb {
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+    max-width: var(--wam-max-screen);
+    width: 100%;
+    padding: 0 var(--wam-page-mx);
+    position: relative;
+    box-sizing: border-box;
+}
+
+.page-breadcrumb__inner {
+    flex: 1;
+    font-weight: 400;
+    line-height: 1.25;
+    font-size: var(--wam-font-size-sm);
+    color: var(--wam-color-disabled);
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    overflow: hidden;
+}
+
+.page-breadcrumb__inner a {
+    color: var(--wam-color-disabled);
+    transition: color var(--wam-transition);
+}
+
+.page-breadcrumb__inner a:hover {
+    color: var(--wam-color-text);
+}
+
+/* =====================================================
+   PAGE HEADER — En-tête article/page (single + page)
+   ===================================================== */
+.page-header {
+    display: flex;
+    flex-direction: column;
+    gap: var(--wam-spacing-xl);
+    /* 32px = gap-8 */
+    align-items: center;
+    max-width: var(--wam-max-screen);
+    width: 100%;
+    padding: 0 var(--wam-page-mx);
+    position: relative;
+    box-sizing: border-box;
+}
+
+@media (min-width: 1024px) {
+    .page-header {
+        flex-direction: row;
+        gap: var(--wam-spacing-9xl);
+        /* 96px = gap-24 */
+    }
+}
+
+/* Colonne gauche : titre + méta */
+.page-header__meta {
+    display: flex;
+    flex: 1;
+    flex-direction: column;
+    gap: var(--wam-spacing-sm);
+    /* 16px = gap-4 — article */
+    align-items: flex-start;
+    width: 100%;
+}
+
+/* Variante page statique : gap plus large */
+.page-header__meta--lg {
+    gap: var(--wam-spacing-xl);
+    /* 32px = gap-8 */
+}
+
+/* Titre article (Outfit Bold, clamp responsive) */
+.page-header__title {
+    font-weight: 700;
+    line-height: 1.1;
+    font-size: clamp(var(--wam-font-size-h3), 3vw, var(--wam-font-size-h2));
+    color: var(--wam-color-text);
+    width: 100%;
+    margin: 0;
+}
+
+/* Titre page statique (Mallia, leading différent) */
+.page-header__title--page {
+    font-family: var(--wam-font-graphical-1);
+    font-weight: 400;
+    line-height: 1.3;
+}
+
+/* Bloc date + temps de lecture */
+.page-header__dateline {
+    display: flex;
+    flex-direction: column;
+    font-family: var(--wam-font-body);
+    font-weight: 400;
+    gap: 4px;
+    /* gap-1 */
+    align-items: flex-start;
+    line-height: 1.25;
+    width: 100%;
+}
+
+.page-header__date {
+    color: var(--wam-color-pink);
+    font-size: var(--wam-font-size-sm);
+    width: 100%;
+    margin: 0;
+}
+
+.page-header__reading-time {
+    color: var(--wam-color-text);
+    font-size: var(--wam-font-size-md);
+    width: 100%;
+    margin: 0;
+}
+
+/* Colonne droite : image à la une */
+.page-header__photo-outer {
+    display: flex;
+    flex: 1;
+    align-items: center;
+    align-self: stretch;
+    width: 100%;
+    margin-top: var(--wam-spacing-xl);
+    /* mt-8 = 32px mobile */
+}
+
+@media (min-width: 1024px) {
+    .page-header__photo-outer {
+        margin-top: 0;
+    }
+}
+
+.page-header__photo {
+    flex: 1;
+    height: 100%;
+    min-height: 400px;
+    /* single article */
+    position: relative;
+    border-radius: var(--wam-radius-3xl);
+    overflow: hidden;
+    width: 100%;
+}
+
+/* Le filtre WP enveloppe the_post_thumbnail() dans .photo-wrapper (inline-block, position:relative).
+   On le force à remplir .page-header__photo pour que l'image absolute:inset-0 ait un containing block. */
+.page-header__photo>.photo-wrapper {
+    position: absolute;
+    inset: 0;
+    display: block;
+    width: auto;
+    height: auto;
+}
+
+/* Variante page statique : hauteur réduite */
+.page-header__photo--sm {
+    min-height: 200px;
+}
+
+.page-header__photo-img {
+    position: absolute;
+    inset: 0;
+    object-fit: cover;
+    width: 100%;
+    height: 100%;
+    display: block;
+}
+
+.page-header__photo-overlay {
+    position: absolute;
+    inset: 0;
+    background: var(--wam-color-page-bg);
+    mix-blend-mode: lighten;
+    pointer-events: none;
+}
+
+/* =====================================================
+   PAGE CONTENT — Zone de contenu Gutenberg
+   ===================================================== */
+.page-content {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    max-width: var(--wam-max-screen);
+    width: 100%;
+    padding: 0 var(--wam-page-mx);
+    position: relative;
+    box-sizing: border-box;
+    color: var(--wam-color-text);
+    font-size: var(--wam-font-size-lg);
+    line-height: 1.25;
+}
+
+.page-content__inner {
+    width: 100%;
+}
+
+/* =====================================================
+   SYSTÈME IMAGES WAM — Overlays et Blend
+   ===================================================== */
+
+/**
+ * .photo-wrapper : Conteneur requis pour l'overlay.
+ * .photo-overlay : Calque de blend "lighten" systématisé.
+ * Préconisation README : Harmonisation des photos du site.
+ */
+.photo-wrapper {
+    position: relative;
+    overflow: hidden;
+    line-height: 0;
+    display: inline-block;
+    /* Supporte les images auto-enveloppées sans casser le flux */
+    width: 100%;
+    /* S'adapte au conteneur par défaut */
+}
+
+.photo-overlay {
+    position: absolute;
+    inset: 0;
+    background: var(--wam-color-page-bg);
+    mix-blend-mode: lighten;
+    pointer-events: none;
+    z-index: 10;
+}
+
+.photo-wrapper img {
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
 }

@@ -1,0 +1,304 @@
+/* =====================================================
+   FORMS CSS — WAM Dance Studio
+   Design system des champs de formulaires.
+   Couvre : balises natives, Fluent Forms, MailPoet.
+   Chargé sur les pages contenant des formulaires.
+   ===================================================== */
+
+/* =====================================================
+   TOKENS LOCAUX FORMULAIRES
+   Centralisés ici pour faciliter les ajustements.
+   ===================================================== */
+:root {
+    --wam-field-border-default : 2px solid var(--wp--preset--color--background-500);
+    --wam-field-border-focus   : 2px solid var(--wp--preset--color--accent-green);
+    --wam-field-border-error   : 2px solid var(--wp--preset--color--accent-orange);
+    --wam-field-radius         : var(--wam-radius-md);   /* 12px */
+    --wam-field-px             : var(--wam-spacing-sm);  /* 16px */
+    --wam-field-py             : var(--wam-spacing-2xs); /* 8px */
+    --wam-field-font-size      : var(--wam-font-size-lg); /* 20px */
+    --wam-label-font-size      : var(--wam-font-size-sm); /* 14px */
+    --wam-field-gap            : var(--wam-spacing-2xs); /* 8px */
+}
+
+/* =====================================================
+   GROUPE LABEL + CHAMP
+   Balises natives + Fluent Forms + MailPoet
+   ===================================================== */
+
+/* Groupe wrapper — Fluent Forms */
+.ff-el-group,
+.mailpoet_paragraph {
+    display: flex;
+    flex-direction: column;
+    gap: var(--wam-field-gap);
+    margin-bottom: var(--wam-spacing-lg) !important;
+}
+
+/* =====================================================
+   LABELS
+   ===================================================== */
+
+label,
+.ff-el-input--label label,
+.ff-el-input--label p,
+.mailpoet_paragraph label {
+    font-family: var(--wam-font-body);
+    font-size: var(--wam-label-font-size);
+    font-weight: 400;
+    line-height: 1.25;
+    color: var(--wp--preset--color--text-normal);
+    padding: 0 var(--wam-spacing-2xs);
+    margin: 0;
+    cursor: pointer;
+}
+
+/* Astérisque champ requis (Fluent Forms) */
+.ff-el-input--label.ff-el-is-required.asterisk-right label::after {
+    content: ' *';
+    color: var(--wp--preset--color--accent-orange);
+}
+
+/* =====================================================
+   CHAMPS TEXTE — input, textarea, select
+   ===================================================== */
+
+input[type="text"],
+input[type="email"],
+input[type="tel"],
+input[type="number"],
+input[type="url"],
+input[type="password"],
+input[type="search"],
+textarea,
+select,
+.ff-el-form-control {
+    display: block;
+    width: 100%;
+    max-width: 800px;
+    font-family: var(--wam-font-body) !important;
+    font-size: var(--wam-field-font-size) !important;
+    font-weight: 400;
+    line-height: 1.25;
+    color: var(--wp--preset--color--text-normal) !important;
+    background: transparent !important;
+    border: var(--wam-field-border-default) !important;
+    border-radius: var(--wam-field-radius) !important;
+    padding: var(--wam-field-py) var(--wam-field-px) !important;
+    box-sizing: border-box;
+    box-shadow: none !important;
+    outline: none;
+    appearance: none;
+    -webkit-appearance: none;
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+/* Placeholder */
+input[type="text"]::placeholder,
+input[type="email"]::placeholder,
+input[type="tel"]::placeholder,
+input[type="number"]::placeholder,
+input[type="url"]::placeholder,
+input[type="password"]::placeholder,
+input[type="search"]::placeholder,
+textarea::placeholder,
+.ff-el-form-control::placeholder {
+    color: var(--wp--preset--color--text-disabled) !important;
+    opacity: 1;
+}
+
+/* Textarea — hauteur min confortable */
+textarea,
+textarea.ff-el-form-control {
+    resize: vertical;
+    min-height: 120px;
+}
+
+/* Focus — natifs + Fluent Forms */
+input[type="text"]:focus,
+input[type="email"]:focus,
+input[type="tel"]:focus,
+input[type="number"]:focus,
+input[type="url"]:focus,
+input[type="password"]:focus,
+input[type="search"]:focus,
+textarea:focus,
+select:focus,
+.ff-el-form-control:focus {
+    border: var(--wam-field-border-focus) !important;
+    outline: none;
+    box-shadow: none !important;
+}
+
+/* MailPoet — !important nécessaire : inline styles injectés par le plugin */
+.mailpoet_text,
+.mailpoet_select {
+    font-family: var(--wam-font-body) !important;
+    font-size: var(--wam-field-font-size) !important;
+    font-weight: 400 !important;
+    line-height: 1.25 !important;
+    color: var(--wp--preset--color--text-normal) !important;
+    background: transparent !important;
+    border: var(--wam-field-border-default) !important;
+    border-radius: var(--wam-field-radius) !important;
+    padding: var(--wam-field-py) var(--wam-field-px) !important;
+    width: 100% !important;
+    max-width: 800px !important;
+    box-shadow: none !important;
+    outline: none !important;
+}
+
+.mailpoet_text:focus {
+    border: var(--wam-field-border-focus) !important;
+    box-shadow: none !important;
+    outline: none !important;
+}
+
+.mailpoet_text::placeholder {
+    color: var(--wp--preset--color--text-disabled) !important;
+    opacity: 1 !important;
+}
+
+/* Select — chevron custom */
+select,
+.mailpoet_select {
+    background-image: url("data:image/svg+xml,%3Csvg width='13' height='13' viewBox='0 0 13 13' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M2 4L6.5 8.5L11 4' stroke='%23e1cdad' stroke-width='1.5' stroke-linecap='round'/%3E%3C/svg%3E") !important;
+    background-repeat: no-repeat !important;
+    background-position: right var(--wam-field-px) center !important;
+    padding-right: calc(var(--wam-field-px) * 2.5) !important;
+    cursor: pointer;
+}
+
+select option {
+    background: var(--wp--preset--color--background-600);
+    color: var(--wp--preset--color--text-normal);
+}
+
+/* =====================================================
+   CHAMP REMPLI — autofill navigateur
+   Le navigateur injecte un fond jaune via :-webkit-autofill.
+   On le neutralise avec un box-shadow inset transparent.
+   ===================================================== */
+input:-webkit-autofill,
+input:-webkit-autofill:hover,
+input:-webkit-autofill:focus {
+    -webkit-box-shadow: 0 0 0px 1000px transparent inset !important;
+    -webkit-text-fill-color: var(--wp--preset--color--text-normal) !important;
+    caret-color: var(--wp--preset--color--text-normal);
+    transition: background-color 5000s ease-in-out 0s; /* délai pour que le fond reste transparent */
+}
+
+/* =====================================================
+   ÉTATS ERREUR
+   ===================================================== */
+
+/* Champ en erreur — Fluent Forms
+   Double ciblage : classe sur le parent (.has-error) ET aria-invalid sur l'input. */
+.ff-el-group.has-error .ff-el-form-control,
+.ff-el-form-control[aria-invalid="true"],
+.ff_input_error {
+    border: var(--wam-field-border-error) !important;
+}
+
+/* Message d'erreur — Fluent Forms */
+.ff-el-group .error,
+.ff-el-group .ff-error,
+.error-element {
+    font-family: var(--wam-font-body);
+    font-size: var(--wam-label-font-size);
+    line-height: 1.25;
+    color: var(--wp--preset--color--accent-orange);
+    padding: 0 var(--wam-spacing-2xs);
+    margin: 0;
+}
+
+/* Message validation MailPoet */
+.mailpoet_validate_success {
+    color: var(--wp--preset--color--accent-green) !important;
+    font-family: var(--wam-font-body) !important;
+    font-size: var(--wam-label-font-size) !important;
+}
+
+.mailpoet_validate_error {
+    color: var(--wp--preset--color--accent-orange) !important;
+    font-family: var(--wam-font-body) !important;
+    font-size: var(--wam-label-font-size) !important;
+}
+
+/* =====================================================
+   BOUTONS SOUMISSION
+   → Les classes .ff-btn-submit, .ff_btn_style, .mailpoet_submit
+     sont scopées sous .wamformcss dans components.css.
+     Pas d'!important — la spécificité du wrapper suffit.
+   ===================================================== */
+
+/* Zone bouton Fluent Forms — alignement gauche, pas full width */
+.wamformcss .ff_submit_btn_wrapper {
+    margin-top: var(--wam-spacing-lg);
+    display: flex;
+    justify-content: flex-start;
+}
+
+/* Zone bouton MailPoet — idem */
+.wamformcss .mailpoet_paragraph:has(.mailpoet_submit) {
+    display: flex;
+    justify-content: flex-start;
+    margin-bottom: 0;
+}
+
+/* =====================================================
+   FLUENT FORMS — CORRECTIONS LAYOUT
+   ===================================================== */
+
+/*
+ * Fluent Forms injecte un layout en colonnes via .ff-t-container / .ff-t-cell.
+ * On harmonise les gaps avec nos tokens.
+ */
+.ff-t-container {
+    gap: var(--wam-spacing-sm) !important;
+}
+
+.ff-el-group .ff-el-input--content {
+    margin-top: 0 !important;
+}
+
+/* =====================================================
+   MAILPOET — CORRECTIONS LAYOUT
+   ===================================================== */
+
+/*
+ * MailPoet injecte des styles inline massifs.
+ * On reset les éléments clés sans tout casser.
+ */
+.mailpoet_form {
+    font-family: var(--wam-font-body) !important;
+}
+
+/* Image décorative MailPoet — on la masque (hors charte) */
+.mailpoet_form_image {
+    display: none !important;
+}
+
+/* Titres MailPoet — on ramène dans la charte */
+.mailpoet-heading {
+    font-family: var(--wam-font-body) !important;
+    color: var(--wp--preset--color--text-normal) !important;
+    text-align: center;
+}
+
+/* Texte légal MailPoet */
+.mailpoet_form_paragraph.last {
+    font-family: var(--wam-font-body) !important;
+    font-size: var(--wam-label-font-size) !important;
+    color: var(--wp--preset--color--text-disabled) !important;
+    text-align: center;
+}
+
+.mailpoet_form_paragraph.last a {
+    color: var(--wp--preset--color--text-subtext) !important;
+}
+
+/* Espaceur MailPoet — neutralisé */
+.mailpoet_spacer {
+    display: none !important;
+}

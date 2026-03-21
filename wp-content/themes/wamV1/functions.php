@@ -39,6 +39,12 @@ if (!function_exists('wamv1_setup')):
             'footer' => __('Menu footer', 'wamv1'),
         ));
 
+        // Support WooCommerce
+        add_theme_support('woocommerce');
+        add_theme_support('wc-product-gallery-zoom');
+        add_theme_support('wc-product-gallery-lightbox');
+        add_theme_support('wc-product-gallery-slider');
+
         // Editor styles — back office fidèle au front
         // Google Fonts doit être passé en premier pour que les polices soient dispo
         add_editor_style(array(
@@ -124,25 +130,68 @@ function wamv1_scripts()
     wp_enqueue_style('wamv1-base', $css . 'base.css', array('wamv1-tokens'), $ver);
 
     // -------------------------------------------------------
-    // 3. dist/main.css — Bundle Tailwind compilé
-    //    Contient : utilities Tailwind (purgées) +
-    //    classes typo Figma (.title-cool-lg...) +
-    //    classes couleurs + composants (@layer components)
+    // 4. components.css — Composants réutilisables vanilla CSS
+    //    Boutons, header, footer, nav overlay, cards, etc.
+    //    Chargé après base.css
     //    TOUTES LES PAGES
     // -------------------------------------------------------
-    wp_enqueue_style('wamv1-main', $css . 'dist/main.css', array('wamv1-base'), $ver);
+    wp_enqueue_style('wamv1-components', $css . 'components.css', array('wamv1-base'), $ver);
+
+    // -------------------------------------------------------
+    // 5. layout.css — Structure globale vanilla CSS
+    //    site-main, sections, grilles réutilisables
+    //    TOUTES LES PAGES
+    // -------------------------------------------------------
+    wp_enqueue_style('wamv1-layout', $css . 'layout.css', array('wamv1-components'), $ver);
 
     // -------------------------------------------------------
     // accessibility.css — module accessibilité global
     // TOUTES LES PAGES
     // -------------------------------------------------------
-    wp_enqueue_style('wamv1-accessibility', $css . 'accessibility.css', array('wamv1-main'), $ver);
+    wp_enqueue_style('wamv1-accessibility', $css . 'accessibility.css', array('wamv1-layout'), $ver);
+
+    // -------------------------------------------------------
+    // forms.css — champs formulaires (Fluent Forms, MailPoet, natifs)
+    // TOUTES LES PAGES (formulaires peuvent apparaître partout)
+    // -------------------------------------------------------
+    wp_enqueue_style('wamv1-forms', $css . 'forms.css', array('wamv1-accessibility'), $ver);
 
     // -------------------------------------------------------
     // Page d'accueil uniquement
     // -------------------------------------------------------
     if (is_front_page()) {
-        wp_enqueue_style('wamv1-home', $css . 'home.css', array('wamv1-main'), $ver);
+        wp_enqueue_style('wamv1-home', $css . 'home.css', array('wamv1-layout'), $ver);
+    }
+
+    // -------------------------------------------------------
+    // Cours & Stages — singles CPT + pages listing + planning
+    // -------------------------------------------------------
+    if (
+        is_singular('cours') ||
+        is_singular('stages') ||
+        is_page_template('page-cours-collectifs.php') ||
+        is_page_template('page-stages-tous.php') ||
+        is_page_template('page-planning-cours.php')
+    ) {
+        wp_enqueue_style('wamv1-cours', $css . 'cours-stages.css', array('wamv1-accessibility'), $ver);
+    }
+
+    // JS filtrage — pages listing (cours collectifs + stages)
+    if (is_page_template('page-cours-collectifs.php') || is_page_template('page-stages-tous.php')) {
+        wp_enqueue_script('wamv1-filter', $js . 'filter.js', array(), $ver, true);
+    }
+
+    // CSS + JS planning — page planning uniquement (dépend de cours-stages.css)
+    if (is_page_template('page-planning-cours.php')) {
+        wp_enqueue_style('wamv1-planning', $css . 'planning.css', array('wamv1-cours'), $ver);
+        wp_enqueue_script('wamv1-planning', $js . 'planning.js', array(), $ver, true);
+    }
+
+    // -------------------------------------------------------
+    // WooCommerce — shop.css
+    // -------------------------------------------------------
+    if (class_exists('WooCommerce')) {
+        wp_enqueue_style('wamv1-shop', $css . 'shop.css', array('wamv1-layout'), $ver);
     }
 
     // -------------------------------------------------------
@@ -285,6 +334,49 @@ function wamv1_register_cpt_stages()
 }
 add_action('init', 'wamv1_register_cpt_stages');
 
+
+// =============================================================================
+// CPT : ÉVÈNEMENTS
+// =============================================================================
+
+function wamv1_register_cpt_evenements()
+{
+    $labels = array(
+        'name' => __('Les évènements', 'wamv1'),
+        'singular_name' => __('Évènement', 'wamv1'),
+        'menu_name' => __('Évènements', 'wamv1'),
+        'name_admin_bar' => __('Ajouter un évènement', 'wamv1'),
+        'all_items' => __('Voir tous les évènements', 'wamv1'),
+        'add_new' => __('Ajouter un évènement', 'wamv1'),
+        'add_new_item' => __('Ajouter un évènement', 'wamv1'),
+        'edit_item' => __('Modifier cet évènement', 'wamv1'),
+        'not_found' => __('Aucun évènement trouvé', 'wamv1'),
+    );
+
+    $args = array(
+        'labels' => $labels,
+        'public' => true,
+        'show_in_rest' => true,
+        'supports' => array('title', 'editor', 'thumbnail', 'excerpt', 'revisions', 'author'),
+        'hierarchical' => false,
+        'show_ui' => true,
+        'show_in_menu' => true,
+        'show_in_nav_menus' => true,
+        'show_in_admin_bar' => true,
+        'menu_position' => 7,
+        'menu_icon' => 'dashicons-calendar-alt',
+        'can_export' => true,
+        'has_archive' => true,
+        'exclude_from_search' => false,
+        'publicly_queryable' => true,
+        'capability_type' => 'page',
+        'rewrite' => array('slug' => 'evenements'),
+    );
+
+    register_post_type('evenements', $args);
+}
+add_action('init', 'wamv1_register_cpt_evenements');
+
 function wamv1_disable_gutenberg_cours($use_block_editor, $post_type)
 {
     if (in_array($post_type, array('cours', 'stages'))) {
@@ -369,7 +461,6 @@ function wamv1_block_editor_title_styles()
         ';
         wp_add_inline_style('wp-edit-blocks', $css);
     }
-    // Pages : déjà Mallia via editor.css h1 — aucun override nécessaire
 }
 add_action('enqueue_block_editor_assets', 'wamv1_block_editor_title_styles');
 
@@ -400,3 +491,79 @@ if (!function_exists('wamv1_get_reading_time')):
         return $reading_time . ' min de lecture';
     }
 endif;
+
+// =============================================================================
+// SYSTÈME IMAGES WAM
+// =============================================================================
+
+/**
+ * Affiche l'overlay de blend "systématique" préconisé dans le README.
+ * Utilise le mode mix-blend-mode: lighten pour uniformiser les visuels du site.
+ * 
+ * @param string $classes Classes CSS additionnelles pour l'overlay.
+ * @return void
+ */
+if (!function_exists('wamv1_the_photo_overlay')) :
+    function wamv1_the_photo_overlay($classes = '')
+    {
+        echo '<div class="photo-overlay ' . esc_attr($classes) . '" aria-hidden="true"></div>';
+    }
+endif;
+
+/**
+ * Encapsule une image (via ID d'attachment) dans son wrapper avec l'overlay blend.
+ * Utilise les préconisations du README (position:relative, mix-blend-mode:lighten).
+ * 
+ * @param int $attachment_id ID de l'image WordPress.
+ * @param string $size Taille de l'image (par défaut 'large').
+ * @param string $wrapper_classes Classes CSS pour le conteneur .photo-wrapper.
+ * @param array $attr Attributs HTML pour la balise <img>.
+ * @return string HTML complet : wrapper + image + overlay.
+ */
+if (!function_exists('wamv1_get_image_with_overlay')) :
+    function wamv1_get_image_with_overlay($attachment_id, $size = 'large', $wrapper_classes = '', $attr = [])
+    {
+        if (!$attachment_id) return '';
+
+        // On ajoute un flag pour éviter que le filtre auto ne s'applique une deuxième fois
+        $attr['data-has-overlay'] = 'true';
+
+        $img_html = wp_get_attachment_image($attachment_id, $size, false, $attr);
+        if (!$img_html) return '';
+
+        $output = '<div class="photo-wrapper ' . esc_attr($wrapper_classes) . '">';
+        $output .= $img_html;
+        $output .= '<div class="photo-overlay" aria-hidden="true"></div>';
+        $output .= '</div>';
+
+        return $output;
+    }
+endif;
+
+/**
+ * Automatisation de l'overlay sur TOUTES les images issues de la librairie (hors SVG)
+ * Cela couvre the_post_thumbnail(), wp_get_attachment_image(), etc.
+ */
+add_filter('wp_get_attachment_image', 'wamv1_auto_blend_overlay', 10, 5);
+function wamv1_auto_blend_overlay($html, $attachment_id, $size, $icon, $attr) {
+    if (empty($html) || is_admin()) return $html;
+
+    // Skip SVG
+    $mime = get_post_mime_type($attachment_id);
+    if ($mime === 'image/svg+xml') return $html;
+    
+    // Skip si déjà traité ou si explicitement désactivé
+    if (isset($attr['data-has-overlay']) || isset($attr['data-no-overlay'])) return $html;
+    if (strpos($html, 'photo-overlay') !== false) return $html;
+
+    return '<div class="photo-wrapper">' . $html . '<div class="photo-overlay" aria-hidden="true"></div></div>';
+}
+
+
+
+/**
+ * Masquer la barre d'administration pour les non-administrateurs sur le front-end.
+ * Permet de garder un design épuré pour les clients et membres tout en laissant
+ * l'accès rapide aux outils WP pour les admins.
+ */
+add_filter('show_admin_bar', '__return_false');

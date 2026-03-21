@@ -9,11 +9,12 @@
 $logo_url = get_template_directory_uri() . '/assets/images/wam_logo_hero.svg';
 $fb_url = get_template_directory_uri() . '/assets/images/logo_facebook.svg';
 $insta_url = get_template_directory_uri() . '/assets/images/logo_instagram.svg';
-$contact_url = get_permalink(get_page_by_path('contact'));
+$contact_url = home_url('/contact/');
 
 // Liens dynamiques vers les archives CPT
-$cours_url = get_post_type_archive_link('cours') ?: home_url('/cours-collectifs/');
-$stages_url = get_post_type_archive_link('stage') ?: home_url('/stages-workshop-ateliers/');
+$cours_url = home_url('/cours-collectifs/');
+$stages_url = home_url('/stages-workshop-ateliers/');
+$newsletter_url = home_url('/newsletter/');
 ?>
 
 <footer class="wam-footer" role="contentinfo">
@@ -28,10 +29,10 @@ $stages_url = get_post_type_archive_link('stage') ?: home_url('/stages-workshop-
 
             <?php /* CTAs — gauche */ ?>
             <div class="wam-footer__ctas">
-                <a href="<?php echo esc_url($contact_url ?: home_url('/contact/')); ?>" class="btn-outlined">
+                <a href="<?php echo esc_url($contact_url); ?>" class="btn-outlined">
                     <?php esc_html_e('Contact', 'wamv1'); ?>
                 </a>
-                <a href="<?php echo esc_url(home_url('/nos-professeurs/')); ?>" class="btn-outlined">
+                <a href="<?php echo esc_url(home_url('/prof-wam/')); ?>" class="btn-outlined">
                     <?php esc_html_e('Nos professeur·es', 'wamv1'); ?>
                 </a>
                 <a href="<?php echo esc_url(home_url('/tarifs/')); ?>" class="btn-outlined">
@@ -79,64 +80,108 @@ $stages_url = get_post_type_archive_link('stage') ?: home_url('/stages-workshop-
             </nav>
         <?php endif; ?>
 
-        <?php /* ── Cours collectifs (CPT "cours") ── */ ?>
         <div id="footer-cours" class="wam-footer__section">
             <p class="wam-footer__section-title">
                 <?php esc_html_e('Les cours de danse collectifs :', 'wamv1'); ?>
             </p>
 
             <?php
-            /*
-             * Cache transient : évite une WP_Query à chaque chargement de page.
-             * Durée : DAY_IN_SECONDS (86400s).
-             * Pour invalider immédiatement après mise à jour :
-             *   delete_transient('wamv1_footer_cours')
-             */
-            $cours_posts = get_transient('wamv1_footer_cours');
-            if (false === $cours_posts) {
-                $cours_query = new WP_Query(array(
+            // Suppression temporaire du transient pour forcer la mise à jour
+            delete_transient('wamv1_footer_cours_grouped');
+            
+            $grouped_cours = get_transient('wamv1_footer_cours_grouped');
+            if (false === $grouped_cours) {
+                $terms = get_terms(array(
+                    'taxonomy' => 'cat_cours',
+                    'hide_empty' => true,
+                ));
+
+                $grouped_cours = array();
+                foreach ($terms as $term) {
+                    $cours_query = new WP_Query(array(
+                        'post_type' => 'cours',
+                        'posts_per_page' => -1,
+                        'orderby' => 'title',
+                        'order' => 'ASC',
+                        'post_status' => 'publish',
+                        'tax_query' => array(
+                            array(
+                                'taxonomy' => 'cat_cours',
+                                'field' => 'term_id',
+                                'terms' => $term->term_id,
+                            ),
+                        ),
+                    ));
+                    if ($cours_query->have_posts()) {
+                        $grouped_cours[] = array(
+                            'term' => $term,
+                            'posts' => $cours_query->posts,
+                        );
+                    }
+                }
+
+                // Récupération des cours SANS catégorie
+                $uncategorized_query = new WP_Query(array(
                     'post_type' => 'cours',
-                    'posts_per_page' => 9,
+                    'posts_per_page' => -1,
                     'orderby' => 'title',
                     'order' => 'ASC',
                     'post_status' => 'publish',
-                    'class' => 'ml-40'
+                    'tax_query' => array(
+                        array(
+                            'taxonomy' => 'cat_cours',
+                            'operator' => 'NOT EXISTS', // Depuis WP 4.1, fonctionne pour tax_query
+                        ),
+                    ),
                 ));
-                $cours_posts = $cours_query->posts;
-                set_transient('wamv1_footer_cours', $cours_posts, DAY_IN_SECONDS);
+
+                if ($uncategorized_query->have_posts()) {
+                    $grouped_cours[] = array(
+                        'term' => (object) array('name' => __('Autres', 'wamv1')),
+                        'posts' => $uncategorized_query->posts,
+                    );
+                }
+
+                set_transient('wamv1_footer_cours_grouped', $grouped_cours, DAY_IN_SECONDS);
             }
 
-            if (!empty($cours_posts)):
-                $per_col = ceil(count($cours_posts) / 3);
-                $columns = array_chunk($cours_posts, max($per_col, 1));
+            if (!empty($grouped_cours)):
                 ?>
-                <div class="wam-footer__section-cols">
-                    <?php foreach ($columns as $col): ?>
-                        <ul class="wam-footer__section-col">
-                            <?php foreach ($col as $cours_post):
-                                $sous_titre = function_exists('get_field') ? get_field('sous_titre', $cours_post->ID) : '';
-                                ?>
-                                <li class="ml-10">
-                                    <a href="<?php echo esc_url(get_permalink($cours_post)); ?>" class="wam-footer__section-link">
-                                        <span class="wam-footer__link-title"><?php echo esc_html($cours_post->post_title); ?></span>
-                                        <?php if (!empty($sous_titre)): ?>
-                                            <span class="wam-footer__link-sub"><?php echo esc_html($sous_titre); ?></span>
+                <div class="wam-footer__columns">
+                    <ul class="wam-footer__flat-list">
+                        <?php foreach ($grouped_cours as $group): ?>
+                            <li class="wam-footer__category-title-li" role="heading" aria-level="3">
+                                <?php echo esc_html($group['term']->name); ?>
+                            </li>
+                            <?php foreach ($group['posts'] as $c_post): 
+                                $c_subtitle = function_exists('get_field') ? get_field('sous_titre', $c_post->ID) : '';
+                                $full_label = $c_post->post_title . ($c_subtitle ? ' ' . $c_subtitle : '');
+                            ?>
+                                <li class="wam-footer__course-li">
+                                    <a href="<?php echo esc_url(get_permalink($c_post)); ?>" 
+                                       class="wam-footer__simple-link"
+                                       aria-label="<?php echo esc_attr($full_label); ?>">
+                                        <?php echo esc_html($c_post->post_title); ?>
+                                        <?php if ($c_subtitle): ?>
+                                            <span class="wam-footer__simple-link-sub" aria-hidden="true"><?php echo esc_html($c_subtitle); ?></span>
                                         <?php endif; ?>
                                     </a>
                                 </li>
                             <?php endforeach; ?>
-                        </ul>
-                    <?php endforeach; ?>
+                        <?php endforeach; ?>
+                    </ul>
                 </div>
-                <?php
-            else: ?>
+            <?php else: ?>
                 <p class="wam-footer__section-empty">
                     <?php esc_html_e('Aucun cours disponible pour le moment.', 'wamv1'); ?>
+                    <a href="<?php echo esc_url($newsletter_url); ?>" class="color-yellow">
+                        <?php esc_html_e('Inscrivez-vous à notre newsletter pour ne louper aucune info !', 'wamv1'); ?>
+                    </a>
                 </p>
             <?php endif; ?>
 
             <a href="<?php echo esc_url($cours_url); ?>" class="wam-footer__section-all">
-                <?php esc_html_e('Tous les cours de danse', 'wamv1'); ?>
+                <?php esc_html_e('Tous les cours de danse collectifs', 'wamv1'); ?>
             </a>
         </div>
 
@@ -151,11 +196,14 @@ $stages_url = get_post_type_archive_link('stage') ?: home_url('/stages-workshop-
              * Même mécanique transient que pour les cours.
              * Pour invalider : delete_transient('wamv1_footer_stages')
              */
+            // Suppression temporaire du transient pour forcer la mise à jour immédiate
+            delete_transient('wamv1_footer_stages');
+
             $stages_posts = get_transient('wamv1_footer_stages');
             if (false === $stages_posts) {
                 $stages_query = new WP_Query(array(
                     'post_type' => 'stage',
-                    'posts_per_page' => 9,
+                    'posts_per_page' => -1, // Affiche tout sans limite
                     'orderby' => 'title',
                     'order' => 'ASC',
                     'post_status' => 'publish',
@@ -165,43 +213,49 @@ $stages_url = get_post_type_archive_link('stage') ?: home_url('/stages-workshop-
             }
 
             if (!empty($stages_posts)):
-                $per_col = ceil(count($stages_posts) / 3);
-                $columns = array_chunk($stages_posts, max($per_col, 1));
                 ?>
-                <div class="wam-footer__section-cols">
-                    <?php foreach ($columns as $col): ?>
-                        <ul class="wam-footer__section-col">
-                            <?php foreach ($col as $stage_post):
-                                $sous_titre = function_exists('get_field') ? get_field('sous_titre', $stage_post->ID) : '';
-                                ?>
-                                <li>
-                                    <a href="<?php echo esc_url(get_permalink($stage_post)); ?>" class="wam-footer__section-link">
-                                        <span class="wam-footer__link-title"><?php echo esc_html($stage_post->post_title); ?></span>
-                                        <?php if (!empty($sous_titre)): ?>
-                                            <span class="wam-footer__link-sub"><?php echo esc_html($sous_titre); ?></span>
-                                        <?php endif; ?>
-                                    </a>
-                                </li>
-                            <?php endforeach; ?>
-                        </ul>
-                    <?php endforeach; ?>
+                <div class="wam-footer__columns">
+                    <ul class="wam-footer__flat-list">
+                        <?php foreach ($stages_posts as $stage_post):
+                            $sous_titre = function_exists('get_field') ? get_field('sous_titre', $stage_post->ID) : '';
+                            $full_label = $stage_post->post_title . ($sous_titre ? ' ' . $sous_titre : '');
+                            ?>
+                            <li class="wam-footer__course-li">
+                                <a href="<?php echo esc_url(get_permalink($stage_post)); ?>" 
+                                   class="wam-footer__simple-link"
+                                   aria-label="<?php echo esc_attr($full_label); ?>">
+                                    <?php echo esc_html($stage_post->post_title); ?>
+                                    <?php if (!empty($sous_titre)): ?>
+                                        <span class="wam-footer__simple-link-sub" aria-hidden="true"><?php echo esc_html($sous_titre); ?></span>
+                                    <?php endif; ?>
+                                </a>
+                            </li>
+                        <?php endforeach; ?>
+                    </ul>
                 </div>
                 <?php
                 wp_reset_postdata();
             else: ?>
                 <p class="wam-footer__section-empty">
                     <?php esc_html_e('Aucun stage disponible pour le moment.', 'wamv1'); ?>
+                    <a href="<?php echo esc_url($newsletter_url); ?>" class="color-yellow">
+                        <?php esc_html_e('Inscrivez-vous à notre newsletter pour ne louper aucune info !', 'wamv1'); ?>
+                    </a>
                 </p>
             <?php endif; ?>
 
             <a href="<?php echo esc_url($stages_url); ?>" class="wam-footer__section-all">
-                <?php esc_html_e('Tous les stages de danse', 'wamv1'); ?>
+                <?php esc_html_e('Tous les stages & workshop', 'wamv1'); ?>
             </a>
         </div>
 
         <?php /* ── Bas de page — mentions légales ── */ ?>
-        <p id="footer-legal" class="wam-footer__legal text-wam-text font-outfit text-wam-sm">
-            <?php esc_html_e("Conception : Antoine Boursier. Toutes les photographies, textes et informations sur ce site appartiennent à l'association WAM Dance Studio. Studio de danse situé à Villeneuve-d'Ascq, proche de Lille, Roubaix, Mouvaux, Wattrelos, Croix et Wasquehal (Hauts de France, Nord Pas-de-Calais)", 'wamv1'); ?>
+        <p id="footer-legal" class="wam-footer__legal">
+            <?php 
+            $legal_text = __("Conception : %s. Toutes les photographies, textes et informations sur ce site appartiennent à l'association WAM Dance Studio. Studio de danse situé à Villeneuve-d'Ascq, proche de Lille, Roubaix, Mouvaux, Wattrelos, Croix et Wasquehal (Hauts de France, Nord Pas-de-Calais)", 'wamv1');
+            $link = '<a href="https://www.linkedin.com/in/antoine-boursier-uxui/" target="_blank" rel="external">Antoine Boursier</a>';
+            echo sprintf($legal_text, $link);
+            ?>
         </p>
 
     </div><!-- /.wam-footer__container -->

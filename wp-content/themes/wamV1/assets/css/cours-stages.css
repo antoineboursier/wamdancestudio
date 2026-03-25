@@ -11,33 +11,18 @@
 .page-cours {
     display: flex;
     flex-direction: column;
+    width: 100%;
+    align-items: stretch; /* on laisse les wam-container prendre la largeur max possible */
     gap: var(--wam-spacing-4xl);
-    /* 56px */
-    padding-top: var(--wam-spacing-3xl);
     padding-bottom: var(--wam-spacing-4xl);
 }
 
-/* Breadcrumb */
-.page-cours__breadcrumb {
-    display: flex;
-    align-items: center;
-    gap: var(--wam-spacing-2xs);
-    font-size: var(--wam-font-size-xs);
-    color: var(--wam-color-disabled);
-    margin-bottom: 0;
-}
+/* Breadcrumb → voir .wam-breadcrumb dans components.css */
 
-.breadcrumb__link {
-    color: var(--wam-color-disabled);
-    text-decoration: none;
-}
-
-.breadcrumb__link:hover {
-    color: var(--wam-color-subtext);
-}
-
-.breadcrumb__sep {
-    color: var(--wam-color-disabled);
+/* Coloration JAUNE ACCENT pour les titres H1 en page single uniquement (cours/stages) */
+.single-cours .cours-hero__title,
+.single-stages .stage-hero-title {
+    color: var(--wp--preset--color--accent-yellow) !important;
 }
 
 /* Hero 2 colonnes */
@@ -54,6 +39,10 @@
         gap: var(--wam-spacing-9xl);
         /* 96px */
     }
+}
+
+.page-cours__hero--no-media {
+    grid-template-columns: 1fr !important;
 }
 
 .page-cours__hero-text {
@@ -126,7 +115,6 @@
         position: relative;
         border-radius: var(--wam-radius-3xl);
         overflow: hidden;
-        min-height: 320px;
         align-self: stretch;
     }
 }
@@ -166,6 +154,7 @@
 /* Filtre wrapper */
 .page-cours__filter-wrap {
     position: relative;
+    z-index: 20;
 }
 
 /* Prose contenu */
@@ -198,6 +187,8 @@
     backdrop-filter: blur(4px);
     -webkit-backdrop-filter: blur(4px);
     flex-wrap: wrap;
+    width: 100%;
+    box-sizing: border-box;
 }
 
 .cours-filter__chips {
@@ -221,9 +212,10 @@
     display: inline-flex;
     align-items: center;
     justify-content: center;
+    flex-direction: column; /* permet au ::after d'occuper height: 0 sans déborder */
     padding: var(--wam-spacing-2xs) var(--wam-spacing-xs);
     border: 1px solid var(--wam-color-subtext);
-    border-radius: var(--wam-radius-sm);
+    border-radius: var(--wam-radius-lg);
     background: transparent;
     font-family: var(--wam-font-body);
     font-size: var(--wam-font-size-sm);
@@ -231,8 +223,19 @@
     font-weight: 400;
     color: var(--wam-color-subtext);
     cursor: pointer;
-    transition: border-color var(--wam-transition), color var(--wam-transition), font-weight var(--wam-transition);
+    transition: border-color var(--wam-transition), color var(--wam-transition);
     white-space: nowrap;
+}
+
+/* Réserve l'espace du texte en bold — évite le layout shift au passage 400→700 */
+.chip::after {
+    content: attr(data-label);
+    font-weight: 700;
+    height: 0;
+    visibility: hidden;
+    overflow: hidden;
+    pointer-events: none;
+    user-select: none;
 }
 
 .chip:hover {
@@ -247,43 +250,35 @@
 }
 
 /* Champ recherche — flex row (icône inline, comme Figma) */
-.cours-filter__search {
-    flex-shrink: 0;
-}
 
-/* Wrapper qui porte la bordure et le layout flex */
 .cours-search-wrap {
-    display: flex;
-    align-items: center;
-    gap: var(--wam-spacing-sm);
+    position: relative;
+    display: block;
     min-width: 264px;
-    padding: var(--wam-spacing-2xs) var(--wam-spacing-sm);
-    background: transparent;
-    border: 2px solid var(--wp--preset--color--background-500);
-    border-radius: var(--wam-radius-xs);
     box-sizing: border-box;
-    transition: border-color 0.2s ease;
-}
-
-.cours-search-wrap:focus-within {
-    border-color: var(--wam-color-green);
 }
 
 /* Input — sans bordure propre, hérite du wrapper */
 .cours-search {
-    flex: 1;
+    width: 100%;
     min-width: 0;
-    background: transparent;
-    border: none;
+    background: var(--wam-color-input-bg);
+    border: 2px solid var(--wp--preset--color--background-500);
+    border-radius: var(--wam-radius-xs);
     outline: none;
     font-family: var(--wam-font-body);
     font-size: var(--wam-font-size-md);
     /* 20px */
     color: var(--wam-color-text);
     line-height: 1.25;
-    padding: 0;
+    padding: var(--wam-spacing-xs) 72px var(--wam-spacing-xs) var(--wam-spacing-sm);
     -webkit-appearance: none;
     appearance: none;
+    transition: border-color var(--wam-transition);
+}
+
+.cours-search:focus {
+    border-color: var(--wam-color-green);
 }
 
 .cours-search::placeholder {
@@ -293,13 +288,17 @@
 /* Bouton effacer — masqué par défaut, affiché via JS (.is-visible) */
 .cours-search-clear {
     display: none;
-    flex-shrink: 0;
+    position: absolute;
+    right: 44px;
+    top: 50%;
+    transform: translateY(-50%);
+    z-index: 2;
     background: none;
     border: none;
     cursor: pointer;
-    padding: 0 var(--wam-spacing-2xs);
+    padding: 10px;
     color: var(--wam-color-disabled);
-    font-size: 1.25rem;
+    font-size: 1.75rem;
     line-height: 1;
     transition: color var(--wam-transition);
 }
@@ -314,7 +313,11 @@
 
 /* Icône search — inline à droite du texte */
 .cours-filter__search-icon {
-    flex-shrink: 0;
+    position: absolute;
+    right: 16px;
+    top: 50%;
+    transform: translateY(-50%);
+    z-index: 2;
     width: 24px;
     height: 24px;
     pointer-events: none;
@@ -363,13 +366,23 @@
     display: flex;
     flex-direction: column;
     gap: var(--wam-spacing-2xl);
-    /* 40px */
+    width: 100%;
+}
+
+/* Espacement entre sections (56px) */
+.page-cours .cours-categorie+.cours-categorie {
+    margin-top: var(--wam-spacing-4xl);
 }
 
 .cours-categorie__header {
     display: flex;
     align-items: center;
     gap: var(--wam-spacing-sm);
+}
+
+.cours-categorie__header h2 {
+    color: var(--wam-color-text);
+    margin: 0;
 }
 
 .cours-categorie__icon {
@@ -397,9 +410,8 @@
     isolation: isolate;
     display: flex;
     flex-direction: row;
-    align-items: stretch;
+    align-items: center;
     flex: 1;
-    min-width: 400px;
     padding: var(--wam-spacing-2xs);
     gap: var(--wam-spacing-sm);
     background-image: linear-gradient(-90deg,
@@ -410,6 +422,7 @@
     border-radius: var(--wam-radius-xl);
     transition: background-color var(--wam-transition), background-image var(--wam-transition);
     text-decoration: none;
+    min-width: calc(50% - var(--wam-spacing-2xl));
 }
 
 /* Gradient border — caché au repos.
@@ -553,19 +566,10 @@
     align-self: flex-start;
 }
 
-/* Titre — Outfit Bold 32px (adulte) | Cholo Rhita 48px (enfant via .is-style-title-cool-md) */
+/* Titre — Le style principal est géré par la classe is-style-title-norm-md */
 .card-cours__title {
     margin: 0;
-    line-height: 1.1;
     color: var(--wam-color-text);
-}
-
-.card-cours__subtitle {
-    margin: 0;
-    font-size: var(--wam-font-size-md);
-    /* 20px */
-    color: var(--wam-color-subtext);
-    line-height: 1.25;
 }
 
 /* Footer — horaires + CTA */
@@ -585,20 +589,10 @@
 }
 
 .card-cours__day {
-    font-size: var(--wam-font-size-lg);
-    /* 26px */
-    color: var(--wam-color-text);
-    line-height: 1.25;
     font-weight: 400;
 }
 
 
-.card-cours__time {
-    font-size: var(--wam-font-size-sm);
-    /* 16px */
-    color: var(--wam-color-text);
-    line-height: 1.25;
-}
 
 /* CTA bouton icône */
 .card-cours__cta {
@@ -607,9 +601,10 @@
     justify-content: center;
     flex-shrink: 0;
     padding: var(--wam-spacing-sm);
-    border: 2px solid var(--wam-color-subtext);
-    border-radius: var(--wam-radius-xs);
-    transition: border-color var(--wam-transition);
+    border: 1px solid var(--wam-color-subtext);
+    border-radius: var(--wam-radius-md);
+    color: var(--wam-color-subtext);
+    transition: border-color var(--wam-transition), color var(--wam-transition);
     position: relative;
     z-index: 2;
     /* au-dessus du ::after du lien overlay */
@@ -624,7 +619,6 @@
 
 .card-cours__cta--disabled {
     opacity: 0.4;
-    pointer-events: none;
 }
 
 /* Responsive mobile — stack vertical */
@@ -689,6 +683,13 @@
     pointer-events: none;
 }
 
+/* Placeholder quand pas de photo — stage sans image */
+.stage-placeholder-img {
+    position: absolute;
+    inset: 0;
+    background: var(--wp--preset--color--background-600);
+}
+
 /* =====================================================
    BADGE COURS COMPLET — positionné en absolu sur la photo
    ===================================================== */
@@ -720,8 +721,7 @@
 .cours-complet__body {
     display: flex;
     flex-direction: column;
-    gap: 8px;
-    /* gap-2 */
+    gap: var(--wam-spacing-2xs);
     align-items: flex-start;
 }
 
@@ -742,11 +742,9 @@
 .cours-complet__link {
     background: var(--wam-color-page-bg);
     display: flex;
-    gap: 8px;
-    /* gap-2 */
+    gap: var(--wam-spacing-2xs);
     align-items: center;
-    padding: 8px 16px;
-    /* py-2 px-4 */
+    padding: var(--wam-spacing-2xs) var(--wam-spacing-sm);
     border-radius: var(--wam-radius-md);
     text-decoration: none;
 }
@@ -803,7 +801,6 @@
     font-size: 68px;
     line-height: 1;
     font-weight: 400;
-    color: var(--wam-color-yellow); /* jaune — le jour reste en vert via --enfant */
 }
 
 .cours-hero__profs {
@@ -848,8 +845,7 @@
 .cours-info-card__cell {
     display: flex;
     flex-direction: column;
-    gap: 4px;
-    /* gap-1 */
+    gap: var(--wam-spacing-3xs);
     align-items: flex-start;
     flex: 1;
 }
@@ -1131,8 +1127,7 @@
 .cours-etape__icon-wrap {
     display: flex;
     flex-direction: column;
-    gap: 8px;
-    /* gap-2 */
+    gap: var(--wam-spacing-2xs);
     align-items: center;
 }
 
@@ -1216,86 +1211,23 @@
     overflow: hidden;
 }
 
+
+
 /* =====================================================
-   SIMILAIRES (ça peut vous faire kiffer)
+   STAGE — Composants spécifiques (single-stages.php)
+   Structure générale : réutilise cours-hero, cours-info-card, cours-complet
    ===================================================== */
-.section-similaires {
-    padding: var(--wam-spacing-3xl) 0;
-}
-
-.section-similaires__heading {
-    display: flex;
-    align-items: center;
-    gap: var(--wam-spacing-sm);
-    /* Gap 16px */
-    margin-bottom: var(--wam-spacing-2xl);
-    justify-content: center;
-}
-
-.section-similaires__icon {
-    color: var(--wam-color-yellow);
-}
-
-.section-similaires__title {
-    margin: 0;
-    text-align: center;
-}
-/* =====================================================
-   STAGE REFACTOR (FIGMA)
-   ===================================================== */
-.site-main--stage {
-    padding-top: var(--wam-spacing-xl);
-    background-color: var(--wam-color-page-bg);
-}
-
-.stage-container {
-    max-width: var(--wam-max-screen);
-    margin: 0 auto;
-    padding: 0 var(--wam-page-mx);
-}
-
-/* Breadcrumb épuré */
-.stage-breadcrumb {
-    font-size: var(--wam-font-size-xs);
-    color: var(--wam-color-disabled);
-    margin-bottom: var(--wam-spacing-xl);
-}
-
-.stage-breadcrumb a {
-    color: inherit;
-    text-decoration: none;
-    transition: color var(--wam-transition);
-}
-
-.stage-breadcrumb a:hover {
-    color: var(--wam-color-text);
-}
-
-/* Hero Layout 2 Colonnes */
-.stage-hero {
-    display: flex;
-    gap: 96px;
-    align-items: flex-start;
-    margin-bottom: var(--wam-spacing-5xl);
-}
-
-.stage-hero__left {
-    flex: 1.1; /* Un peu plus large pour le texte */
-}
-
-.stage-hero__right {
-    flex: 0.9;
-}
 
 /* Badge Type (STAGE/ATELIER) - Capsule Glass */
 .stage-badge-type {
     display: inline-block;
-    padding: 6px 16px;
-    background: rgba(255, 255, 255, 0.08);
+    padding: 6px var(--wam-spacing-sm);
+    background: var(--wam-color-glass-white);
     backdrop-filter: blur(8px);
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    border-radius: 99px; /* Capsule */
+    border: 1px solid var(--wam-color-glass-white);
+    border-radius: var(--wam-radius-pill);
     font-size: 11px;
+    /* intentionnel — pas de token pour 11px */
     font-weight: 800;
     color: var(--wam-color-text);
     text-transform: uppercase;
@@ -1303,61 +1235,16 @@
     margin-bottom: var(--wam-spacing-md);
 }
 
-.stage-hero-title {
-    margin-bottom: var(--wam-spacing-xs);
-    line-height: 1.1;
-    color: var(--wam-color-yellow);
-}
-
-.stage-hero--enfant .stage-hero-title {
-    color: var(--wam-color-green);
-}
-
-.stage-hero-subtitle {
-    margin-bottom: var(--wam-spacing-md);
-    font-weight: 600;
-    text-transform: capitalize;
-}
-
-.stage-hero-prof {
-    margin-bottom: var(--wam-spacing-2xl);
-    color: var(--wam-color-subtext);
-    opacity: 0.8;
-}
-
-/* STAGE INFO CARD (Dark Gradient) - Aligné sur cours-info-card */
-.stage-hero-card {
-    background: linear-gradient(to right, var(--wam-color-card-bg), var(--wam-color-page-bg));
-    border-radius: 32px;
-    padding: 32px 40px;
-    margin-bottom: var(--wam-spacing-3xl);
-    display: flex;
-    flex-direction: column;
-    gap: 32px;
-    box-shadow: var(--wam-shadow-card);
-    border: 1px solid rgba(255,255,255,0.05);
-}
-
-.stage-card-row {
-    display: flex;
-    gap: 24px;
-    align-items: center;
-}
-
-.stage-card-row--calendar {
+/* Variante align-top pour les rangées info-card avec contenu de hauteur variable (ex: date square) */
+.cours-info-card__row--top {
     align-items: flex-start;
 }
 
-.stage-card-cell {
-    display: flex;
-    flex-direction: column;
-    gap: 4px;
-}
-
-/* Square Date Display */
+/* Date display : date-square + heure */
 .stage-date-display {
     display: flex;
-    gap: 32px;
+    gap: var(--wam-spacing-xl);
+    /* 32px */
     align-items: center;
 }
 
@@ -1365,15 +1252,15 @@
     display: flex;
     flex-direction: column;
     align-items: center;
-    background: rgba(249, 244, 236, 0.04);
-    border-radius: 16px;
-    padding: 16px;
+    background: var(--wam-color-glass-white);
+    border-radius: var(--wam-radius-lg);
+    padding: var(--wam-spacing-sm);
     min-width: 120px;
     border-left: 3px solid var(--wam-color-yellow);
     text-align: center;
 }
 
-.stage-hero--enfant .stage-date-square {
+.stage-date-square--enfant {
     border-left-color: var(--wam-color-green);
 }
 
@@ -1385,7 +1272,7 @@
     margin-bottom: 4px;
 }
 
-.stage-hero--enfant .date-name {
+.stage-date-square--enfant .date-name {
     color: var(--wam-color-green);
     opacity: 0.8;
 }
@@ -1398,7 +1285,7 @@
     font-family: var(--wam-font-body);
 }
 
-.stage-hero--enfant .date-number {
+.stage-date-square--enfant .date-number {
     color: var(--wam-color-green);
 }
 
@@ -1414,29 +1301,32 @@
     color: var(--wam-color-disabled);
 }
 
+/* .stage-time-display — typographie portée par les classes text-lg fw-bold en PHP */
 .stage-time-display {
-    font-size: 26px;
+    display: block;
 }
 
 /* Multi-dates Toggle Button */
 .stage-dates-toggle-wrap {
-    margin-left: 48px; /* Alignment after calendar icon */
-    margin-top: -8px;
+    margin-left: var(--wam-spacing-3xl);
+    /* alignement après l'icône calendrier */
+    margin-top: calc(-1 * var(--wam-spacing-2xs));
 }
 
 .btn-toggle-dates {
     background: var(--wam-color-glass-white);
     border: none;
-    padding: 10px 24px;
-    border-radius: 99px;
+    padding: var(--wam-spacing-2xs) var(--wam-spacing-lg);
+    /* 8px 24px */
+    border-radius: var(--wam-radius-pill);
     color: var(--wam-color-text);
     font-family: var(--wam-font-body);
-    font-size: 14px;
+    font-size: var(--wam-font-size-xs);
     font-weight: 600;
     cursor: pointer;
     display: flex;
     align-items: center;
-    gap: 10px;
+    gap: var(--wam-spacing-xs);
     transition: background var(--wam-transition);
 }
 
@@ -1470,16 +1360,16 @@
 }
 
 .stage-mini-date-card {
-    background: rgba(249, 244, 236, 0.05);
+    background: var(--wam-color-glass-white);
     border-radius: var(--wam-radius-lg);
-    padding: 16px;
+    padding: var(--wam-spacing-sm);
     text-align: center;
     border: 1px solid transparent;
     transition: all var(--wam-transition);
 }
 
 .stage-mini-date-card:not(.is-complet):hover {
-    background: rgba(249, 244, 236, 0.08);
+    background: var(--wam-color-glass-white-hover);
     border-color: var(--wam-color-yellow);
 }
 
@@ -1490,7 +1380,7 @@
     line-height: 1.2;
 }
 
-.stage-hero--enfant .mini-date-num {
+.mini-date-num--enfant {
     color: var(--wam-color-green);
 }
 
@@ -1501,7 +1391,8 @@
 
 .mini-date-time {
     font-size: 13px;
-    margin-top: 8px;
+    /* intentionnel — pas de token pour 13px */
+    margin-top: var(--wam-spacing-2xs);
     font-weight: 600;
 }
 
@@ -1511,112 +1402,15 @@
 
 .mini-badge {
     display: block;
-    margin-top: 8px;
+    margin-top: var(--wam-spacing-2xs);
     font-size: 10px;
+    /* intentionnel — pas de token pour 10px */
     font-weight: 900;
     background: var(--wam-color-orange);
-    color: #fff;
+    color: var(--wam-color-text);
     padding: 2px 6px;
-    border-radius: 4px;
-}
-
-/* Description & CTA */
-.stage-hero-desc {
-    margin-bottom: var(--wam-spacing-2xl);
-    line-height: 1.6;
-    color: var(--wam-color-subtext);
-}
-
-.stage-cta-wrap {
-    display: flex;
-}
-
-.btn-stage-resa {
-    display: inline-flex;
-    align-items: center;
-    gap: 16px;
-    background: var(--wam-color-yellow);
-    color: var(--wp--preset--color--background-800);
-    padding: 18px 32px;
-    border-radius: var(--wam-radius-pill);
-    font-weight: 800;
-    font-size: 18px;
-    text-decoration: none;
-    transition: transform var(--wam-transition-spring);
-}
-
-.btn-stage-resa:hover {
-    transform: scale(1.03);
-}
-
-/* Featured Image - Aligné sur cours-hero__photo (pas de glow) */
-.stage-featured-image-wrap {
-    position: relative;
-    border-radius: 40px;
-    overflow: hidden;
-    line-height: 0;
-    align-self: stretch;
-}
-
-.stage-featured-img {
-    width: 100%;
-    height: auto;
-    object-fit: cover;
-    aspect-ratio: 4 / 6.2;
-}
-
-/* COMPLET BANNER OVERLAY - Figma Matches */
-.stage-banner-complet {
-    position: absolute;
-    top: 16px;
-    left: 16px;
-    right: 16px;
-    background: #FF843D;
-    color: #fff;
-    border-radius: 32px;
-    padding: 40px 32px;
-    display: flex;
-    gap: 24px;
-    box-shadow: 0 40px 80px rgba(0,0,0,0.4);
-    z-index: 10;
-}
-
-.complet-emoji-wrap {
-    font-size: 64px;
-    line-height: 1;
-}
-
-.complet-title {
-    font-size: 38px;
-    font-weight: 900;
-    margin-bottom: 8px;
-    font-family: var(--wam-font-body);
-}
-
-.complet-text {
-    font-size: 18px;
-    margin-bottom: 24px;
-    opacity: 0.95;
-    font-weight: 500;
-}
-
-.btn-complet-archive {
-    display: inline-flex;
-    align-items: center;
-    gap: 12px;
-    background: #131620;
-    color: #fff;
-    padding: 16px 28px;
-    border-radius: 12px;
-    text-decoration: none;
-    font-size: 16px;
-    font-weight: 800;
-    transition: all var(--wam-transition);
-}
-
-.btn-complet-archive:hover {
-    background: #000;
-    transform: translateY(-2px);
+    /* intentionnel — valeurs < wam-spacing-2xs(8px) */
+    border-radius: var(--wam-radius-xs);
 }
 
 /* Layout Spécifique Section Description */
@@ -1627,55 +1421,13 @@
 }
 
 /* Responsive Stages */
-@media (max-width: 1200px) {
-    .stage-hero {
-        gap: 48px;
-    }
-}
-
 @media (max-width: 1024px) {
-    .stage-hero {
-        flex-direction: column;
-    }
-    
-    .stage-hero__right {
-        order: -1; /* Image en premier sur mobile */
-        width: 100%;
-    }
-    
-    .stage-hero__left {
-        width: 100%;
-    }
-    
-    .stage-similar-grid {
-        grid-template-columns: 1fr;
-    }
-    
-    .stage-hero-card {
-        padding: 24px;
-    }
-    
     .stage-date-display {
-        gap: 16px;
+        gap: var(--wam-spacing-sm);
     }
-    
+
     .stage-date-square {
         min-width: 100px;
-    }
-    
-    .stage-banner-complet {
-        top: 16px;
-        right: 16px;
-        width: calc(100% - 32px);
-        padding: 20px;
-    }
-    
-    .complet-emoji-wrap {
-        font-size: 40px;
-    }
-    
-    .complet-title {
-        font-size: 24px;
     }
 }
 
@@ -1684,11 +1436,7 @@
    ===================================================== */
 
 .page-stages {
-    display: flex;
-    flex-direction: column;
-    gap: var(--wam-spacing-4xl);
-    padding-top: var(--wam-spacing-3xl);
-    padding-bottom: var(--wam-spacing-4xl);
+    width: 100%;
 }
 
 .page-stages__grid {
@@ -1706,13 +1454,10 @@
 
 /* =====================================================
    CARD STAGE — Vignette verticale portrait
-   Accent via --card-accent (yellow adulte, green enfant).
    Hover : élévation légère.
    ===================================================== */
 
 .card-stage {
-    --card-accent: var(--wam-color-yellow);
-
     position: relative;
     isolation: isolate;
     display: flex;
@@ -1720,46 +1465,78 @@
     flex: 1;
     min-width: 300px;
     max-width: 440px;
-    background: linear-gradient(
-        to bottom,
-        var(--wp--preset--color--background-800) 0%,
-        var(--wp--preset--color--background-600) 100%
-    );
-    border: 2px solid var(--wp--preset--color--background-800);
+    background: linear-gradient(to bottom,
+            var(--wp--preset--color--background-800) 0%,
+            var(--wp--preset--color--background-600) 100%);
+    border: 3px solid var(--wp--preset--color--background-800);
     border-radius: var(--wam-radius-xl);
     overflow: hidden;
     padding: var(--wam-spacing-2xs);
     gap: var(--wam-spacing-md);
     text-decoration: none;
-    transition: box-shadow var(--wam-transition), transform var(--wam-transition);
+    transition: box-shadow var(--wam-transition), transform var(--wam-transition), border-color var(--wam-transition);
+}
+
+/* Gradient border — donut technique (3px) */
+.card-stage::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    padding: 3px;
+    border-radius: inherit;
+    background: var(--wam-gradient-brand);
+    -webkit-mask:
+        linear-gradient(#000 0 0) content-box,
+        linear-gradient(#000 0 0);
+    -webkit-mask-composite: destination-out;
+    mask:
+        linear-gradient(#000 0 0) content-box,
+        linear-gradient(#000 0 0);
+    mask-composite: exclude;
+    z-index: -1;
+    opacity: 0;
+    transition: opacity var(--wam-transition);
+    pointer-events: none;
 }
 
 .card-stage:hover,
 .card-stage:focus-within {
     box-shadow: var(--wam-shadow-md);
     transform: translateY(-2px);
+    border-color: transparent;
 }
 
-/* Variante enfant — accent vert + bordure verte */
-.card-stage--enfant {
-    --card-accent: var(--wam-color-green);
-    border-color: var(--wam-color-green);
+.card-stage:hover::before,
+.card-stage:focus-within::before {
+    opacity: 1;
 }
+
+
+
 
 /* Variante complet — atténué */
 .card-stage--complet {
     opacity: 0.65;
 }
+
 .card-stage--complet:hover,
 .card-stage--complet:focus-within {
     transform: none;
 }
 
-/* Lien overlay couvrant toute la carte (z-index > body mais < badges) */
-.card-stage__link {
+.card-stage--hidden {
+    display: none !important;
+}
+
+/* Plus besoin de l'overlay manuel, on utilise stretched-link sur le CTA */
+.stretched-link::after {
     position: absolute;
-    inset: 0;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    left: 0;
     z-index: 1;
+    content: "";
     border-radius: inherit;
 }
 
@@ -1810,11 +1587,9 @@
     gap: var(--wam-spacing-2xs);
     padding: var(--wam-spacing-2xs) var(--wam-spacing-xs);
     border-radius: var(--wam-radius-lg);
-    font-family: var(--wam-font-body);
-    font-size: var(--wam-font-size-sm);
-    font-weight: 700;
-    color: var(--wp--preset--color--background-800);
     line-height: 1.25;
+    /* La couleur et police sont gérées par text-sm et fw-bold en HTML */
+    color: var(--wp--preset--color--background-800);
 }
 
 .card-stage__badge--complet {
@@ -1836,46 +1611,55 @@
     min-width: 90px;
     padding: var(--wam-spacing-sm) var(--wam-spacing-xl);
     border-radius: var(--wam-radius-lg);
-    backdrop-filter: blur(8px);
-    -webkit-backdrop-filter: blur(8px);
-    /*
-     * Fond teinté via color-mix : accent 10% + bg-600 semi-opaque.
-     * Même logique que les planning-card.
-     */
-    background: linear-gradient(
-        90deg,
-        color-mix(in srgb, var(--card-accent) 10%, rgba(35,39,52,0.8)) 0%,
-        rgba(35, 39, 52, 0.8) 100%
-    );
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+}
+
+.card-stage__date::after {
+    content: "";
+    width: 100%;
+    height: 100%;
+    position: absolute;
+    top: 0;
+    left: 0;
+    z-index: -1;
+    border-radius: inherit;
+    display: block;
+    background: var(--wam-color-overlay-photo);
+    opacity: 0.5;
+
+}
+
+/* Variantes BEM strictes pour les fonds teinté */
+.card-stage--stage .card-stage__date {
+    background: var(--wam-color-glass-yellow);
+}
+
+.card-stage--atelier .card-stage__date {
+    background: var(--wam-color-accent-tertiary-bg);
+}
+
+.card-stage--workshop .card-stage__date {
+    background: var(--wam-color-glass-pink);
+}
+
+.card-stage--enfant .card-stage__date {
+    background: var(--wam-color-accent-tertiary-bg);
 }
 
 .card-stage__date-day {
-    font-family: var(--wam-font-body);
-    font-size: var(--wam-font-size-sm);
-    color: var(--wp--preset--color--text-subtext);
     line-height: 1.25;
 }
 
 .card-stage__date-num {
-    font-family: var(--wam-font-body);
-    font-size: var(--wam-font-size-h2);
-    font-weight: 700;
     line-height: 1.1;
-    color: var(--card-accent);
 }
 
 .card-stage__date-month {
-    font-family: var(--wam-font-body);
-    font-size: var(--wam-font-size-lg);
-    font-weight: 700;
     line-height: 1.25;
-    color: var(--card-accent);
 }
 
 .card-stage__date-year {
-    font-family: var(--wam-font-body);
-    font-size: var(--wam-font-size-xs);
-    color: var(--wp--preset--color--text-subtext);
     line-height: 1.25;
 }
 
@@ -1892,48 +1676,53 @@
     z-index: 2;
 }
 
-/* Badge type (STAGE / ATELIER / WORKSHOP) */
+/* Badge type (STAGE / ATELIER / WORKSHOP) — Style Outline */
 .card-stage__type {
     display: inline-flex;
     align-items: center;
     justify-content: center;
     align-self: flex-start;
-    padding: var(--wam-spacing-2xs) var(--wam-spacing-sm);
-    border-radius: var(--wam-radius-sm);
-    background: rgba(249, 244, 236, 0.06);
-    font-family: var(--wam-font-body);
-    font-size: var(--wam-font-size-sm);
-    font-weight: 700;
-    color: var(--wp--preset--color--text-normal);
+    padding: 4px var(--wam-spacing-sm);
+    border-radius: var(--wam-radius-pill);
+    border: 1px solid currentColor;
+    background: transparent !important;
+    text-transform: uppercase;
+    font-size: 14px; /* Augmenté à 14px (xs) pour correspondre à la demande */
+    letter-spacing: 0.05em;
     margin-bottom: var(--wam-spacing-2xs);
 }
 
-/* Titre Outfit Bold 46px, couleur accent */
+.card-stage--stage .card-stage__type {
+    color: var(--wam-color-yellow);
+}
+
+.card-stage--atelier .card-stage__type {
+    color: var(--wam-color-green);
+}
+
+.card-stage--workshop .card-stage__type {
+    color: var(--wam-color-pink);
+}
+
+.card-stage--enfant .card-stage__type {
+    color: var(--wam-color-green);
+}
+
+/* Titre */
 .card-stage__title {
-    font-family: var(--wam-font-body);
-    font-size: var(--wam-font-size-h2);
-    font-weight: 700;
-    line-height: 1.1;
-    color: var(--card-accent);
-    margin: 0;
+    margin: 0 0 var(--wam-spacing-2xs) 0;
     word-break: break-word;
 }
 
 /* Sous-titre / Niveau */
 .card-stage__subtitle {
-    font-family: var(--wam-font-body);
-    font-size: var(--wam-font-size-md);
-    font-weight: 700;
-    color: var(--wp--preset--color--text-subtext);
+    display: block;
     line-height: 1.25;
     margin: 0;
 }
 
 /* Horaires */
 .card-stage__time {
-    font-family: var(--wam-font-body);
-    font-size: var(--wam-font-size-md);
-    color: var(--wp--preset--color--text-normal);
     line-height: 1.25;
     margin: 0;
 }
@@ -1954,19 +1743,39 @@
     flex-shrink: 0;
     padding: var(--wam-spacing-sm);
     border: 2px solid var(--wam-color-subtext);
-    border-radius: var(--wam-radius-xs);
-    transition: border-color var(--wam-transition), color var(--wam-transition);
+    border-radius: var(--wam-radius-sm); /* 8px fixed version */
+    color: var(--wam-color-subtext);
+    transition: all var(--wam-transition);
 }
 
-.card-stage:hover .card-stage__cta,
-.card-stage:focus-within .card-stage__cta {
-    border-color: var(--card-accent);
-    color: var(--card-accent);
+
+/* État Hover par variante (BEM stricte) */
+.card-stage--stage:hover .card-stage__cta,
+.card-stage--stage:focus-within .card-stage__cta {
+    border-color: var(--wam-color-yellow);
+    color: var(--wam-color-yellow);
+}
+
+.card-stage--atelier:hover .card-stage__cta,
+.card-stage--atelier:focus-within .card-stage__cta {
+    border-color: var(--wam-color-green);
+    color: var(--wam-color-green);
+}
+
+.card-stage--workshop:hover .card-stage__cta,
+.card-stage--workshop:focus-within .card-stage__cta {
+    border-color: var(--wam-color-pink);
+    color: var(--wam-color-pink);
+}
+
+.card-stage--enfant:hover .card-stage__cta,
+.card-stage--enfant:focus-within .card-stage__cta {
+    border-color: var(--wam-color-green);
+    color: var(--wam-color-green);
 }
 
 .card-stage__cta--disabled {
     opacity: 0.4;
-    pointer-events: none;
 }
 
 /* Masquage par filtre JS */

@@ -21,21 +21,16 @@ get_template_part('template-parts/site-header');
             the_post(); ?>
 
             <!-- Breadcrumb : Accueil > [Titre de la page] -->
-            <div id="breadcrumb-page" class="page-breadcrumb">
-                <div class="page-breadcrumb__inner">
-                    <?php if (function_exists('yoast_breadcrumb')) : ?>
-                        <?php yoast_breadcrumb(); ?>
-                    <?php else : ?>
-                        <a href="<?php echo esc_url(home_url('/')); ?>">Accueil</a> &gt;
-                        <?php the_title(); ?>
-                    <?php endif; ?>
-                </div>
-            </div>
+            <?php get_template_part('template-parts/breadcrumb', null, [
+                'yoast' => true,
+                'id'    => 'breadcrumb-page',
+                'full'  => true,
+            ]); ?>
 
             <!-- En-tête de page : titre (Mallia) + temps de lecture + image à la une optionnelle -->
             <div id="section-page-header" class="page-header">
                 <div class="page-header__meta page-header__meta--lg">
-                    <h1 class="page-header__title page-header__title--page">
+                    <h1 class="page-header__title is-style-title-sign-lg">
                         <?php the_title(); ?>
                     </h1>
                     <?php if ($reading_time = wamv1_get_reading_time(get_the_content())) : ?>
@@ -49,7 +44,7 @@ get_template_part('template-parts/site-header');
                     <!-- Image à la une (conditionnelle — non affichée si absente) -->
                     <div class="page-header__photo-outer">
                         <div class="page-header__photo page-header__photo--sm">
-                            <?php the_post_thumbnail('wamv1-page-hero', ['class' => 'page-header__photo-img']); ?>
+                            <?php the_post_thumbnail('wam-page-thumbnail', ['class' => 'page-header__photo-img']); ?>
                             <div class="page-header__photo-overlay"></div>
                         </div>
                     </div>

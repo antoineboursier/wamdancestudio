@@ -22,7 +22,7 @@
 $has_acf = function_exists('get_field');
 
 /* ---- Variante enfant ---- */
-$is_enfant = has_term('danse-enfant', 'cat_cours');
+$is_enfant = wamv1_is_enfant_variant();
 
 /* ---- Champs ACF ---- */
 $sous_titre   = $has_acf ? get_field('sous_titre')        : '';
@@ -32,17 +32,8 @@ $heure_fin    = $has_acf ? get_field('heure_de_fin')      : '';
 $complet      = $has_acf ? get_field('complete_cours')    : false;
 $dernieres    = $has_acf ? get_field('dernieres_places')  : false;
 
-/* ---- Mapping jour ---- */
-$jour_map = [
-    '01day' => 'Lundi',
-    '02day' => 'Mardi',
-    '03day' => 'Mercredi',
-    '04day' => 'Jeudi',
-    '05day' => 'Vendredi',
-    '06day' => 'Samedi',
-    '07day' => 'Dimanche',
-];
-$jour_label = $jour_map[$jour_value] ?? $jour_value;
+/* ---- Label jour ---- */
+$jour_label = wamv1_get_day_label($jour_value);
 
 /* ---- Horaires ---- */
 $horaires = ($heure_debut && $heure_fin) ? esc_html($heure_debut) . ' – ' . esc_html($heure_fin) : '';
@@ -75,12 +66,8 @@ if ($complet)   $card_classes[] = 'card-cours--complet';
     <!-- Badge statut — position:absolute relative à l'article (.card-cours) -->
     <?php if ($complet) : ?>
         <div class="card-cours__badge card-cours__badge--complet" aria-label="Cours complet">
-            <svg width="24" height="24" viewBox="0 0 40 40" fill="none" aria-hidden="true">
-                <circle cx="20" cy="20" r="18" stroke="currentColor" stroke-width="2" />
-                <circle cx="14" cy="16" r="2" fill="currentColor" />
-                <circle cx="26" cy="16" r="2" fill="currentColor" />
-                <path d="M13 27c1.8-3 5.2-4.5 7-4.5s5.2 1.5 7 4.5" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
-            </svg>
+            <img src="<?php echo $icons_path; ?>sad-emoji.svg" 
+                 width="24" height="24" alt="" aria-hidden="true">
             <span>Complet</span>
         </div>
     <?php elseif ($dernieres) : ?>
@@ -94,7 +81,7 @@ if ($complet)   $card_classes[] = 'card-cours--complet';
     <div class="card-cours__media">
         <?php echo wamv1_get_image_with_overlay(
             get_post_thumbnail_id(),
-            'medium_large',
+            'wam-card-thumbnail',
             'card-cours__img-wrapper',
             ['class' => 'card-cours__img']
         ); ?>
@@ -116,20 +103,20 @@ if ($complet)   $card_classes[] = 'card-cours--complet';
                 <a href="<?php the_permalink(); ?>" class="card-cours__link">
                     <?php the_title(); ?>
                 </a>
+                <?php if ($sous_titre) : ?>
+                    <span class="text-md color-subtitle" style="display: block;"><?php echo esc_html($sous_titre); ?></span>
+                <?php endif; ?>
             </h3>
-            <?php if ($sous_titre) : ?>
-                <p class="card-cours__subtitle"><?php echo esc_html($sous_titre); ?></p>
-            <?php endif; ?>
         </div>
 
         <div class="card-cours__footer">
 
             <div class="card-cours__schedule">
                 <?php if ($jour_label) : ?>
-                    <span class="card-cours__day"><?php echo esc_html($jour_label); ?></span>
+                    <span class="card-cours__day text-lg color-text"><?php echo esc_html($jour_label); ?></span>
                 <?php endif; ?>
                 <?php if ($horaires) : ?>
-                    <span class="card-cours__time"><?php echo $horaires; ?></span>
+                    <span class="card-cours__time text-sm color-text"><?php echo $horaires; ?></span>
                 <?php endif; ?>
             </div>
 

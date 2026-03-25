@@ -37,7 +37,7 @@ $icon_dir = get_template_directory_uri() . '/assets/images/';
             <?php /* Thumbnail : 400×196 Figma */ ?>
             <div class="card-article__image">
                 <?php if (has_post_thumbnail()): ?>
-                    <?php the_post_thumbnail('large', array('alt' => get_the_title())); ?>
+                    <?php the_post_thumbnail('wam-card', array('alt' => get_the_title())); ?>
                 <?php else: ?>
                     <div class="card-article__image-placeholder" aria-hidden="true"></div>
                 <?php endif; ?>
@@ -60,7 +60,7 @@ $icon_dir = get_template_directory_uri() . '/assets/images/';
                         id="btn-card-article">
                         <?php esc_html_e("M'inscrire aux spectacles", 'wamv1'); ?>
                         <span class="btn-icon btn-icon--sm"
-                            style="--icon-url: url('<?php echo esc_url($icon_dir . 'chevron right.svg'); ?>');"
+                            style="--icon-url: url('<?php echo esc_url($icon_dir . 'chevron-right.svg'); ?>');"
                             aria-hidden="true">
                         </span>
                     </a>

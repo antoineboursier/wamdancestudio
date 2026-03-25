@@ -256,7 +256,7 @@
     color: var(--wp--preset--color--text-normal);
 }
 
-.editor-styles-wrapper p + p {
+.editor-styles-wrapper p+p {
     margin-top: var(--wam-spacing-lg);
 }
 
@@ -272,8 +272,8 @@
     color: var(--wp--preset--color--text-normal);
 }
 
-.editor-styles-wrapper ul li + li,
-.editor-styles-wrapper ol li + li {
+.editor-styles-wrapper ul li+li,
+.editor-styles-wrapper ol li+li {
     margin-top: var(--wam-spacing-2xs);
 }
 
@@ -358,8 +358,90 @@
     margin-bottom: var(--wam-spacing-4xl);
 }
 
-.editor-styles-wrapper::after {
-    content: "";
-    display: table;
-    clear: both;
+/* -------------------------------------------------------
+   BOUTONS (Gutenberg Block Overrides)
+   Fidèle au design system WAM défini dans components.css
+   ------------------------------------------------------- */
+
+/* --- Bloc Bouton (Wrapper) --- */
+.wp-block-button {
+    margin: var(--wam-spacing-xl) 0;
+}
+
+/* --- Lien du bouton (Editable Div) --- */
+.wp-block-button__link {
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    text-decoration: none !important;
+    line-height: 1.25 !important;
+    cursor: pointer !important;
+    font-family: var(--wp--preset--font-family--outfit) !important;
+    position: relative !important;
+    isolation: isolate !important;
+}
+
+/* --- Bouton Solid (is-style-fill) --- */
+.is-style-fill .wp-block-button__link,
+.wp-block-button:not(.is-style-outline) .wp-block-button__link {
+    background-color: var(--wp--preset--color--accent-yellow) !important;
+    color: var(--wp--preset--color--background-500) !important;
+    border: 3px solid transparent !important;
+    border-radius: var(--wam-radius-lg) !important;
+    padding: var(--wam-spacing-sm) var(--wam-spacing-xl) !important;
+    font-weight: 700 !important;
+    font-size: 1.25rem !important;
+}
+
+/* Effet gradient (Before) */
+.is-style-fill .wp-block-button__link::before,
+.wp-block-button:not(.is-style-outline) .wp-block-button__link::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    padding: 3px;
+    border-radius: inherit;
+    background: var(--wam-gradient-brand);
+    -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+    -webkit-mask-composite: destination-out;
+    mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+    mask-composite: exclude;
+    z-index: -1;
+    opacity: 0;
+    transition: opacity var(--wam-transition) !important;
+}
+
+.is-style-fill .wp-block-button__link:hover::before,
+.wp-block-button:not(.is-style-outline) .wp-block-button__link:hover::before {
+    opacity: 1;
+}
+
+/* --- Bouton Outline (is-style-outline) --- */
+.is-style-outline .wp-block-button__link {
+    background-color: transparent !important;
+    color: var(--wp--preset--color--accent-yellow) !important;
+    border: 2px solid var(--wp--preset--color--accent-yellow) !important;
+    border-radius: var(--wam-radius-lg) !important;
+    padding: var(--wam-spacing-sm) var(--wam-spacing-xl) !important;
+    font-weight: 700 !important;
+    font-size: 1.25rem !important;
+    transition: background var(--wam-transition) !important;
+}
+
+.is-style-outline .wp-block-button__link:hover {
+    background-color: var(--wam-color-glass-yellow) !important;
+}
+
+/* --- Ajout automatique du chevron --- */
+.wp-block-button__link::after {
+    content: '';
+    display: inline-block !important;
+    width: 12px;
+    height: 12px;
+    background-color: currentColor;
+    -webkit-mask: url('../images/chevron-right.svg') no-repeat center / contain;
+    mask: url('../images/chevron-right.svg') no-repeat center / contain;
+    margin-left: var(--wam-spacing-2xs) !important;
+    flex-shrink: 0;
+    transform: translateY(1px);
 }

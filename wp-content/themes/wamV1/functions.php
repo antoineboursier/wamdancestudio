@@ -21,7 +21,14 @@ if (!function_exists('wamv1_setup')):
     {
         add_theme_support('title-tag');
         add_theme_support('post-thumbnails');
-        add_image_size('wamv1-page-hero', 1536, 600, true);
+        add_image_size('wamv1-page-hero',    1536, 600, true); // banner pages (landscape)
+        add_image_size('wam-page-thumbnail', 1248, 400, true); // header listing pages (Retina x2)
+        add_image_size('wam-card-thumbnail',  466, 370, true); // thumbnail cours card (x2 for Retina)
+        add_image_size('wam-hero',           1536, 800, true); // héros single plein écran
+        add_image_size('wam-card',           1600, 1200, true); // card media & colonne hero (Retina x2)
+        add_image_size('wam-stage-card', 810, 1172, true);  // x2 Retina (405x586 Figma)
+        add_image_size('wam-portrait',        960, 1280, true); // photo profil portrait (Retina x2)
+        add_image_size('wam-thumb',           800, 600, true); // miniature vignette compacte (Retina x2)
         add_theme_support('editor-styles');
         add_theme_support('html5', array(
             'search-form',
@@ -335,48 +342,6 @@ function wamv1_register_cpt_stages()
 add_action('init', 'wamv1_register_cpt_stages');
 
 
-// =============================================================================
-// CPT : ÉVÈNEMENTS
-// =============================================================================
-
-function wamv1_register_cpt_evenements()
-{
-    $labels = array(
-        'name' => __('Les évènements', 'wamv1'),
-        'singular_name' => __('Évènement', 'wamv1'),
-        'menu_name' => __('Évènements', 'wamv1'),
-        'name_admin_bar' => __('Ajouter un évènement', 'wamv1'),
-        'all_items' => __('Voir tous les évènements', 'wamv1'),
-        'add_new' => __('Ajouter un évènement', 'wamv1'),
-        'add_new_item' => __('Ajouter un évènement', 'wamv1'),
-        'edit_item' => __('Modifier cet évènement', 'wamv1'),
-        'not_found' => __('Aucun évènement trouvé', 'wamv1'),
-    );
-
-    $args = array(
-        'labels' => $labels,
-        'public' => true,
-        'show_in_rest' => true,
-        'supports' => array('title', 'editor', 'thumbnail', 'excerpt', 'revisions', 'author'),
-        'hierarchical' => false,
-        'show_ui' => true,
-        'show_in_menu' => true,
-        'show_in_nav_menus' => true,
-        'show_in_admin_bar' => true,
-        'menu_position' => 7,
-        'menu_icon' => 'dashicons-calendar-alt',
-        'can_export' => true,
-        'has_archive' => true,
-        'exclude_from_search' => false,
-        'publicly_queryable' => true,
-        'capability_type' => 'page',
-        'rewrite' => array('slug' => 'evenements'),
-    );
-
-    register_post_type('evenements', $args);
-}
-add_action('init', 'wamv1_register_cpt_evenements');
-
 function wamv1_disable_gutenberg_cours($use_block_editor, $post_type)
 {
     if (in_array($post_type, array('cours', 'stages'))) {
@@ -385,6 +350,18 @@ function wamv1_disable_gutenberg_cours($use_block_editor, $post_type)
     return $use_block_editor;
 }
 add_filter('use_block_editor_for_post_type', 'wamv1_disable_gutenberg_cours', 10, 2);
+
+// Affiche "Titre — Sous-titre" dans la colonne titre des CPT cours/stages en admin
+function wamv1_admin_title_with_subtitle($title, $post_id)
+{
+    if (!is_admin() || !function_exists('get_field')) return $title;
+    $post = get_post($post_id);
+    if (!$post || !in_array($post->post_type, ['cours', 'stages'])) return $title;
+    $sous_titre = get_field('sous_titre', $post_id);
+    if ($sous_titre) $title .= ' — ' . $sous_titre;
+    return $title;
+}
+add_filter('the_title', 'wamv1_admin_title_with_subtitle', 10, 2);
 
 // =============================================================================
 // CPT : MEMBRES (Professeur·es & Directrice)
@@ -409,7 +386,7 @@ function wamv1_register_cpt_membre()
         'public' => true,
         'show_in_rest' => true,
         'supports' => array(
-            'title',  // Bio via Gutenberg
+            'title',
             'thumbnail',  // Photo de profil
         ),
         'menu_icon' => 'dashicons-groups',
@@ -467,6 +444,49 @@ add_action('enqueue_block_editor_assets', 'wamv1_block_editor_title_styles');
 // -------------------------------------------------------
 // Utilitaires de contenu
 // -------------------------------------------------------
+
+/**
+ * Retourne le label français d'une valeur ACF "jour_de_cours" ("01day"…"07day").
+ * Utilisé dans card-cours.php, single-cours.php, single-wam_membre.php,
+ * page-planning-cours.php, card-article.php.
+ *
+ * @param string $value   Valeur ACF ("01day", "02day"…).
+ * @param bool   $short   false = nom complet (Lundi), true = abrégé (Lun).
+ * @return string
+ */
+if (!function_exists('wamv1_get_day_label')):
+    function wamv1_get_day_label(?string $value, bool $short = false): string
+    {
+        $map_long = [
+            '01day' => 'Lundi',    '02day' => 'Mardi',  '03day' => 'Mercredi',
+            '04day' => 'Jeudi',    '05day' => 'Vendredi',
+            '06day' => 'Samedi',   '07day' => 'Dimanche',
+        ];
+        $map_short = [
+            '01day' => 'Lun', '02day' => 'Mar', '03day' => 'Mer',
+            '04day' => 'Jeu', '05day' => 'Ven', '06day' => 'Sam', '07day' => 'Dim',
+        ];
+        $map = $short ? $map_short : $map_long;
+        return $map[$value] ?? ($value ?? '');
+    }
+endif;
+
+/**
+ * Vérifie si le post courant (ou $post_id) appartient à la variante "Enfant"
+ * (terme slug "danse-enfant" dans la taxonomie cat_cours).
+ * Utilisé dans card-cours.php, card-stage.php, single-cours.php,
+ * single-stages.php, page-planning-cours.php.
+ *
+ * @param int $post_id 0 = post courant de la boucle.
+ * @return bool
+ */
+if (!function_exists('wamv1_is_enfant_variant')):
+    function wamv1_is_enfant_variant(int $post_id = 0): bool
+    {
+        return has_term('danse-enfant', 'cat_cours', $post_id ?: null);
+    }
+endif;
+
 if (!function_exists('wamv1_get_reading_time')):
     /**
      * Calcule le temps de lecture estimé d'un contenu.
@@ -566,4 +586,6 @@ function wamv1_auto_blend_overlay($html, $attachment_id, $size, $icon, $attr) {
  * Permet de garder un design épuré pour les clients et membres tout en laissant
  * l'accès rapide aux outils WP pour les admins.
  */
-add_filter('show_admin_bar', '__return_false');
+add_filter('show_admin_bar', function ($show) {
+    return current_user_can('manage_options') ? $show : false;
+});

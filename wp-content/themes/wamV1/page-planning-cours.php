@@ -79,7 +79,7 @@ if ( $all_cours_query->have_posts() ) {
         /* Plage valide */
         if ( $start_min < $wam_planning_start || $end_min > $wam_planning_end || $start_min >= $end_min ) continue;
 
-        $is_enfant = has_term( 'danse-enfant', 'cat_cours' );
+        $is_enfant = wamv1_is_enfant_variant();
         $complet   = get_field( 'complete_cours' );
 
         $planning_items[] = [
@@ -108,18 +108,17 @@ $grid_rows = ( $wam_planning_end - $wam_planning_start ) / $wam_planning_granula
 get_header();
 ?>
 
-<main id="page-planning" class="page-planning">
+<main id="primary" class="site-main page-planning">
     <div class="wam-container">
 
         <!-- Breadcrumb -->
-        <nav class="page-cours__breadcrumb" aria-label="Fil d'Ariane">
-            <a href="<?php echo esc_url( home_url( '/' ) ); ?>" class="breadcrumb__link">Accueil</a>
-            <span class="breadcrumb__sep" aria-hidden="true">›</span>
-            <a href="<?php echo esc_url( get_permalink( get_page_by_path( 'cours-collectifs' ) ) ); ?>"
-               class="breadcrumb__link">Cours collectifs</a>
-            <span class="breadcrumb__sep" aria-hidden="true">›</span>
-            <span aria-current="page">Planning</span>
-        </nav>
+        <?php get_template_part('template-parts/breadcrumb', null, [
+            'links'   => [
+                ['label' => 'Accueil',          'url' => home_url('/')],
+                ['label' => 'Cours collectifs', 'url' => get_permalink(get_page_by_path('cours-collectifs'))],
+            ],
+            'current' => 'Planning',
+        ]); ?>
 
         <div class="page-planning__header">
             <h1 class="is-style-title-sign-lg">Planning des cours</h1>

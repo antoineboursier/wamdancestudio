@@ -30,13 +30,13 @@ $icon_dir = get_template_directory_uri() . '/assets/images/';
                 <a href="<?php echo esc_url(home_url('/cours-collectifs/')); ?>" class="btn-primary" id="btn-cours-hebdo">
                     <?php esc_html_e('Cours de danse collectifs', 'wamv1'); ?>
                     <span class="btn-icon btn-icon--sm"
-                        style="--icon-url: url('<?php echo esc_url($icon_dir . 'chevron right.svg'); ?>');"
+                        style="--icon-url: url('<?php echo esc_url($icon_dir . 'chevron-right.svg'); ?>');"
                         aria-hidden="true"></span>
                 </a>
                 <a href="<?php echo esc_url(home_url('/stages-workshop-ateliers/')); ?>" class="btn-secondary" id="btn-stages">
                     <?php esc_html_e('Stages & Workshop', 'wamv1'); ?>
                     <span class="btn-icon btn-icon--sm"
-                        style="--icon-url: url('<?php echo esc_url($icon_dir . 'chevron right.svg'); ?>');"
+                        style="--icon-url: url('<?php echo esc_url($icon_dir . 'chevron-right.svg'); ?>');"
                         aria-hidden="true"></span>
                 </a>
             </div>
@@ -55,7 +55,7 @@ $icon_dir = get_template_directory_uri() . '/assets/images/';
                         id="<?php echo esc_attr($btn['id']); ?>">
                         <?php echo esc_html($btn['label']); ?>
                         <span class="btn-icon btn-icon--xs"
-                            style="--icon-url: url('<?php echo esc_url($icon_dir . 'chevron right.svg'); ?>');"
+                            style="--icon-url: url('<?php echo esc_url($icon_dir . 'chevron-right.svg'); ?>');"
                             aria-hidden="true"></span>
                     </a>
                 <?php endforeach; ?>

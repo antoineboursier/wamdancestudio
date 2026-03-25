@@ -10,15 +10,21 @@
    Centralisés ici pour faciliter les ajustements.
    ===================================================== */
 :root {
-    --wam-field-border-default : 2px solid var(--wp--preset--color--background-500);
-    --wam-field-border-focus   : 2px solid var(--wp--preset--color--accent-green);
-    --wam-field-border-error   : 2px solid var(--wp--preset--color--accent-orange);
-    --wam-field-radius         : var(--wam-radius-md);   /* 12px */
-    --wam-field-px             : var(--wam-spacing-sm);  /* 16px */
-    --wam-field-py             : var(--wam-spacing-2xs); /* 8px */
-    --wam-field-font-size      : var(--wam-font-size-lg); /* 20px */
-    --wam-label-font-size      : var(--wam-font-size-sm); /* 14px */
-    --wam-field-gap            : var(--wam-spacing-2xs); /* 8px */
+    --wam-field-border-default: 2px solid var(--wp--preset--color--background-500);
+    --wam-field-border-focus: 2px solid var(--wp--preset--color--accent-green);
+    --wam-field-border-error: 2px solid var(--wp--preset--color--accent-orange);
+    --wam-field-radius: var(--wam-radius-md);
+    /* 12px */
+    --wam-field-px: var(--wam-spacing-sm);
+    /* 16px */
+    --wam-field-py: var(--wam-spacing-2xs);
+    /* 8px */
+    --wam-field-font-size: var(--wam-font-size-lg);
+    /* 20px */
+    --wam-label-font-size: var(--wam-font-size-sm);
+    /* 14px */
+    --wam-field-gap: var(--wam-spacing-2xs);
+    /* 8px */
 }
 
 /* =====================================================
@@ -91,6 +97,10 @@ select,
     appearance: none;
     -webkit-appearance: none;
     transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+input.cours-search {
+    font-size: var(--wam-font-size-md) !important;
 }
 
 /* Placeholder */
@@ -185,7 +195,8 @@ input:-webkit-autofill:focus {
     -webkit-box-shadow: 0 0 0px 1000px transparent inset !important;
     -webkit-text-fill-color: var(--wp--preset--color--text-normal) !important;
     caret-color: var(--wp--preset--color--text-normal);
-    transition: background-color 5000s ease-in-out 0s; /* délai pour que le fond reste transparent */
+    transition: background-color 5000s ease-in-out 0s;
+    /* délai pour que le fond reste transparent */
 }
 
 /* =====================================================

@@ -201,7 +201,7 @@
     position: relative;
     display: flex;
     flex-direction: column;
-    gap: 2px;
+    gap: var(--wam-spacing-4xs);
     overflow: hidden;
     margin: 2px 3px;
     padding: var(--wam-spacing-2xs) var(--wam-spacing-xs);

@@ -27,9 +27,10 @@ $icon_dir = get_template_directory_uri() . '/assets/images/';
         <?php if ($teachers_query->have_posts()): ?>
             <?php while ($teachers_query->have_posts()): $teachers_query->the_post();
                 $teacher_url = get_permalink();
-                $specialty   = function_exists('get_field') ? get_field('specialite') : get_post_meta(get_the_ID(), 'specialite', true);
-                if (!$specialty) {
-                    $specialty = get_post_meta(get_the_ID(), 'wam_specialite', true);
+                $user_prof = function_exists('get_field') ? get_field('user_prof') : null;
+                $specialty = '';
+                if ($user_prof && isset($user_prof['ID'])) {
+                    $specialty = get_user_meta($user_prof['ID'], 'wam_specialite', true);
                 }
                 $display_name = get_the_title();
                 $has_photo    = has_post_thumbnail();
@@ -67,7 +68,7 @@ $icon_dir = get_template_directory_uri() . '/assets/images/';
 
                         <span class="teacher-card__link-icon" aria-hidden="true">
                             <span class="btn-icon btn-icon--sm" 
-                                  style="--icon-url: url('<?php echo esc_url($icon_dir . 'chevron right.svg'); ?>');"></span>
+                                  style="--icon-url: url('<?php echo esc_url($icon_dir . 'chevron-right.svg'); ?>');"></span>
                         </span>
                     </div>
                 </a>
@@ -101,7 +102,7 @@ $icon_dir = get_template_directory_uri() . '/assets/images/';
             id="link-professors">
             <?php esc_html_e('Découvrir les profs !', 'wamv1'); ?>
             <span class="btn-icon btn-icon--sm"
-                style="--icon-url: url('<?php echo esc_url($icon_dir . 'chevron right.svg'); ?>');"
+                style="--icon-url: url('<?php echo esc_url($icon_dir . 'chevron-right.svg'); ?>');"
                 aria-hidden="true"></span>
         </a>
     </div>

@@ -55,7 +55,7 @@
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 4px;
+    gap: var(--wam-spacing-3xs);
     text-align: center;
     font-style: normal;
     color: var(--wam-color-subtext);

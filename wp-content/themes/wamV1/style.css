@@ -66,8 +66,25 @@ body {
 }
 
 /* --- Titres "Norm" (Outfit Bold) --- */
+.title-norm-lg {
+    font-family: var(--wam-font-body);
+    font-size: 32px;
+    font-weight: 700;
+    line-height: 1.1;
+    letter-spacing: 0;
+}
+
 .title-norm-md {
+    font-family: var(--wam-font-body);
     font-size: var(--wam-font-size-h2);
+    font-weight: 700;
+    line-height: 1.1;
+    letter-spacing: 0;
+}
+
+.title-norm-sm {
+    font-family: var(--wam-font-body);
+    font-size: 22px;
     font-weight: 700;
     line-height: 1.1;
     letter-spacing: 0;
@@ -162,7 +179,8 @@ body {
     color: var(--wam-color-subtext);
 }
 
-.color-muted {
+.color-muted,
+.color-disabled {
     color: var(--wam-color-disabled);
 }
 
@@ -188,6 +206,10 @@ body {
 
 .bg-card {
     background-color: var(--wam-color-card-bg);
+}
+
+.fw-bold {
+    font-weight: 700;
 }
 
 /* Focus visible — ne jamais supprimer sans remplacer */

@@ -31,8 +31,7 @@
     /* 16px 24px */
     background: var(--wp--preset--color--background-600);
     border: 1px solid var(--wp--preset--color--background-500);
-    border-radius: 999px;
-    /* pill */
+    border-radius: var(--wam-radius-pill);
     color: var(--wp--preset--color--text-subtext);
     font-size: var(--wam-font-size-sm);
     cursor: pointer;
@@ -62,7 +61,7 @@
     padding: var(--wam-spacing-sm) var(--wam-spacing-lg);
     background: var(--wp--preset--color--background-600);
     border: 1px solid var(--wp--preset--color--background-500);
-    border-radius: 999px;
+    border-radius: var(--wam-radius-pill);
     color: var(--wp--preset--color--text-subtext);
     font-size: var(--wam-font-size-sm);
     cursor: pointer;
@@ -238,7 +237,7 @@
     border-bottom: 1px solid var(--wp--preset--color--background-500);
     display: flex;
     flex-direction: column;
-    gap: 10px;
+    gap: var(--wam-spacing-xs);
 }
 
 .a11y-group:last-child {
@@ -269,7 +268,7 @@
 .a11y-toggles {
     display: flex;
     flex-wrap: wrap;
-    gap: 8px;
+    gap: var(--wam-spacing-2xs);
 }
 
 .a11y-toggle-btn {
@@ -279,7 +278,7 @@
     padding: 6px 12px;
     background: var(--wam-color-glass-white);
     border: 1px solid transparent;
-    border-radius: 10px;
+    border-radius: var(--wam-radius-sm);
     cursor: pointer;
     font-size: var(--wam-font-size-sm);
     color: var(--wp--preset--color--text-subtext);
@@ -332,7 +331,7 @@
 .a11y-switch-row {
     display: flex;
     align-items: center;
-    gap: 10px;
+    gap: var(--wam-spacing-xs);
     cursor: pointer;
 }
 
@@ -354,7 +353,7 @@
     height: 22px;
     background: var(--wam-color-glass-white-hover);
     border: 1px solid rgba(249, 244, 236, 0.15);
-    border-radius: 999px;
+    border-radius: var(--wam-radius-pill);
     position: relative;
     transition: background 0.2s ease, border-color 0.2s ease;
 }
@@ -401,7 +400,7 @@
     padding: 8px 12px;
     background: rgba(249, 244, 236, 0.06);
     border: 1px solid var(--wp--preset--color--background-500);
-    border-radius: 10px;
+    border-radius: var(--wam-radius-sm);
     color: var(--wp--preset--color--text-normal);
     font-size: var(--wam-font-size-sm);
     cursor: pointer;

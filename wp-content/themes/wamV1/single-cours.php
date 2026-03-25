@@ -58,16 +58,13 @@ get_template_part('template-parts/site-header');
              * Règle : si le terme slug "danse-enfant" est présent → variante enfant.
              * Tous les autres termes alimentent les chips d'affichage.
              */
-            $cat_cours_terms = get_the_terms(get_the_ID(), 'cat_cours');
-            $is_enfant = false;
+            $is_enfant = wamv1_is_enfant_variant();
             $chips = [];
             // URL de la page listing — calculée une fois, réutilisée dans la boucle
             $cours_listing_url = get_permalink(get_page_by_path('cours-collectifs'));
+            $cat_cours_terms   = get_the_terms(get_the_ID(), 'cat_cours');
             if ($cat_cours_terms && !is_wp_error($cat_cours_terms)) {
                 foreach ($cat_cours_terms as $term) {
-                    if ($term->slug === 'danse-enfant') {
-                        $is_enfant = true; // → titre Cholo Rhita 68px, jour en vert
-                    }
                     // Pointer vers /cours-collectifs/?cat={slug} pour le pré-filtre JS
                     $term_link = $cours_listing_url
                         ? add_query_arg('cat', $term->slug, $cours_listing_url)
@@ -122,16 +119,7 @@ get_template_part('template-parts/site-header');
              * On construit le libellé manuellement pour éviter toute dépendance à la config ACF.
              */
             // — Correspondance jour_de_cours value → label
-            $jour_map = [
-                '01day' => 'Lundi',
-                '02day' => 'Mardi',
-                '03day' => 'Mercredi',
-                '04day' => 'Jeudi',
-                '05day' => 'Vendredi',
-                '06day' => 'Samedi',
-                '07day' => 'Dimanche',
-            ];
-            $jour_label = $jour_map[$jour_value] ?? $jour_value;
+            $jour_label = wamv1_get_day_label($jour_value);
 
             // — Horaires formatés
             $horaires = '';
@@ -183,15 +171,15 @@ get_template_part('template-parts/site-header');
             ?>
 
             <!-- Breadcrumb : chemin Accueil > Cours > [Titre du cours] -->
-            <div id="breadcrumb-cours" class="page-breadcrumb">
-                <div class="page-breadcrumb__inner">
-                    <a href="<?php echo esc_url(home_url('/')); ?>">Accueil</a>
-                    &gt;
-                    <a href="<?php echo esc_url($cours_listing_url ?: home_url('/')); ?>">Cours</a>
-                    &gt;
-                    <?php the_title(); ?>
-                </div>
-            </div>
+            <?php get_template_part('template-parts/breadcrumb', null, [
+                'links'   => [
+                    ['label' => 'Accueil', 'url' => home_url('/')],
+                    ['label' => 'Cours',   'url' => $cours_listing_url ?: home_url('/')],
+                ],
+                'current' => get_the_title(),
+                'id'      => 'breadcrumb-cours',
+                'full'    => true,
+            ]); ?>
 
             <!-- ============ HERO : Infos cours ============ -->
             <?php
@@ -206,7 +194,7 @@ get_template_part('template-parts/site-header');
                     ?>
                     <div id="section-hero-photo" class="cours-hero__photo">
                         <?php if ($photo_id): ?>
-                            <?php echo wp_get_attachment_image($photo_id, 'large', false, [
+                            <?php echo wp_get_attachment_image($photo_id, 'wam-card', false, [
                                 'class' => 'cours-hero__photo-img',
                                 'data-no-overlay' => 'true' // Désactive le wrapper automatique de functions.php
                             ]); ?>
@@ -217,13 +205,8 @@ get_template_part('template-parts/site-header');
                             <!-- Badge cours complet -->
                             <div class="cours-complet">
                                 <!-- Icône triste -->
-                                <svg width="40" height="40" viewBox="0 0 40 40" fill="none" aria-hidden="true">
-                                    <circle cx="20" cy="20" r="18" stroke="currentColor" stroke-width="2" />
-                                    <circle cx="14" cy="16" r="2" fill="currentColor" />
-                                    <circle cx="26" cy="16" r="2" fill="currentColor" />
-                                    <path d="M13 27c1.8-3 5.2-4.5 7-4.5s5.2 1.5 7 4.5" stroke="currentColor" stroke-width="2"
-                                        stroke-linecap="round" />
-                                </svg>
+                                <img src="<?php echo $icon_dir; ?>sad-emoji.svg" 
+                                     width="40" height="40" alt="" aria-hidden="true">
                                 <div class="cours-complet__body">
                                     <p class="cours-complet__title">Cours complet</p>
                                     <p class="cours-complet__text">Malheureusement, ce cours est déjà rempli.</p>
@@ -279,15 +262,15 @@ get_template_part('template-parts/site-header');
                      * Variante standard : toutes en icon-light (neutre).
                      */
                     $ic = $is_enfant ? [
-                        'calendar'  => 'var(--wam-color-green)',
-                        'map'       => 'var(--wam-color-orange)',
+                        'calendar' => 'var(--wam-color-green)',
+                        'map' => 'var(--wam-color-orange)',
                         'piggybank' => 'var(--wam-color-pink)',
-                        'thumbs'    => 'var(--wam-color-yellow)',
+                        'thumbs' => 'var(--wam-color-yellow)',
                     ] : [
-                        'calendar'  => 'var(--wam-color-icon-light)',
-                        'map'       => 'var(--wam-color-icon-light)',
+                        'calendar' => 'var(--wam-color-icon-light)',
+                        'map' => 'var(--wam-color-icon-light)',
                         'piggybank' => 'var(--wam-color-icon-light)',
-                        'thumbs'    => 'var(--wam-color-icon-light)',
+                        'thumbs' => 'var(--wam-color-icon-light)',
                     ];
                     ?>
 
@@ -299,7 +282,8 @@ get_template_part('template-parts/site-header');
                                 <span class="btn-icon"
                                     style="--icon-url: url('<?php echo $icon_dir; ?>calendar.svg'); --icon-size: 24px; color: <?php echo $ic['calendar']; ?>;"></span>
                                 <div class="cours-info-card__cell">
-                                    <p class="cours-info-card__day text-lg <?php echo $is_enfant ? 'cours-info-card__day--enfant' : ''; ?>">
+                                    <p
+                                        class="cours-info-card__day text-lg <?php echo $is_enfant ? 'cours-info-card__day--enfant' : ''; ?>">
                                         <?php echo esc_html($jour_label); ?>
                                     </p>
                                     <?php if ($horaires): ?>
@@ -442,7 +426,7 @@ get_template_part('template-parts/site-header');
                             <div class="cours-etape cours-etape--left">
                                 <div class="cours-etape__icon-wrap">
                                     <span class="btn-icon"
-                                        style="--icon-url: url('<?php echo $icon_dir; ?>dancer_warmup.svg'); --icon-size: 64px; color: var(--wam-color-icon-light);"></span>
+                                        style="--icon-url: url('<?php echo $icon_dir; ?>dancer_warmup.svg'); --icon-size: 82px; color: var(--wam-color-icon-light);"></span>
                                     <p class="cours-etape__time text-md has-text-normal-color">
                                         <?php echo esc_html($echauf_time); ?>
                                     </p>
@@ -477,7 +461,7 @@ get_template_part('template-parts/site-header');
                             <div class="cours-etape cours-etape--right">
                                 <div class="cours-etape__icon-wrap">
                                     <span class="btn-icon"
-                                        style="--icon-url: url('<?php echo $icon_dir; ?>dancer_chore.svg'); --icon-size: 64px; color: var(--wam-color-icon-light);"></span>
+                                        style="--icon-url: url('<?php echo $icon_dir; ?>dancer_chore.svg'); --icon-size: 103px; color: var(--wam-color-icon-light);"></span>
                                     <p class="cours-etape__time text-md has-text-normal-color">
                                         <?php echo esc_html($choreo_time); ?>
                                     </p>
@@ -573,44 +557,12 @@ get_template_part('template-parts/site-header');
         get_template_part('template-parts/separator');
 
         /*
-         * WP_Query secondaire : 3 cours aléatoires hors cours courant.
-         * 'post__not_in' exclut le post affiché (stocké dans $current_id avant
-         * la boucle principale pour rester valide ici, après endwhile).
-         * wp_reset_postdata() est impératif après la boucle pour restaurer
-         * le post global ($post) et éviter tout bug d'affichage en aval.
+         * Inclusion du template réutilisable 'related-content'
+         * Il gère automatiquement la WP_Query et l'affichage de la grille
+         * pour des cours similaires (triés aléatoirement, hors cours courant).
          */
-        $related = new WP_Query([
-            'post_type' => 'cours',
-            'posts_per_page' => 3,
-            'post__not_in' => [$current_id],
-            'orderby' => 'rand',
-        ]);
-        if ($related->have_posts()):
-            ?>
-            <div id="section-similaires" class="section-similaires">
-                <div class="section-similaires__heading">
-                    <span class="btn-icon section-similaires__icon"
-                        style="--icon-url: url('<?php echo $icon_dir; ?>dancer_kiff.svg'); --icon-size: 48px;"></span>
-                    <h2 class="section-similaires__title title-cool-md color-yellow">
-                        ça peut vous faire kiffer :
-                    </h2>
-                </div>
-                <div class="section-similaires__grid">
-                    <?php
-                    while ($related->have_posts()):
-                        $related->the_post();
-                        /*
-                         * Inclut la card réutilisable avec variante 'cours'.
-                         * Le template-part reçoit $args['variant'] pour adapter son rendu.
-                         */
-                        get_template_part('template-parts/card-article', null, ['variant' => 'cours']);
-                    endwhile;
-                    // Restaure le post global après la WP_Query secondaire.
-                    wp_reset_postdata();
-                    ?>
-                </div>
-            </div>
-        <?php endif; ?>
+        get_template_part('template-parts/related-content');
+        ?>
 
     </div>
 </main>

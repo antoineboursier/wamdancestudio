@@ -86,9 +86,6 @@ $newsletter_url = home_url('/newsletter/');
             </p>
 
             <?php
-            // Suppression temporaire du transient pour forcer la mise à jour
-            delete_transient('wamv1_footer_cours_grouped');
-            
             $grouped_cours = get_transient('wamv1_footer_cours_grouped');
             if (false === $grouped_cours) {
                 $terms = get_terms(array(
@@ -196,13 +193,10 @@ $newsletter_url = home_url('/newsletter/');
              * Même mécanique transient que pour les cours.
              * Pour invalider : delete_transient('wamv1_footer_stages')
              */
-            // Suppression temporaire du transient pour forcer la mise à jour immédiate
-            delete_transient('wamv1_footer_stages');
-
             $stages_posts = get_transient('wamv1_footer_stages');
             if (false === $stages_posts) {
                 $stages_query = new WP_Query(array(
-                    'post_type' => 'stage',
+                    'post_type' => 'stages',
                     'posts_per_page' => -1, // Affiche tout sans limite
                     'orderby' => 'title',
                     'order' => 'ASC',

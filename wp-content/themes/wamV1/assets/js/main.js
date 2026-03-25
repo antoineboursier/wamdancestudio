@@ -85,7 +85,7 @@ document.addEventListener('DOMContentLoaded', () => {
         btn.setAttribute('aria-label', 'Développer le sous-menu');
 
         // Create the actual icon using our shared .btn-icon class
-        const chevronUrl = overlay.dataset.chevronUrl;
+        const chevronUrl = menuOverlay ? menuOverlay.dataset.chevronUrl : '';
         const icon = document.createElement('span');
         icon.className = 'btn-icon w-3.5 h-3.5';
         icon.style.setProperty('--icon-url', `url('${chevronUrl}')`);

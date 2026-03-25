@@ -28,4 +28,4 @@ function wamv1_register_roles()
         ));
     }
 }
-add_action('after_switch_theme', 'wamv1_register_roles');
+add_action('init', 'wamv1_register_roles');

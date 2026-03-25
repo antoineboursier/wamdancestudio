@@ -42,22 +42,22 @@ if (!$subtitle) {
 }
 ?>
 <article id="post-<?php the_ID(); ?>"
-    <?php post_class('card-post card-post--' . $variant); ?>>
+    <?php post_class('card-similaire card-similaire--' . $variant); ?>>
 
     <?php $card_title = get_the_title(); ?>
 
     <!-- Photo (masquée si absente) -->
     <?php if (has_post_thumbnail()) : ?>
-        <div class="card-post__photo">
-            <?php echo wamv1_get_image_with_overlay(get_post_thumbnail_id(), 'medium_large', 'card-post__img-wrapper', ['class' => 'card-post__img']); ?>
+        <div class="card-similaire__photo">
+            <?php echo wamv1_get_image_with_overlay(get_post_thumbnail_id(), 'medium_large', 'card-similaire__img-wrapper', ['class' => 'card-similaire__img']); ?>
         </div>
     <?php endif; ?>
 
     <!-- Contenu -->
-    <div class="card-post__body">
+    <div class="card-similaire__body">
 
         <!-- Titre + sous-titre -->
-        <div class="card-post__header">
+        <div class="card-similaire__header">
             <?php
             /*
              * Le lien est porté par le titre. L'::after s'étend sur toute la carte
@@ -65,39 +65,36 @@ if (!$subtitle) {
              * qui bloquait l'inspecteur et les éléments enfants.
              */
             ?>
-            <h3 class="card-post__title <?php echo $is_article ? 'title-norm-md' : 'title-sign-md'; ?>">
-                <a href="<?php the_permalink(); ?>" class="card-post__link">
+            <h3 class="card-similaire__title <?php echo $is_article ? 'title-norm-sm has-text-normal-color' : 'title-sign-sm has-accent-yellow-color'; ?>">
+                <a href="<?php the_permalink(); ?>" class="card-similaire__link">
                     <?php echo esc_html($card_title); ?>
                 </a>
             </h3>
             <?php if ($is_cours && $subtitle) : ?>
-                <p class="card-post__subtitle">
+                <p class="card-similaire__subtitle text-md">
                     <?php echo esc_html($subtitle); ?>
                 </p>
             <?php endif; ?>
         </div>
 
         <!-- Infos + bouton -->
-        <div class="card-post__footer">
+        <div class="card-similaire__footer">
 
             <!-- Infos selon variant : jour/horaires (cours) ou date (article) -->
-            <div class="card-post__meta">
+            <div class="card-similaire__meta">
                 <?php if ($is_cours) :
-                    $jour_val    = function_exists('get_field') ? get_field('jour_de_cours') : null;
+                    if ($variant === 'stage') {
+                        // Pour les stages, on affiche la date complète
+                        $date_val = function_exists('get_field') ? get_field('date_stage') : null;
+                        $jour_label = $date_val;
+                    } else {
+                        // Pour les cours, on affiche le jour de la semaine
+                        $jour_val = function_exists('get_field') ? get_field('jour_de_cours') : null;
+                        $jour_label = wamv1_get_day_label($jour_val);
+                    }
+
                     $heure_deb   = function_exists('get_field') ? get_field('heure_debut') : null;
                     $heure_f     = function_exists('get_field') ? get_field('heure_de_fin') : null;
-
-                    // Mapping jour
-                    $jour_map = [
-                        '01day' => 'Lundi',
-                        '02day' => 'Mardi',
-                        '03day' => 'Mercredi',
-                        '04day' => 'Jeudi',
-                        '05day' => 'Vendredi',
-                        '06day' => 'Samedi',
-                        '07day' => 'Dimanche',
-                    ];
-                    $jour_label = isset($jour_map[$jour_val]) ? $jour_map[$jour_val] : $jour_val;
 
                     // Formatage horaires
                     $horaires_label = '';
@@ -107,21 +104,21 @@ if (!$subtitle) {
                         $horaires_label = $heure_deb;
                     }
                     ?>
-                    <p class="card-post__day text-lg">
+                    <p class="card-similaire__day text-md <?php echo ($variant === 'stage') ? 'fw-bold' : ''; ?>">
                         <?php echo $jour_label ? esc_html($jour_label) : '&nbsp;'; ?>
                     </p>
-                    <p class="card-post__time text-md">
+                    <p class="card-similaire__time text-sm">
                         <?php echo $horaires_label ? esc_html($horaires_label) : '&nbsp;'; ?>
                     </p>
                 <?php else : ?>
-                    <p class="card-post__date text-sm">
+                    <p class="card-similaire__date text-xs">
                         <?php echo get_the_date('d/m/Y'); ?>
                     </p>
                 <?php endif; ?>
             </div>
 
             <!-- Bouton CTA -->
-            <div class="card-post__cta">
+            <div class="card-similaire__cta">
                 <span class="btn-secondary" aria-hidden="true">
                     Découvrir
                     <span class="btn-icon btn-icon--sm" style="--icon-url: url('<?php echo get_template_directory_uri(); ?>/assets/images/chevron-right.svg');"></span>

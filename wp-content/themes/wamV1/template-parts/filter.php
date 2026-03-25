@@ -22,6 +22,7 @@ $icons_path   = $args['icons_path'] ?? (get_template_directory_uri() . '/assets/
 
         <button class="chip chip--active"
                 data-filter="all"
+                data-label="Tous"
                 type="button"
                 aria-pressed="true">
             Tous
@@ -31,6 +32,7 @@ $icons_path   = $args['icons_path'] ?? (get_template_directory_uri() . '/assets/
             <?php foreach ($filter_terms as $term) : ?>
                 <button class="chip"
                         data-filter="<?php echo esc_attr($term->slug); ?>"
+                        data-label="<?php echo esc_attr($term->name); ?>"
                         type="button"
                         aria-pressed="false">
                     <?php echo esc_html($term->name); ?>

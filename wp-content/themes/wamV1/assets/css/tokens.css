@@ -51,7 +51,6 @@
        Z-index
        ------------------------------------------------------- */
     --wam-z-base: 1;
-    --wam-z-above: 10;
     --wam-z-header: 100;
     --wam-z-modal: 500;
     --wam-z-a11y: 9000;
@@ -103,6 +102,8 @@
     --wam-color-pink: var(--wp--preset--color--accent-pink);
     --wam-color-accent-tertiary-bg: rgba(1, 227, 189, 0.12);
     /* UI/accent-tertiary-bg Figma */
+    --wam-color-glass-pink: rgba(255, 186, 213, 0.12);
+    /* UI/accent-quaternary-bg Figma */
 
     /* -------------------------------------------------------
        Classes utilitaires forcées pour le Menu Light
@@ -130,8 +131,9 @@
     /* -------------------------------------------------------
        Espacements (Presets WP déportés en tokens pour sécurité)
        ------------------------------------------------------- */
-    --wam-spacing-3xs: 0.25rem; /* 4px */
-    --wam-spacing-2xs: 0.5rem;  /* 8px */
+    --wam-spacing-4xs: 0.125rem; /* 2px */
+    --wam-spacing-3xs: 0.25rem;  /* 4px */
+    --wam-spacing-2xs: 0.5rem;   /* 8px */
     --wam-spacing-xs: 0.75rem;  /* 12px */
     --wam-spacing-sm: 1rem;     /* 16px */
     --wam-spacing-md: 1.25rem;  /* 20px */
@@ -156,8 +158,8 @@
     --wam-font-size-h1: 46px;   /* Mallia LG */
     --wam-font-size-h2: 32px;   /* Mallia MD / Outfit Bold */
     --wam-font-size-h3: 24px;   /* Mallia SM */
-    --wam-font-size-display-lg: 48px; /* Cholo MD */
-    --wam-font-size-display-md: 36px; /* Cholo LG */
+    --wam-font-size-display-lg: 48px; /* Cholo Rhita LG — title-cool-lg */
+    --wam-font-size-display-md: 36px; /* Cholo Rhita MD — title-cool-md */
 
     /* -------------------------------------------------------
        Polices graphiques (aliases pour a11y override)

@@ -53,71 +53,29 @@ $stages_query = new WP_Query([
 ?>
 
 <main id="primary" class="site-main">
-<div class="page-stages">
+    <div class="page-cours page-stages">
 
-    <div class="wam-container">
+        <div class="wam-container page-layout__inner">
 
-        <!-- ============================================================
+            <!-- ============================================================
              BREADCRUMB
              ============================================================ -->
-        <nav class="page-cours__breadcrumb" aria-label="Fil d'Ariane">
-            <a href="<?php echo esc_url(home_url('/')); ?>" class="breadcrumb__link">Accueil</a>
-            <span class="breadcrumb__sep" aria-hidden="true"> › </span>
-            <span class="breadcrumb__current"><?php echo esc_html($page_title); ?></span>
-        </nav>
+            <?php get_template_part('template-parts/breadcrumb', null, [
+                'links'   => [['label' => 'Accueil', 'url' => home_url('/')]],
+                'current' => $page_title,
+            ]); ?>
 
-        <!-- ============================================================
+            <!-- ============================================================
              HERO — titre + image décorative
              ============================================================ -->
-        <section class="page-cours__hero">
+            <?php get_template_part('template-parts/page-hero', null, [
+                'page'       => $page,
+                'page_title' => $page_title,
+                'page_desc'  => $page_desc,
+                'icons_path' => $icons_path,
+            ]); ?>
 
-            <div class="page-cours__hero-text">
-
-                <div class="page-cours__hero-head">
-                    <h1 class="is-style-title-sign-lg"><?php echo esc_html($page_title); ?></h1>
-                    <?php if ($page_desc) : ?>
-                        <p class="page-cours__hero-desc"><?php echo esc_html($page_desc); ?></p>
-                    <?php endif; ?>
-                </div>
-
-                <div class="page-cours__address">
-                    <img src="<?php echo $icons_path; ?>map.svg"
-                         class="page-cours__address-icon"
-                         alt=""
-                         aria-hidden="true"
-                         width="24"
-                         height="24">
-                    <div class="page-cours__address-info">
-                        <span class="page-cours__address-name">WAM Dance Studio</span>
-                        <span class="page-cours__address-street">202 rue Jean Jaurès à Villeneuve&nbsp;d'Ascq</span>
-                    </div>
-                </div>
-
-            </div><!-- .page-cours__hero-text -->
-
-            <div class="page-cours__hero-media" aria-hidden="true">
-                <?php if ($page && has_post_thumbnail($page->ID)) : ?>
-                    <div class="page-cours__hero-img-wrap">
-                        <?php echo wp_get_attachment_image(
-                            get_post_thumbnail_id($page->ID),
-                            'large',
-                            false,
-                            ['class' => 'page-cours__hero-img']
-                        ); ?>
-                        <div class="page-cours__hero-overlay"></div>
-                    </div>
-                <?php else : ?>
-                    <div class="page-cours__hero-img-wrap page-cours__hero-img-wrap--svg">
-                        <img src="<?php echo $icons_path; ?>dancer_courssolo.svg"
-                             class="page-cours__hero-svg"
-                             alt="">
-                    </div>
-                <?php endif; ?>
-            </div><!-- .page-cours__hero-media -->
-
-        </section><!-- .page-cours__hero -->
-
-    </div><!-- .wam-container -->
+        </div><!-- .wam-container.page-layout__inner -->
 
     <!-- ============================================================
          FILTRE — chips par taxonomie + recherche texte

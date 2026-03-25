@@ -8,13 +8,18 @@
 
 $icon_dir = get_template_directory_uri() . '/assets/images/';
 
-// Sources vidéos placeholder (à remplacer par ACF ou les médias WP)
-$videos = array(
-    'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4',
-    'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ElephantsDream.mp4',
-    'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4',
-    'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerFun.mp4',
-);
+// Sources vidéos depuis ACF (champs video_home_1..4, type URL, sur la page d'accueil)
+// TODO : créer les champs ACF video_home_1..4 dans l'admin (Groupe sur la page d'accueil).
+// Fallback : vidéos de test Google tant que les champs ACF ne sont pas remplis.
+$home_id = get_option('page_on_front');
+$has_acf = function_exists('get_field');
+$videos = [
+    $has_acf ? (get_field('video_home_1', $home_id) ?: 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4') : 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4',
+    $has_acf ? (get_field('video_home_2', $home_id) ?: 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ElephantsDream.mp4') : 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ElephantsDream.mp4',
+    $has_acf ? (get_field('video_home_3', $home_id) ?: 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4') : 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4',
+    $has_acf ? (get_field('video_home_4', $home_id) ?: 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerFun.mp4') : 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerFun.mp4',
+];
+
 ?>
 <section class="section-videos" aria-label="<?php esc_attr_e('Nos danses en vidéo', 'wamv1'); ?>">
 

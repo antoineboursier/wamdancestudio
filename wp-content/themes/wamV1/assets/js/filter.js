@@ -28,7 +28,7 @@
         var searchInput      = filter.querySelector('.cours-search');
         var clearBtn         = filter.querySelector('.cours-search-clear');
         var categories       = document.querySelectorAll('.cours-categorie[data-cat]');
-        var cards            = document.querySelectorAll('.card-cours');
+        var cards            = document.querySelectorAll('.card-cours, .card-stage');
         var resultsContainer = document.getElementById('cours-results');
 
         var activeFilter = 'all';
@@ -72,7 +72,15 @@
                 var matchesCat    = activeFilter === 'all' || catData.includes(activeFilter);
                 var matchesSearch = !q || title.includes(q);
 
-                card.classList.toggle('card-cours--hidden', !(matchesCat && matchesSearch));
+                var isVisible = matchesCat && matchesSearch;
+
+                // On applique le masquage selon la classe de la card
+                if (card.classList.contains('card-cours')) {
+                    card.classList.toggle('card-cours--hidden', !isVisible);
+                } 
+                if (card.classList.contains('card-stage')) {
+                    card.classList.toggle('card-stage--hidden', !isVisible);
+                }
             });
 
             /* Masquer les sections entièrement vides */

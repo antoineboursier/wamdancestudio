@@ -73,20 +73,18 @@
    Classes formulaires scopées sous .wamformcss (Gutenberg).
    ===================================================== */
 .btn-primary,
+.wp-block-button:not(.is-style-outline) .wp-block-button__link,
 .wamformcss .ff-btn-submit,
 .wamformcss .ff_btn_style,
 .wamformcss form.fluent_form_3 .ff-btn-submit:not(.ff_btn_no_style),
 #mailpoet_form_1 .mailpoet_submit {
     position: relative;
-    isolation: isolate;
-    /* ::before z-index:-1 reste dans le stacking context du bouton */
     display: inline-flex;
     align-items: center;
     gap: var(--wam-spacing-2xs);
     padding: var(--wam-spacing-sm) var(--wam-spacing-xl);
     background-color: var(--wam-color-yellow);
     background-clip: padding-box;
-    /* jaune s'arrête à l'inner edge — laisse le gradient border visible */
     border: 3px solid transparent;
     border-radius: var(--wam-radius-lg);
     color: var(--wp--preset--color--background-500);
@@ -99,13 +97,12 @@
     line-height: 1.25;
     cursor: pointer;
     width: fit-content;
+    z-index: 1;
 }
 
-/* Gradient border — caché au repos, animé au hover.
-   Technique donut : padding = épaisseur bordure (3px), mask-composite exclut
-   la zone content-box → seul l'anneau de bordure reste visible.
-   Le fond jaune du bouton ne saigne plus sous le gradient. */
+
 .btn-primary::before,
+.wp-block-button:not(.is-style-outline) .wp-block-button__link::before,
 .wamformcss .ff-btn-submit::before,
 .wamformcss .ff_btn_style::before,
 .wamformcss form.fluent_form_3 .ff-btn-submit:not(.ff_btn_no_style)::before,
@@ -114,8 +111,8 @@
     position: absolute;
     inset: 0;
     padding: 3px;
-    /* épaisseur = border du bouton */
-    border-radius: inherit;
+    border-radius: calc(var(--wam-radius-lg) - 3px);
+    /* r − border-width : aligne la courbe externe sur le clip jaune */
     background: var(--wam-gradient-brand);
     -webkit-mask:
         linear-gradient(#000 0 0) content-box,
@@ -131,6 +128,7 @@
 }
 
 .btn-primary:hover::before,
+.wp-block-button:not(.is-style-outline) .wp-block-button__link:hover::before,
 .wamformcss .ff-btn-submit:hover::before,
 .wamformcss .ff_btn_style:hover::before,
 .wamformcss form.fluent_form_3 .ff-btn-submit:hover::before,
@@ -140,6 +138,7 @@
 
 /* Neutralise l'opacity:0.8 injecté par Fluent Forms au hover */
 .btn-primary:hover,
+.wp-block-button:not(.is-style-outline) .wp-block-button__link:hover,
 .wamformcss .ff-btn-submit:hover,
 .wamformcss .ff_btn_style:hover,
 .wamformcss form.fluent_form_3 .ff-btn-submit:hover,
@@ -168,12 +167,35 @@
     filter: brightness(0);
 }
 
+/* Ajout automatique du chevron sur les boutons WordPress (Gutenberg) */
+.wp-block-button__link::after {
+    content: '';
+    display: inline-block;
+    width: 12px;
+    height: 12px;
+    background-color: currentColor;
+    -webkit-mask: url('../images/chevron-right.svg') no-repeat center / contain;
+    mask: url('../images/chevron-right.svg') no-repeat center / contain;
+    margin-left: var(--wam-spacing-2xs);
+    flex-shrink: 0;
+    transform: translateY(1px);
+    /* Ajustement optique */
+}
+
+/* Espacement des boutons dans le contenu textuel (.wam-prose) */
+.wam-prose .wp-block-buttons,
+.wam-prose .wp-block-button {
+    margin-top: var(--wam-spacing-lg);
+    margin-bottom: var(--wam-spacing-lg);
+}
+
 /* =====================================================
    BOUTON OUTLINED (Secondary)
    Figma: border yellow, texte yellow, hover bg glass-yellow
    ===================================================== */
 .btn-secondary,
-.btn-outlined {
+.btn-outlined,
+.wp-block-button.is-style-outline .wp-block-button__link {
     display: inline-flex;
     align-items: center;
     gap: var(--wam-spacing-2xs);
@@ -240,7 +262,8 @@
 }
 
 .btn-secondary:hover,
-.btn-outlined:hover {
+.btn-outlined:hover,
+.wp-block-button.is-style-outline .wp-block-button__link:hover {
     background: var(--wam-color-glass-yellow);
 }
 
@@ -484,7 +507,7 @@ html.wam-theme-light .btn-outlined {
 .wam-header__hamburger {
     display: flex;
     flex-direction: column;
-    gap: 4px;
+    gap: var(--wam-spacing-3xs);
     flex-shrink: 0;
 }
 
@@ -529,8 +552,8 @@ html.wam-theme-light .wam-header--home {
    ===================================================== */
 .card-article {
     display: flex;
-    align-items: center;
-    /* Centrage vertical de l'image et du corps */
+    align-items: stretch;
+    /* Aligné sur la hauteur maximale dans une grille */
     gap: var(--wam-spacing-sm);
     padding: var(--wam-spacing-2xs);
     border-radius: var(--wam-radius-3xl);
@@ -723,7 +746,7 @@ html.wam-theme-light .wam-header--home {
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 4px;
+    gap: var(--wam-spacing-3xs);
 }
 
 .section-teachers__cta {
@@ -879,19 +902,6 @@ html.wam-theme-light .wam-header--home {
     z-index: 1;
 }
 
-/* Images dans le contenu Gutenberg (the_content()) --- */
-.entry-content figure img,
-.entry-content .wp-block-image img,
-.entry-content .wp-block-media-text__media img,
-.entry-content .wp-block-cover__image-background {
-    mix-blend-mode: lighten;
-}
-
-/* Featured image (single/page) ----------------------- */
-.site-main .wp-post-image {
-    mix-blend-mode: lighten;
-}
-
 /* =====================================================
    COMPATIBILITÉ A11Y — Composants
    ===================================================== */
@@ -966,7 +976,7 @@ html.wam-reduce-motion .card-article__notif::after {
 
 .wam-nav-panel::-webkit-scrollbar-thumb {
     background: var(--wam-scrollbar-thumb);
-    border-radius: 10px;
+    border-radius: var(--wam-radius-sm);
 }
 
 .wam-nav-panel::-webkit-scrollbar-thumb:hover {
@@ -1438,7 +1448,7 @@ html.wam-reduce-motion .card-article__notif::after {
     color: var(--wam-color-subtext);
     display: flex;
     flex-direction: column;
-    gap: 2px;
+    gap: var(--wam-spacing-4xs);
     text-decoration: none;
     position: relative;
 }
@@ -1527,8 +1537,8 @@ html.wam-reduce-motion .card-article__notif::after {
 .wam-footer__course-li {
     display: flex;
     align-items: center;
-    gap: 8px;
-    margin-bottom: 4px;
+    gap: var(--wam-spacing-2xs);
+    margin-bottom: var(--wam-spacing-3xs);
     break-inside: avoid;
 }
 
@@ -1555,13 +1565,13 @@ html.wam-reduce-motion .card-article__notif::after {
     margin: 0;
     display: flex;
     flex-direction: column;
-    gap: 4px;
+    gap: var(--wam-spacing-3xs);
 }
 
 .wam-footer__category-list li {
     display: flex;
     align-items: center;
-    gap: 8px;
+    gap: var(--wam-spacing-2xs);
 }
 
 .wam-footer__category-list li::before {
@@ -1641,8 +1651,7 @@ html.wam-reduce-motion .card-article__notif::after {
 
     .wam-footer__nav-list {
         flex-direction: column;
-        gap: 4px;
-        /* gap-1 */
+        gap: var(--wam-spacing-3xs);
     }
 
     .wam-footer__section-cols {
@@ -1677,10 +1686,10 @@ html.wam-no-graphical-fonts .title-sign-sm {
    Utilisée dans card-article.php pour articles, cours et stages.
    Figma : gradient page-bg → card-bg, hover translate, photo aspect-ratio
    ===================================================== */
-.card-post {
+.card-similaire {
     display: flex;
     flex-direction: column;
-    flex: 1;
+    justify-content: center;
     align-items: center;
     gap: var(--wam-spacing-sm);
     /* 16px = gap-4 */
@@ -1695,18 +1704,18 @@ html.wam-no-graphical-fonts .title-sign-sm {
     transition: transform var(--wam-transition);
 }
 
-.card-post:hover {
+.card-similaire:hover {
     transform: translateY(-8px);
     /* hover:-translate-y-2 */
 }
 
 /* Lien sur le titre — ::after couvre toute la carte sans bloquer l'inspecteur */
-.card-post__link {
+.card-similaire__link {
     color: inherit;
     text-decoration: none;
 }
 
-.card-post__link::after {
+.card-similaire__link::after {
     content: '';
     position: absolute;
     inset: 0;
@@ -1714,7 +1723,7 @@ html.wam-no-graphical-fonts .title-sign-sm {
 }
 
 /* Photo — aspect ratio Figma 304:503 */
-.card-post__photo {
+.card-similaire__photo {
     aspect-ratio: 304 / 503;
     position: relative;
     border-radius: var(--wam-radius-lg);
@@ -1723,11 +1732,15 @@ html.wam-no-graphical-fonts .title-sign-sm {
     flex-shrink: 0;
 }
 
-.card-post__img-wrapper {
+.card-similaire--article .card-similaire__photo {
+    aspect-ratio: 304 / 251;
+}
+
+.card-similaire__img-wrapper {
     height: 100%;
 }
 
-.card-post__img {
+.card-similaire__img {
     position: absolute;
     inset: 0;
     object-fit: cover;
@@ -1737,12 +1750,12 @@ html.wam-no-graphical-fonts .title-sign-sm {
     transition: transform var(--wam-transition-slow);
 }
 
-.card-post:hover .card-post__img {
+.card-similaire:hover .card-similaire__img {
     transform: scale(1.05);
 }
 
 /* Overlay blend-lighten (filtre artistique WAM sur la photo) */
-.card-post__photo-overlay {
+.card-similaire__photo-overlay {
     position: absolute;
     inset: 0;
     background: var(--wam-color-overlay-photo);
@@ -1751,13 +1764,13 @@ html.wam-no-graphical-fonts .title-sign-sm {
     transition: background var(--wam-transition-slow);
 }
 
-.card-post:hover .card-post__photo-overlay {
+.card-similaire:hover .card-similaire__photo-overlay {
     background: var(--wam-color-overlay-photo-hover);
 }
 
 
 /* Corps de la carte */
-.card-post__body {
+.card-similaire__body {
     display: flex;
     flex-direction: column;
     gap: var(--wam-spacing-xl);
@@ -1770,7 +1783,7 @@ html.wam-no-graphical-fonts .title-sign-sm {
 }
 
 /* En-tête : titre + sous-titre */
-.card-post__header {
+.card-similaire__header {
     display: flex;
     flex-direction: column;
     gap: var(--wam-spacing-2xs);
@@ -1781,8 +1794,7 @@ html.wam-no-graphical-fonts .title-sign-sm {
 }
 
 /* Titre (utilise .title-sign-md pour la police/taille) */
-.card-post__title {
-    color: var(--wam-color-text);
+.card-similaire__title {
     margin: 0;
     overflow-wrap: break-word;
     display: -webkit-box;
@@ -1792,8 +1804,8 @@ html.wam-no-graphical-fonts .title-sign-sm {
     overflow: hidden;
 }
 
-.card-post--cours .card-post__title,
-.card-post--stage .card-post__title {
+.card-similaire--cours .card-similaire__title,
+.card-similaire--stage .card-similaire__title {
     display: block;
     -webkit-line-clamp: unset;
     line-clamp: unset;
@@ -1801,16 +1813,15 @@ html.wam-no-graphical-fonts .title-sign-sm {
 }
 
 /* Sous-titre cours (Outfit Bold jaune) */
-.card-post__subtitle {
+.card-similaire__subtitle {
     font-weight: 700;
-    font-size: var(--wam-font-size-lg);
     line-height: 1.25;
-    color: var(--wam-color-yellow);
+    color: var(--wam-color-text);
     margin: 0;
 }
 
 /* Bas de carte : méta + CTA */
-.card-post__footer {
+.card-similaire__footer {
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -1821,7 +1832,7 @@ html.wam-no-graphical-fonts .title-sign-sm {
 }
 
 /* Bloc méta (jour/horaires pour cours, date pour articles) */
-.card-post__meta {
+.card-similaire__meta {
     display: flex;
     flex-direction: column;
     font-family: var(--wam-font-body);
@@ -1833,26 +1844,26 @@ html.wam-no-graphical-fonts .title-sign-sm {
 }
 
 /* Jour du cours (.text-lg pour la taille) */
-.card-post__day {
+.card-similaire__day {
     text-transform: capitalize;
     color: var(--wam-color-text);
     margin: 0;
 }
 
 /* Horaire du cours (.text-md pour la taille) */
-.card-post__time {
+.card-similaire__time {
     color: var(--wam-color-subtext);
     margin: 0;
 }
 
 /* Date de l'article (.text-sm pour la taille) */
-.card-post__date {
+.card-similaire__date {
     color: var(--wam-color-pink);
     margin: 0;
 }
 
 /* Bouton CTA — variante card (rounded-sm, hover border green sur parent:hover) */
-.card-post__cta {
+.card-similaire__cta {
     display: flex;
     justify-content: center;
 }
@@ -1950,7 +1961,7 @@ html.wam-no-graphical-fonts .title-sign-sm {
 .prof-related-card__content {
     display: flex;
     flex-direction: column;
-    gap: 2px;
+    gap: var(--wam-spacing-4xs);
 }
 
 .prof-related-card__title {
@@ -1974,4 +1985,41 @@ html.wam-no-graphical-fonts .title-sign-sm {
     color: var(--wam-color-yellow);
     margin: 4px 0 0;
     font-weight: 600;
+}
+
+/* =====================================================
+   BREADCRUMB — Fil d'Ariane (partagé toutes pages)
+   Remplace .page-breadcrumb, .page-cours__breadcrumb, .stage-breadcrumb
+   ===================================================== */
+.wam-breadcrumb {
+    display: flex;
+    align-items: center;
+    gap: var(--wam-spacing-2xs);
+    font-size: var(--wam-font-size-xs);
+    color: var(--wam-color-disabled);
+}
+
+/* Couvre les liens Yoast (a) ET les liens manuels (.wam-breadcrumb__link) */
+.wam-breadcrumb a,
+.wam-breadcrumb__link {
+    color: var(--wam-color-disabled);
+    text-decoration: none;
+    transition: color var(--wam-transition);
+}
+
+.wam-breadcrumb a:hover,
+.wam-breadcrumb__link:hover {
+    color: var(--wam-color-text);
+}
+
+.wam-breadcrumb__sep {
+    color: var(--wam-color-disabled);
+}
+
+/* Variante pleine largeur — utilisée hors container (page.php, single-cours, single-wam_membre) */
+.wam-breadcrumb--full {
+    max-width: var(--wam-max-screen);
+    width: 100%;
+    padding: 0 var(--wam-page-mx);
+    box-sizing: border-box;
 }

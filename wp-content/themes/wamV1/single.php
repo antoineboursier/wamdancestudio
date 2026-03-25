@@ -21,23 +21,11 @@ get_template_part('template-parts/site-header');
             the_post(); ?>
 
             <!-- Breadcrumb : Accueil > [Catégorie] > [Titre de l'article] -->
-            <div id="breadcrumb-article" class="page-breadcrumb">
-                <div class="page-breadcrumb__inner">
-                    <?php if (function_exists('yoast_breadcrumb')) : ?>
-                        <?php yoast_breadcrumb(); ?>
-                    <?php else : ?>
-                        <a href="<?php echo esc_url(home_url('/')); ?>">Accueil</a> &gt;
-                        <?php
-                        // Catégorie intermédiaire si disponible
-                        $categories = get_the_category();
-                        if (!empty($categories)) {
-                            echo '<a href="' . esc_url(get_category_link($categories[0]->term_id)) . '">' . esc_html($categories[0]->name) . '</a> &gt; ';
-                        }
-                        ?>
-                        <?php the_title(); ?>
-                    <?php endif; ?>
-                </div>
-            </div>
+            <?php get_template_part('template-parts/breadcrumb', null, [
+                'yoast' => true,
+                'id'    => 'breadcrumb-article',
+                'full'  => true,
+            ]); ?>
 
             <!-- En-tête article : titre (Outfit Bold) + date (pink) + temps de lecture + image à la une -->
             <div id="section-article-header" class="page-header">
@@ -91,11 +79,11 @@ get_template_part('template-parts/site-header');
         <?php
         /*
          * get_template_part() inclut template-parts/separator.php (motif SVG danseurs).
-         * get_template_part() inclut template-parts/related-posts.php qui gère
+         * get_template_part() inclut template-parts/related-content.php qui gère
          * sa propre WP_Query (articles de la même catégorie, hors article courant).
          */
         get_template_part('template-parts/separator');
-        get_template_part('template-parts/related-posts');
+        get_template_part('template-parts/related-content');
         ?>
 
     </div>

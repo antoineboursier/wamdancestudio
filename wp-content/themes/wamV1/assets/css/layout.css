@@ -95,6 +95,17 @@
     box-sizing: border-box;
 }
 
+.section-similaires__heading {
+    display: flex;
+    align-items: center;
+    gap: var(--wam-spacing-sm);
+    justify-content: center;
+}
+
+.section-similaires__icon {
+    color: var(--wam-color-yellow);
+}
+
 /* Titre de la section (h2 — couleur jaune héritée de base.css + title-cool-md) */
 .section-similaires__title {
     text-align: center;
@@ -107,7 +118,7 @@
     flex-wrap: wrap;
     gap: var(--wam-spacing-xl);
     /* 32px = gap-8 */
-    align-items: center;
+    align-items: stretch;
     justify-content: center;
     position: relative;
     width: 100%;
@@ -119,48 +130,16 @@
 .page-layout__inner {
     display: flex;
     flex-direction: column;
-    gap: var(--wam-spacing-4xl);
-    /* 56px = gap-14 */
-    align-items: center;
-    padding: var(--wam-spacing-3xl) 0;
-    /* py-12 = 48px */
+    gap: var(--wam-spacing-4xl);        /* 56px entre chaque enfant */
+    align-items: stretch;               /* chaque enfant occupe toute la largeur */
+    padding-top: var(--wam-spacing-3xl);    /* 48px */
+    padding-bottom: var(--wam-spacing-3xl); /* 48px */
+    /* Pas de padding horizontal ici — géré par .wam-container si combiné */
     position: relative;
     width: 100%;
 }
 
-/* =====================================================
-   BREADCRUMB — Fil d'Ariane (single + page)
-   ===================================================== */
-.page-breadcrumb {
-    display: flex;
-    align-items: center;
-    justify-content: flex-start;
-    max-width: var(--wam-max-screen);
-    width: 100%;
-    padding: 0 var(--wam-page-mx);
-    position: relative;
-    box-sizing: border-box;
-}
-
-.page-breadcrumb__inner {
-    flex: 1;
-    font-weight: 400;
-    line-height: 1.25;
-    font-size: var(--wam-font-size-sm);
-    color: var(--wam-color-disabled);
-    text-overflow: ellipsis;
-    white-space: nowrap;
-    overflow: hidden;
-}
-
-.page-breadcrumb__inner a {
-    color: var(--wam-color-disabled);
-    transition: color var(--wam-transition);
-}
-
-.page-breadcrumb__inner a:hover {
-    color: var(--wam-color-text);
-}
+/* Breadcrumb → voir .wam-breadcrumb dans components.css */
 
 /* =====================================================
    PAGE HEADER — En-tête article/page (single + page)
@@ -203,21 +182,11 @@
     /* 32px = gap-8 */
 }
 
-/* Titre article (Outfit Bold, clamp responsive) */
+/* Titre de page — structure uniquement, typographie portée par is-style-title-* */
 .page-header__title {
-    font-weight: 700;
-    line-height: 1.1;
-    font-size: clamp(var(--wam-font-size-h3), 3vw, var(--wam-font-size-h2));
     color: var(--wam-color-text);
     width: 100%;
     margin: 0;
-}
-
-/* Titre page statique (Mallia, leading différent) */
-.page-header__title--page {
-    font-family: var(--wam-font-graphical-1);
-    font-weight: 400;
-    line-height: 1.3;
 }
 
 /* Bloc date + temps de lecture */
@@ -226,8 +195,7 @@
     flex-direction: column;
     font-family: var(--wam-font-body);
     font-weight: 400;
-    gap: 4px;
-    /* gap-1 */
+    gap: var(--wam-spacing-3xs);
     align-items: flex-start;
     line-height: 1.25;
     width: 100%;

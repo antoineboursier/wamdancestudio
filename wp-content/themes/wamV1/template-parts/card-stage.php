@@ -26,7 +26,7 @@
 $has_acf = function_exists('get_field');
 
 /* ---- Variante enfant ---- */
-$is_enfant = has_term('danse-enfant', 'cat_cours');
+$is_enfant = wamv1_is_enfant_variant();
 
 /* ---- Champs ACF ---- */
 $sous_titre  = $has_acf ? get_field('sous_titre')       : '';
@@ -62,21 +62,20 @@ if ($date_stage) {
     }
 }
 
-/* ---- Badge type (stage / atelier / workshop) ---- */
-$type_slugs = ['stage' => 'STAGE', 'atelier' => 'ATELIER', 'workshop' => 'WORKSHOP'];
-$badge_type = 'STAGE';
-$terms      = get_the_terms(get_the_ID(), 'cat_cours');
-if ($terms && ! is_wp_error($terms)) {
-    foreach ($terms as $t) {
-        if (isset($type_slugs[$t->slug])) {
-            $badge_type = $type_slugs[$t->slug];
-            break;
-        }
-    }
-}
+/* ---- Badge type (stage / atelier / workshop) via ACF type_format ---- */
+$type_format_val = $has_acf ? get_field('type_format') : 'type_stage';
+$type_map = [
+    'type_stage' => ['label' => 'Stage',    'class' => 'card-stage--stage',    'color_class' => 'color-yellow'],
+    'type_atel'  => ['label' => 'Atelier',  'class' => 'card-stage--atelier',  'color_class' => 'color-green'],
+    'type_wshop' => ['label' => 'Workshop', 'class' => 'card-stage--workshop', 'color_class' => 'color-pink'],
+];
+$current_type = $type_map[$type_format_val] ?? $type_map['type_stage'];
+$badge_label  = $current_type['label'];
+$color_class  = $current_type['color_class'];
 
 /* ---- data-cat pour le filtre JS ---- */
 $term_slugs = [];
+$terms      = get_the_terms(get_the_ID(), 'cat_cours');
 if ($terms && ! is_wp_error($terms)) {
     foreach ($terms as $t) {
         $term_slugs[] = esc_attr($t->slug);
@@ -91,6 +90,7 @@ $horaires = ($heure_debut && $heure_fin) ? esc_html($heure_debut) . ' – ' . es
 $card_classes = ['card-stage'];
 if ($is_enfant) $card_classes[] = 'card-stage--enfant';
 if ($complet)   $card_classes[] = 'card-stage--complet';
+if (isset($current_type['class'])) $card_classes[] = $current_type['class'];
 ?>
 
 <article id="post-<?php the_ID(); ?>"
@@ -98,20 +98,18 @@ if ($complet)   $card_classes[] = 'card-stage--complet';
          data-cat="<?php echo $data_cat; ?>"
          data-title="<?php echo esc_attr(get_the_title()); ?>">
 
-    <!-- Lien couvrant toute la carte -->
-    <a href="<?php the_permalink(); ?>"
-       class="card-stage__link"
-       aria-label="<?php echo esc_attr(get_the_title()); ?>"></a>
-
     <!-- ---- Media (image portrait) ---- -->
     <div class="card-stage__media">
 
         <?php if (has_post_thumbnail()) : ?>
             <?php echo wp_get_attachment_image(
                 get_post_thumbnail_id(),
-                'large',
+                'wam-stage-card',
                 false,
-                ['class' => 'card-stage__img']
+                [
+                    'class' => 'card-stage__img',
+                    'data-no-overlay' => 'true'
+                ]
             ); ?>
             <div class="card-stage__img-overlay" aria-hidden="true"></div>
         <?php else : ?>
@@ -120,13 +118,9 @@ if ($complet)   $card_classes[] = 'card-stage--complet';
 
         <!-- Badge statut — au-dessus de la date pill -->
         <?php if ($complet) : ?>
-            <div class="card-stage__badge card-stage__badge--complet" aria-label="Stage complet">
-                <svg width="20" height="20" viewBox="0 0 40 40" fill="none" aria-hidden="true">
-                    <circle cx="20" cy="20" r="18" stroke="currentColor" stroke-width="2"/>
-                    <circle cx="14" cy="16" r="2" fill="currentColor"/>
-                    <circle cx="26" cy="16" r="2" fill="currentColor"/>
-                    <path d="M13 27c1.8-3 5.2-4.5 7-4.5s5.2 1.5 7 4.5" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
-                </svg>
+            <div class="card-stage__badge card-stage__badge--complet text-sm fw-bold" aria-label="Stage complet">
+                <img src="<?php echo get_template_directory_uri(); ?>/assets/images/sad-emoji.svg" 
+                     width="20" height="20" alt="" aria-hidden="true">
                 <span>Complet</span>
             </div>
         <?php endif; ?>
@@ -155,15 +149,15 @@ if ($complet)   $card_classes[] = 'card-stage--complet';
                     }
                     $unique_months = array_unique($all_months);
                 ?>
-                    <span class="card-stage__date-day"><?php echo esc_html(implode(' ', $all_days)); ?></span>
-                    <span class="card-stage__date-num"><?php echo esc_html(implode('.', $all_nums)); ?></span>
-                    <span class="card-stage__date-month"><?php echo esc_html(implode(' · ', $unique_months)); ?></span>
-                    <span class="card-stage__date-year"><?php echo esc_html($date_year); ?></span>
+                    <span class="card-stage__date-day text-sm color-subtext"><?php echo esc_html(implode(' ', $all_days)); ?></span>
+                    <span class="card-stage__date-num title-norm-md <?php echo $color_class; ?>"><?php echo esc_html(implode('.', $all_nums)); ?></span>
+                    <span class="card-stage__date-month text-lg fw-bold <?php echo $color_class; ?>"><?php echo esc_html(implode(' · ', $unique_months)); ?></span>
+                    <span class="card-stage__date-year text-xs color-subtext"><?php echo esc_html($date_year); ?></span>
                 <?php else : ?>
-                    <span class="card-stage__date-day"><?php echo esc_html($date_day); ?></span>
-                    <span class="card-stage__date-num"><?php echo esc_html($date_num); ?></span>
-                    <span class="card-stage__date-month"><?php echo esc_html($date_month); ?></span>
-                    <span class="card-stage__date-year"><?php echo esc_html($date_year); ?></span>
+                    <span class="card-stage__date-day text-sm color-subtext"><?php echo esc_html($date_day); ?></span>
+                    <span class="card-stage__date-num title-norm-md <?php echo $color_class; ?>"><?php echo esc_html($date_num); ?></span>
+                    <span class="card-stage__date-month text-lg fw-bold <?php echo $color_class; ?>"><?php echo esc_html($date_month); ?></span>
+                    <span class="card-stage__date-year text-xs color-subtext"><?php echo esc_html($date_year); ?></span>
                 <?php endif; ?>
             </div>
         <?php endif; ?>
@@ -174,28 +168,29 @@ if ($complet)   $card_classes[] = 'card-stage--complet';
     <div class="card-stage__body">
 
         <!-- Badge type (STAGE / ATELIER / WORKSHOP) -->
-        <div class="card-stage__type"><?php echo esc_html($badge_type); ?></div>
+        <div class="card-stage__type text-sm fw-bold"><?php echo esc_html($badge_label); ?></div>
 
         <!-- Titre -->
-        <h3 class="card-stage__title"><?php the_title(); ?></h3>
-
-        <!-- Sous-titre / Niveau -->
-        <?php if ($sous_titre) : ?>
-            <p class="card-stage__subtitle"><?php echo esc_html($sous_titre); ?></p>
-        <?php endif; ?>
+        <h3 class="card-stage__title title-norm-md <?php echo $color_class; ?>">
+            <?php the_title(); ?>
+            <?php if ($sous_titre) : ?>
+                <span class="card-stage__subtitle text-md fw-bold color-subtext"><?php echo esc_html($sous_titre); ?></span>
+            <?php endif; ?>
+        </h3>
 
         <!-- Horaires -->
         <?php if ($horaires) : ?>
-            <p class="card-stage__time"><?php echo $horaires; ?></p>
+            <p class="card-stage__time text-md color-text"><?php echo $horaires; ?></p>
         <?php endif; ?>
 
         <!-- CTA -->
         <div class="card-stage__footer">
-            <span class="card-stage__cta <?php echo $complet ? 'card-stage__cta--disabled' : ''; ?>"
-                  aria-hidden="true">
+            <a href="<?php the_permalink(); ?>"
+               class="card-stage__cta stretched-link <?php echo $complet ? 'card-stage__cta--disabled' : ''; ?>"
+               aria-label="<?php echo esc_attr(get_the_title()); ?>">
                 <span class="btn-icon btn-icon--sm"
                       style="--icon-url: url('<?php echo get_template_directory_uri(); ?>/assets/images/chevron-right.svg');"></span>
-            </span>
+            </a>
         </div>
 
     </div><!-- .card-stage__body -->

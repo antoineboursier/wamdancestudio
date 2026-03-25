@@ -27,7 +27,7 @@ WAM Dance Studio — école de danse, Villeneuve d'Ascq.
 Thème WordPress custom `wamV1`, sans page builder.
 Stack : PHP, CSS vanilla, JS vanilla, ACF Pro, DDEV local, GitHub.
 
-CPT : `cours`, `stage`, `wam_membre`
+CPT : `cours`, `stages`, `wam_membre`
 Taxonomie : `cat_cours` (ne pas ajouter `category` ou `post_tag`)
 Rôles : `professeur`, `directrice`
 Polices : Outfit (défaut), Mallia (titres signatures), Cholo Rhita (titres graphiques)
@@ -131,10 +131,16 @@ Toujours créer une classe CSS nommée par son rôle, jamais par son apparence.
 ```
 
 ### Classes typographiques (dans style.css)
-`.title-cool-md` (Cholo 48px) · `.title-cool-lg` (Cholo 36px)
+`.title-cool-lg` (Cholo 48px) · `.title-cool-md` (Cholo 36px)
 `.title-sign-lg` (Mallia 46px) · `.title-sign-md` (Mallia 32px) · `.title-sign-sm` (Mallia 24px)
-`.title-norm-md` (Outfit Bold 32px)
+`.title-norm-lg` (Outfit Bold 32px) · `.title-norm-md` (Outfit Bold 32px) · `.title-norm-sm` (Outfit Bold 22px)
 `.text-lg` (26px) · `.text-md` (20px) · `.text-sm` (16px) · `.text-xs` (14px)
+`.fw-bold` · `.color-muted` / `.color-disabled` (alias)
+
+### `is-style-*` vs classe directe — arbitrage
+- **`is-style-*`** : blocs Gutenberg uniquement — appliqué via l'éditeur sur `core/paragraph` ou `core/heading`.
+- **Classe directe** (`.title-cool-md`, `.text-sm`…) : PHP / HTML statique — à utiliser dans les template-parts et les pages custom.
+- ❌ Ne jamais écrire `is-style-*` dans le PHP. ❌ Ne jamais appliquer une classe directe typographique à un bloc Gutenberg.
 
 ### Responsive — mobile-first
 ```css
@@ -187,7 +193,16 @@ echo wp_get_attachment_image(get_post_thumbnail_id(), 'wam-card', false, [
 ]);
 ```
 
-Tailles : `wam-card` 800×600 · `wam-thumb` 400×300 · `wam-portrait` 480×640 · `wam-hero` 1536×800
+| Slug | Dimensions | Ratio | Contexte d'usage |
+|------|-----------|-------|-----------------|
+| `wam-hero` | 1536×800 | 16:10 | Héros single plein écran |
+| `wam-card` | 800×600 | 4:3 | Colonne hero singles (cours, stage), cards liste stages/articles |
+| `wam-portrait` | 480×640 | 3:4 | Photo profil professeur (`single-wam_membre`) |
+| `wam-thumb` | 400×300 | 4:3 | Mini-cards, vignettes cours liés sur single prof |
+| `wamv1-page-hero` | 1536×600 | ~5:2 | Banner hero article (`single.php`) |
+| `wam-page-thumbnail` | 624×200 | ~3:1 | Header listing pages (`page-cours-collectifs`, `page-stages-tous`) |
+
+> ⚠️ Après ajout d'une nouvelle taille : régénérer les miniatures via `ddev exec wp media regenerate --yes`
 
 Overlay systématique :
 ```css

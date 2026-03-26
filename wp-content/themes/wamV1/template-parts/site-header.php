@@ -95,7 +95,7 @@ $sub_src    = esc_url($icon_dir . 'dancestudio_header.svg');
             </a>
             <a href="https://fr.linkedin.com/company/wam-dance-studio" class="wam-nav__social-link" target="_blank" aria-label="LinkedIn">
                 <span class="btn-icon"
-                    style="--icon-url: url('<?php echo esc_url(get_template_directory_uri() . '/assets/images/logo_linkedin.svg'); ?>');"></span>
+                    style="--icon-url: url('<?php echo esc_url(get_template_directory_uri() . '/assets/images/logo_lkn.svg'); ?>');"></span>
             </a>
         </div>
     </div>

@@ -17,7 +17,6 @@
     display: flex;
     flex-direction: column;
     align-items: center;
-    min-height: 100vh;
 }
 
 /* Pages article/page : padding bas supplémentaire (single.php uniquement) */
@@ -131,10 +130,14 @@
 .page-layout__inner {
     display: flex;
     flex-direction: column;
-    gap: var(--wam-spacing-4xl);        /* 56px entre chaque enfant */
-    align-items: stretch;               /* chaque enfant occupe toute la largeur */
-    padding-top: var(--wam-spacing-3xl);    /* 48px */
-    padding-bottom: var(--wam-spacing-3xl); /* 48px */
+    gap: var(--wam-spacing-4xl);
+    /* 56px entre chaque enfant */
+    align-items: stretch;
+    /* chaque enfant occupe toute la largeur */
+    padding-top: var(--wam-spacing-3xl);
+    /* 48px */
+    padding-bottom: var(--wam-spacing-3xl);
+    /* 48px */
     /* Full-width intentionnel — chaque enfant gère son propre max-width + margin: 0 auto.
        Les éléments full-bleed (separator, section-teachers…) doivent rester sans contrainte. */
     position: relative;
@@ -216,6 +219,19 @@
     font-size: var(--wam-font-size-md);
     width: 100%;
     margin: 0;
+}
+
+/* Styles pour l'adresse (Lieu) */
+.page-cours__address-name {
+    font-size: var(--wam-font-size-md);
+    color: var(--wam-color-text);
+    line-height: 1.25;
+}
+
+.page-cours__address-street {
+    font-size: var(--wam-font-size-sm);
+    color: var(--wam-color-subtext);
+    line-height: 1.25;
 }
 
 /* Colonne droite : image à la une */

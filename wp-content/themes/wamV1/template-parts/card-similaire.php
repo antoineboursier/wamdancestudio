@@ -27,12 +27,14 @@ if (isset($args['variant'])) {
     $variant = 'cours';
 } elseif ($post_type === 'wam_stage' || $post_type === 'stage') {
     $variant = 'stage';
+} elseif ($post_type === 'evenements') {
+    $variant = 'evenement';
 } else {
     $variant = 'article';
 }
 
 $is_article = $variant === 'article';
-$is_cours   = $variant === 'cours' || $variant === 'stage';
+$is_cours   = $variant === 'cours' || $variant === 'stage' || $variant === 'evenement';
 
 // Sous-titre : champ ACF en priorité, fallback sur la première catégorie WP
 $subtitle = function_exists('get_field') ? get_field('sous_titre') : '';
@@ -84,17 +86,23 @@ if (!$subtitle) {
             <div class="card-similaire__meta">
                 <?php if ($is_cours) :
                     if ($variant === 'stage') {
-                        // Pour les stages, on affiche la date complète
                         $date_val = function_exists('get_field') ? get_field('date_stage') : null;
                         $jour_label = $date_val;
+                    } elseif ($variant === 'evenement') {
+                        $date_val = function_exists('get_field') ? get_field('date_event') : null;
+                        $jour_label = $date_val;
                     } else {
-                        // Pour les cours, on affiche le jour de la semaine
                         $jour_val = function_exists('get_field') ? get_field('jour_de_cours') : null;
                         $jour_label = wamv1_get_day_label($jour_val);
                     }
 
-                    $heure_deb   = function_exists('get_field') ? get_field('heure_debut') : null;
-                    $heure_f     = function_exists('get_field') ? get_field('heure_de_fin') : null;
+                    if ($variant === 'evenement') {
+                        $heure_deb = function_exists('get_field') ? get_field('horaire_debut_event') : null;
+                        $heure_f   = function_exists('get_field') ? get_field('horaire_fin_event') : null;
+                    } else {
+                        $heure_deb = function_exists('get_field') ? get_field('heure_debut') : null;
+                        $heure_f   = function_exists('get_field') ? get_field('heure_de_fin') : null;
+                    }
 
                     // Formatage horaires
                     $horaires_label = '';

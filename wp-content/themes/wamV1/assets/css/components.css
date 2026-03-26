@@ -961,11 +961,9 @@ html.wam-reduce-motion .card-article__notif::after {
     box-sizing: border-box;
     box-shadow: var(--wam-shadow-panel);
     padding: var(--wam-spacing-2xl);
-    /* 40px */
     display: flex;
     flex-direction: column;
     gap: var(--wam-spacing-xl);
-    /* 32px au lieu de 40px */
     transition: transform 0.5s ease-out;
     transform: translateX(-100%);
     overflow-y: auto;
@@ -1013,8 +1011,8 @@ html.wam-reduce-motion .card-article__notif::after {
 
 .wam-nav__close:hover {
     opacity: 1;
-    color: var(--wam-color-pink);
     transform: scale(1.1);
+    background: var(--wam-color-page-bg);
 }
 
 /* Animation d'entrée des éléments */
@@ -1112,15 +1110,13 @@ html.wam-reduce-motion .card-article__notif::after {
     flex-direction: column;
     gap: var(--wam-spacing-xl);
     /* 32px */
-    flex: 1;
     width: 100%;
 }
 
 .wam-nav__list {
     display: flex;
     flex-direction: column;
-    gap: var(--wam-spacing-2xs);
-    /* 8px */
+    padding: var(--wam-spacing-2xs);
 }
 
 .wam-nav__list li {
@@ -1167,10 +1163,10 @@ html.wam-reduce-motion .card-article__notif::after {
 
 /* Sous-menu (accordéon) */
 .wam-nav__list .wam-nav__sub {
-    padding-left: var(--wam-spacing-xl);
+    padding: 0 0 0 var(--wam-spacing-xl);
     /* 32px = pl-8 */
-    margin-top: 0;
-    /* 8px remis uniquement au :expanded */
+    margin: 0;
+    /* Coupe tous les margin-top/bottom fantômes des ul natifs */
     display: flex;
     flex-direction: column;
     overflow: hidden;
@@ -1182,18 +1178,13 @@ html.wam-reduce-motion .card-article__notif::after {
 .wam-nav__list .menu-item-has-children.is-expanded>.wam-nav__sub {
     opacity: 1;
     margin-top: var(--wam-spacing-2xs);
-    padding-bottom: var(--wam-spacing-sm);
+    padding-bottom: var(--wam-spacing-2xs);
     /* 16px = pb-4 */
     max-height: 800px;
 }
 
 .wam-nav__list .wam-nav__sub a {
-    font-weight: 400;
-    border: none;
     padding: 6px 0;
-    font-size: 1rem;
-    /* wam-sm = 16px */
-    color: var(--wam-nav-subtext);
 }
 
 .wam-nav__list .wam-nav__sub a:hover {
@@ -1379,29 +1370,31 @@ html.wam-reduce-motion .card-article__notif::after {
 }
 
 .wam-footer__nav-list {
-    display: block; /* Nécessaire pour column-count */
+    display: block;
+    /* Nécessaire pour column-count */
     width: 100%;
     list-style: none;
     margin: 0;
     padding: 0;
 }
 
-.wam-footer__nav-list > li {
+.wam-footer__nav-list>li {
     list-style-type: none;
 }
 
-.wam-footer__nav-list > li > a {
-    font-size: 1.25rem; /* 20px = .text-md */
+.wam-footer__nav-list>li>a {
+    font-size: 1.25rem;
+    /* 20px = .text-md */
     text-decoration: none;
     color: var(--wam-color-text);
     transition: color var(--wam-transition);
 }
 
-.wam-footer__nav-list > li > a:hover {
+.wam-footer__nav-list>li>a:hover {
     color: var(--wam-color-yellow);
 }
 
-.wam-footer__nav-list > li::before {
+.wam-footer__nav-list>li::before {
     content: "•";
     color: var(--wam-color-text);
     font-size: 1.4rem;
@@ -1589,7 +1582,8 @@ html.wam-reduce-motion .card-article__notif::after {
 
 .wam-footer__simple-link {
     font-family: var(--wam-font-body);
-    font-size: 1rem; /* Retour à l'ancien style (16px) */
+    font-size: 1rem;
+    /* Retour à l'ancien style (16px) */
     color: var(--wam-color-subtext);
     text-decoration: none;
     transition: color var(--wam-transition);

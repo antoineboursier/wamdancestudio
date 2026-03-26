@@ -10,6 +10,7 @@
 // -------------------------------------------------------
 require_once get_template_directory() . '/inc/roles.php';
 require_once get_template_directory() . '/inc/admin-config.php';
+require_once get_template_directory() . '/inc/schema.php';
 require_once get_template_directory() . '/inc/shortcodes.php';
 require_once get_template_directory() . '/inc/accessibility.php';
 require_once get_template_directory() . '/inc/nav-walker.php';
@@ -448,6 +449,14 @@ function wamv1_register_cpt_evenements()
         'has_archive' => true,
         'rewrite' => array('slug' => 'evenements'),
         'capability_type' => 'post',
+        // --- Modèle de blocs par défaut ---
+        'template' => array(
+            array('core/paragraph', array(
+                'placeholder' => 'Commencez à rédiger la description détaillée de l\'événement ici...',
+            )),
+        ),
+        // Optionnel : on peut décommenter la ligne suivante pour verrouiller l'ordre
+        // 'template_lock' => 'all',
     );
 
     register_post_type('evenements', $args);
@@ -660,3 +669,9 @@ function wamv1_auto_blend_overlay($html, $attachment_id, $size, $icon, $attr)
 add_filter('show_admin_bar', function ($show) {
     return current_user_can('manage_options') ? $show : false;
 });
+
+// =============================================================================
+// GENERATION LLM.TXT
+// =============================================================================
+
+require_once get_template_directory() . '/inc/llms-txt.php';

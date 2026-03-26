@@ -15,6 +15,7 @@ $contact_url = home_url('/contact/');
 $cours_url = home_url('/cours-collectifs/');
 $stages_url = home_url('/stages-workshop-ateliers/');
 $newsletter_url = home_url('/newsletter/');
+$icon_dir       = get_template_directory_uri() . '/assets/images/';
 ?>
 
 <footer class="wam-footer" role="contentinfo">
@@ -42,18 +43,32 @@ $newsletter_url = home_url('/newsletter/');
 
             <?php /* Réseaux sociaux — milieu-droite, icônes colorées via CSS mask */ ?>
             <div class="wam-footer__socials">
-                <a href="https://www.instagram.com/" class="wam-footer__social-link" target="_blank"
+                <a href="https://www.instagram.com/wam_dance_studio/" class="wam-footer__social-link" target="_blank"
                     rel="noopener noreferrer"
                     aria-label="<?php esc_attr_e('WAM Dance Studio sur Instagram', 'wamv1'); ?>">
                     <span class="wam-footer__social-icon"
-                        style="-webkit-mask-image: url('<?php echo esc_url($insta_url); ?>'); mask-image: url('<?php echo esc_url($insta_url); ?>')"
+                        style="-webkit-mask-image: url('<?php echo esc_url($icon_dir . 'logo_insta.svg'); ?>'); mask-image: url('<?php echo esc_url($icon_dir . 'logo_insta.svg'); ?>')"
                         aria-hidden="true"></span>
                 </a>
-                <a href="https://www.facebook.com/" class="wam-footer__social-link" target="_blank"
+                <a href="https://www.facebook.com/WAMDanceStudio/" class="wam-footer__social-link" target="_blank"
                     rel="noopener noreferrer"
                     aria-label="<?php esc_attr_e('WAM Dance Studio sur Facebook', 'wamv1'); ?>">
                     <span class="wam-footer__social-icon"
-                        style="-webkit-mask-image: url('<?php echo esc_url($fb_url); ?>'); mask-image: url('<?php echo esc_url($fb_url); ?>')"
+                        style="-webkit-mask-image: url('<?php echo esc_url($icon_dir . 'logo_fb.svg'); ?>'); mask-image: url('<?php echo esc_url($icon_dir . 'logo_fb.svg'); ?>')"
+                        aria-hidden="true"></span>
+                </a>
+                <a href="https://www.tiktok.com/@wamdancestudio" class="wam-footer__social-link" target="_blank"
+                    rel="noopener noreferrer"
+                    aria-label="<?php esc_attr_e('WAM Dance Studio sur TikTok', 'wamv1'); ?>">
+                    <span class="wam-footer__social-icon"
+                        style="-webkit-mask-image: url('<?php echo esc_url($icon_dir . 'logo_tiktok.svg'); ?>'); mask-image: url('<?php echo esc_url($icon_dir . 'logo_tiktok.svg'); ?>')"
+                        aria-hidden="true"></span>
+                </a>
+                <a href="https://www.linkedin.com/company/wam-dance-studio" class="wam-footer__social-link" target="_blank"
+                    rel="noopener noreferrer"
+                    aria-label="<?php esc_attr_e('WAM Dance Studio sur LinkedIn', 'wamv1'); ?>">
+                    <span class="wam-footer__social-icon"
+                        style="-webkit-mask-image: url('<?php echo esc_url($icon_dir . 'logo_lkn.svg'); ?>'); mask-image: url('<?php echo esc_url($icon_dir . 'logo_lkn.svg'); ?>')"
                         aria-hidden="true"></span>
                 </a>
             </div>
@@ -71,17 +86,17 @@ $newsletter_url = home_url('/newsletter/');
                 <?php
                 wp_nav_menu(array(
                     'theme_location' => 'footer',
-                    'container' => false,
-                    'menu_class' => 'wam-footer__nav-list',
-                    'depth' => 1,
-                    'fallback_cb' => false,
+                    'container'      => false,
+                    'menu_class'     => 'wam-footer__nav-list wam-footer__flat-list',
+                    'depth'          => 1,
+                    'fallback_cb'    => false,
                 ));
                 ?>
             </nav>
         <?php endif; ?>
 
         <div id="footer-cours" class="wam-footer__section">
-            <p class="wam-footer__section-title">
+            <p class="wam-footer__section-title mb-md">
                 <?php esc_html_e('Les cours de danse collectifs :', 'wamv1'); ?>
             </p>
 
@@ -184,7 +199,7 @@ $newsletter_url = home_url('/newsletter/');
 
         <?php /* ── Stages (CPT "stage") ── */ ?>
         <div id="footer-stages" class="wam-footer__section">
-            <p class="wam-footer__section-title">
+            <p class="wam-footer__section-title mb-md">
                 <?php esc_html_e('Les stages de danse :', 'wamv1'); ?>
             </p>
 
@@ -193,17 +208,22 @@ $newsletter_url = home_url('/newsletter/');
              * Même mécanique transient que pour les cours.
              * Pour invalider : delete_transient('wamv1_footer_stages')
              */
-            $stages_posts = get_transient('wamv1_footer_stages');
+            /*
+             * Même mécanique transient que pour les cours.
+             * Pour invalider : delete_transient('wamv1_footer_stages_v2')
+             */
+            $stages_posts = get_transient('wamv1_footer_stages_v2');
             if (false === $stages_posts) {
                 $stages_query = new WP_Query(array(
                     'post_type' => 'stages',
                     'posts_per_page' => -1, // Affiche tout sans limite
-                    'orderby' => 'title',
+                    'orderby' => 'meta_value',
+                    'meta_key' => 'date_stage',
                     'order' => 'ASC',
                     'post_status' => 'publish',
                 ));
                 $stages_posts = $stages_query->posts;
-                set_transient('wamv1_footer_stages', $stages_posts, DAY_IN_SECONDS);
+                set_transient('wamv1_footer_stages_v2', $stages_posts, DAY_IN_SECONDS);
             }
 
             if (!empty($stages_posts)):
@@ -211,17 +231,27 @@ $newsletter_url = home_url('/newsletter/');
                 <div class="wam-footer__columns">
                     <ul class="wam-footer__flat-list">
                         <?php foreach ($stages_posts as $stage_post):
-                            $sous_titre = function_exists('get_field') ? get_field('sous_titre', $stage_post->ID) : '';
-                            $full_label = $stage_post->post_title . ($sous_titre ? ' ' . $sous_titre : '');
+                            $id = $stage_post->ID;
+                            $sous_titre = function_exists('get_field') ? get_field('sous_titre', $id) : '';
+                            $date_raw   = function_exists('get_field') ? get_field('date_stage', $id) : '';
+                            
+                            $date_formatted = '';
+                            if ($date_raw) {
+                                $date_obj = DateTime::createFromFormat('Ymd', $date_raw);
+                                if ($date_obj) {
+                                    $date_formatted = $date_obj->format('d/m/y');
+                                }
+                            }
+
+                            // Format : Titre + subtitle + " - " + date
+                            $display_title = $stage_post->post_title;
+                            if ($sous_titre) $display_title .= ' <span class="wam-footer__simple-link-sub">' . esc_html($sous_titre) . '</span>';
+                            if ($date_formatted) $display_title .= ' — ' . $date_formatted;
                             ?>
                             <li class="wam-footer__course-li">
                                 <a href="<?php echo esc_url(get_permalink($stage_post)); ?>" 
-                                   class="wam-footer__simple-link"
-                                   aria-label="<?php echo esc_attr($full_label); ?>">
-                                    <?php echo esc_html($stage_post->post_title); ?>
-                                    <?php if (!empty($sous_titre)): ?>
-                                        <span class="wam-footer__simple-link-sub" aria-hidden="true"><?php echo esc_html($sous_titre); ?></span>
-                                    <?php endif; ?>
+                                   class="wam-footer__simple-link">
+                                    <?php echo $display_title; ?>
                                 </a>
                             </li>
                         <?php endforeach; ?>

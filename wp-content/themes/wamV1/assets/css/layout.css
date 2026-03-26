@@ -93,6 +93,7 @@
     position: relative;
     flex-shrink: 0;
     box-sizing: border-box;
+    margin: 0 auto;
 }
 
 .section-similaires__heading {
@@ -134,7 +135,8 @@
     align-items: stretch;               /* chaque enfant occupe toute la largeur */
     padding-top: var(--wam-spacing-3xl);    /* 48px */
     padding-bottom: var(--wam-spacing-3xl); /* 48px */
-    /* Pas de padding horizontal ici — géré par .wam-container si combiné */
+    /* Full-width intentionnel — chaque enfant gère son propre max-width + margin: 0 auto.
+       Les éléments full-bleed (separator, section-teachers…) doivent rester sans contrainte. */
     position: relative;
     width: 100%;
 }
@@ -153,6 +155,7 @@
     max-width: var(--wam-max-screen);
     width: 100%;
     padding: 0 var(--wam-page-mx);
+    margin: 0 auto;
     position: relative;
     box-sizing: border-box;
 }
@@ -285,6 +288,7 @@
     max-width: var(--wam-max-screen);
     width: 100%;
     padding: 0 var(--wam-page-mx);
+    margin: 0 auto;
     position: relative;
     box-sizing: border-box;
     color: var(--wam-color-text);

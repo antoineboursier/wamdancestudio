@@ -16,9 +16,9 @@ get_header();
 get_template_part('template-parts/site-header');
 
 /* ---- Données de la page courante ---- */
-$page       = get_queried_object();
-$page_title = $page ? get_the_title($page->ID) : 'Stages & workshops';
-$page_desc  = $page ? get_the_excerpt($page->ID) : '';
+$current_page = get_queried_object();
+$page_title   = $current_page ? get_the_title($current_page->ID) : 'Stages & workshops';
+$page_desc    = $current_page ? get_the_excerpt($current_page->ID) : '';
 
 $icons_path = get_template_directory_uri() . '/assets/images/';
 
@@ -37,10 +37,7 @@ $terms = get_terms([
 ]);
 
 /* ---- Requête tous les stages publiés, triés par date ACF ---- */
-/*
- * ACF date_picker stocke en interne au format Ymd (sans séparateur).
- * orderby => 'meta_value' trie donc correctement chronologiquement.
- */
+/* ---- Requête tous les stages publiés, triés par date ACF ---- */
 $stages_query = new WP_Query([
     'post_type'      => 'stages',
     'posts_per_page' => -1,
@@ -50,32 +47,74 @@ $stages_query = new WP_Query([
     'order'          => 'ASC',
     'no_found_rows'  => true,
 ]);
+
+/* ---- Séparation Futur / Passé ---- */
+$stages_futurs = [];
+$stages_passes = [];
+$today_ymd     = date('Ymd');
+
+if ($stages_query->have_posts()) {
+    while ($stages_query->have_posts()) {
+        $stages_query->the_post();
+        
+        // La date ACF est retournée en format d/m/Y par défaut
+        $date_acf_dmY = get_field('date_stage');
+        $date_ymd     = '';
+        
+        if ($date_acf_dmY) {
+            $dt = DateTime::createFromFormat('d/m/Y', $date_acf_dmY);
+            if ($dt) {
+                $date_ymd = $dt->format('Ymd');
+            }
+        }
+        
+        if ($date_ymd && $date_ymd < $today_ymd) {
+            $stages_passes[] = get_post(); // Date passée (Historique)
+        } else {
+            $stages_futurs[] = get_post(); // Date future ou aujourd'hui
+        }
+    }
+    wp_reset_postdata();
+}
+
+// Inversion du tri de l'historique : les plus récents (les moins vieux) en premier
+if (!empty($stages_passes)) {
+    usort($stages_passes, function($a, $b) {
+        $da = get_field('date_stage', $a->ID);
+        $db = get_field('date_stage', $b->ID);
+        $dta = $da ? DateTime::createFromFormat('d/m/Y', $da) : null;
+        $dtb = $db ? DateTime::createFromFormat('d/m/Y', $db) : null;
+        $timestamp_a = $dta ? $dta->getTimestamp() : 0;
+        $timestamp_b = $dtb ? $dtb->getTimestamp() : 0;
+        return $timestamp_b - $timestamp_a; // Tri décroissant
+    });
+}
 ?>
 
 <main id="primary" class="site-main">
     <div class="page-cours page-stages">
 
-        <div class="wam-container page-layout__inner">
+        <div class="page-layout__inner">
 
             <!-- ============================================================
              BREADCRUMB
              ============================================================ -->
             <?php get_template_part('template-parts/breadcrumb', null, [
-                'links'   => [['label' => 'Accueil', 'url' => home_url('/')]],
-                'current' => $page_title,
+                'id'   => 'breadcrumb-stages',
+                'full' => true,
             ]); ?>
 
             <!-- ============================================================
              HERO — titre + image décorative
              ============================================================ -->
             <?php get_template_part('template-parts/page-hero', null, [
-                'page'       => $page,
+                'page'       => $current_page,
                 'page_title' => $page_title,
                 'page_desc'  => $page_desc,
                 'icons_path' => $icons_path,
             ]); ?>
 
-        </div><!-- .wam-container.page-layout__inner -->
+        </div><!-- .page-layout__inner -->
 
     <!-- ============================================================
          FILTRE — chips par taxonomie + recherche texte
@@ -88,27 +127,52 @@ $stages_query = new WP_Query([
     </div>
 
     <!-- ============================================================
-         GRILLE DES STAGES
+         GRILLES DES STAGES
          ============================================================ -->
     <div class="wam-container" id="cours-results">
 
-        <?php if ($stages_query->have_posts()) : ?>
-
-            <div class="page-stages__grid">
-
-                <?php while ($stages_query->have_posts()) : $stages_query->the_post(); ?>
-                    <?php get_template_part('template-parts/card-stage'); ?>
-                <?php endwhile; ?>
-
-            </div>
-
+        <?php if (!empty($stages_futurs)) : ?>
+            <section class="cours-categorie">
+                <div class="page-stages__grid cours-categorie__grid">
+                    <?php 
+                    global $post;
+                    foreach ($stages_futurs as $post) : 
+                        setup_postdata($post);
+                        get_template_part('template-parts/card-stage');
+                    endforeach; 
+                    wp_reset_postdata(); 
+                    ?>
+                </div>
+            </section>
         <?php else : ?>
-            <p class="page-stages__empty">Aucun stage disponible pour le moment.</p>
+            <p class="page-stages__empty">Aucun stage à venir pour le moment.</p>
         <?php endif; ?>
 
-        <?php wp_reset_postdata(); ?>
-
     </div><!-- .wam-container #cours-results -->
+
+    <!-- ============================================================
+         HISTORIQUE (Stages Passés) — Sorti du wam-container pour Full-Bleed
+         ============================================================ -->
+    <?php if (!empty($stages_passes)) : ?>
+        
+        <?php get_template_part('template-parts/separator'); ?>
+
+        <section class="cours-categorie page-stages__history wam-container">
+            <div class="cours-categorie__header">
+                <h2 class="title-cool-lg has-text-color color-subtext">Ces stages ont déjà eu lieu...</h2>
+            </div>
+            <div class="page-stages__history-grid">
+                <?php 
+                global $post;
+                foreach ($stages_passes as $post) : 
+                    setup_postdata($post);
+                    get_template_part('template-parts/card-stage-history');
+                endforeach; 
+                wp_reset_postdata(); 
+                ?>
+            </div>
+        </section>
+    <?php endif; ?>
 
 </div><!-- .page-stages -->
 </main>

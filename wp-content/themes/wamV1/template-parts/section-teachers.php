@@ -1,19 +1,35 @@
 <?php
-$args = array(
+/**
+ * Template part : Grille des professeurs
+ *
+ * Paramètres via $args (optionnels) :
+ *   'show_title' => bool (default: true)
+ *   'show_cta'   => bool (default: true)
+ *   'no_pattern' => bool (default: false)
+ *
+ * @package wamv1
+ */
+
+$show_title = $args['show_title'] ?? true;
+$show_cta   = $args['show_cta']   ?? true;
+$no_pattern = $args['no_pattern'] ?? false;
+
+$query_args = array(
     'post_type'      => 'wam_membre',
     'post_status'    => 'publish',
     'posts_per_page' => -1,
     'orderby'        => 'title',
     'order'          => 'ASC',
 );
-$teachers_query = new WP_Query($args);
+$teachers_query = new WP_Query($query_args);
 $icon_dir = get_template_directory_uri() . '/assets/images/';
 ?>
-<section id="section-teachers" class="section-teachers"
+<section id="section-teachers" class="section-teachers <?php echo $no_pattern ? 'section-teachers--no-pattern' : ''; ?>"
     aria-label="<?php esc_attr_e("L'équipe de professeur·es", 'wamv1'); ?>">
 
-    <?php /* Titre section */ ?>
-    <div class="section-teachers__title">
+    <?php if ($show_title) : ?>
+        <?php /* Titre section */ ?>
+        <div class="section-teachers__title">
         <h2 class="title-cool-md color-text">
             <?php esc_html_e('La belle team', 'wamv1'); ?>
         </h2>
@@ -21,6 +37,7 @@ $icon_dir = get_template_directory_uri() . '/assets/images/';
             <?php esc_html_e('de vos professeur·es de danse', 'wamv1'); ?>
         </p>
     </div>
+    <?php endif; ?>
 
     <?php /* Grille des cartes */ ?>
     <div id="teachers-grid" class="teachers-grid">
@@ -96,14 +113,16 @@ $icon_dir = get_template_directory_uri() . '/assets/images/';
         <?php endif; ?>
     </div>
 
-    <?php /* Bouton vers la page équipe */ ?>
-    <div class="section-teachers__cta">
-        <a href="<?php echo esc_url(home_url('/prof-wam/')); ?>" class="btn-secondary"
-            id="link-professors">
-            <?php esc_html_e('Découvrir les profs !', 'wamv1'); ?>
-            <span class="btn-icon btn-icon--sm"
-                style="--icon-url: url('<?php echo esc_url($icon_dir . 'chevron-right.svg'); ?>');"
-                aria-hidden="true"></span>
-        </a>
-    </div>
+    <?php if ($show_cta) : ?>
+        <?php /* Bouton vers la page équipe */ ?>
+        <div class="section-teachers__cta">
+            <a href="<?php echo esc_url(home_url('/prof-wam/')); ?>" class="btn-secondary"
+                id="link-professors">
+                <?php esc_html_e('Découvrir les profs !', 'wamv1'); ?>
+                <span class="btn-icon btn-icon--sm"
+                    style="--icon-url: url('<?php echo esc_url($icon_dir . 'chevron-right.svg'); ?>');"
+                    aria-hidden="true"></span>
+            </a>
+        </div>
+    <?php endif; ?>
 </section>

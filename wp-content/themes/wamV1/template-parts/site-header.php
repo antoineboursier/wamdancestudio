@@ -81,13 +81,21 @@ $sub_src    = esc_url($icon_dir . 'dancestudio_header.svg');
         </nav>
 
         <div class="wam-nav__socials">
-            <a href="#" class="wam-nav__social-link" aria-label="Facebook">
+            <a href="https://www.facebook.com/WAMDanceStudio/" class="wam-nav__social-link" target="_blank" aria-label="Facebook">
                 <span class="btn-icon"
-                    style="--icon-url: url('<?php echo esc_url(get_template_directory_uri() . '/assets/images/logo_facebook.svg'); ?>');"></span>
+                    style="--icon-url: url('<?php echo esc_url(get_template_directory_uri() . '/assets/images/logo_fb.svg'); ?>');"></span>
             </a>
-            <a href="#" class="wam-nav__social-link" aria-label="Instagram">
+            <a href="https://www.instagram.com/wam_dance_studio/" class="wam-nav__social-link" target="_blank" aria-label="Instagram">
                 <span class="btn-icon"
-                    style="--icon-url: url('<?php echo esc_url(get_template_directory_uri() . '/assets/images/logo_instagram.svg'); ?>');"></span>
+                    style="--icon-url: url('<?php echo esc_url(get_template_directory_uri() . '/assets/images/logo_insta.svg'); ?>');"></span>
+            </a>
+            <a href="https://www.tiktok.com/@wamdancestudio" class="wam-nav__social-link" target="_blank" aria-label="TikTok">
+                <span class="btn-icon"
+                    style="--icon-url: url('<?php echo esc_url(get_template_directory_uri() . '/assets/images/logo_tiktok.svg'); ?>');"></span>
+            </a>
+            <a href="https://fr.linkedin.com/company/wam-dance-studio" class="wam-nav__social-link" target="_blank" aria-label="LinkedIn">
+                <span class="btn-icon"
+                    style="--icon-url: url('<?php echo esc_url(get_template_directory_uri() . '/assets/images/logo_linkedin.svg'); ?>');"></span>
             </a>
         </div>
     </div>

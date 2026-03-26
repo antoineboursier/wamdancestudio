@@ -726,6 +726,16 @@ html.wam-theme-light .wam-header--home {
     background-position: top center;
 }
 
+.section-teachers--no-pattern {
+    background-image: none;
+    padding: 0;
+    overflow: visible;
+}
+
+.section-teachers--no-pattern::before {
+    display: none;
+}
+
 .section-teachers::before {
     content: '';
     position: absolute;
@@ -762,7 +772,7 @@ html.wam-theme-light .wam-header--home {
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    gap: var(--wam-spacing-xl);
+    gap: var(--wam-spacing-2xl);
     padding: var(--wam-spacing-sm);
     background: var(--wam-color-card-bg);
     border-radius: var(--wam-radius-lg);
@@ -948,13 +958,14 @@ html.wam-reduce-motion .card-article__notif::after {
     height: 100%;
     width: 100%;
     max-width: 480px;
+    box-sizing: border-box;
     box-shadow: var(--wam-shadow-panel);
     padding: var(--wam-spacing-2xl);
     /* 40px */
     display: flex;
     flex-direction: column;
-    gap: var(--wam-spacing-2xl);
-    /* 40px */
+    gap: var(--wam-spacing-xl);
+    /* 32px au lieu de 40px */
     transition: transform 0.5s ease-out;
     transform: translateX(-100%);
     overflow-y: auto;
@@ -1001,7 +1012,8 @@ html.wam-reduce-motion .card-article__notif::after {
 }
 
 .wam-nav__close:hover {
-    opacity: 0.7;
+    opacity: 1;
+    color: var(--wam-color-pink);
     transform: scale(1.1);
 }
 
@@ -1157,8 +1169,8 @@ html.wam-reduce-motion .card-article__notif::after {
 .wam-nav__list .wam-nav__sub {
     padding-left: var(--wam-spacing-xl);
     /* 32px = pl-8 */
-    margin-top: var(--wam-spacing-2xs);
-    /* 8px = mt-2 */
+    margin-top: 0;
+    /* 8px remis uniquement au :expanded */
     display: flex;
     flex-direction: column;
     overflow: hidden;
@@ -1169,6 +1181,7 @@ html.wam-reduce-motion .card-article__notif::after {
 
 .wam-nav__list .menu-item-has-children.is-expanded>.wam-nav__sub {
     opacity: 1;
+    margin-top: var(--wam-spacing-2xs);
     padding-bottom: var(--wam-spacing-sm);
     /* 16px = pb-4 */
     max-height: 800px;
@@ -1366,36 +1379,32 @@ html.wam-reduce-motion .card-article__notif::after {
 }
 
 .wam-footer__nav-list {
-    display: flex;
-    gap: var(--wam-spacing-lg);
-    /* 24px = gap-6 */
+    display: block; /* Nécessaire pour column-count */
     width: 100%;
     list-style: none;
     margin: 0;
     padding: 0;
 }
 
-.wam-footer__nav-list>li {
-    flex: 1;
-    min-width: 0;
-    list-style-type: disc;
+.wam-footer__nav-list > li {
+    list-style-type: none;
 }
 
-.wam-footer__nav-list>li::marker {
+.wam-footer__nav-list > li > a {
+    font-size: 1.25rem; /* 20px = .text-md */
+    text-decoration: none;
     color: var(--wam-color-text);
+    transition: color var(--wam-transition);
 }
 
-.wam-footer__nav-list>li>a {
-    font-size: 1rem;
-    /* wam-sm */
-    text-decoration: underline;
+.wam-footer__nav-list > li > a:hover {
+    color: var(--wam-color-yellow);
+}
+
+.wam-footer__nav-list > li::before {
+    content: "•";
     color: var(--wam-color-text);
-    transition: opacity var(--wam-transition);
-    text-decoration-skip-ink: none;
-}
-
-.wam-footer__nav-list>li>a:hover {
-    opacity: 0.7;
+    font-size: 1.4rem;
 }
 
 .wam-footer__section {
@@ -1534,7 +1543,8 @@ html.wam-reduce-motion .card-article__notif::after {
     margin-top: 0;
 }
 
-.wam-footer__course-li {
+.wam-footer__course-li,
+.wam-footer__flat-list li {
     display: flex;
     align-items: center;
     gap: var(--wam-spacing-2xs);
@@ -1545,19 +1555,16 @@ html.wam-reduce-motion .card-article__notif::after {
 .wam-footer__course-li::before {
     content: "•";
     color: var(--wam-color-text);
-    font-size: 1.2rem;
+    font-size: 1rem;
 }
 
-.wam-footer__category-title {
-    font-family: var(--wam-font-body);
-    font-size: 1.125rem;
-    /* wam-md (proche) */
-    font-weight: 700;
+.wam-footer__flat-list li::before {
+    content: "•";
     color: var(--wam-color-text);
-    margin-bottom: var(--wam-spacing-2xs);
-    text-transform: uppercase;
-    letter-spacing: 0.05em;
+    font-size: 1.4rem;
 }
+
+/* Styles spécifiques à wam-footer__flat-list gérés via les classes de liens internes */
 
 .wam-footer__category-list {
     list-style: none;
@@ -1582,16 +1589,15 @@ html.wam-reduce-motion .card-article__notif::after {
 
 .wam-footer__simple-link {
     font-family: var(--wam-font-body);
-    font-size: 0.9375rem;
-    /* ~15px */
+    font-size: 1rem; /* Retour à l'ancien style (16px) */
     color: var(--wam-color-subtext);
     text-decoration: none;
     transition: color var(--wam-transition);
 }
 
 .wam-footer__simple-link:hover {
-    color: var(--wam-color-text);
-    text-decoration: underline;
+    color: var(--wam-color-yellow);
+    text-decoration: none;
 }
 
 .wam-footer__simple-link-sub {
@@ -1871,15 +1877,7 @@ html.wam-no-graphical-fonts .title-sign-sm {
 /* =====================================================
    PROF PROFILE — Page individuelle
    ===================================================== */
-.prof-header__micro-desc {
-    font-family: var(--wam-font-graphical-1);
-    /* Mallia */
-    font-weight: 400;
-    font-size: var(--wam-font-size-lg);
-    color: var(--wam-color-yellow);
-    margin: var(--wam-spacing-xs) 0 var(--wam-spacing-md);
-    line-height: 1.2;
-}
+
 
 .prof-header__socials {
     display: flex;
@@ -1891,6 +1889,11 @@ html.wam-no-graphical-fonts .title-sign-sm {
 .prof-social-link {
     display: inline-flex;
     transition: transform var(--wam-transition);
+}
+
+.prof-social-link .btn-icon {
+    width: 32px;
+    height: 32px;
 }
 
 .prof-social-link:hover {
@@ -1910,16 +1913,7 @@ html.wam-no-graphical-fonts .title-sign-sm {
 
 /* Sections liées (Cours/Stages) sur le profil prof */
 .prof-related-section {
-    margin-top: var(--wam-spacing-3xl);
     padding-top: var(--wam-spacing-2xl);
-    border-top: 1px solid var(--wam-color-input-bg);
-}
-
-.prof-related-title {
-    font-family: var(--wam-font-graphical-1);
-    font-size: var(--wam-font-size-h3);
-    color: var(--wam-color-text);
-    margin-bottom: var(--wam-spacing-xl);
 }
 
 .prof-related-grid {
@@ -1952,6 +1946,11 @@ html.wam-no-graphical-fonts .title-sign-sm {
     overflow: hidden;
 }
 
+.prof-related-card__photo .photo-wrapper {
+    width: 100%;
+    height: 100%;
+}
+
 .prof-related-card__photo img {
     width: 100%;
     height: 100%;
@@ -1964,28 +1963,6 @@ html.wam-no-graphical-fonts .title-sign-sm {
     gap: var(--wam-spacing-4xs);
 }
 
-.prof-related-card__title {
-    font-family: var(--wam-font-body);
-    font-weight: 700;
-    font-size: var(--wam-font-size-md);
-    color: var(--wam-color-text);
-    margin: 0;
-}
-
-.prof-related-card__subtitle {
-    font-family: var(--wam-font-body);
-    font-size: var(--wam-font-size-sm);
-    color: var(--wam-color-subtext);
-    margin: 0;
-}
-
-.prof-related-card__meta {
-    font-family: var(--wam-font-body);
-    font-size: var(--wam-font-size-xs);
-    color: var(--wam-color-yellow);
-    margin: 4px 0 0;
-    font-weight: 600;
-}
 
 /* =====================================================
    BREADCRUMB — Fil d'Ariane (partagé toutes pages)
@@ -2022,4 +1999,5 @@ html.wam-no-graphical-fonts .title-sign-sm {
     width: 100%;
     padding: 0 var(--wam-page-mx);
     box-sizing: border-box;
+    margin: 0 auto;
 }

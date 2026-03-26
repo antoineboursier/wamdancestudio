@@ -16,7 +16,8 @@
 html {
     scroll-behavior: smooth;
     -webkit-text-size-adjust: 100%;
-    scrollbar-gutter: stable; /* évite le layout shift quand la scrollbar apparaît/disparaît */
+    scrollbar-gutter: stable;
+    /* évite le layout shift quand la scrollbar apparaît/disparaît */
 }
 
 body {
@@ -312,6 +313,7 @@ hr {
    ------------------------------------------------------- */
 
 /* Title Norm — Outfit Bold */
+.title-norm-lg,
 .is-style-title-norm-lg {
     font-family: var(--wam-font-body);
     font-size: var(--wam-font-size-h2);
@@ -320,6 +322,7 @@ hr {
     line-height: 1.1;
 }
 
+.title-norm-md,
 .is-style-title-norm-md {
     font-family: var(--wam-font-body);
     font-size: 28px;
@@ -327,6 +330,7 @@ hr {
     line-height: 1.1;
 }
 
+.title-norm-sm,
 .is-style-title-norm-sm {
     font-family: var(--wam-font-body);
     font-size: 22px;
@@ -335,6 +339,7 @@ hr {
 }
 
 /* Title Cool — Cholo Rhita */
+.title-cool-lg,
 .is-style-title-cool-lg {
     font-family: var(--wam-font-graphical-2);
     font-size: var(--wam-font-size-display-lg);
@@ -343,6 +348,7 @@ hr {
     line-height: 1;
 }
 
+.title-cool-md,
 .is-style-title-cool-md {
     font-family: var(--wam-font-graphical-2);
     font-size: 36px;
@@ -351,6 +357,7 @@ hr {
 }
 
 /* Title Sign — Mallia */
+.title-sign-lg,
 .is-style-title-sign-lg {
     font-family: var(--wam-font-graphical-1);
     font-size: 46px;
@@ -358,6 +365,7 @@ hr {
     line-height: 1.3;
 }
 
+.title-sign-md,
 .is-style-title-sign-md {
     font-family: var(--wam-font-graphical-1);
     font-size: 32px;
@@ -365,6 +373,7 @@ hr {
     line-height: 1.1;
 }
 
+.title-sign-sm,
 .is-style-title-sign-sm {
     font-family: var(--wam-font-graphical-1);
     font-size: 24px;
@@ -417,18 +426,70 @@ hr {
     line-height: 1.25;
 }
 
+.text-xs {
+    font-size: var(--wam-font-size-xs);
+    line-height: 1.25;
+}
+
+.fw-bold {
+    font-weight: 700 !important;
+}
+
 .color-text {
-    color: var(--wam-color-text);
+    color: var(--wam-color-text) !important;
+}
+
+.color-subtext {
+    color: var(--wam-color-subtext) !important;
+}
+
+.color-muted,
+.color-disabled {
+    color: var(--wam-color-disabled) !important;
+}
+
+.color-green {
+    color: var(--wam-color-green) !important;
+}
+
+.color-yellow {
+    color: var(--wam-color-yellow) !important;
+}
+
+.color-orange {
+    color: var(--wam-color-orange) !important;
+}
+
+.color-pink {
+    color: var(--wam-color-pink) !important;
+}
+
+/* Espacements utilitaires */
+.mt-3xs {
+    margin-top: var(--wam-spacing-3xs) !important; /* 4px */
+}
+.mt-2xs {
+    margin-top: var(--wam-spacing-2xs) !important; /* 8px */
+}
+.mt-2xl {
+    margin-top: var(--wam-spacing-2xl) !important;
+}
+.mb-sm {
+    margin-bottom: var(--wam-spacing-sm) !important;
+}
+.mb-md {
+    margin-bottom: var(--wam-spacing-md) !important;
+}
+.mb-xl {
+    margin-bottom: var(--wam-spacing-xl) !important;
 }
 
 /* Conteneur max-width centré */
 .wam-container {
     max-width: var(--wam-max-screen);
-    margin-left: auto;
-    margin-right: auto;
-    padding-left: var(--wam-page-mx);
-    padding-right: var(--wam-page-mx);
+    margin: 0 auto;
     width: 100%;
+    padding: 0 var(--wam-page-mx);
     box-sizing: border-box;
 }
 

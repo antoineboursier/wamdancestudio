@@ -40,15 +40,17 @@ get_template_part('template-parts/site-header');
             /* ---- Badge type ---- */
             $has_acf         = function_exists('get_field');
             $type_format_val = $has_acf ? get_field('type_format') : 'type_stage';
-            $type_map        = [
-                'type_stage' => 'Stage',
-                'type_atel'  => 'Atelier',
-                'type_wshop' => 'Workshop',
+            $type_map = [
+                'type_stage' => ['label' => 'Stage',    'color_class' => 'color-yellow'],
+                'type_atel'  => ['label' => 'Atelier',  'color_class' => 'color-green'],
+                'type_wshop' => ['label' => 'Workshop', 'color_class' => 'color-pink'],
             ];
-            $badge_label = $type_map[$type_format_val] ?? 'Stage';
+            $current_type = $type_map[$type_format_val] ?? $type_map['type_stage'];
+            $badge_label  = $current_type['label'];
+            $badge_color  = $current_type['color_class'];
 
             /* ---- URL listing stages ---- */
-            $stages_listing_url = get_permalink(get_page_by_path('stages')) ?: home_url('/');
+            $stages_listing_url = get_permalink(get_page_by_path('stages-workshop-ateliers')) ?: home_url('/');
 
             $current_id  = get_the_ID();
 
@@ -140,13 +142,8 @@ get_template_part('template-parts/site-header');
 
         <!-- Breadcrumb : Accueil > Stages > [Titre du stage] -->
         <?php get_template_part('template-parts/breadcrumb', null, [
-            'links'   => [
-                ['label' => 'Accueil', 'url' => home_url('/')],
-                ['label' => 'Stages',  'url' => $stages_listing_url],
-            ],
-            'current' => get_the_title(),
-            'id'      => 'breadcrumb-stage',
-            'full'    => true,
+            'id'   => 'breadcrumb-stage',
+            'full' => true,
         ]); ?>
 
         <!-- ============ HERO : Infos + Image ============ -->
@@ -158,7 +155,7 @@ get_template_part('template-parts/site-header');
                 <div class="cours-hero__heading">
 
                     <!-- Badge type (STAGE / ATELIER / WORKSHOP) -->
-                    <span class="stage-badge-type"><?php echo esc_html($badge_label); ?></span>
+                    <span class="stage-badge-type text-xs fw-bold <?php echo $badge_color; ?>"><?php echo esc_html($badge_label); ?></span>
 
                     <!-- Titre — variante enfant = Cholo Rhita, adulte = Mallia -->
                     <h1 class="cours-hero__title has-accent-yellow-color <?php echo $is_enfant ? 'title-cool-lg cours-hero__title--enfant' : 'title-sign-lg'; ?>">
@@ -186,10 +183,10 @@ get_template_part('template-parts/site-header');
                             <div class="cours-info-card__cell">
                                 <div class="stage-date-display">
                                     <div class="stage-date-square <?php echo $is_enfant ? 'stage-date-square--enfant' : ''; ?>">
-                                        <span class="date-name"><?php echo date_i18n('l', $p_obj->getTimestamp()); ?></span>
-                                        <span class="date-number"><?php echo $p_obj->format('d'); ?></span>
-                                        <span class="date-month"><?php echo date_i18n('F', $p_obj->getTimestamp()); ?></span>
-                                        <span class="date-year"><?php echo $p_obj->format('Y'); ?></span>
+                                        <span class="date-name text-xs color-subtext"><?php echo date_i18n('l', $p_obj->getTimestamp()); ?></span>
+                                        <span class="date-number title-norm-lg <?php echo $is_enfant ? 'color-green' : 'color-yellow'; ?>"><?php echo $p_obj->format('d'); ?></span>
+                                        <span class="date-month text-md <?php echo $is_enfant ? 'color-green' : 'color-yellow'; ?>"><?php echo date_i18n('F', $p_obj->getTimestamp()); ?></span>
+                                        <span class="date-year text-xs color-subtext mt-3xs"><?php echo $p_obj->format('Y'); ?></span>
                                     </div>
                                     <?php if ($heure_debut) : ?>
                                         <p class="stage-time-display text-lg fw-bold">
@@ -210,7 +207,15 @@ get_template_part('template-parts/site-header');
                             </button>
                         </div>
                         <div class="stage-dates-dropdown" id="dates-list" hidden>
-                            <div class="stage-dates-grid">
+                            <?php
+                            /* Tri : dates disponibles d'abord, complètes en dernier */
+                            usort($other_dates, function ($a, $b) {
+                                $a_c = (bool) get_field('complete_cours', is_object($a) ? $a->ID : $a);
+                                $b_c = (bool) get_field('complete_cours', is_object($b) ? $b->ID : $b);
+                                return ($a_c ? 1 : 0) - ($b_c ? 1 : 0);
+                            });
+                            ?>
+                            <div class="stage-dates-grid <?php echo $is_enfant ? 'stage-dates-grid--enfant' : ''; ?>">
                                 <?php foreach ($other_dates as $linked_post) :
                                     $l_id      = is_object($linked_post) ? $linked_post->ID : $linked_post;
                                     $l_date    = get_field('date_stage', $l_id);
@@ -221,13 +226,16 @@ get_template_part('template-parts/site-header');
                                     if (!$l_obj) continue;
                                 ?>
                                     <a href="<?php echo get_permalink($l_id); ?>"
-                                       class="stage-mini-date-card <?php echo $l_complet ? 'is-complet' : ''; ?>">
-                                        <p class="text-sm"><?php echo date_i18n('l', $l_obj->getTimestamp()); ?></p>
-                                        <p class="mini-date-num <?php echo $is_enfant ? 'mini-date-num--enfant' : ''; ?>"><?php echo $l_obj->format('d'); ?></p>
-                                        <p class="mini-date-month"><?php echo date_i18n('F', $l_obj->getTimestamp()); ?></p>
-                                        <p class="text-xs"><?php echo $l_obj->format('Y'); ?></p>
-                                        <p class="mini-date-time"><?php echo esc_html($l_h_deb . ($l_h_fin ? '–' . $l_h_fin : '')); ?></p>
-                                        <?php if ($l_complet) : ?><span class="mini-badge">COMPLET</span><?php endif; ?>
+                                       class="stage-mini-date-card <?php echo $is_enfant ? 'stage-mini-date-card--enfant' : ''; ?> <?php echo $l_complet ? 'is-complet' : ''; ?>">
+                                        <p class="date-name text-xs color-subtext"><?php echo date_i18n('l', $l_obj->getTimestamp()); ?></p>
+                                        <p class="mini-date-num title-norm-md <?php echo $is_enfant ? 'color-green' : 'color-yellow'; ?>"><?php echo $l_obj->format('d'); ?></p>
+                                        <p class="mini-date-month text-md <?php echo $is_enfant ? 'color-green' : 'color-yellow'; ?>"><?php echo date_i18n('F', $l_obj->getTimestamp()); ?></p>
+                                        <p class="text-xs color-subtext mt-3xs"><?php echo $l_obj->format('Y'); ?></p>
+                                        <?php if ($l_complet) : ?>
+                                            <span class="mini-badge text-md color-orange mt-2xs">Complet</span>
+                                        <?php else : ?>
+                                            <p class="mini-date-time text-md fw-bold color-text"><?php echo esc_html($l_h_deb . ($l_h_fin ? '–' . $l_h_fin : '')); ?></p>
+                                        <?php endif; ?>
                                     </a>
                                 <?php endforeach; ?>
                             </div>
@@ -293,7 +301,7 @@ get_template_part('template-parts/site-header');
                 <div class="cours-hero__photo">
 
                     <?php if ($has_photo) : ?>
-                        <?php the_post_thumbnail('wam-card', [
+                        <?php the_post_thumbnail('wam-stage-portrait', [
                             'class'          => 'cours-hero__photo-img',
                             'data-no-overlay' => 'true',
                         ]); ?>

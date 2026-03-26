@@ -168,7 +168,7 @@ if (isset($current_type['class'])) $card_classes[] = $current_type['class'];
     <div class="card-stage__body">
 
         <!-- Badge type (STAGE / ATELIER / WORKSHOP) -->
-        <div class="card-stage__type text-sm fw-bold"><?php echo esc_html($badge_label); ?></div>
+        <div class="card-stage__type text-xs fw-bold <?php echo $color_class; ?>"><?php echo esc_html($badge_label); ?></div>
 
         <!-- Titre -->
         <h3 class="card-stage__title title-norm-md <?php echo $color_class; ?>">

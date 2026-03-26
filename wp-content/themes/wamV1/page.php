@@ -22,9 +22,8 @@ get_template_part('template-parts/site-header');
 
             <!-- Breadcrumb : Accueil > [Titre de la page] -->
             <?php get_template_part('template-parts/breadcrumb', null, [
-                'yoast' => true,
-                'id'    => 'breadcrumb-page',
-                'full'  => true,
+                'id'   => 'breadcrumb-page',
+                'full' => true,
             ]); ?>
 
             <!-- En-tête de page : titre (Mallia) + temps de lecture + image à la une optionnelle -->

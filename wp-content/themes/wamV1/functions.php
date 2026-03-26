@@ -9,6 +9,7 @@
 // Includes
 // -------------------------------------------------------
 require_once get_template_directory() . '/inc/roles.php';
+require_once get_template_directory() . '/inc/admin-config.php';
 require_once get_template_directory() . '/inc/shortcodes.php';
 require_once get_template_directory() . '/inc/accessibility.php';
 require_once get_template_directory() . '/inc/nav-walker.php';
@@ -21,14 +22,15 @@ if (!function_exists('wamv1_setup')):
     {
         add_theme_support('title-tag');
         add_theme_support('post-thumbnails');
-        add_image_size('wamv1-page-hero',    1536, 600, true); // banner pages (landscape)
+        add_image_size('wamv1-page-hero', 1536, 600, true); // banner pages (landscape)
         add_image_size('wam-page-thumbnail', 1248, 400, true); // header listing pages (Retina x2)
-        add_image_size('wam-card-thumbnail',  466, 370, true); // thumbnail cours card (x2 for Retina)
-        add_image_size('wam-hero',           1536, 800, true); // héros single plein écran
-        add_image_size('wam-card',           1600, 1200, true); // card media & colonne hero (Retina x2)
-        add_image_size('wam-stage-card', 810, 1172, true);  // x2 Retina (405x586 Figma)
-        add_image_size('wam-portrait',        960, 1280, true); // photo profil portrait (Retina x2)
-        add_image_size('wam-thumb',           800, 600, true); // miniature vignette compacte (Retina x2)
+        add_image_size('wam-card-thumbnail', 466, 370, true); // thumbnail cours card (x2 for Retina)
+        add_image_size('wam-hero', 1536, 800, true); // héros single plein écran
+        add_image_size('wam-card', 1600, 1200, true); // card media & colonne hero (Retina x2)
+        add_image_size('wam-stage-card', 810, 1172, true);   // x2 Retina (405x586 Figma)
+        add_image_size('wam-stage-portrait', 1204, 1704, false); // A4 portrait x2 Retina pour écrans densités (602x852 @2x) - Pas de recadrage forcé
+        add_image_size('wam-portrait', 960, 1280, true); // photo profil portrait (Retina x2)
+        add_image_size('wam-thumb', 800, 600, true); // miniature vignette compacte (Retina x2)
         add_theme_support('editor-styles');
         add_theme_support('html5', array(
             'search-form',
@@ -178,6 +180,7 @@ function wamv1_scripts()
         is_singular('stages') ||
         is_page_template('page-cours-collectifs.php') ||
         is_page_template('page-stages-tous.php') ||
+        is_page_template('page-prof-wam.php') ||
         is_page_template('page-planning-cours.php')
     ) {
         wp_enqueue_style('wamv1-cours', $css . 'cours-stages.css', array('wamv1-accessibility'), $ver);
@@ -217,6 +220,16 @@ function wamv1_scripts()
     }
 }
 add_action('wp_enqueue_scripts', 'wamv1_scripts');
+
+// -------------------------------------------------------
+// Scripts & Styles Admin WP
+// -------------------------------------------------------
+function wamv1_admin_scripts()
+{
+    $ver = wp_get_theme()->get('Version');
+    wp_enqueue_style('wamv1-admin', get_template_directory_uri() . '/assets/css/admin.css', array(), $ver);
+}
+add_action('admin_enqueue_scripts', 'wamv1_admin_scripts');
 
 
 
@@ -354,11 +367,14 @@ add_filter('use_block_editor_for_post_type', 'wamv1_disable_gutenberg_cours', 10
 // Affiche "Titre — Sous-titre" dans la colonne titre des CPT cours/stages en admin
 function wamv1_admin_title_with_subtitle($title, $post_id)
 {
-    if (!is_admin() || !function_exists('get_field')) return $title;
+    if (!is_admin() || !function_exists('get_field'))
+        return $title;
     $post = get_post($post_id);
-    if (!$post || !in_array($post->post_type, ['cours', 'stages'])) return $title;
+    if (!$post || !in_array($post->post_type, ['cours', 'stages']))
+        return $title;
     $sous_titre = get_field('sous_titre', $post_id);
-    if ($sous_titre) $title .= ' — ' . $sous_titre;
+    if ($sous_titre)
+        $title .= ' - ' . $sous_titre;
     return $title;
 }
 add_filter('the_title', 'wamv1_admin_title_with_subtitle', 10, 2);
@@ -398,6 +414,45 @@ function wamv1_register_cpt_membre()
     register_post_type('wam_membre', $args);
 }
 add_action('init', 'wamv1_register_cpt_membre');
+
+// =============================================================================
+// CPT : ÉVÈNEMENTS
+// =============================================================================
+
+function wamv1_register_cpt_evenements()
+{
+    $labels = array(
+        'name' => __('Les évènements', 'wamv1'),
+        'singular_name' => __('Évènement', 'wamv1'),
+        'menu_name' => __('Évènements', 'wamv1'),
+        'add_new' => __('Ajouter', 'wamv1'),
+        'add_new_item' => __('Ajouter un évènement', 'wamv1'),
+        'edit_item' => __('Modifier l\'évènement', 'wamv1'),
+        'view_item' => __('Voir l\'évènement', 'wamv1'),
+        'all_items' => __('Tous les évènements', 'wamv1'),
+        'not_found' => __('Aucun évènement trouvé', 'wamv1'),
+    );
+
+    $args = array(
+        'labels' => $labels,
+        'public' => true,
+        'show_in_rest' => true, // Gutenberg active
+        'supports' => array(
+            'title',
+            'editor',      // Texte libre
+            'thumbnail',   // Image en avant
+            'excerpt',     // Courte description
+            'revisions',   // Historique
+        ),
+        'menu_icon' => 'dashicons-calendar-alt',
+        'has_archive' => true,
+        'rewrite' => array('slug' => 'evenements'),
+        'capability_type' => 'post',
+    );
+
+    register_post_type('evenements', $args);
+}
+add_action('init', 'wamv1_register_cpt_evenements');
 
 // -------------------------------------------------------
 // Performances - Génération d'images AVIF par défaut
@@ -458,13 +513,22 @@ if (!function_exists('wamv1_get_day_label')):
     function wamv1_get_day_label(?string $value, bool $short = false): string
     {
         $map_long = [
-            '01day' => 'Lundi',    '02day' => 'Mardi',  '03day' => 'Mercredi',
-            '04day' => 'Jeudi',    '05day' => 'Vendredi',
-            '06day' => 'Samedi',   '07day' => 'Dimanche',
+            '01day' => 'Lundi',
+            '02day' => 'Mardi',
+            '03day' => 'Mercredi',
+            '04day' => 'Jeudi',
+            '05day' => 'Vendredi',
+            '06day' => 'Samedi',
+            '07day' => 'Dimanche',
         ];
         $map_short = [
-            '01day' => 'Lun', '02day' => 'Mar', '03day' => 'Mer',
-            '04day' => 'Jeu', '05day' => 'Ven', '06day' => 'Sam', '07day' => 'Dim',
+            '01day' => 'Lun',
+            '02day' => 'Mar',
+            '03day' => 'Mer',
+            '04day' => 'Jeu',
+            '05day' => 'Ven',
+            '06day' => 'Sam',
+            '07day' => 'Dim',
         ];
         $map = $short ? $map_short : $map_long;
         return $map[$value] ?? ($value ?? '');
@@ -523,7 +587,7 @@ endif;
  * @param string $classes Classes CSS additionnelles pour l'overlay.
  * @return void
  */
-if (!function_exists('wamv1_the_photo_overlay')) :
+if (!function_exists('wamv1_the_photo_overlay')):
     function wamv1_the_photo_overlay($classes = '')
     {
         echo '<div class="photo-overlay ' . esc_attr($classes) . '" aria-hidden="true"></div>';
@@ -540,16 +604,18 @@ endif;
  * @param array $attr Attributs HTML pour la balise <img>.
  * @return string HTML complet : wrapper + image + overlay.
  */
-if (!function_exists('wamv1_get_image_with_overlay')) :
+if (!function_exists('wamv1_get_image_with_overlay')):
     function wamv1_get_image_with_overlay($attachment_id, $size = 'large', $wrapper_classes = '', $attr = [])
     {
-        if (!$attachment_id) return '';
+        if (!$attachment_id)
+            return '';
 
         // On ajoute un flag pour éviter que le filtre auto ne s'applique une deuxième fois
         $attr['data-has-overlay'] = 'true';
 
         $img_html = wp_get_attachment_image($attachment_id, $size, false, $attr);
-        if (!$img_html) return '';
+        if (!$img_html)
+            return '';
 
         $output = '<div class="photo-wrapper ' . esc_attr($wrapper_classes) . '">';
         $output .= $img_html;
@@ -565,16 +631,21 @@ endif;
  * Cela couvre the_post_thumbnail(), wp_get_attachment_image(), etc.
  */
 add_filter('wp_get_attachment_image', 'wamv1_auto_blend_overlay', 10, 5);
-function wamv1_auto_blend_overlay($html, $attachment_id, $size, $icon, $attr) {
-    if (empty($html) || is_admin()) return $html;
+function wamv1_auto_blend_overlay($html, $attachment_id, $size, $icon, $attr)
+{
+    if (empty($html) || is_admin())
+        return $html;
 
     // Skip SVG
     $mime = get_post_mime_type($attachment_id);
-    if ($mime === 'image/svg+xml') return $html;
-    
+    if ($mime === 'image/svg+xml')
+        return $html;
+
     // Skip si déjà traité ou si explicitement désactivé
-    if (isset($attr['data-has-overlay']) || isset($attr['data-no-overlay'])) return $html;
-    if (strpos($html, 'photo-overlay') !== false) return $html;
+    if (isset($attr['data-has-overlay']) || isset($attr['data-no-overlay']))
+        return $html;
+    if (strpos($html, 'photo-overlay') !== false)
+        return $html;
 
     return '<div class="photo-wrapper">' . $html . '<div class="photo-overlay" aria-hidden="true"></div></div>';
 }

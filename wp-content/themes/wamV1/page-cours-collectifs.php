@@ -49,14 +49,14 @@ $terms = get_terms([
 <main id="primary" class="site-main">
     <div class="page-cours">
 
-        <div class="wam-container page-layout__inner">
+        <div class="page-layout__inner">
 
             <!-- ============================================================
              BREADCRUMB
              ============================================================ -->
             <?php get_template_part('template-parts/breadcrumb', null, [
-                'links'   => [['label' => 'Accueil', 'url' => home_url('/')]],
-                'current' => $page_title,
+                'id'   => 'breadcrumb-cours-collectifs',
+                'full' => true,
             ]); ?>
 
             <!-- ============================================================
@@ -71,7 +71,7 @@ $terms = get_terms([
                 'planning_url'     => get_permalink(get_page_by_path('planning')),
             ]); ?>
 
-        </div><!-- .wam-container.page-layout__inner -->
+        </div><!-- .page-layout__inner -->
 
         <!-- ============================================================
          FILTRE — pleine largeur avec padding interne

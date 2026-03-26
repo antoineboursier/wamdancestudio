@@ -22,7 +22,8 @@ $page_desc        = $args['page_desc']         ?? '';
 $icons_path       = $args['icons_path']        ?? (get_template_directory_uri() . '/assets/images/');
 $show_planning    = $args['show_planning_btn'] ?? false;
 $planning_url     = $args['planning_url']      ?? '';
-$has_thumbnail    = $page && has_post_thumbnail($page->ID);
+$page_id          = is_object($page) ? $page->ID : (is_numeric($page) ? $page : 0);
+$has_thumbnail    = $page_id && has_post_thumbnail($page_id);
 ?>
 
 <section class="page-cours__hero <?php echo !$has_thumbnail ? 'page-cours__hero--no-media' : ''; ?>">

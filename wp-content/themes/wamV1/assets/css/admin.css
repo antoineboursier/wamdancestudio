@@ -1,0 +1,16 @@
+/* =====================================================
+   admin.css — Styles pour l'administration WordPress (ACF, etc.)
+   ===================================================== */
+
+/* Champ Separator ACF (message) */
+.acf-field[data-name="separator"] {
+    padding-top: 24px !important;
+    padding-bottom: 0px !important;
+    border-bottom: 1px solid lightgrey !important;
+    margin-bottom: 24px !important;
+}
+
+/* On masque le label du séparateur pour qu'il soit plus discret */
+.acf-field[data-name="separator"] .acf-label {
+    display: none !important;
+}

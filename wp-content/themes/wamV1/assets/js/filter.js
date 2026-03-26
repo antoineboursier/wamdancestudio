@@ -85,7 +85,8 @@
 
             /* Masquer les sections entièrement vides */
             categories.forEach(function (section) {
-                var visible = section.querySelectorAll('.card-cours:not(.card-cours--hidden)');
+                // On compte à la fois les cours et les stages visibles
+                var visible = section.querySelectorAll('.card-cours:not(.card-cours--hidden), .card-stage:not(.card-stage--hidden)');
                 section.classList.toggle('cours-categorie--hidden', visible.length === 0);
             });
 

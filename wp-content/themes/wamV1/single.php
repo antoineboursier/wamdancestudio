@@ -22,9 +22,8 @@ get_template_part('template-parts/site-header');
 
             <!-- Breadcrumb : Accueil > [Catégorie] > [Titre de l'article] -->
             <?php get_template_part('template-parts/breadcrumb', null, [
-                'yoast' => true,
-                'id'    => 'breadcrumb-article',
-                'full'  => true,
+                'id'   => 'breadcrumb-article',
+                'full' => true,
             ]); ?>
 
             <!-- En-tête article : titre (Outfit Bold) + date (pink) + temps de lecture + image à la une -->

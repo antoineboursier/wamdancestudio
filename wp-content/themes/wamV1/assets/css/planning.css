@@ -22,20 +22,6 @@
     padding-block: var(--wam-spacing-3xl);
 }
 
-.page-planning__header {
-    display: flex;
-    flex-direction: column;
-    gap: var(--wam-spacing-sm);
-    margin-bottom: var(--wam-spacing-xl);
-}
-
-.page-planning__desc {
-    font-family: var(--wam-font-body);
-    font-size: var(--wam-font-size-sm);
-    color: var(--wp--preset--color--text-subtext);
-    max-width: 56ch;
-}
-
 /* ===============================================
    LÉGENDE / FILTRES
    =============================================== */
@@ -97,9 +83,17 @@
     background: color-mix(in srgb, var(--dot-accent) 40%, var(--wp--preset--color--background-600));
 }
 
-.planning-legend__dot--standard { --dot-accent: var(--wam-color-yellow); }
-.planning-legend__dot--enfant   { --dot-accent: var(--wam-color-pink); }
-.planning-legend__dot--complet  { --dot-accent: var(--wam-color-orange); }
+.planning-legend__dot--standard {
+    --dot-accent: var(--wam-color-yellow);
+}
+
+.planning-legend__dot--enfant {
+    --dot-accent: var(--wam-color-green);
+}
+
+.planning-legend__dot--complet {
+    --dot-accent: var(--wam-color-orange);
+}
 
 /* ===============================================
    SCROLL WRAPPER
@@ -124,6 +118,13 @@
     /* grid-template-rows défini en inline PHP (dynamique) */
     position: relative;
     min-width: 780px;
+}
+
+/* ---- Séparateur weekend : bordure pointillée à gauche du samedi ---- */
+.planning-col-weekend {
+    border-left: 1px dashed var(--wp--preset--color--background-500);
+    z-index: 0;
+    pointer-events: none;
 }
 
 /* ---- Coin supérieur gauche ---- */
@@ -167,15 +168,10 @@
     font-size: var(--wam-font-size-xs);
     color: var(--wp--preset--color--text-disabled);
     line-height: 1;
-    /*
-     * translateY(-0.5em) aligne le label avec la bordure supérieure du row
-     * (même trick que les grilles de type Google Calendar).
-     */
     transform: translateY(-0.5em);
     position: sticky;
     left: 0;
     background: var(--wp--preset--color--background-800);
-    border-right: 1px solid var(--wp--preset--color--background-500);
     z-index: 5;
 }
 
@@ -227,15 +223,20 @@
     outline: none;
 }
 
-/* Variante enfants — accent pink */
-.planning-card--enfant {
-    --card-accent: var(--wam-color-pink);
+.planning-card--complet:hover,
+.planning-card--complet:focus-visible {
+    background: transparent;
 }
 
-/* Variante cours complet — accent orange, légèrement atténué */
+/* Variante enfants — accent green */
+.planning-card--enfant {
+    --card-accent: var(--wam-color-green);
+}
+
+/* Variante cours complet — contour orange sans bg ni opacité (accessibilité) */
 .planning-card--complet {
     --card-accent: var(--wam-color-orange);
-    opacity: 0.6;
+    background: transparent;
 }
 
 /* Atténuation par le filtre JS — carte toujours visible et cliquable */
@@ -247,7 +248,8 @@
 
 .planning-card__title {
     font-family: var(--wam-font-body);
-    font-size: var(--wam-font-size-xs); /* 14px */
+    font-size: var(--wam-font-size-sm);
+    /* 16px */
     font-weight: 700;
     color: var(--wp--preset--color--text-normal);
     line-height: 1.2;
@@ -293,6 +295,102 @@
     border-radius: var(--wam-radius-xs);
     line-height: 1;
     white-space: nowrap;
+}
+
+/* ===============================================
+   TRANSCRIPTION TEXTUELLE (accordéon <details>)
+   =============================================== */
+
+.planning-transcript {
+    margin-top: var(--wam-spacing-xl);
+    border: 1px solid var(--wp--preset--color--background-500);
+    border-radius: var(--wam-radius-md);
+    overflow: hidden;
+}
+
+.planning-transcript__toggle {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: var(--wam-spacing-sm) var(--wam-spacing-md);
+    cursor: pointer;
+    list-style: none; /* Masque le triangle natif Firefox */
+    user-select: none;
+    gap: var(--wam-spacing-xs);
+}
+
+/* Masque le triangle natif WebKit */
+.planning-transcript__toggle::-webkit-details-marker { display: none; }
+
+.planning-transcript__toggle:hover {
+    background: var(--wp--preset--color--background-600);
+}
+
+.planning-transcript__toggle-label {
+    font-family: var(--wam-font-body);
+    font-size: var(--wam-font-size-sm);
+    font-weight: 700;
+    color: var(--wp--preset--color--text-normal);
+}
+
+/* Chevron animé */
+.planning-transcript__chevron {
+    width: 16px;
+    height: 16px;
+    border-right: 2px solid var(--wp--preset--color--text-subtext);
+    border-bottom: 2px solid var(--wp--preset--color--text-subtext);
+    transform: rotate(45deg);
+    transition: transform var(--wam-transition);
+    flex-shrink: 0;
+    margin-bottom: 4px;
+}
+
+.planning-transcript[open] .planning-transcript__chevron {
+    transform: rotate(-135deg);
+    margin-bottom: -4px;
+}
+
+.planning-transcript__body {
+    padding: var(--wam-spacing-md);
+    border-top: 1px solid var(--wp--preset--color--background-500);
+    display: flex;
+    flex-direction: column;
+    gap: var(--wam-spacing-lg);
+}
+
+
+.planning-transcript__day-title {
+    color: var(--wp--preset--color--text-normal);
+    margin-bottom: var(--wam-spacing-xs);
+    padding-bottom: var(--wam-spacing-3xs);
+    border-bottom: 1px solid var(--wp--preset--color--background-500);
+}
+
+.planning-transcript__list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    gap: var(--wam-spacing-2xs);
+}
+
+.planning-transcript__item {
+    line-height: 1.6;
+}
+
+.planning-transcript__link {
+    color: var(--wp--preset--color--text-normal);
+    text-decoration: underline;
+    text-underline-offset: 2px;
+}
+
+.planning-transcript__link:hover {
+    color: var(--wam-color-yellow);
+}
+
+.color-orange {
+    color: var(--wam-color-orange);
 }
 
 /* ===============================================

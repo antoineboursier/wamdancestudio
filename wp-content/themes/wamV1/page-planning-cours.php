@@ -12,9 +12,10 @@
  */
 
 /* ---- Constantes planning ---- */
-$wam_planning_start      = 8 * 60;  // 8h00 en minutes
+$wam_planning_start      = 9 * 60;  // 9h00 en minutes
 $wam_planning_end        = 22 * 60; // 22h00 en minutes
 $wam_planning_granularity = 15;     // minutes par ligne de grille CSS
+$wam_planning_row_height  = 28;     // px par ligne (1h = 4 rows = 112px)
 
 /* ---- Utilitaire : "12h30" → minutes ---- */
 if ( ! function_exists( 'wamv1_time_to_min' ) ) {
@@ -100,33 +101,45 @@ if ( $all_cours_query->have_posts() ) {
 
 /*
  * Nombre de lignes time-slot :
- * De 8h à 22h = 840 min / 15 = 56 intervalles
- * → grid-template-rows: 48px repeat(56, 20px)
+ * De 9h à 22h = 780 min / 15 = 52 intervalles
+ * → grid-template-rows: 48px repeat(52, 28px)
  */
 $grid_rows = ( $wam_planning_end - $wam_planning_start ) / $wam_planning_granularity;
 
+/* ---- Groupement par jour pour la transcription textuelle ---- */
+$transcript_by_col = [];
+foreach ( $planning_items as $item ) {
+    $transcript_by_col[ $item['col'] ][] = $item;
+}
+foreach ( $transcript_by_col as &$day_items ) {
+    usort( $day_items, fn( $a, $b ) => $a['row_start'] - $b['row_start'] );
+}
+unset( $day_items );
+
 get_header();
+get_template_part('template-parts/site-header');
 ?>
 
 <main id="primary" class="site-main page-planning">
-    <div class="wam-container">
 
-        <!-- Breadcrumb -->
+    <!-- Breadcrumb + hero — même structure que les autres pages listing -->
+    <div class="page-layout__inner">
+
         <?php get_template_part('template-parts/breadcrumb', null, [
-            'links'   => [
-                ['label' => 'Accueil',          'url' => home_url('/')],
-                ['label' => 'Cours collectifs', 'url' => get_permalink(get_page_by_path('cours-collectifs'))],
-            ],
-            'current' => 'Planning',
+            'id'   => 'breadcrumb-planning',
+            'full' => true,
         ]); ?>
 
-        <div class="page-planning__header">
-            <h1 class="is-style-title-sign-lg">Planning des cours</h1>
-            <p class="page-planning__desc">
-                Retrouvez tous nos cours sur la semaine —
-                cliquez sur une carte pour en savoir plus.
-            </p>
-        </div>
+        <?php get_template_part('template-parts/page-hero', null, [
+            'page'       => get_queried_object(),
+            'page_title' => get_the_title(),
+            'page_desc'  => 'Retrouvez tous nos cours sur la semaine — cliquez sur une carte pour en savoir plus.',
+            'icons_path' => get_template_directory_uri() . '/assets/images/',
+        ]); ?>
+
+    </div><!-- .page-layout__inner -->
+
+    <div class="wam-container">
 
         <!-- Légende / Filtres (cliquer pour filtrer, multi-select) -->
         <div class="planning-legend" role="group" aria-label="Filtrer par type de cours">
@@ -163,20 +176,25 @@ get_header();
             <div class="planning-grid"
                  role="grid"
                  aria-label="Planning hebdomadaire des cours WAM"
-                 style="grid-template-rows: 48px repeat(<?php echo intval( $grid_rows ); ?>, 20px);">
+                 style="grid-template-rows: 48px repeat(<?php echo intval( $grid_rows ); ?>, <?php echo intval( $wam_planning_row_height ); ?>px);">
 
                 <!-- Coin supérieur gauche -->
                 <div class="planning-corner" aria-hidden="true"></div>
 
-                <!-- En-têtes jours (colonnes 2-8) -->
+                <!-- Séparateur weekend : ligne pointillée à gauche du samedi -->
+                <div class="planning-col-weekend" style="grid-column: 7; grid-row: 1 / -1;" aria-hidden="true"></div>
+
+                <!-- En-têtes jours (colonnes 2-8) — positionnés explicitement pour éviter
+                     tout conflit avec les divs de fond (planning-col-weekend) -->
                 <?php foreach ( $wam_day_map as $day_info ) : ?>
-                    <div class="planning-header-day" role="columnheader">
+                    <div class="planning-header-day" role="columnheader"
+                         style="grid-column: <?php echo $day_info['col']; ?>; grid-row: 1;">
                         <?php echo esc_html( $day_info['label'] ); ?>
                     </div>
                 <?php endforeach; ?>
 
-                <!-- Labels horaires + lignes horizontales (8h → 21h) -->
-                <?php for ( $h = 8; $h <= 21; $h++ ) :
+                <!-- Labels horaires + lignes horizontales (9h → 21h) -->
+                <?php for ( $h = 9; $h <= 21; $h++ ) :
                     $row = wamv1_time_to_grid_row( $h * 60, $wam_planning_start, $wam_planning_granularity );
                 ?>
                     <div class="planning-time-label"
@@ -225,7 +243,44 @@ get_header();
 
         </div><!-- .planning-scroll-wrapper -->
 
+        <!-- ============================================================
+             TRANSCRIPTION TEXTUELLE — accessibilité
+             <details>/<summary> natif : toggle sans JS, accessible par défaut.
+             ============================================================ -->
+        <details class="planning-transcript">
+            <summary class="planning-transcript__toggle">
+                <span class="planning-transcript__toggle-label">Transcription textuelle du planning</span>
+                <span class="planning-transcript__chevron" aria-hidden="true"></span>
+            </summary>
+
+            <div class="planning-transcript__body">
+                <?php foreach ( $wam_day_map as $day_info ) :
+                    $col = $day_info['col'];
+                    if ( empty( $transcript_by_col[ $col ] ) ) continue;
+                ?>
+                    <div class="planning-transcript__day">
+                        <h3 class="planning-transcript__day-title text-sm fw-bold">
+                            <?php echo esc_html( $day_info['label'] ); ?>
+                        </h3>
+                        <ul class="planning-transcript__list">
+                            <?php foreach ( $transcript_by_col[ $col ] as $item ) : ?>
+                                <li class="planning-transcript__item">
+                                    <p class="text-sm">
+                                        <span class="planning-transcript__time color-muted"><?php echo esc_html( $item['debut'] . ' – ' . $item['fin'] ); ?></span>
+                                        — <span class="planning-transcript__title fw-bold"><?php echo esc_html( $item['title'] ); ?></span><?php if ( $item['sous_titre'] ) : ?> <span class="color-muted">— <?php echo esc_html( $item['sous_titre'] ); ?></span><?php endif; ?>
+                                        <span class="color-muted"> — <?php echo $item['is_enfant'] ? 'Enfant' : 'Adulte'; ?></span><?php if ( $item['complet'] ) : ?> <span class="color-orange fw-bold"> — Complet</span><?php endif; ?>
+                                        — <a href="<?php echo esc_url( $item['permalink'] ); ?>" class="planning-transcript__link">Aller sur la page du cours</a>
+                                    </p>
+                                </li>
+                            <?php endforeach; ?>
+                        </ul>
+                    </div>
+                <?php endforeach; ?>
+            </div>
+        </details>
+
     </div><!-- .wam-container -->
+
 </main>
 
 <?php get_footer(); ?>

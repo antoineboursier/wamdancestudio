@@ -12,7 +12,8 @@
     display: flex;
     flex-direction: column;
     width: 100%;
-    align-items: stretch; /* on laisse les wam-container prendre la largeur max possible */
+    align-items: stretch;
+    /* on laisse les wam-container prendre la largeur max possible */
     gap: var(--wam-spacing-4xl);
     padding-bottom: var(--wam-spacing-4xl);
 }
@@ -31,6 +32,11 @@
     grid-template-columns: 1fr;
     gap: var(--wam-spacing-3xl);
     align-items: center;
+    max-width: var(--wam-max-screen);
+    width: 100%;
+    padding: 0 var(--wam-page-mx);
+    box-sizing: border-box;
+    margin: 0 auto;
 }
 
 @media (min-width: 1024px) {
@@ -134,8 +140,83 @@
 .page-cours__hero-overlay {
     position: absolute;
     inset: 0;
-    background: var(--wp--preset--color--background-800);
-    mix-blend-mode: lighten;
+    pointer-events: none;
+    border-radius: var(--wam-radius-3xl);
+    border: 1px solid var(--wam-color-glass-white);
+}
+
+/* ============================================================
+   SECTION HISTORIQUE DES STAGES ("Ces stages ont déjà eu lieu...")
+   ============================================================ */
+
+.page-stages__history {
+    /* Le composant separator insère déjà un marge globale. On annule l'ancien margin-top. */
+    margin-top: 0;
+    padding-top: var(--wam-spacing-xl);
+}
+
+.page-stages__history-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: var(--wam-spacing-md);
+    margin-top: var(--wam-spacing-xl);
+}
+
+@media (min-width: 640px) {
+    .page-stages__history-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+@media (min-width: 1024px) {
+    .page-stages__history-grid {
+        grid-template-columns: repeat(4, 1fr);
+    }
+}
+
+/* Carte Compacte Historique */
+.card-stage-history {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    gap: var(--wam-spacing-sm);
+    padding: var(--wam-spacing-sm) var(--wam-spacing-md) 0;
+    background: var(--wam-color-glass-white);
+    border-radius: var(--wam-radius-lg);
+    border: 1px solid transparent;
+    transition: all 0.2s ease;
+    height: 100%;
+}
+
+.card-stage-history--enfant {
+    background: var(--wam-color-glass-green);
+}
+
+.card-stage-history:hover,
+.card-stage-history:focus-within {
+    border-color: var(--wam-color-yellow);
+    transform: translateY(-2px);
+}
+
+.card-stage-history--enfant:hover,
+.card-stage-history--enfant:focus-within {
+    border-color: var(--wam-color-green);
+}
+
+/* Content */
+.card-stage-history__content {
+    display: flex;
+    flex-direction: column;
+    gap: var(--wam-spacing-3xs);
+}
+
+.card-stage-history__title {
+    margin: 0;
+    line-height: 1.2;
+}
+
+.card-stage-history__subtitle {
+    margin: 0;
 }
 
 .page-cours__hero-img-wrap--svg {
@@ -212,7 +293,8 @@
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    flex-direction: column; /* permet au ::after d'occuper height: 0 sans déborder */
+    flex-direction: column;
+    /* permet au ::after d'occuper height: 0 sans déborder */
     padding: var(--wam-spacing-2xs) var(--wam-spacing-xs);
     border: 1px solid var(--wam-color-subtext);
     border-radius: var(--wam-radius-lg);
@@ -648,6 +730,7 @@
     width: 100%;
     padding: 0 var(--wam-page-mx);
     box-sizing: border-box;
+    margin: 0 auto;
 }
 
 @media (min-width: 1024px) {
@@ -662,17 +745,17 @@
     position: relative;
     border-radius: var(--wam-radius-3xl);
     overflow: hidden;
-    align-self: stretch;
-    min-height: 420px;
+    /* La zone s'adapte désormais au format réel de l'image (A4, carré, etc.) sans bandes sombres */
+    height: fit-content;
+    background-color: var(--wp--preset--color--background-800);
 }
 
 .cours-hero__photo-img {
-    position: absolute;
-    inset: 0;
-    object-fit: cover;
-    width: 100%;
-    height: 100%;
     display: block;
+    width: 100%;
+    height: auto;
+    object-fit: contain;
+    /* Sécurité si on fixe une hauteur max un jour */
 }
 
 .cours-hero__photo-overlay {
@@ -927,14 +1010,15 @@
     transform: rotate(-90deg);
 }
 
-/* Bouton inscription désactivé */
+/* Bouton inscription désactivé — pointer-events:none bloque hover/focus sans surcharge d'états */
 .btn-inscription--disabled {
     background: var(--wam-color-card-bg);
-    cursor: not-allowed;
+    pointer-events: none;
+    padding: var(--wam-spacing-lg) var(--wam-spacing-xl);
 }
 
 .btn-inscription--disabled .btn-inscription__label {
-    color: var(--wam-color-disabled);
+    color: var(--wam-color-subtext);
 }
 
 /* Bouton essai (similaire à btn-secondary) */
@@ -958,6 +1042,7 @@
     width: 100%;
     padding: 0 var(--wam-page-mx);
     box-sizing: border-box;
+    margin: 0 auto;
 }
 
 /* Section individuelle : row (photo | texte) */
@@ -1200,6 +1285,7 @@
     gap: var(--wam-spacing-lg);
     /* 24px = gap-6 */
     box-sizing: border-box;
+    margin: 0 auto;
 }
 
 /* Conteneur vidéo — ratio 16:9 forcé */
@@ -1218,98 +1304,79 @@
    Structure générale : réutilise cours-hero, cours-info-card, cours-complet
    ===================================================== */
 
-/* Badge Type (STAGE/ATELIER) - Capsule Glass */
+/* Badge type (STAGE / ATELIER / WORKSHOP) — Outline pill, couleur via .color-* PHP */
 .stage-badge-type {
-    display: inline-block;
-    padding: 6px var(--wam-spacing-sm);
-    background: var(--wam-color-glass-white);
-    backdrop-filter: blur(8px);
-    border: 1px solid var(--wam-color-glass-white);
+    display: inline-flex;
+    align-items: center;
+    padding: 4px var(--wam-spacing-sm);
     border-radius: var(--wam-radius-pill);
-    font-size: 11px;
-    /* intentionnel — pas de token pour 11px */
-    font-weight: 800;
-    color: var(--wam-color-text);
+    border: 1px solid currentColor;
+    background: transparent;
     text-transform: uppercase;
-    letter-spacing: 0.12em;
+    letter-spacing: 0.05em;
     margin-bottom: var(--wam-spacing-md);
+    /* font-size et couleur portés par .text-xs + .color-* appliqués en PHP */
 }
 
 /* Variante align-top pour les rangées info-card avec contenu de hauteur variable (ex: date square) */
 .cours-info-card__row--top {
-    align-items: flex-start;
+    align-items: center;
 }
 
-/* Date display : date-square + heure */
+/* Date display : date (col) + séparateur 1px + heure */
 .stage-date-display {
     display: flex;
-    gap: var(--wam-spacing-xl);
-    /* 32px */
-    align-items: center;
+    flex-direction: row;
+    gap: 0;
+    align-items: stretch;
+    gap: var(--wam-spacing-lg);
 }
 
 .stage-date-square {
     display: flex;
     flex-direction: column;
-    align-items: center;
-    background: var(--wam-color-glass-white);
-    border-radius: var(--wam-radius-lg);
-    padding: var(--wam-spacing-sm);
-    min-width: 120px;
-    border-left: 3px solid var(--wam-color-yellow);
+    align-items: flex-start;
     text-align: center;
+    padding-bottom: var(--wam-spacing-sm);
 }
 
-.stage-date-square--enfant {
-    border-left-color: var(--wam-color-green);
-}
 
+/* typographie (font-size, couleur) portée par les classes tokens en PHP */
 .date-name {
-    font-size: 14px;
-    font-weight: 400;
     text-transform: capitalize;
-    color: var(--wam-color-subtext);
-    margin-bottom: 4px;
+    margin-bottom: var(--wam-spacing-3xs);
 }
 
 .stage-date-square--enfant .date-name {
     color: var(--wam-color-green);
-    opacity: 0.8;
+    /* modificateur — surcharge .color-subtext */
 }
 
-.date-number {
-    font-size: 56px;
-    font-weight: 700;
-    line-height: 1;
-    color: var(--wam-color-yellow);
-    font-family: var(--wam-font-body);
-}
 
 .stage-date-square--enfant .date-number {
     color: var(--wam-color-green);
+    /* modificateur — surcharge .color-yellow */
 }
 
 .date-month {
-    font-size: 20px;
     font-weight: 600;
+    /* fw-semi inexistant en tokens, doit rester ici */
     text-transform: capitalize;
-    margin-top: 4px;
 }
 
-.date-year {
-    font-size: 13px;
-    color: var(--wam-color-disabled);
-}
+/* .date-year — entièrement géré par .text-xs .color-disabled en PHP */
 
-/* .stage-time-display — typographie portée par les classes text-lg fw-bold en PHP */
+/* Séparateur 1px entre la date et l'horaire */
 .stage-time-display {
-    display: block;
+    display: flex;
+    border-left: 1px solid var(--wam-color-subtext);
+    width: 100%;
+    align-items: center;
+    padding-left: var(--wam-spacing-lg);
 }
 
-/* Multi-dates Toggle Button */
+/* Multi-dates Toggle Button — aligné avec les icônes (pas d'indentation cellule) */
 .stage-dates-toggle-wrap {
-    margin-left: var(--wam-spacing-3xl);
-    /* alignement après l'icône calendrier */
     margin-top: calc(-1 * var(--wam-spacing-2xs));
 }
 
@@ -1322,7 +1389,7 @@
     color: var(--wam-color-text);
     font-family: var(--wam-font-body);
     font-size: var(--wam-font-size-xs);
-    font-weight: 600;
+    font-weight: 400;
     cursor: pointer;
     display: flex;
     align-items: center;
@@ -1340,6 +1407,8 @@
 
 .btn-toggle-dates[aria-expanded="true"] .btn-icon {
     --icon-url: url('../images/close.svg') !important;
+    --icon-size: 14px;
+    /* plus visible que le chevron (10px) — visuellement équivalent */
 }
 
 .btn-toggle-dates:hover {
@@ -1353,64 +1422,91 @@
     animation: wamFadeIn 0.35s ease both;
 }
 
+/* Conteneur des dates supplémentaires — fond teinté adulte (jaune) ou enfant (vert) */
 .stage-dates-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
-    gap: var(--wam-spacing-sm);
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--wam-spacing-2xs);
+    padding: var(--wam-spacing-2xs);
+    border-radius: var(--wam-radius-lg);
+    align-items: flex-start;
+    align-content: flex-start;
+    background: var(--wam-color-glass-white);
+    /* adulte */
 }
 
+.stage-dates-grid--enfant {
+    background: var(--wam-color-glass-green);
+}
+
+/* Card adulte : fond neutre, bordure jaune au hover — 3 par ligne */
 .stage-mini-date-card {
     background: var(--wam-color-glass-white);
     border-radius: var(--wam-radius-lg);
     padding: var(--wam-spacing-sm);
     text-align: center;
     border: 1px solid transparent;
-    transition: all var(--wam-transition);
+    transition: border-color var(--wam-transition);
+    text-decoration: none;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    flex: 0 0 calc((100% - 2 * var(--wam-spacing-2xs)) / 3);
 }
 
-.stage-mini-date-card:not(.is-complet):hover {
-    background: var(--wam-color-glass-white-hover);
+/* Variante enfant : fond glass-green, bordure verte au hover */
+.stage-mini-date-card--enfant {
+    background: var(--wam-color-glass-green);
+}
+
+.stage-mini-date-card:not(.is-complet):hover,
+.stage-mini-date-card:not(.is-complet):focus {
     border-color: var(--wam-color-yellow);
 }
 
-.mini-date-num {
-    font-size: 32px;
-    font-weight: 700;
-    color: var(--wam-color-yellow);
-    line-height: 1.2;
+.stage-mini-date-card--enfant:not(.is-complet):hover,
+.stage-mini-date-card--enfant:not(.is-complet):focus {
+    border-color: var(--wam-color-green);
 }
 
-.mini-date-num--enfant {
-    color: var(--wam-color-green);
+/* .mini-date-num — taille et couleur portées par .title-norm-md + .color-yellow/.color-green en PHP */
+.mini-date-num {
+    line-height: 1.2;
 }
 
 .mini-date-month {
     font-weight: 600;
+    /* fw-semi inexistant en tokens */
     text-transform: capitalize;
 }
 
+/* .mini-date-time — typographie et gras portés par .text-md .fw-bold .color-text en PHP */
 .mini-date-time {
-    font-size: 13px;
-    /* intentionnel — pas de token pour 13px */
     margin-top: var(--wam-spacing-2xs);
-    font-weight: 600;
 }
 
+/* État complet : fond transparent, lien actif mais sans hover/focus visuel */
 .stage-mini-date-card.is-complet {
-    opacity: 0.4;
+    background: transparent;
 }
 
+.stage-mini-date-card.is-complet:hover,
+.stage-mini-date-card.is-complet:focus {
+    border-color: transparent;
+    outline: none;
+}
+
+/* Complet : numéro et mois en grisé (l'horaire est remplacé par le badge en PHP) */
+.stage-mini-date-card.is-complet .mini-date-num,
+.stage-mini-date-card.is-complet .mini-date-month {
+    color: var(--wam-color-disabled) !important;
+}
+
+/* .mini-badge — taille et couleur portées par .text-md .color-orange en PHP */
 .mini-badge {
     display: block;
     margin-top: var(--wam-spacing-2xs);
-    font-size: 10px;
-    /* intentionnel — pas de token pour 10px */
-    font-weight: 900;
-    background: var(--wam-color-orange);
-    color: var(--wam-color-text);
-    padding: 2px 6px;
-    /* intentionnel — valeurs < wam-spacing-2xs(8px) */
-    border-radius: var(--wam-radius-xs);
+    font-weight: 700;
 }
 
 /* Layout Spécifique Section Description */
@@ -1420,16 +1516,7 @@
     padding: var(--wam-spacing-4xl) 0;
 }
 
-/* Responsive Stages */
-@media (max-width: 1024px) {
-    .stage-date-display {
-        gap: var(--wam-spacing-sm);
-    }
-
-    .stage-date-square {
-        min-width: 100px;
-    }
-}
+/* Responsive Stages — .stage-date-display est désormais en colonne, pas de règle spécifique nécessaire */
 
 /* =====================================================
    PAGE STAGES — Layout listing "Tous les stages"
@@ -1462,9 +1549,10 @@
     isolation: isolate;
     display: flex;
     flex-direction: column;
-    flex: 1;
-    min-width: 300px;
-    max-width: 440px;
+    flex: 0 0 calc((100% - 3 * var(--wam-spacing-2xl)) / 4);
+    /* 4 par ligne desktop */
+    min-width: 0;
+    max-width: none;
     background: linear-gradient(to bottom,
             var(--wp--preset--color--background-800) 0%,
             var(--wp--preset--color--background-600) 100%);
@@ -1687,9 +1775,9 @@
     border: 1px solid currentColor;
     background: transparent !important;
     text-transform: uppercase;
-    font-size: 14px; /* Augmenté à 14px (xs) pour correspondre à la demande */
     letter-spacing: 0.05em;
     margin-bottom: var(--wam-spacing-2xs);
+    /* font-size porté par .text-xs en PHP */
 }
 
 .card-stage--stage .card-stage__type {
@@ -1743,7 +1831,8 @@
     flex-shrink: 0;
     padding: var(--wam-spacing-sm);
     border: 2px solid var(--wam-color-subtext);
-    border-radius: var(--wam-radius-sm); /* 8px fixed version */
+    border-radius: var(--wam-radius-sm);
+    /* 8px fixed version */
     color: var(--wam-color-subtext);
     transition: all var(--wam-transition);
 }
@@ -1783,10 +1872,16 @@
     display: none !important;
 }
 
-/* Responsive */
+/* Responsive — 2 par ligne en tablette */
+@media (max-width: 1024px) {
+    .card-stage {
+        flex: 0 0 calc((100% - var(--wam-spacing-2xl)) / 2);
+    }
+}
+
+/* Responsive — 1 par ligne en mobile */
 @media (max-width: 640px) {
     .card-stage {
-        min-width: 100%;
-        max-width: 100%;
+        flex: 0 0 100%;
     }
 }

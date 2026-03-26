@@ -172,13 +172,8 @@ get_template_part('template-parts/site-header');
 
             <!-- Breadcrumb : chemin Accueil > Cours > [Titre du cours] -->
             <?php get_template_part('template-parts/breadcrumb', null, [
-                'links'   => [
-                    ['label' => 'Accueil', 'url' => home_url('/')],
-                    ['label' => 'Cours',   'url' => $cours_listing_url ?: home_url('/')],
-                ],
-                'current' => get_the_title(),
-                'id'      => 'breadcrumb-cours',
-                'full'    => true,
+                'id'   => 'breadcrumb-cours',
+                'full' => true,
             ]); ?>
 
             <!-- ============ HERO : Infos cours ============ -->
@@ -346,26 +341,27 @@ get_template_part('template-parts/site-header');
                         </div>
                     <?php endif; ?>
 
-                    <!-- CTAs — inscription (désactivé si cours complet) + réserver un essai -->
+                    <!-- CTAs — inscription + réserver un essai -->
+                    <!-- Priorité : cours complet > inscriptions globalement fermées > bouton actif -->
                     <div id="section-ctas" class="cours-ctas">
                         <?php if ($complet): ?>
-                            <!-- Inscription désactivée (cours complet) -->
+                            <!-- Inscription désactivée : cours complet -->
                             <div id="btn-inscription" class="btn-inscription btn-inscription--disabled">
-                                <span class="btn-inscription__label">Inscription 2024/25</span>
+                                <span class="btn-inscription__label"><?php echo wam_btn_inscription_texte(); ?></span>
+                            </div>
+                        <?php elseif (!wam_inscriptions_actives()): ?>
+                            <!-- Inscription désactivée : globalement fermées (Réglages > Configuration WAM) -->
+                            <div id="btn-inscription" class="btn-inscription btn-inscription--disabled">
+                                <span class="btn-inscription__label"><?php echo wam_message_inscriptions_fermees(); ?></span>
                             </div>
                         <?php else: ?>
-                            <a id="btn-inscription" href="#inscription" class="btn-primary btn-inscription">
-                                <span class="btn-inscription__label">Inscription 2024/25</span>
+                            <a id="btn-inscription" href="<?php echo esc_url(wam_btn_inscription_url()); ?>" class="btn-primary btn-inscription">
+                                <span class="btn-inscription__label"><?php echo wam_btn_inscription_texte(); ?></span>
                                 <span class="btn-icon btn-icon--sm"
                                     style="--icon-url: url('<?php echo $icon_dir; ?>chevron-right.svg');"></span>
                             </a>
                         <?php endif; ?>
 
-                        <a id="btn-essai" href="#essai" class="btn-secondary btn-essai">
-                            <span class="btn-essai__label">Réserver un essai</span>
-                            <span class="btn-icon btn-icon--sm"
-                                style="--icon-url: url('<?php echo $icon_dir; ?>chevron-right.svg');"></span>
-                        </a>
                     </div>
 
                 </div><!-- /infos -->

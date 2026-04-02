@@ -2,6 +2,7 @@
 /*
 !/.gitignore
 !/wp-content/
+!/.cpanel.yml
 
 # Dans wp-content on ignore tout...
 /wp-content/*

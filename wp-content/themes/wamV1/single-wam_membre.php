@@ -36,7 +36,6 @@
  */
 
 get_header();
-get_template_part('template-parts/site-header');
 ?>
 
 <main id="primary" class="site-main">
@@ -77,12 +76,12 @@ get_template_part('template-parts/site-header');
             <!-- ============ 2. EN-TÊTE PROFIL ============ -->
             <article id="post-<?php the_ID(); ?>" <?php post_class('prof-profile'); ?>>
 
-                <div id="section-prof-header" class="page-header prof-header">
+                <div id="section-prof-header" class="page-hero page-hero--centered">
 
-                    <div class="page-header__meta prof-header__meta">
+                    <div class="page-hero__content">
 
                         <!-- Nom du prof — Mallia 46px -->
-                        <h1 class="page-header__title title-sign-lg prof-header__title color-yellow">
+                        <h1 class="page-hero__title title-sign-lg color-yellow">
                             <?php the_title(); ?>
                         </h1>
 
@@ -136,15 +135,13 @@ get_template_part('template-parts/site-header');
                             </div><!-- /prof-header__socials -->
                         <?php endif; ?>
 
-                    </div><!-- /page-header__meta -->
+                    </div><!-- /page-hero__content -->
 
                     <!-- Photo de profil (optionnelle — taille wam-portrait définie dans functions.php) -->
                     <?php if (has_post_thumbnail()): ?>
-                        <div class="page-header__photo-outer prof-header__photo-outer">
-                            <div class="page-header__photo prof-header__photo">
-                                <?php the_post_thumbnail('wam-portrait', ['class' => 'page-header__photo-img']); ?>
-                                <div class="page-header__photo-overlay"></div>
-                            </div>
+                        <div class="page-hero__image page-hero__image--lg">
+                            <?php the_post_thumbnail('wam-portrait', ['class' => 'page-hero__image-img']); ?>
+                            <div class="page-hero__image-overlay"></div>
                         </div>
                     <?php endif; ?>
 

@@ -4,7 +4,7 @@
  *
  * Structure alignée sur single-cours.php :
  *   - page-layout__inner comme wrapper principal
- *   - cours-hero (infos à gauche, image à droite)
+ *   - page-hero (infos à gauche, image à droite)
  *   - cours-info-card / __row / __cell pour l'encart date/lieu/tarif
  *   - cours-complet pour le badge "complet" sur l'image
  *   - cours-ctas pour le bouton de réservation
@@ -24,7 +24,6 @@
  */
 
 get_header();
-get_template_part('template-parts/site-header');
 ?>
 
 <main id="primary" class="site-main">
@@ -147,28 +146,28 @@ get_template_part('template-parts/site-header');
         ]); ?>
 
         <!-- ============ HERO : Infos + Image ============ -->
-        <div class="cours-hero <?php echo !$has_sidebar ? 'cours-hero--no-photo' : ''; ?>">
+        <div class="page-hero <?php echo !$has_sidebar ? 'page-hero--no-image' : ''; ?>">
 
             <!-- Colonne gauche : badge, titre, infos, description, CTA -->
-            <div class="cours-hero__infos">
+            <div class="page-hero__content">
 
-                <div class="cours-hero__heading">
+                <div class="page-hero__heading">
 
                     <!-- Badge type (STAGE / ATELIER / WORKSHOP) -->
                     <span class="stage-badge-type text-xs fw-bold <?php echo $badge_color; ?>"><?php echo esc_html($badge_label); ?></span>
 
                     <!-- Titre — variante enfant = Cholo Rhita, adulte = Mallia -->
-                    <h1 class="cours-hero__title has-accent-yellow-color <?php echo $is_enfant ? 'title-cool-lg cours-hero__title--enfant' : 'title-sign-lg'; ?>">
+                    <h1 class="page-hero__title has-accent-yellow-color <?php echo $is_enfant ? 'title-cool-lg page-hero__title--enfant' : 'title-sign-lg'; ?>">
                         <?php the_title(); ?>
                     </h1>
 
                     <?php if ($sous_titre) : ?>
-                        <p class="cours-hero__subtitle text-lg"><?php echo esc_html($sous_titre); ?></p>
+                        <p class="page-hero__subtitle text-lg"><?php echo esc_html($sous_titre); ?></p>
                     <?php endif; ?>
                 </div>
 
                 <?php if ($prof_html_links) : ?>
-                    <p class="cours-hero__profs text-sm">
+                    <p class="page-hero__profs text-sm">
                         avec <?php echo implode(' et ', $prof_html_links); ?>
                     </p>
                 <?php endif; ?>
@@ -227,7 +226,7 @@ get_template_part('template-parts/site-header');
                                 ?>
                                     <a href="<?php echo get_permalink($l_id); ?>"
                                        class="stage-mini-date-card <?php echo $is_enfant ? 'stage-mini-date-card--enfant' : ''; ?> <?php echo $l_complet ? 'is-complet' : ''; ?>">
-                                        <p class="date-name text-xs color-subtext"><?php echo date_i18n('l', $l_obj->getTimestamp()); ?></p>
+                                        <p class="date-name text-xs color-subtext fw-bold"><?php echo date_i18n('l', $l_obj->getTimestamp()); ?></p>
                                         <p class="mini-date-num title-norm-md <?php echo $is_enfant ? 'color-green' : 'color-yellow'; ?>"><?php echo $l_obj->format('d'); ?></p>
                                         <p class="mini-date-month text-md <?php echo $is_enfant ? 'color-green' : 'color-yellow'; ?>"><?php echo date_i18n('F', $l_obj->getTimestamp()); ?></p>
                                         <p class="text-xs color-subtext mt-3xs"><?php echo $l_obj->format('Y'); ?></p>
@@ -257,7 +256,7 @@ get_template_part('template-parts/site-header');
                             <span class="btn-icon" style="--icon-url: url('<?php echo $icon_dir; ?>piggy-bank.svg'); --icon-size: 24px; color: <?php echo $ic['piggybank']; ?>;"></span>
                             <div class="cours-info-card__cell">
                                 <?php foreach ($tarif_labels as $label) : ?>
-                                    <p class="cours-info-card__tarif text-md"><?php echo esc_html($label); ?></p>
+                                    <p class="cours-info-card__tarif text-md fw-bold"><?php echo esc_html($label); ?></p>
                                 <?php endforeach; ?>
                             </div>
                         </div>
@@ -294,18 +293,18 @@ get_template_part('template-parts/site-header');
                     <?php endif; ?>
                 </div>
 
-            </div><!-- /cours-hero__infos -->
+            </div><!-- /page-hero__content -->
 
             <!-- Colonne droite : image à la une + badge complet -->
             <?php if ($has_sidebar) : ?>
-                <div class="cours-hero__photo">
+                <div class="page-hero__image">
 
                     <?php if ($has_photo) : ?>
                         <?php the_post_thumbnail('wam-stage-portrait', [
-                            'class'          => 'cours-hero__photo-img',
+                            'class'          => 'page-hero__image-img',
                             'data-no-overlay' => 'true',
                         ]); ?>
-                        <div class="cours-hero__photo-overlay"></div>
+                        <div class="page-hero__image-overlay"></div>
                     <?php else : ?>
                         <div class="stage-placeholder-img" aria-hidden="true"></div>
                     <?php endif; ?>
@@ -328,10 +327,10 @@ get_template_part('template-parts/site-header');
                         </div>
                     <?php endif; ?>
 
-                </div><!-- /cours-hero__photo -->
+                </div><!-- /page-hero__image -->
             <?php endif; ?>
 
-        </div><!-- /cours-hero -->
+        </div><!-- /page-hero -->
 
         <?php endwhile; ?>
 

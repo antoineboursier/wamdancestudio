@@ -6,7 +6,6 @@
  */
 
 get_header();
-get_template_part('template-parts/site-header');
 ?>
 
 <main id="primary" class="site-main">
@@ -33,28 +32,27 @@ get_template_part('template-parts/site-header');
                 'full' => true,
             ]); ?>
 
-            <div id="section-evenement-header" class="page-header">
-                <div class="page-header__meta page-header__meta--lg">
-                    <!-- H1 : Demandé en title-cool-lg avec accent yellow + subtitle en span -->
-                    <h1 class="page-header__title title-cool-lg has-accent-yellow-color">
+            <div id="section-evenement-header" class="page-hero">
+                <div class="page-hero__content page-hero__content--lg">
+                    <h1 class="page-hero__title title-cool-lg has-accent-yellow-color">
                         <?php the_title(); ?>
-                        <?php if ($sous_titre): ?>
-                            <span class="page-header__subtitle title-norm-sm color-subtext"
-                                style="display: block; margin-top: var(--wam-spacing-2xs);">
-                                <?php echo esc_html($sous_titre); ?>
-                            </span>
-                        <?php endif; ?>
                     </h1>
+
+                    <?php if ($sous_titre): ?>
+                        <p class="page-hero__subtitle title-norm-sm">
+                            <?php echo esc_html($sous_titre); ?>
+                        </p>
+                    <?php endif; ?>
 
                     <!-- Affichage de la Date, Horaires et Lieu (ACF + Static) -->
                     <?php if ($p_obj): ?>
-                        <div class="evenement-infos-meta" style="margin-top: var(--wam-spacing-md); display: flex; flex-direction: column; gap: var(--wam-spacing-sm);">
-                            
+                        <div class="evenement-infos-meta">
+
                             <!-- Date et Heure -->
-                            <div class="evenement-date-info" style="display: flex; align-items: flex-start; gap: var(--wam-spacing-sm);">
-                                <span class="btn-icon" style="--icon-url: url('<?php echo esc_url($icon_dir . 'calendar.svg'); ?>'); --icon-size: 24px; color: var(--wam-color-subtext); margin-top: 2px;"></span>
+                            <div class="evenement-date-info">
+                                <span class="btn-icon" style="--icon-url: url('<?php echo esc_url($icon_dir . 'calendar.svg'); ?>'); --icon-size: 24px;"></span>
                                 <div>
-                                    <p class="title-norm-sm color-text" style="margin: 0;">
+                                    <p class="title-norm-sm color-text">
                                         <?php
                                         // Affiche ex: "Samedi 24 Septembre 2025"
                                         echo ucfirst(date_i18n('l d F Y', $p_obj->getTimestamp()));
@@ -65,7 +63,7 @@ get_template_part('template-parts/site-header');
                                         $debut_formate = date('G\hi', strtotime($h_debut));
                                         $fin_formate = $h_fin ? date('G\hi', strtotime($h_fin)) : '';
                                         ?>
-                                        <p class="text-md color-subtext mt-3xs" style="margin: 0;">
+                                        <p class="text-md color-subtext mt-3xs">
                                             De <?php echo esc_html($debut_formate); ?>
                                             <?php if ($fin_formate) echo ' à ' . esc_html($fin_formate); ?>
                                         </p>
@@ -74,11 +72,11 @@ get_template_part('template-parts/site-header');
                             </div>
 
                             <!-- Lieu -->
-                            <div class="evenement-location-info" style="display: flex; align-items: flex-start; gap: var(--wam-spacing-sm);">
-                                <span class="btn-icon" style="--icon-url: url('<?php echo esc_url($icon_dir . 'map.svg'); ?>'); --icon-size: 24px; color: var(--wam-color-subtext); margin-top: 2px;"></span>
+                            <div class="evenement-location-info">
+                                <span class="btn-icon" style="--icon-url: url('<?php echo esc_url($icon_dir . 'map.svg'); ?>'); --icon-size: 24px;"></span>
                                 <div>
-                                    <p class="page-cours__address-name" style="margin: 0;">WAM Dance Studio</p>
-                                    <p class="page-cours__address-street mt-3xs" style="margin: 0;">202 rue Jean Jaurès à Villeneuve d'Ascq</p>
+                                    <p class="page-cours__address-name">WAM Dance Studio</p>
+                                    <p class="page-cours__address-street mt-3xs">202 rue Jean Jaurès à Villeneuve d'Ascq</p>
                                 </div>
                             </div>
 
@@ -89,11 +87,9 @@ get_template_part('template-parts/site-header');
 
                 <?php if (has_post_thumbnail()): ?>
                     <!-- Image à la une -->
-                    <div class="page-header__photo-outer">
-                        <div class="page-header__photo page-header__photo--sm">
-                            <?php the_post_thumbnail('wam-page-thumbnail', ['class' => 'page-header__photo-img']); ?>
-                            <div class="page-header__photo-overlay"></div>
-                        </div>
+                    <div class="page-hero__image page-hero__image--sm">
+                        <?php the_post_thumbnail('wam-page-thumbnail', ['class' => 'page-hero__image-img']); ?>
+                        <div class="page-hero__image-overlay"></div>
                     </div>
                 <?php endif; ?>
             </div>

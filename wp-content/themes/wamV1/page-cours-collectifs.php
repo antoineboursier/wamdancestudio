@@ -13,7 +13,6 @@
  */
 
 get_header();
-get_template_part('template-parts/site-header');
 
 /* ---- Données de la page courante ---- */
 $page = get_queried_object();
@@ -120,7 +119,7 @@ $terms = get_terms([
                         id="cat-<?php echo esc_attr($term->slug); ?>">
 
                         <div class="cours-categorie__header">
-                            <img src="<?php echo $icons_path . $icon_file; ?>" class="cours-categorie__icon" alt=""
+                            <img src="<?php echo esc_url($icons_path . $icon_file); ?>" class="cours-categorie__icon" alt=""
                                 aria-hidden="true">
                             <h2 class="is-style-title-cool-md color-text"><?php echo esc_html($term->name); ?>&nbsp;:</h2>
                         </div>
@@ -164,7 +163,7 @@ $terms = get_terms([
                 <section class="cours-categorie" data-cat="autres" id="cat-autres">
 
                     <div class="cours-categorie__header">
-                        <img src="<?php echo $icons_path; ?>dancer_autres.svg" class="cours-categorie__icon" alt=""
+                        <img src="<?php echo esc_url($icons_path); ?>dancer_autres.svg" class="cours-categorie__icon" alt=""
                             aria-hidden="true">
                         <h2 class="is-style-title-cool-md">Autres&nbsp;:</h2>
                     </div>
@@ -188,6 +187,5 @@ $terms = get_terms([
 </main>
 
 <?php
-get_template_part('template-parts/site-footer');
 get_footer();
 ?>

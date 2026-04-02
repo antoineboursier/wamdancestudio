@@ -38,9 +38,7 @@ document.addEventListener('DOMContentLoaded', () => {
             menuToggle.setAttribute('aria-expanded', 'false');
             body.style.overflow = '';
 
-            // Clean up particles
-            const container = document.querySelector('.js-nav-particles');
-            if (container) container.innerHTML = '';
+            closeNavParticles(); // Wave right→left then clean up
 
             menuToggle.focus();
         };
@@ -113,13 +111,16 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     /* =====================================================
-       3. NAV PARTICLES (Creative Idea)
+       3. NAV PARTICLES — Wave effect
+       Open  : wave left → right  (matches panel slide-in)
+       Close : wave right → left  (matches panel slide-out)
        ===================================================== */
     function createNavParticles() {
         const container = document.querySelector('.js-nav-particles');
         if (!container) return;
 
         const particleCount = 44;
+        const waveDuration = 500; // ms for the sweep to cross the screen
         const colors = [
             'var(--wam-color-green)',
             'var(--wam-color-yellow)',
@@ -128,34 +129,103 @@ document.addEventListener('DOMContentLoaded', () => {
         ];
 
         for (let i = 0; i < particleCount; i++) {
+            const xFraction = Math.random();
+            const dur = 3 + Math.random() * 5;
+
             const p = document.createElement('div');
-            p.className = 'keywords-particle'; // Reuse the particle style from home.css
-
-            const size = Math.random() * 4 + 2;
-            p.style.width = `${size}px`;
-            p.style.height = `${size}px`;
-
-            p.style.left = Math.random() * 100 + '%';
+            p.className = 'keywords-particle';
+            p.style.width = `${Math.random() * 4 + 2}px`;
+            p.style.height = p.style.width;
+            p.style.left = xFraction * 100 + '%';
             p.style.top = Math.random() * 100 + '%';
+            p.dataset.x = xFraction;
 
             const color = colors[Math.floor(Math.random() * colors.length)];
             p.style.backgroundColor = color;
             p.style.boxShadow = `0 0 10px ${color}`;
 
-            const dur = 3 + Math.random() * 5;
-            const delay = -Math.random() * dur;
-            const drift = (Math.random() - 0.5) * 100;
-
+            // Negative delay = start mid-cycle so particles appear quickly after insertion
             p.style.setProperty('--dur', `${dur}s`);
-            p.style.setProperty('--delay', `${delay}s`);
-            p.style.setProperty('--drift', `${drift}px`);
+            p.style.setProperty('--delay', `${-Math.random() * dur * 0.4}s`);
+            p.style.setProperty('--drift', `${(Math.random() - 0.5) * 100}px`);
 
-            container.appendChild(p);
+            // Wave effect: inject each particle into DOM staggered by X position
+            // Left particles are added first, right particles later
+            setTimeout(() => container.appendChild(p), xFraction * waveDuration);
         }
     }
 
+    function closeNavParticles() {
+        const container = document.querySelector('.js-nav-particles');
+        if (!container) return;
+
+        const waveDuration = 0.4; // seconds for the close sweep
+        const fadeDuration = 300; // ms each particle takes to fade out
+
+        // Trigger right→left fade-out on each particle
+        container.querySelectorAll('.keywords-particle').forEach(p => {
+            const x = parseFloat(p.dataset.x ?? Math.random());
+            // Right-side particles start fading first
+            p.style.setProperty('--close-delay', `${(1 - x) * waveDuration}s`);
+            p.classList.add('keywords-particle--closing');
+        });
+
+        // Remove DOM after the full wave has played out
+        setTimeout(() => {
+            container.innerHTML = '';
+        }, (waveDuration * 1000) + fadeDuration);
+    }
+
     /* =====================================================
-       4. STAGE DATES TOGGLE
+       4. FOOTER ACCORDION (mobile only)
+       Categories become collapsible buttons on narrow screens.
+       ===================================================== */
+    if (window.matchMedia('(max-width: 800px)').matches) {
+        document.querySelectorAll('.js-footer-accordion').forEach(list => {
+            const chevronUrl = list.dataset.chevronUrl || '';
+
+            list.querySelectorAll('.wam-footer__category-title-li').forEach(catLi => {
+                // Collect following siblings until the next category heading
+                const courseLis = [];
+                let next = catLi.nextElementSibling;
+                while (next && !next.classList.contains('wam-footer__category-title-li')) {
+                    courseLis.push(next);
+                    next = next.nextElementSibling;
+                }
+                if (!courseLis.length) return;
+
+                const label = catLi.textContent.trim();
+                catLi.removeAttribute('role'); // No longer a static heading
+                catLi.innerHTML = '';
+
+                const btn = document.createElement('button');
+                btn.className = 'wam-footer__category-btn';
+                btn.setAttribute('type', 'button');
+                btn.setAttribute('aria-expanded', 'false');
+                btn.textContent = label;
+
+                const icon = document.createElement('span');
+                icon.className = 'btn-icon w-3.5 h-3.5';
+                icon.setAttribute('aria-hidden', 'true');
+                icon.style.setProperty('--icon-url', `url('${chevronUrl}')`);
+                btn.appendChild(icon);
+                catLi.appendChild(btn);
+
+                // Start collapsed
+                courseLis.forEach(li => { li.hidden = true; });
+
+                btn.addEventListener('click', () => {
+                    const isExpanded = btn.getAttribute('aria-expanded') === 'true';
+                    btn.setAttribute('aria-expanded', String(!isExpanded));
+                    catLi.classList.toggle('is-expanded', !isExpanded);
+                    courseLis.forEach(li => { li.hidden = isExpanded; });
+                });
+            });
+        });
+    }
+
+    /* =====================================================
+       5. STAGE DATES TOGGLE
        ===================================================== */
     const toggleDatesBtn = document.getElementById('toggle-dates-list');
     const closeDatesBtn = document.getElementById('close-dates-list');

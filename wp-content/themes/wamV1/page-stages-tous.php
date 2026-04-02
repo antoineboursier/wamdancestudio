@@ -13,7 +13,6 @@
  */
 
 get_header();
-get_template_part('template-parts/site-header');
 
 /* ---- Données de la page courante ---- */
 $current_page = get_queried_object();
@@ -178,6 +177,5 @@ if (!empty($stages_passes)) {
 </main>
 
 <?php
-get_template_part('template-parts/site-footer');
 get_footer();
 ?>

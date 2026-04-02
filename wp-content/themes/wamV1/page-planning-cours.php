@@ -117,7 +117,6 @@ foreach ( $transcript_by_col as &$day_items ) {
 unset( $day_items );
 
 get_header();
-get_template_part('template-parts/site-header');
 ?>
 
 <main id="primary" class="site-main page-planning">
@@ -218,7 +217,7 @@ get_template_part('template-parts/site-header');
                        style="grid-column: <?php echo $item['col']; ?>; grid-row: <?php echo $item['row_start']; ?> / <?php echo $item['row_end']; ?>;"
                        aria-label="<?php echo esc_attr( $item['title'] . ', ' . $item['debut'] . ' – ' . $item['fin'] ); ?>">
 
-                        <span class="planning-card__title"><?php echo esc_html( $item['title'] ); ?></span>
+                        <span class="planning-card__title text-sm fw-bold"><?php echo esc_html( $item['title'] ); ?></span>
 
                         <?php if ( $item['sous_titre'] ) : ?>
                             <span class="planning-card__subtitle"><?php echo esc_html( $item['sous_titre'] ); ?></span>
@@ -234,7 +233,7 @@ get_template_part('template-parts/site-header');
                 <?php endforeach; ?>
 
                 <?php if ( empty( $planning_items ) ) : ?>
-                    <p class="planning-empty" style="grid-column: 2 / -1; grid-row: 2 / 8;">
+                    <p class="planning-empty text-sm color-subtext" style="grid-column: 2 / -1; grid-row: 2 / 8;">
                         Aucun cours planifié pour le moment.
                     </p>
                 <?php endif; ?>
@@ -249,7 +248,7 @@ get_template_part('template-parts/site-header');
              ============================================================ -->
         <details class="planning-transcript">
             <summary class="planning-transcript__toggle">
-                <span class="planning-transcript__toggle-label">Transcription textuelle du planning</span>
+                <span class="planning-transcript__toggle-label text-sm fw-bold">Transcription textuelle du planning</span>
                 <span class="planning-transcript__chevron" aria-hidden="true"></span>
             </summary>
 

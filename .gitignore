@@ -2,7 +2,6 @@
 /*
 !/.gitignore
 !/wp-content/
-!/.ddev/
 
 # Dans wp-content on ignore tout...
 /wp-content/*

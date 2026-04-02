@@ -37,7 +37,6 @@
  */
 
 get_header();
-get_template_part('template-parts/site-header');
 ?>
 
 <main id="primary" class="site-main">
@@ -181,26 +180,26 @@ get_template_part('template-parts/site-header');
             $photo_id = has_post_thumbnail() ? get_post_thumbnail_id() : ($photo_cours ? $photo_cours['id'] : null);
             $has_sidebar = ($photo_id || $complet);
             ?>
-            <div id="section-hero-cours" class="cours-hero <?php echo !$has_sidebar ? 'cours-hero--no-photo' : ''; ?>">
+            <div id="section-hero-cours" class="page-hero <?php echo !$has_sidebar ? 'page-hero--no-image' : ''; ?>">
 
                 <!-- Photo (colonne masquée si ni image à la une, ni photo ACF, ni badge cours complet) -->
                 <?php
                 if ($has_sidebar):
                     ?>
-                    <div id="section-hero-photo" class="cours-hero__photo">
+                    <div id="section-hero-photo" class="page-hero__image">
                         <?php if ($photo_id): ?>
                             <?php echo wp_get_attachment_image($photo_id, 'wam-card', false, [
-                                'class' => 'cours-hero__photo-img',
+                                'class' => 'page-hero__image-img',
                                 'data-no-overlay' => 'true' // Désactive le wrapper automatique de functions.php
                             ]); ?>
-                            <div class="cours-hero__photo-overlay"></div>
+                            <div class="page-hero__image-overlay"></div>
                         <?php endif; ?>
 
                         <?php if ($complet): ?>
                             <!-- Badge cours complet -->
                             <div class="cours-complet">
                                 <!-- Icône triste -->
-                                <img src="<?php echo $icon_dir; ?>sad-emoji.svg" 
+                                <img src="<?php echo esc_url($icon_dir); ?>sad-emoji.svg"
                                      width="40" height="40" alt="" aria-hidden="true">
                                 <div class="cours-complet__body">
                                     <p class="cours-complet__title">Cours complet</p>
@@ -220,29 +219,29 @@ get_template_part('template-parts/site-header');
                 <?php endif; // has_post_thumbnail || complet ?>
 
                 <!-- Infos : titre, sous-titre, prof, carte infos, chips, description, CTAs -->
-                <div id="section-hero-infos" class="cours-hero__infos">
+                <div id="section-hero-infos" class="page-hero__content">
 
                     <!-- Titre + sous-titre -->
-                    <div class="cours-hero__heading">
+                    <div class="page-hero__heading">
                         <?php if ($is_enfant): ?>
-                            <h1 class="cours-hero__title is-style-title-sign-lg cours-hero__title--enfant">
+                            <h1 class="page-hero__title is-style-title-sign-lg page-hero__title--enfant">
                                 <?php the_title(); ?>
                             </h1>
                         <?php else: ?>
-                            <h1 class="cours-hero__title is-style-title-sign-lg">
+                            <h1 class="page-hero__title is-style-title-sign-lg">
                                 <?php the_title(); ?>
                             </h1>
                         <?php endif; ?>
 
                         <?php if ($sous_titre): ?>
-                            <p class="cours-hero__subtitle text-lg">
+                            <p class="page-hero__subtitle text-lg">
                                 <?php echo esc_html($sous_titre); ?>
                             </p>
                         <?php endif; ?>
                     </div>
 
                     <?php if ($prof_html_links): ?>
-                        <p class="cours-hero__profs text-sm">
+                        <p class="page-hero__profs text-sm">
                             <?php
                             $profs_string = implode(' et ', $prof_html_links);
                             echo 'avec ' . $profs_string;
@@ -275,14 +274,14 @@ get_template_part('template-parts/site-header');
                         <?php if ($jour_label): ?>
                             <div class="cours-info-card__row">
                                 <span class="btn-icon"
-                                    style="--icon-url: url('<?php echo $icon_dir; ?>calendar.svg'); --icon-size: 24px; color: <?php echo $ic['calendar']; ?>;"></span>
+                                    style="--icon-url: url('<?php echo esc_url($icon_dir); ?>calendar.svg'); --icon-size: 24px; color: <?php echo $ic['calendar']; ?>;"></span>
                                 <div class="cours-info-card__cell">
                                     <p
-                                        class="cours-info-card__day text-lg <?php echo $is_enfant ? 'cours-info-card__day--enfant' : ''; ?>">
+                                        class="cours-info-card__day text-lg fw-bold <?php echo $is_enfant ? 'cours-info-card__day--enfant' : ''; ?>">
                                         <?php echo esc_html($jour_label); ?>
                                     </p>
                                     <?php if ($horaires): ?>
-                                        <p class="cours-info-card__time text-md">
+                                        <p class="cours-info-card__time text-md fw-bold">
                                             <?php echo esc_html($horaires); ?>
                                         </p>
                                     <?php endif; ?>
@@ -292,7 +291,7 @@ get_template_part('template-parts/site-header');
 
                         <div class="cours-info-card__row">
                             <span class="btn-icon"
-                                style="--icon-url: url('<?php echo $icon_dir; ?>map.svg'); --icon-size: 24px; color: <?php echo $ic['map']; ?>;"></span>
+                                style="--icon-url: url('<?php echo esc_url($icon_dir); ?>map.svg'); --icon-size: 24px; color: <?php echo $ic['map']; ?>;"></span>
                             <div class="cours-info-card__cell">
                                 <p class="cours-info-card__lieu text-md">WAM Dance Studio</p>
                                 <p class="cours-info-card__adresse text-sm">202 rue Jean Jaurès à Villeneuve d'Ascq</p>
@@ -302,8 +301,8 @@ get_template_part('template-parts/site-header');
                         <?php if ($tarif_label): ?>
                             <div class="cours-info-card__row">
                                 <span class="btn-icon"
-                                    style="--icon-url: url('<?php echo $icon_dir; ?>piggy-bank.svg'); --icon-size: 24px; color: <?php echo $ic['piggybank']; ?>;"></span>
-                                <p class="cours-info-card__tarif text-lg" style="font-weight: 700;">
+                                    style="--icon-url: url('<?php echo esc_url($icon_dir); ?>piggy-bank.svg'); --icon-size: 24px; color: <?php echo $ic['piggybank']; ?>;"></span>
+                                <p class="cours-info-card__tarif text-lg fw-bold">
                                     <?php echo esc_html($tarif_label); ?>
                                 </p>
                             </div>
@@ -312,7 +311,7 @@ get_template_part('template-parts/site-header');
                         <?php if ($info_comp): ?>
                             <div class="cours-info-card__row">
                                 <span class="btn-icon"
-                                    style="--icon-url: url('<?php echo $icon_dir; ?>thumbs-up.svg'); --icon-size: 24px; color: <?php echo $ic['thumbs']; ?>;"></span>
+                                    style="--icon-url: url('<?php echo esc_url($icon_dir); ?>thumbs-up.svg'); --icon-size: 24px; color: <?php echo $ic['thumbs']; ?>;"></span>
                                 <p class="cours-info-card__info text-md">
                                     <?php echo esc_html($info_comp); ?>
                                 </p>
@@ -326,7 +325,7 @@ get_template_part('template-parts/site-header');
                         <div class="cours-chips">
                             <?php foreach ($chips as $chip): ?>
                                 <a href="<?php echo esc_url($chip['link']); ?>" class="wam-chip">
-                                    <span class="wam-chip__label">
+                                    <span class="wam-chip__label text-sm">
                                         <?php echo esc_html($chip['name']); ?>
                                     </span>
                                 </a>
@@ -358,7 +357,7 @@ get_template_part('template-parts/site-header');
                             <a id="btn-inscription" href="<?php echo esc_url(wam_btn_inscription_url()); ?>" class="btn-primary btn-inscription">
                                 <span class="btn-inscription__label"><?php echo wam_btn_inscription_texte(); ?></span>
                                 <span class="btn-icon btn-icon--sm"
-                                    style="--icon-url: url('<?php echo $icon_dir; ?>chevron-right.svg');"></span>
+                                    style="--icon-url: url('<?php echo esc_url($icon_dir); ?>chevron-right.svg');"></span>
                             </a>
                         <?php endif; ?>
 
@@ -379,7 +378,7 @@ get_template_part('template-parts/site-header');
                         <div class="cours-section__col">
                             <div class="cours-section__heading">
                                 <span class="btn-icon"
-                                    style="--icon-url: url('<?php echo $icon_dir; ?>dancer_pedagogie.svg'); --icon-size: 72px; color: var(--wam-color-icon-light);"></span>
+                                    style="--icon-url: url('<?php echo esc_url($icon_dir); ?>dancer_pedagogie.svg'); --icon-size: 72px; color: var(--wam-color-icon-light);"></span>
                                 <h2 class="cours-section__title is-style-title-cool-md has-text-normal-color">
                                     Mais qu'apprend on en cours ?
                                 </h2>
@@ -409,7 +408,7 @@ get_template_part('template-parts/site-header');
 
                         <div class="cours-deroulement__heading">
                             <span class="btn-icon"
-                                style="--icon-url: url('<?php echo $icon_dir; ?>dancer_deroulement.svg'); --icon-size: 72px; color: var(--wam-color-icon-light);"></span>
+                                style="--icon-url: url('<?php echo esc_url($icon_dir); ?>dancer_deroulement.svg'); --icon-size: 72px; color: var(--wam-color-icon-light);"></span>
                             <h2 class="cours-deroulement__title is-style-title-cool-md has-text-normal-color">
                                 Comment se déroule un cours ?
                             </h2>
@@ -422,7 +421,7 @@ get_template_part('template-parts/site-header');
                             <div class="cours-etape cours-etape--left">
                                 <div class="cours-etape__icon-wrap">
                                     <span class="btn-icon"
-                                        style="--icon-url: url('<?php echo $icon_dir; ?>dancer_warmup.svg'); --icon-size: 82px; color: var(--wam-color-icon-light);"></span>
+                                        style="--icon-url: url('<?php echo esc_url($icon_dir); ?>dancer_warmup.svg'); --icon-size: 82px; color: var(--wam-color-icon-light);"></span>
                                     <p class="cours-etape__time text-md has-text-normal-color">
                                         <?php echo esc_html($echauf_time); ?>
                                     </p>
@@ -439,7 +438,7 @@ get_template_part('template-parts/site-header');
                             <div class="cours-etape">
                                 <div class="cours-etape__icon-wrap">
                                     <span class="btn-icon"
-                                        style="--icon-url: url('<?php echo $icon_dir; ?>dancer_exotech.svg'); --icon-size: 80px; color: var(--wam-color-icon-light);"></span>
+                                        style="--icon-url: url('<?php echo esc_url($icon_dir); ?>dancer_exotech.svg'); --icon-size: 80px; color: var(--wam-color-icon-light);"></span>
                                     <p class="cours-etape__time text-md has-text-normal-color">
                                         <?php echo esc_html($exo_time); ?>
                                     </p>
@@ -457,7 +456,7 @@ get_template_part('template-parts/site-header');
                             <div class="cours-etape cours-etape--right">
                                 <div class="cours-etape__icon-wrap">
                                     <span class="btn-icon"
-                                        style="--icon-url: url('<?php echo $icon_dir; ?>dancer_chore.svg'); --icon-size: 103px; color: var(--wam-color-icon-light);"></span>
+                                        style="--icon-url: url('<?php echo esc_url($icon_dir); ?>dancer_chore.svg'); --icon-size: 103px; color: var(--wam-color-icon-light);"></span>
                                     <p class="cours-etape__time text-md has-text-normal-color">
                                         <?php echo esc_html($choreo_time); ?>
                                     </p>
@@ -475,7 +474,7 @@ get_template_part('template-parts/site-header');
                         <?php if ($styles_mus): ?>
                             <div class="cours-musiques">
                                 <span class="btn-icon"
-                                    style="--icon-url: url('<?php echo $icon_dir; ?>musicnote.svg'); --icon-size: 46px; color: var(--wam-color-icon-light);"></span>
+                                    style="--icon-url: url('<?php echo esc_url($icon_dir); ?>musicnote.svg'); --icon-size: 46px; color: var(--wam-color-icon-light);"></span>
                                 <p class="cours-musiques__text text-md has-text-normal-color">
                                     <strong>Styles de musiques :</strong>
                                     <?php echo ' ' . esc_html($styles_mus); ?>
@@ -488,11 +487,11 @@ get_template_part('template-parts/site-header');
 
                 <!-- Tenue : "Quelle tenue ?" -->
                 <?php if ($tenue || $photo_tenue): ?>
-                    <div id="section-tenue" class="cours-section">
+                    <div id="section-tenue" class="cours-section cours-section--tenue">
                         <div class="cours-section__col">
                             <div class="cours-section__heading">
                                 <span class="btn-icon"
-                                    style="--icon-url: url('<?php echo $icon_dir; ?>dancer_tenue.svg'); --icon-size: 80px; color: var(--wam-color-icon-light);"></span>
+                                    style="--icon-url: url('<?php echo esc_url($icon_dir); ?>dancer_tenue.svg'); --icon-size: 80px; color: var(--wam-color-icon-light);"></span>
                                 <h2 class="cours-section__title is-style-title-cool-md has-text-normal-color">Quelle tenue ?
                                 </h2>
                             </div>

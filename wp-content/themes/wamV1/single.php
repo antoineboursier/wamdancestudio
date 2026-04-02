@@ -6,7 +6,6 @@
  */
 
 get_header();
-get_template_part('template-parts/site-header');
 ?>
 
 <main id="primary" class="site-main site-main--with-pb">
@@ -27,50 +26,25 @@ get_template_part('template-parts/site-header');
             ]); ?>
 
             <!-- En-tête article : titre (Outfit Bold) + date (pink) + temps de lecture + image à la une -->
-            <div id="section-article-header" class="page-header">
-                <div class="page-header__meta">
-                    <h1 class="page-header__title is-style-title-norm-md">
-                        <?php the_title(); ?>
-                    </h1>
-                    <div class="page-header__dateline">
-                        <p class="page-header__date">
-                            Publié le <?php echo get_the_date('d/m/Y'); ?>
-                            <?php
-                            $u_time = get_the_time('U');
-                            $u_modified_time = get_the_modified_time('U');
-                            if ($u_modified_time >= $u_time + 86400) :
-                                $days_diff = round((current_time('timestamp') - $u_modified_time) / 86400);
-                                if ($days_diff > 0) :
-                                    echo ' - Modifié il y a ' . $days_diff . ' ' . _n('jour', 'jours', $days_diff, 'wamv1');
-                                endif;
-                            endif;
-                            ?>
-                        </p>
-                        <?php if ($reading_time = wamv1_get_reading_time(get_the_content())) : ?>
-                            <p class="page-header__reading-time">
-                                <?php echo esc_html($reading_time); ?>
-                            </p>
-                        <?php endif; ?>
+            <?php get_template_part('template-parts/single-hero', null, [
+                'id'               => 'section-article-header',
+                'title_class'      => 'is-style-title-norm-md',
+                'show_date'        => true,
+                'show_reading_time' => true,
+                'image_size'       => 'wamv1-page-hero',
+                'image_modifier'   => 'lg',
+            ]); ?>
+
+            <?php
+            $article_content = get_the_content();
+            if (!empty(trim($article_content))): ?>
+                <!-- Contenu de l'article -->
+                <div id="section-article-content" class="page-content">
+                    <div class="page-content__inner wam-prose">
+                        <?php echo apply_filters('the_content', $article_content); ?>
                     </div>
                 </div>
-
-                <?php if (has_post_thumbnail()) : ?>
-                    <!-- Image à la une (conditionnelle — non affichée si absente) -->
-                    <div class="page-header__photo-outer">
-                        <div class="page-header__photo">
-                            <?php the_post_thumbnail('wamv1-page-hero', ['class' => 'page-header__photo-img']); ?>
-                            <div class="page-header__photo-overlay"></div>
-                        </div>
-                    </div>
-                <?php endif; ?>
-            </div>
-
-            <!-- Contenu de l'article -->
-            <div id="section-article-content" class="page-content">
-                <div class="page-content__inner wam-prose">
-                    <?php the_content(); ?>
-                </div>
-            </div>
+            <?php endif; ?>
 
         <?php endwhile; ?>
 

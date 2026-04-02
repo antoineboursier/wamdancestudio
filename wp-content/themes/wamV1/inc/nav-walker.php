@@ -30,9 +30,21 @@ class WAM_Nav_Walker extends Walker_Nav_Menu
         }
 
         $class_names = join(' ', apply_filters('nav_menu_css_class', array_filter($classes), $item, $args, $depth));
+        
+        // --- GESTION ACCESSIBILITÉ SÉPARATEUR ---
+        $is_separator = in_array('nav-separator', $classes);
+        $aria_attr    = $is_separator ? ' role="separator" aria-hidden="true"' : '';
+        
         $class_names = $class_names ? ' class="' . esc_attr($class_names) . '"' : '';
 
-        $output .= $indent . '<li' . $class_names . '>';
+        $output .= $indent . '<li' . $class_names . $aria_attr . '>';
+
+        // Si c'est un séparateur, on ne génère pas de lien <a>
+        if ($is_separator) {
+            $output .= apply_filters('walker_nav_menu_start_el', '', $item, $depth, $args);
+            return;
+        }
+        // --- FIN GESTION SÉPARATEUR ---
 
         $atts = array();
         $atts['title'] = !empty($item->attr_title) ? $item->attr_title : '';

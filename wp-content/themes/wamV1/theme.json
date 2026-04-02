@@ -66,7 +66,18 @@
                 {
                     "fontFamily": "\"Outfit\", sans-serif",
                     "name": "Outfit",
-                    "slug": "outfit"
+                    "slug": "outfit",
+                    "fontFace": [
+                        {
+                            "fontFamily": "Outfit",
+                            "fontWeight": "100 900",
+                            "fontStyle": "normal",
+                            "fontDisplay": "swap",
+                            "src": [
+                                "file:./fonts/Outfit-VariableFont_wght.woff2"
+                            ]
+                        }
+                    ]
                 },
                 {
                     "fontFamily": "'Cholo Rhita', sans-serif",
@@ -79,7 +90,7 @@
                             "fontStyle": "normal",
                             "fontDisplay": "swap",
                             "src": [
-                                "file:./fonts/Cholo Rhita.otf"
+                                "file:./fonts/WAMFont-Regular.woff2"
                             ]
                         }
                     ]
@@ -95,7 +106,7 @@
                             "fontStyle": "normal",
                             "fontDisplay": "swap",
                             "src": [
-                                "file:./fonts/Mallia.ttf"
+                                "file:./fonts/Mallia.woff2"
                             ]
                         }
                     ]

@@ -6,7 +6,6 @@
 get_header();
 $icon_dir = get_template_directory_uri() . '/assets/images/';
 ?>
-<?php get_template_part('template-parts/site-header'); ?>
 
 <main id="primary" class="site-main">
 
@@ -72,21 +71,14 @@ $icon_dir = get_template_directory_uri() . '/assets/images/';
         get_template_part('template-parts/separator');
         ?>
 
-        <!-- Contenu éditorial Gutenberg de la page d'accueil -->
-        <div id="section-content" class="section-content">
-            <?php
-            /*
-             * Boucle WP standard sur le contenu de la page d'accueil (page statique définie
-             * dans Réglages > Lecture → "Page d'accueil statique").
-             */
-            if (have_posts()) {
-                while (have_posts()) {
-                    the_post();
-                    the_content();
-                }
-            }
-            ?>
-        </div>
+        <?php
+        $home_content = get_the_content();
+        if (!empty(trim($home_content))): ?>
+            <!-- Contenu éditorial Gutenberg de la page d'accueil -->
+            <div id="section-content" class="section-content">
+                <?php echo apply_filters('the_content', $home_content); ?>
+            </div>
+        <?php endif; ?>
 
         <?php
         // Section professeur·es

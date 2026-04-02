@@ -236,9 +236,7 @@
 }
 
 .wam-chip__label {
-    font-size: var(--wam-font-size-sm);
     color: var(--wam-color-subtext);
-    line-height: 1;
 }
 
 /* =====================================================
@@ -257,9 +255,6 @@
 /* =====================================================
    ICONES — Utilitaires
    ===================================================== */
-:root {
-    --wam-color-icon-light: var(--wam-color-subtext);
-}
 
 .btn-secondary:hover,
 .btn-outlined:hover,
@@ -429,13 +424,14 @@ html.wam-theme-light .btn-outlined {
 }
 
 .wam-header__inner {
+    position: relative;
+    /* Nécessaire pour le centrage absolu du logo */
     display: flex;
     align-items: center;
     justify-content: space-between;
     max-width: var(--wam-max-screen);
     margin: 0 auto;
     padding: var(--wam-spacing-lg) var(--wam-page-mx);
-    gap: var(--wam-spacing-xl);
 }
 
 /* Logo — drop-shadow CSS (remplace le filtre Figma supprimé du SVG pour rendu full-res) */
@@ -452,15 +448,28 @@ html.wam-theme-light .btn-outlined {
     display: block;
 }
 
-/* Lien logo */
+/* Lien logo — centré absolument au milieu du header */
 .wam-header__logo-link {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%);
     display: flex;
     align-items: center;
     transition: opacity var(--wam-transition);
+    z-index: 2;
 }
 
 .wam-header__logo-link:hover {
     opacity: 0.8;
+}
+
+/* Bloc de droite : Dance Studio + Panier */
+.wam-header__right {
+    display: flex;
+    align-items: center;
+    gap: 24px;
+    flex-shrink: 0;
 }
 
 /* "DANCE\nSTUDIO" — texte à droite du logo (center-forced) */
@@ -479,6 +488,54 @@ html.wam-theme-light .btn-outlined {
 .wam-header__menu-label {
     letter-spacing: 0.05em;
     /* tracking-wider */
+}
+
+/* Lien Panier Header */
+.wam-header__cart-link {
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 56px;
+    height: 56px;
+    background: var(--wp--preset--color--background-600);
+    border: 1px solid var(--wp--preset--color--background-500);
+    border-radius: var(--wam-radius-md);
+    color: var(--wam-color-subtext);
+    transition: all var(--wam-transition);
+    text-decoration: none;
+    flex-shrink: 0;
+}
+
+.wam-header__cart-link:hover {
+    background: var(--wp--preset--color--background-500);
+    border-color: var(--wam-color-yellow);
+    transform: translateY(-2px);
+}
+
+.wam-header__cart-link .btn-icon {
+    filter: brightness(0) invert(1);
+    opacity: 1;
+    /* Pleine opacité pour l'icône plus grande */
+}
+
+/* Bulle de notification panier */
+.wam-header__cart-count {
+    position: absolute;
+    top: -4px;
+    right: -4px;
+    min-width: 30px;
+    height: 30px;
+    background: var(--wam-color-yellow);
+    color: var(--wp--preset--color--background-500);
+    border-radius: 22px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.4);
+    z-index: 2;
+    border: 2px solid var(--wp--preset--color--background-600);
+    /* Détache visuellement la bulle */
 }
 
 /* Bouton menu burger pill */
@@ -535,6 +592,73 @@ html.wam-theme-light .btn-outlined {
 }
 
 /* =====================================================
+   RESPONSIVE — Header & Menu Mobile
+   ===================================================== */
+@media (max-width: 640px) {
+    .wam-header__inner {
+        padding: var(--wam-spacing-md) var(--wam-spacing-md);
+        justify-content: space-between;
+        gap: var(--wam-spacing-sm);
+    }
+
+    /* Homepage : Menu à gauche, Panier à droite */
+    .wam-header--home .wam-header__logo-spacer {
+        display: none;
+    }
+
+    /* Pages internes : Logo au milieu dans le flux flex (pour éviter le chevauchement) */
+    .wam-header:not(.wam-header--home) .wam-header__logo-link {
+        position: static;
+        transform: none;
+        order: 2;
+        /* Logo au milieu */
+    }
+
+    .wam-header__menu-btn {
+        order: -1 !important;
+        /* Force le menu TOUJOURS à gauche (1er) */
+    }
+
+    .wam-header__right,
+    .wam-header__cart-link {
+        order: 3 !important;
+        /* Force le panier TOUJOURS à droite (3ème) */
+        gap: var(--wam-spacing-xs);
+    }
+
+    /* Ajustement tailles */
+    .wam-header__logo {
+        height: 40px;
+    }
+
+    .wam-header__logo-subtitle {
+        display: none;
+        /* Trop encombrant sur mobile */
+    }
+
+    .wam-header__menu-label {
+        display: none;
+        /* On ne garde que le hamburger pour gagner de la place */
+    }
+
+    .wam-header__menu-btn {
+        padding: var(--wam-spacing-xs);
+        border-radius: var(--wam-radius-md);
+    }
+
+    .wam-header__cart-link {
+        width: 48px;
+        height: 48px;
+    }
+
+    .wam-header__cart-count {
+        min-width: 24px;
+        height: 24px;
+        font-size: 12px;
+    }
+}
+
+/* =====================================================
    COMPATIBILITÉ A11Y — Header
    ===================================================== */
 html.wam-theme-light .wam-header {
@@ -552,8 +676,7 @@ html.wam-theme-light .wam-header--home {
    ===================================================== */
 .card-article {
     display: flex;
-    align-items: stretch;
-    /* Aligné sur la hauteur maximale dans une grille */
+    align-items: center;
     gap: var(--wam-spacing-sm);
     padding: var(--wam-spacing-2xs);
     border-radius: var(--wam-radius-3xl);
@@ -564,6 +687,8 @@ html.wam-theme-light .wam-header--home {
     position: relative;
     box-sizing: border-box;
     transition: border-color var(--wam-transition), background var(--wam-transition);
+    width: 92%;
+    margin: 0 auto;
 }
 
 .card-article:hover {
@@ -573,16 +698,18 @@ html.wam-theme-light .wam-header--home {
 /* Thumbnail Figma : 400×196 (card-article-featured.php) */
 .card-article__image {
     width: 400px;
-    height: 196px;
+    height: 100%;
     flex-shrink: 0;
     border-radius: var(--wam-radius-xl);
     overflow: hidden;
     position: relative;
-    background: var(--wam-color-input-bg);
 }
 
-.card-article__image .photo-wrapper {
+.card-article__image-link {
+    display: block;
+    width: 100%;
     height: 100%;
+    text-decoration: none;
 }
 
 .card-article__image img {
@@ -590,6 +717,11 @@ html.wam-theme-light .wam-header--home {
     height: 100%;
     object-fit: cover;
     display: block;
+    transition: transform var(--wam-transition-slow);
+}
+
+.card-article:hover .card-article__image img {
+    transform: scale(1.05);
 }
 
 .card-article__image-placeholder {
@@ -606,16 +738,15 @@ html.wam-theme-light .wam-header--home {
     justify-content: center;
     gap: var(--wam-spacing-sm);
     padding: var(--wam-spacing-lg);
+    width: 100%;
 }
 
 .card-article__title {
     font-family: var(--wam-font-graphical-2);
-    font-size: clamp(2rem, 4vw, 3rem);
-    /* ~48px Figma */
+    font-size: var(--wam-font-size-display-lg);
     line-height: 1;
     color: var(--wam-color-green);
     margin: 0;
-    font-style: normal;
 }
 
 .card-article__content-bottom {
@@ -636,6 +767,18 @@ html.wam-theme-light .wam-header--home {
     line-clamp: 4;
     -webkit-box-orient: vertical;
     overflow: hidden;
+}
+
+/* Bouton carré (ratio 1:1) spécifique à cet article */
+.card-article__btn {
+    border-radius: var(--wam-radius-lg) !important;
+    padding: 0 !important;
+    width: 48px;
+    height: 48px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
 }
 
 /* Pastille notification animée */
@@ -692,6 +835,18 @@ html.wam-theme-light .wam-header--home {
     }
 }
 
+
+@media (max-width: 640px) {
+    .card-article {
+        flex-direction: column;
+        align-items: center;
+    }
+
+    .card-article__image {
+        width: 100%;
+    }
+}
+
 /* =====================================================
    GRILLE PROFS — Layout réutilisable
    ===================================================== */
@@ -744,9 +899,23 @@ html.wam-theme-light .wam-header--home {
     z-index: 0;
     background: linear-gradient(to right,
             transparent 0%,
-            var(--wam-color-page-bg) 30%,
-            var(--wam-color-page-bg) 70%,
+            var(--wam-color-page-bg) 20%,
+            var(--wam-color-page-bg) 80%,
             transparent 100%);
+}
+
+@media (max-width: 768px) {
+    .section-teachers {
+        background-size: 150%;
+    }
+
+    .section-teachers::before {
+        background: linear-gradient(to right,
+                transparent 0%,
+                var(--wam-color-page-bg) 16%,
+                var(--wam-color-page-bg) 84%,
+                transparent 100%);
+    }
 }
 
 .section-teachers__title {
@@ -1032,7 +1201,18 @@ html.wam-reduce-motion .card-article__notif::after {
     position: absolute;
     inset: 0;
     pointer-events: none;
+    overflow: hidden;
     z-index: 0;
+    /* Desktop : derrière le panel, visibles à droite */
+}
+
+/* Mobile : au-dessus du panel mais limitées au bandeau supérieur */
+@media (max-width: 640px) {
+    .wam-nav__particles {
+        z-index: 10;
+        bottom: auto;
+        height: 180px;
+    }
 }
 
 /* Particule individuelle (positionnée par JS dans main.js) */
@@ -1063,6 +1243,22 @@ html.wam-reduce-motion .card-article__notif::after {
     100% {
         opacity: 0;
         transform: translateY(-120px) translateX(var(--drift, 20px));
+    }
+}
+
+/* Close-wave: overrides float animation with a quick fade-out staggered right→left */
+.keywords-particle--closing {
+    animation: kw-particle-close 0.3s ease-in var(--close-delay, 0s) forwards;
+}
+
+@keyframes kw-particle-close {
+    from {
+        opacity: 0.6;
+    }
+
+    to {
+        opacity: 0;
+        transform: translateY(-20px);
     }
 }
 
@@ -1135,11 +1331,11 @@ html.wam-reduce-motion .card-article__notif::after {
 }
 
 .wam-nav__list a {
-    font-size: 1.25rem;
+    font-size: 1.1rem;
     /* wam-md = 20px */
     transition: opacity var(--wam-transition);
-    padding-top: var(--wam-spacing-2xs);
-    padding-bottom: var(--wam-spacing-2xs);
+    padding-top: var(--wam-spacing-3xs);
+    padding-bottom: var(--wam-spacing-3xs);
     padding-right: var(--wam-spacing-4xl);
     border: none;
     display: block;
@@ -1161,7 +1357,32 @@ html.wam-reduce-motion .card-article__notif::after {
     display: none;
 }
 
-/* Sous-menu (accordéon) */
+/* Séparateur de menu — lien personnalisé avec la classe CSS "nav-separator" */
+.wam-nav__list li.nav-separator {
+    pointer-events: none;
+    padding: 0;
+    height: 1px;
+    background: var(--wam-color-icon-light);
+    margin: var(--wam-spacing-sm) 0 var(--wam-spacing-2xs);
+}
+
+.wam-nav__list li.nav-separator>.wam-nav-item-wrap>a,
+.wam-nav__list li.nav-separator>a {
+    display: none;
+    /* masque le texte "--separator" */
+}
+
+.wam-nav__list li.nav-separator::after {
+    content: '';
+    display: block;
+    height: 1px;
+    width: 100%;
+    background-color: rgba(249, 244, 236, 0.12);
+    /* --wam-color-text à 12% opacity */
+    border-radius: var(--wam-radius-pill);
+}
+
+
 .wam-nav__list .wam-nav__sub {
     padding: 0 0 0 var(--wam-spacing-xl);
     /* 32px = pl-8 */
@@ -1246,6 +1467,37 @@ html.wam-reduce-motion .card-article__notif::after {
 .wam-nav__social-link:hover {
     opacity: 0.7;
     transform: scale(1.1);
+}
+
+/* Responsive Menu Mobile */
+@media (max-width: 640px) {
+    .wam-nav-panel {
+        padding: var(--wam-spacing-xl) var(--wam-spacing-md);
+        border-top-right-radius: 0;
+        border-bottom-right-radius: 0;
+    }
+
+    .wam-nav__list a {
+        padding-right: var(--wam-spacing-xl);
+    }
+
+    /* Permettre au texte long de passer à la ligne s'il dépasse */
+    .wam-nav__list a {
+        white-space: normal;
+        word-break: break-word;
+    }
+
+    .wam-nav__chevron-btn {
+        width: 48px;
+    }
+
+    .wam-nav__list .wam-nav__sub {
+        padding-left: var(--wam-spacing-md);
+    }
+
+    .wam-nav__socials {
+        padding-top: 0;
+    }
 }
 
 /* =====================================================
@@ -1642,11 +1894,16 @@ html.wam-reduce-motion .card-article__notif::after {
     }
 
     .wam-footer__ctas {
+        flex-wrap: wrap;
         justify-content: center;
+        gap: var(--wam-spacing-md);
     }
 
     .wam-footer__socials {
-        display: none !important;
+        display: flex !important;
+        justify-content: center;
+        margin-left: 0;
+        width: 100%;
     }
 
     .wam-footer__nav-list {
@@ -1664,6 +1921,39 @@ html.wam-reduce-motion .card-article__notif::after {
     .wam-footer__flat-list {
         column-count: 1;
         column-gap: 0;
+    }
+
+    /* display: flex sur .wam-footer__course-li écrase le [hidden] natif — on force */
+    .wam-footer__flat-list .wam-footer__course-li[hidden] {
+        display: none;
+    }
+
+    /* Bouton accordéon catégorie footer (mobile only) */
+    .wam-footer__category-btn {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        width: 100%;
+        font-family: var(--wam-font-body);
+        font-size: 1.125rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        color: var(--wam-color-text);
+        background: transparent;
+        border: none;
+        padding: 0;
+        cursor: pointer;
+        text-align: left;
+    }
+
+    .wam-footer__category-btn .btn-icon {
+        flex-shrink: 0;
+        transition: transform var(--wam-transition);
+    }
+
+    .wam-footer__category-title-li.is-expanded .wam-footer__category-btn .btn-icon {
+        transform: rotate(180deg);
     }
 }
 
@@ -1894,16 +2184,7 @@ html.wam-no-graphical-fonts .title-sign-sm {
     transform: translateY(-2px);
 }
 
-@media (max-width: 1023px) {
-    .prof-header {
-        text-align: center;
-        align-items: center;
-    }
-
-    .prof-header__meta {
-        align-items: center;
-    }
-}
+/* .page-hero--centered gère le centrage du profil prof (voir layout.css) */
 
 /* Sections liées (Cours/Stages) sur le profil prof */
 .prof-related-section {

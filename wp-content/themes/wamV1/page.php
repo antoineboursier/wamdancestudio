@@ -6,7 +6,6 @@
  */
 
 get_header();
-get_template_part('template-parts/site-header');
 ?>
 
 <main id="primary" class="site-main">
@@ -26,36 +25,25 @@ get_template_part('template-parts/site-header');
                 'full' => true,
             ]); ?>
 
-            <!-- En-tête de page : titre (Mallia) + temps de lecture + image à la une optionnelle -->
-            <div id="section-page-header" class="page-header">
-                <div class="page-header__meta page-header__meta--lg">
-                    <h1 class="page-header__title is-style-title-sign-lg">
-                        <?php the_title(); ?>
-                    </h1>
-                    <?php if ($reading_time = wamv1_get_reading_time(get_the_content())) : ?>
-                        <p class="page-header__reading-time">
-                            <?php echo esc_html($reading_time); ?>
-                        </p>
-                    <?php endif; ?>
-                </div>
+            <!-- En-tête de page : titre (Mallia) + image à la une optionnelle -->
+            <?php get_template_part('template-parts/single-hero', null, [
+                'id'               => 'section-page-header',
+                'title_class'      => 'is-style-title-sign-lg',
+                'content_modifier' => 'lg',
+                'image_size'       => 'wam-page-thumbnail',
+                'image_modifier'   => 'sm',
+            ]); ?>
 
-                <?php if (has_post_thumbnail()) : ?>
-                    <!-- Image à la une (conditionnelle — non affichée si absente) -->
-                    <div class="page-header__photo-outer">
-                        <div class="page-header__photo page-header__photo--sm">
-                            <?php the_post_thumbnail('wam-page-thumbnail', ['class' => 'page-header__photo-img']); ?>
-                            <div class="page-header__photo-overlay"></div>
-                        </div>
+            <?php
+            $page_content = get_the_content();
+            if (!empty(trim($page_content))): ?>
+                <!-- Contenu Gutenberg -->
+                <div id="section-page-content" class="page-content">
+                    <div class="page-content__inner wam-prose">
+                        <?php echo apply_filters('the_content', $page_content); ?>
                     </div>
-                <?php endif; ?>
-            </div>
-
-            <!-- Contenu Gutenberg -->
-            <div id="section-page-content" class="page-content">
-                <div class="page-content__inner wam-prose">
-                    <?php the_content(); ?>
                 </div>
-            </div>
+            <?php endif; ?>
 
         <?php endwhile; ?>
 

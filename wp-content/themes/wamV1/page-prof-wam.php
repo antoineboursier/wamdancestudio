@@ -7,7 +7,6 @@
  */
 
 get_header();
-get_template_part('template-parts/site-header');
 
 /* ---- Données de la page courante ---- */
 $page       = get_queried_object();
@@ -38,21 +37,18 @@ $icons_path = get_template_directory_uri() . '/assets/images/';
                 'icons_path' => $icons_path,
             ]); ?>
 
-            <!-- ============================================================
-                 CONTENU ÉDITORIAL
-                 ============================================================ -->
-            <div id="section-content" class="section-content wam-container">
-                <div class="wam-prose">
-                    <?php
-                    if (have_posts()) {
-                        while (have_posts()) {
-                            the_post();
-                            the_content();
-                        }
-                    }
-                    ?>
+            <?php
+            $prof_description = get_post_field('post_content', $page->ID);
+            if (!empty(trim($prof_description))): ?>
+                <!-- ============================================================
+                     CONTENU ÉDITORIAL
+                     ============================================================ -->
+                <div id="section-content" class="section-content wam-container">
+                    <div class="wam-prose">
+                        <?php echo apply_filters('the_content', $prof_description); ?>
+                    </div>
                 </div>
-            </div>
+            <?php endif; ?>
 
             <!-- ============================================================
                  GRILLE DES PROFS (Réutilisation du composant section-teachers)
@@ -70,6 +66,5 @@ $icons_path = get_template_directory_uri() . '/assets/images/';
 </main>
 
 <?php
-get_template_part('template-parts/site-footer');
 get_footer();
 ?>

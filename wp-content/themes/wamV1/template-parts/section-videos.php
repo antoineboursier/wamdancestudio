@@ -33,10 +33,8 @@ $videos = [
                     aria-label="<?php esc_attr_e('Vidéo de danse 1', 'wamv1'); ?>"></video>
             </div>
             <div class="videos-title" aria-hidden="true">
-                <?php /* "We are" — .title-cool-lg */ ?>
-                <span class="title-cool-lg videos-title__we-are">We are</span>
-                <?php /* "move" — Cholo Rhita 100px yellow — style inline car taille hors token */ ?>
-                <span class="videos-title__move" style="font-size: 6.25rem;">move</span>
+                <span class="is-style-title-cool-lg">We are</span>
+                <span class="is-style-title-cool-lg color-yellow videos-move-xl">move</span>
             </div>
             <div class="video-card video-card--v3">
                 <video src="<?php echo esc_url($videos[2]); ?>"

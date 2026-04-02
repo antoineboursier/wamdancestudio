@@ -10,9 +10,9 @@
 $icon_dir = get_template_directory_uri() . '/assets/images/';
 
 $keywords = array(
-    array('text' => '{Bienveillance}', 'class' => 'kw-mallia',  'id' => 'kw-0'),
-    array('text' => '{ Collectif }',   'class' => 'kw-cholo',   'id' => 'kw-1'),
-    array('text' => '{ confiance }',   'class' => 'kw-outfit',  'id' => 'kw-2'),
+    array('text' => '{Bienveillance}', 'class' => 'is-style-title-sign-lg',  'id' => 'kw-0'),
+    array('text' => '{ Collectif }',   'class' => 'is-style-title-cool-lg',   'id' => 'kw-1'),
+    array('text' => '{ confiance }',   'class' => 'is-style-title-norm-lg',  'id' => 'kw-2'),
 );
 ?>
 <section class="section-keywords"

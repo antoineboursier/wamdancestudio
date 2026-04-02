@@ -160,7 +160,8 @@ $icon_dir       = get_template_directory_uri() . '/assets/images/';
             if (!empty($grouped_cours)):
                 ?>
                 <div class="wam-footer__columns">
-                    <ul class="wam-footer__flat-list">
+                    <ul class="wam-footer__flat-list js-footer-accordion"
+                        data-chevron-url="<?php echo esc_url(get_template_directory_uri() . '/assets/images/chevron_down.svg'); ?>">
                         <?php foreach ($grouped_cours as $group): ?>
                             <li class="wam-footer__category-title-li" role="heading" aria-level="3">
                                 <?php echo esc_html($group['term']->name); ?>
@@ -229,7 +230,8 @@ $icon_dir       = get_template_directory_uri() . '/assets/images/';
             if (!empty($stages_posts)):
                 ?>
                 <div class="wam-footer__columns">
-                    <ul class="wam-footer__flat-list">
+                    <ul class="wam-footer__flat-list js-footer-accordion"
+                        data-chevron-url="<?php echo esc_url(get_template_directory_uri() . '/assets/images/chevron_down.svg'); ?>">
                         <?php foreach ($stages_posts as $stage_post):
                             $id = $stage_post->ID;
                             $sous_titre = function_exists('get_field') ? get_field('sous_titre', $id) : '';

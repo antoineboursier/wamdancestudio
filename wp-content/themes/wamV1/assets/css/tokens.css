@@ -116,6 +116,8 @@
        Couleurs sémantiques UI semi-transparentes (Glassmorphism)
        ------------------------------------------------------- */
     --wam-color-glass-white: rgba(249, 244, 236, 0.06);
+    --wam-color-icon-light: var(--wam-color-subtext);
+    /* text/subtle Figma — icônes neutres en variante standard */
     /* UI/opacity-white-bg Figma */
     --wam-color-glass-white-hover: rgba(249, 244, 236, 0.12);
     --wam-color-glass-green: rgba(1, 227, 189, 0.12);
@@ -168,4 +170,10 @@
     --wam-font-graphical-2: 'Cholo Rhita', sans-serif;
     --wam-font-body: var(--wp--preset--font-family--outfit);
     --wam-font-system: var(--wp--preset--font-family--outfit);
+}
+
+@media (max-width: 640px) {
+    :root {
+        --wam-page-mx: 2rem;
+    }
 }

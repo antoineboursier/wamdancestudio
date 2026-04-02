@@ -19,7 +19,7 @@
     /* 16px */
     --wam-field-py: var(--wam-spacing-2xs);
     /* 8px */
-    --wam-field-font-size: var(--wam-font-size-lg);
+    --wam-field-font-size: var(--wam-font-size-md);
     /* 20px */
     --wam-label-font-size: var(--wam-font-size-sm);
     /* 14px */

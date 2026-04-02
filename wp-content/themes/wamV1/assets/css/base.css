@@ -65,6 +65,12 @@ blockquote {
     padding: 0;
 }
 
+form {
+    display: flex;
+    flex-direction: column;
+    gap: var(--wam-spacing-sm);
+}
+
 /* Listes sans style de base */
 ul,
 ol {
@@ -78,6 +84,50 @@ ul li+li {
 /* Liens par défaut */
 a {
     color: inherit;
+}
+
+/* =====================================================
+   DÉTECTION LIENS EXTERNES
+   Auto-marquage via .is-external (inséré par PHP)
+   ===================================================== */
+.is-external {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25em;
+    /* petit espace réglable */
+    text-decoration: underline;
+    text-underline-offset: 4px;
+}
+
+/* Le picto hérite de la couleur du lien (stroke currentColor dans l'SVG) */
+.is-external::after {
+    content: "";
+    display: inline-block;
+    width: 0.75em;
+    height: 0.75em;
+    flex-shrink: 0;
+    background-color: currentColor;
+    /* Couleur dynamique du lien */
+
+    /* On utilise mask-image pour colorer l'SVG via background-color */
+    -webkit-mask-image: url('../images/Name=external%20link.svg');
+    mask-image: url('../images/Name=external%20link.svg');
+    -webkit-mask-size: contain;
+    mask-size: contain;
+    -webkit-mask-repeat: no-repeat;
+    mask-repeat: no-repeat;
+
+    /* Alignement optique */
+    margin-top: -2px;
+    transition: transform var(--wam-transition), opacity var(--wam-transition);
+    opacity: 0.8;
+}
+
+.is-external:hover::after {
+    opacity: 1;
+    transform: translate(2px, -2px);
+    /* micro-animation directionnelle */
 }
 
 /* Focus visible global */
@@ -313,16 +363,14 @@ hr {
    ------------------------------------------------------- */
 
 /* Title Norm — Outfit Bold */
-.title-norm-lg,
 .is-style-title-norm-lg {
     font-family: var(--wam-font-body);
-    font-size: var(--wam-font-size-h2);
+    font-size: var(--wam-font-size-h1);
     /* 32px */
     font-weight: 700;
     line-height: 1.1;
 }
 
-.title-norm-md,
 .is-style-title-norm-md {
     font-family: var(--wam-font-body);
     font-size: 28px;
@@ -330,7 +378,6 @@ hr {
     line-height: 1.1;
 }
 
-.title-norm-sm,
 .is-style-title-norm-sm {
     font-family: var(--wam-font-body);
     font-size: 22px;
@@ -339,7 +386,6 @@ hr {
 }
 
 /* Title Cool — Cholo Rhita */
-.title-cool-lg,
 .is-style-title-cool-lg {
     font-family: var(--wam-font-graphical-2);
     font-size: var(--wam-font-size-display-lg);
@@ -348,7 +394,6 @@ hr {
     line-height: 1;
 }
 
-.title-cool-md,
 .is-style-title-cool-md {
     font-family: var(--wam-font-graphical-2);
     font-size: 36px;
@@ -357,7 +402,6 @@ hr {
 }
 
 /* Title Sign — Mallia */
-.title-sign-lg,
 .is-style-title-sign-lg {
     font-family: var(--wam-font-graphical-1);
     font-size: 46px;
@@ -365,7 +409,6 @@ hr {
     line-height: 1.3;
 }
 
-.title-sign-md,
 .is-style-title-sign-md {
     font-family: var(--wam-font-graphical-1);
     font-size: 32px;
@@ -373,7 +416,6 @@ hr {
     line-height: 1.1;
 }
 
-.title-sign-sm,
 .is-style-title-sign-sm {
     font-family: var(--wam-font-graphical-1);
     font-size: 24px;
@@ -407,28 +449,8 @@ hr {
 }
 
 /* Figma Utilities */
-.text-md {
-    font-size: var(--wam-font-size-md);
-    line-height: 1.25;
-}
-
 .color-subtitle {
     color: var(--wam-color-subtext);
-}
-
-.text-lg {
-    font-size: var(--wam-font-size-lg);
-    line-height: 1.25;
-}
-
-.text-sm {
-    font-size: var(--wam-font-size-sm);
-    line-height: 1.25;
-}
-
-.text-xs {
-    font-size: var(--wam-font-size-xs);
-    line-height: 1.25;
 }
 
 .fw-bold {
@@ -466,20 +488,27 @@ hr {
 
 /* Espacements utilitaires */
 .mt-3xs {
-    margin-top: var(--wam-spacing-3xs) !important; /* 4px */
+    margin-top: var(--wam-spacing-3xs) !important;
+    /* 4px */
 }
+
 .mt-2xs {
-    margin-top: var(--wam-spacing-2xs) !important; /* 8px */
+    margin-top: var(--wam-spacing-2xs) !important;
+    /* 8px */
 }
+
 .mt-2xl {
     margin-top: var(--wam-spacing-2xl) !important;
 }
+
 .mb-sm {
     margin-bottom: var(--wam-spacing-sm) !important;
 }
+
 .mb-md {
     margin-bottom: var(--wam-spacing-md) !important;
 }
+
 .mb-xl {
     margin-bottom: var(--wam-spacing-xl) !important;
 }

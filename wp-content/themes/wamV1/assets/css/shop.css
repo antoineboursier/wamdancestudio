@@ -18,7 +18,8 @@
 
 .woocommerce ul.products::before,
 .woocommerce ul.products::after {
-    display: none; /* Reset floats Woocommerce */
+    display: none;
+    /* Reset floats Woocommerce */
 }
 
 /* Card Produit */
@@ -52,9 +53,9 @@
 }
 
 /* Boutons */
-.woocommerce #respond input#submit, 
-.woocommerce a.button, 
-.woocommerce button.button, 
+.woocommerce #respond input#submit,
+.woocommerce a.button,
+.woocommerce button.button,
 .woocommerce input.button {
     background-color: var(--wam-color-yellow);
     color: var(--wam-color-on-light-text);
@@ -68,24 +69,799 @@
     transition: all var(--wam-transition);
 }
 
-.woocommerce #respond input#submit:hover, 
-.woocommerce a.button:hover, 
-.woocommerce button.button:hover, 
+.woocommerce #respond input#submit:hover,
+.woocommerce a.button:hover,
+.woocommerce button.button:hover,
 .woocommerce input.button:hover {
     background-color: var(--wam-color-text);
     color: var(--wam-color-page-bg);
 }
 
 /* Notifications */
-.woocommerce-message, 
-.woocommerce-info, 
+.woocommerce-message,
+.woocommerce-info,
 .woocommerce-error {
     background-color: var(--wam-color-card-bg) !important;
     color: var(--wam-color-text) !important;
     border-top-color: var(--wam-color-yellow) !important;
     border-radius: var(--wam-radius-md);
+    font-size: var(--wam-font-size-h3);
+    padding: var(--wam-spacing-xs);
+    margin-bottom: var(--wam-spacing-lg);
 }
 
 .woocommerce-message::before {
     color: var(--wam-color-yellow) !important;
+}
+
+/* =====================================================
+   PANIER (.woocommerce-cart)
+   ===================================================== */
+
+/* Reset floats hérités WC */
+.woocommerce-cart .woocommerce::after,
+.woocommerce-page .woocommerce::after {
+    display: none;
+}
+
+/* Tableau panier */
+.woocommerce-cart .shop_table.cart {
+    width: 100%;
+    border-collapse: collapse;
+    background: var(--wam-color-card-bg);
+    border-radius: var(--wam-radius-lg);
+    overflow: hidden;
+}
+
+.woocommerce-cart .shop_table thead th {
+    padding: var(--wam-spacing-md) var(--wam-spacing-lg);
+    text-align: left;
+    font-family: var(--wam-font-body);
+    font-weight: 700;
+    font-size: 0.85rem;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--wam-color-subtext);
+    border-bottom: 1px solid rgba(249, 244, 236, 0.08);
+}
+
+.woocommerce-cart .cart_item td {
+    padding: var(--wam-spacing-md) var(--wam-spacing-lg);
+    border-bottom: 1px solid rgba(249, 244, 236, 0.06);
+    vertical-align: middle;
+    color: var(--wam-color-text);
+}
+
+.woocommerce-cart .cart_item:last-child td {
+    border-bottom: none;
+}
+
+/* Image produit dans le panier */
+.woocommerce-cart .cart_item .woocommerce-cart-item__image img {
+    border-radius: var(--wam-radius-sm);
+    width: 72px;
+    height: 72px;
+    object-fit: cover;
+}
+
+/* Quantité */
+.woocommerce-cart .qty {
+    width: 60px;
+    padding: 6px 8px;
+    background: var(--wam-color-page-bg);
+    border: 1px solid rgba(249, 244, 236, 0.15);
+    border-radius: var(--wam-radius-sm);
+    color: var(--wam-color-text);
+    font-family: var(--wam-font-body);
+    text-align: center;
+}
+
+/* Prix */
+.woocommerce-cart .woocommerce-Price-amount {
+    color: var(--wam-color-yellow);
+    font-weight: 600;
+}
+
+/* Bouton "Mettre à jour le panier" */
+.woocommerce-cart .actions .button[name="update_cart"] {
+    background: transparent;
+    border: 1px solid rgba(249, 244, 236, 0.2);
+    color: var(--wam-color-subtext);
+    font-size: 0.85rem;
+    padding: 8px 16px;
+}
+
+.woocommerce-cart .actions .button[name="update_cart"]:hover {
+    background: rgba(249, 244, 236, 0.06);
+    color: var(--wam-color-text);
+}
+
+/* Bloc sous-total / total */
+.woocommerce-cart .cart_totals {
+    background: var(--wam-color-card-bg);
+    border-radius: var(--wam-radius-lg);
+    padding: var(--wam-spacing-xl);
+    margin-top: var(--wam-spacing-xl);
+}
+
+.woocommerce-cart .cart_totals h2 {
+    font-family: var(--wam-font-graphical-1);
+    font-size: 1.4rem;
+    margin-bottom: var(--wam-spacing-md);
+    color: var(--wam-color-text);
+}
+
+.woocommerce-cart .cart-subtotal,
+.woocommerce-cart .order-total {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    padding: var(--wam-spacing-sm) 0;
+    border-bottom: 1px solid rgba(249, 244, 236, 0.06);
+}
+
+.woocommerce-cart .order-total {
+    border-bottom: none;
+    font-size: 1.1rem;
+    font-weight: 700;
+}
+
+/* Bouton "Commander" */
+.woocommerce-cart .proceed-to-checkout .checkout-button {
+    display: block;
+    width: 100%;
+    text-align: center;
+    margin-top: var(--wam-spacing-md);
+    background-color: var(--wam-color-yellow);
+    color: var(--wam-color-on-light-text);
+    font-family: var(--wam-font-body);
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    border-radius: var(--wam-radius-pill);
+    padding: 14px 28px;
+    border: none;
+    transition: background-color var(--wam-transition);
+}
+
+.woocommerce-cart .proceed-to-checkout .checkout-button:hover {
+    background-color: var(--wam-color-text);
+    color: var(--wam-color-page-bg);
+}
+
+/* =====================================================
+   CHECKOUT (.woocommerce-checkout)
+   ===================================================== */
+
+.woocommerce-checkout .woocommerce-billing-fields__field-wrapper,
+.woocommerce-checkout .woocommerce-shipping-fields__field-wrapper {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0 var(--wam-spacing-md);
+}
+
+/* Champs pleine largeur (email, téléphone, adresse) */
+.woocommerce-checkout .form-row-wide {
+    grid-column: 1 / -1;
+}
+
+.woocommerce-checkout .form-row label {
+    display: block;
+    font-size: 0.85rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: var(--wam-color-subtext);
+    margin-bottom: 4px;
+}
+
+.woocommerce-checkout .form-row input,
+.woocommerce-checkout .form-row select,
+.woocommerce-checkout .form-row textarea {
+    width: 100%;
+    background: var(--wam-color-card-bg);
+    border: 1px solid rgba(249, 244, 236, 0.15);
+    border-radius: var(--wam-radius-sm);
+    color: var(--wam-color-text);
+    font-family: var(--wam-font-body);
+    font-size: 1rem;
+    padding: 10px 14px;
+    transition: border-color var(--wam-transition);
+}
+
+.woocommerce-checkout .form-row input:focus,
+.woocommerce-checkout .form-row select:focus,
+.woocommerce-checkout .form-row textarea:focus {
+    border-color: var(--wam-color-yellow);
+    outline: none;
+}
+
+/* Récapitulatif commande */
+.woocommerce-checkout #order_review {
+    background: var(--wam-color-card-bg);
+    border-radius: var(--wam-radius-lg);
+    padding: var(--wam-spacing-xl);
+}
+
+.woocommerce-checkout #order_review_heading {
+    font-family: var(--wam-font-graphical-1);
+    font-size: 1.4rem;
+    color: var(--wam-color-text);
+    margin-bottom: var(--wam-spacing-md);
+}
+
+/* Tableau récapitulatif */
+.woocommerce-checkout .woocommerce-checkout-review-order-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.woocommerce-checkout .woocommerce-checkout-review-order-table th,
+.woocommerce-checkout .woocommerce-checkout-review-order-table td {
+    padding: var(--wam-spacing-sm) 0;
+    border-bottom: 1px solid rgba(249, 244, 236, 0.06);
+    color: var(--wam-color-text);
+}
+
+.woocommerce-checkout .woocommerce-checkout-review-order-table .order-total td {
+    font-weight: 700;
+    color: var(--wam-color-yellow);
+    border-bottom: none;
+}
+
+/* Section paiement */
+.woocommerce-checkout #payment {
+    background: var(--wam-color-page-bg);
+    border-radius: var(--wam-radius-md);
+    padding: var(--wam-spacing-lg);
+    margin-top: var(--wam-spacing-md);
+}
+
+.woocommerce-checkout #payment .payment_methods li label {
+    color: var(--wam-color-text);
+    font-weight: 600;
+    cursor: pointer;
+}
+
+/* Bouton "Passer la commande" */
+.woocommerce-checkout #place_order {
+    display: block;
+    width: 100%;
+    background-color: var(--wam-color-yellow);
+    color: var(--wam-color-on-light-text);
+    font-family: var(--wam-font-body);
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    border-radius: var(--wam-radius-pill);
+    padding: 14px 28px;
+    border: none;
+    cursor: pointer;
+    margin-top: var(--wam-spacing-md);
+    transition: background-color var(--wam-transition);
+}
+
+.woocommerce-checkout #place_order:hover {
+    background-color: var(--wam-color-text);
+    color: var(--wam-color-page-bg);
+}
+
+/* =====================================================
+   MON COMPTE (.woocommerce-account)
+   ===================================================== */
+
+/* Page connexion (non connecté) — centrage vertical */
+.woocommerce-account .woocommerce:not(:has(.woocommerce-MyAccount-navigation)) {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    align-items: center;
+    text-align: center;
+}
+
+label.woocommerce-form-login__rememberme {
+    justify-content: center;
+}
+
+/* Vue connectée — grille navigation | contenu */
+.woocommerce-account .woocommerce:has(.woocommerce-MyAccount-navigation) {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: var(--wam-spacing-xl);
+    width: 100%;
+    align-items: start;
+}
+
+@media (min-width: 1024px) {
+    .woocommerce-account .woocommerce:has(.woocommerce-MyAccount-navigation) {
+        grid-template-columns: 220px 1fr;
+    }
+}
+
+/* Navigation Mon compte */
+.woocommerce-account .woocommerce-MyAccount-navigation {
+    background: var(--wam-color-card-bg);
+    border-radius: var(--wam-radius-lg);
+    padding: var(--wam-spacing-lg) 0;
+    overflow: hidden;
+}
+
+.woocommerce-account .woocommerce-MyAccount-navigation ul {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+}
+
+.woocommerce-account .woocommerce-MyAccount-navigation li a {
+    display: block;
+    padding: var(--wam-spacing-sm) var(--wam-spacing-lg);
+    color: var(--wam-color-text);
+    text-decoration: none;
+    font-size: var(--wam-font-size-sm);
+    /* 16px */
+    font-weight: 500;
+    transition: background-color var(--wam-transition), color var(--wam-transition);
+}
+
+.woocommerce-account .woocommerce-MyAccount-navigation li a:hover {
+    background: rgba(249, 244, 236, 0.06);
+    color: var(--wam-color-yellow);
+}
+
+.woocommerce-account .woocommerce-MyAccount-navigation li.is-active a {
+    background: rgba(var(--wam-color-yellow-rgb, 255, 209, 0), 0.12);
+    color: var(--wam-color-yellow);
+    font-weight: 700;
+    border-left: 3px solid var(--wam-color-yellow);
+}
+
+/* "Se déconnecter" — lien discret séparé du menu */
+.woocommerce-account .woocommerce-MyAccount-navigation li.woocommerce-MyAccount-navigation-link--customer-logout {
+    margin-top: var(--wam-spacing-lg);
+    padding-top: var(--wam-spacing-lg);
+    border-top: 1px solid rgba(249, 244, 236, 0.08);
+}
+
+.woocommerce-account .woocommerce-MyAccount-navigation li.woocommerce-MyAccount-navigation-link--customer-logout a {
+    font-size: 0.8rem;
+    color: var(--wam-color-subtext);
+    font-weight: 400;
+    text-decoration: underline;
+    text-underline-offset: 3px;
+    padding-top: 0;
+    padding-bottom: 0;
+}
+
+.woocommerce-account .woocommerce-MyAccount-navigation li.woocommerce-MyAccount-navigation-link--customer-logout a:hover {
+    background: transparent;
+    color: var(--wam-color-orange);
+}
+
+/* Contenu Mon compte */
+.woocommerce-account .woocommerce-MyAccount-content {
+    background: var(--wam-color-card-bg);
+    border-radius: var(--wam-radius-lg);
+    padding: var(--wam-spacing-xl);
+}
+
+/* Tableau des commandes */
+.woocommerce-account .woocommerce-orders-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.95rem;
+}
+
+.woocommerce-account .woocommerce-orders-table th {
+    padding: var(--wam-spacing-sm) var(--wam-spacing-md);
+    text-align: left;
+    font-size: 0.8rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--wam-color-subtext);
+    border-bottom: 1px solid rgba(249, 244, 236, 0.1);
+}
+
+.woocommerce-account .woocommerce-orders-table td {
+    padding: var(--wam-spacing-sm) var(--wam-spacing-md);
+    border-bottom: 1px solid rgba(249, 244, 236, 0.06);
+    color: var(--wam-color-text);
+    vertical-align: middle;
+}
+
+.woocommerce-account .woocommerce-orders-table tr:nth-child(even) td {
+    background: rgba(249, 244, 236, 0.02);
+}
+
+/* Statut commande */
+.woocommerce-account .woocommerce-orders-table .woocommerce-orders-table__cell-order-status mark {
+    background: transparent;
+    font-weight: 600;
+    padding: 2px 8px;
+    border-radius: var(--wam-radius-sm);
+}
+
+.woocommerce-account .order-status.status-completed {
+    color: #4caf50;
+}
+
+.woocommerce-account .order-status.status-processing {
+    color: var(--wam-color-yellow);
+}
+
+.woocommerce-account .order-status.status-on-hold {
+    color: var(--wam-color-orange);
+}
+
+.woocommerce-account .order-status.status-cancelled {
+    color: #f44336;
+}
+
+/* Formulaires de connexion / inscription non connecté */
+.woocommerce-account .u-columns {
+    display: grid;
+    gap: var(--wam-spacing-xl);
+}
+
+@media (min-width: 768px) {
+    .woocommerce-account .u-columns {
+        grid-template-columns: 1fr 1fr;
+    }
+}
+
+.woocommerce-account .u-column1,
+.woocommerce-account .u-column2 {
+    background: var(--wam-color-card-bg);
+    border-radius: var(--wam-radius-lg);
+    padding: var(--wam-spacing-xl);
+}
+
+.woocommerce-account .u-column1 h2,
+.woocommerce-account .u-column2 h2 {
+    font-family: var(--wam-font-graphical-1);
+    font-size: 1.4rem;
+    color: var(--wam-color-text);
+    margin-bottom: var(--wam-spacing-md);
+}
+
+.woocommerce-account .form-row label {
+    display: block;
+    font-size: 0.85rem;
+    color: var(--wam-color-subtext);
+    margin-bottom: 4px;
+}
+
+.woocommerce-account .form-row input {
+    width: 100%;
+    background: var(--wam-color-page-bg);
+    border: 1px solid rgba(249, 244, 236, 0.15);
+    border-radius: var(--wam-radius-sm);
+    color: var(--wam-color-text);
+    font-family: var(--wam-font-body);
+    font-size: 1rem;
+    padding: 10px 14px;
+    transition: border-color var(--wam-transition);
+}
+
+.woocommerce-account .form-row input:focus {
+    border-color: var(--wam-color-yellow);
+    outline: none;
+}
+
+/* =====================================================
+   INPUTS WC — couverture globale (toutes sous-pages)
+   Classes réelles utilisées par les templates WC :
+   .woocommerce-Input, .input-text, .woocommerce-form-row
+   ===================================================== */
+
+/* Inputs — label */
+.woocommerce .woocommerce-form-row label,
+.woocommerce .woocommerce-EditAccountForm label,
+.woocommerce .woocommerce-form-login label,
+.woocommerce-account fieldset legend {
+    display: block;
+    font-family: var(--wam-font-body);
+    font-size: 0.8rem;
+    color: var(--wam-color-subtext);
+    margin-bottom: 4px;
+}
+
+.woocommerce label.woocommerce-form__label-for-checkbox {
+    display: flex !important;
+    gap: var(--wam-spacing-3xs);
+    font-size: 1rem;
+    padding: var(--wam-spacing-2xs) var(--wam-spacing-2xs) var(--wam-spacing-2xs) 0;
+    margin-bottom: var(--wam-spacing-sm);
+}
+
+/* Inputs — champs texte / email / password */
+.woocommerce .woocommerce-Input,
+.woocommerce .input-text,
+.woocommerce input[type="text"],
+.woocommerce input[type="email"],
+.woocommerce input[type="password"],
+.woocommerce input[type="tel"],
+.woocommerce input[type="number"],
+.woocommerce select,
+.woocommerce textarea {
+    width: 100%;
+    background: var(--wam-color-input-bg);
+    border: 1px solid rgba(249, 244, 236, 0.12);
+    border-radius: var(--wam-radius-sm);
+    color: var(--wam-color-text);
+    font-family: var(--wam-font-body);
+    font-size: 1rem;
+    padding: 10px 14px;
+    transition: border-color var(--wam-transition), box-shadow var(--wam-transition);
+    box-sizing: border-box;
+    appearance: none;
+    -webkit-appearance: none;
+    max-width: 400px;
+}
+
+.woocommerce .woocommerce-Input:focus,
+.woocommerce .input-text:focus,
+.woocommerce input[type="text"]:focus,
+.woocommerce input[type="email"]:focus,
+.woocommerce input[type="password"]:focus,
+.woocommerce input[type="tel"]:focus,
+.woocommerce select:focus,
+.woocommerce textarea:focus {
+    border-color: var(--wam-color-yellow);
+    box-shadow: 0 0 0 3px rgba(253, 217, 0, 0.12);
+    outline: none;
+}
+
+/* Checkbox (rememberme, CGV) */
+.woocommerce input[type="checkbox"] {
+    width: 16px;
+    accent-color: var(--wam-color-yellow);
+    height: 16px;
+}
+
+/* Champs côte à côte : --first (gauche) / --last (droite) */
+.woocommerce .woocommerce-form-row--first,
+.woocommerce .woocommerce-form-row--last {
+    display: inline-block;
+    width: calc(50% - 8px);
+    vertical-align: top;
+}
+
+.woocommerce .woocommerce-form-row--first {
+    margin-right: 16px;
+}
+
+@media (max-width: 600px) {
+
+    .woocommerce .woocommerce-form-row--first,
+    .woocommerce .woocommerce-form-row--last {
+        display: block;
+        width: 100%;
+        margin-right: 0;
+    }
+}
+
+/* Fieldset (section "Changement de mot de passe") */
+.woocommerce fieldset {
+    border: 1px solid rgba(249, 244, 236, 0.1);
+    border-radius: var(--wam-radius-md);
+    padding: var(--wam-spacing-lg);
+    margin: var(--wam-spacing-lg) 0;
+}
+
+.woocommerce fieldset legend {
+    padding: 0 var(--wam-spacing-sm);
+    font-size: 1rem;
+    text-transform: none;
+    color: var(--wam-color-text);
+    margin-left: calc(-1 * var(--wam-spacing-sm));
+}
+
+.woocommerce span.password-input,
+.woocommerce-account span.password-input,
+span.password-input {
+    position: relative !important;
+    width: 100%;
+    max-width: 400px;
+}
+
+.woocommerce .show-password-input,
+.woocommerce-account .show-password-input,
+button.show-password-input {
+    position: absolute !important;
+    right: 12px;
+    top: 50%;
+    transform: translateY(-50%);
+    background: none !important;
+    border: none !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    width: 20px !important;
+    height: 20px !important;
+    font-size: 0 !important;
+    cursor: pointer;
+    opacity: 0.5;
+    transition: opacity var(--wam-transition);
+    z-index: 2;
+}
+
+/* Icône œil — password masqué */
+button.show-password-input::after {
+    content: '';
+    display: block;
+    width: 20px;
+    height: 20px;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='20' height='20' viewBox='0 0 24 24' fill='none' stroke='%23F9F4EB' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z'/%3E%3Ccircle cx='12' cy='12' r='3'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-size: 20px 20px;
+}
+
+/* Icône œil barré — password visible */
+button.show-password-input.display-password::after {
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='20' height='20' viewBox='0 0 24 24' fill='none' stroke='%23F9F4EB' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94'/%3E%3Cpath d='M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19'/%3E%3Cline x1='1' y1='1' x2='23' y2='23'/%3E%3C/svg%3E");
+}
+
+.woocommerce .show-password-input:hover,
+.woocommerce-account .show-password-input:hover {
+    opacity: 1;
+    background: none !important;
+}
+
+/* Le conteneur password-input doit être relatif pour l'icône absolue */
+.woocommerce .password-input,
+.woocommerce-account .password-input {
+    position: relative;
+    display: block;
+}
+
+/* Boutons WC — calqués sur .btn-primary du thème */
+.woocommerce .woocommerce-Button,
+.woocommerce .woocommerce-button,
+.woocommerce button.button,
+.woocommerce a.button,
+.woocommerce input[type="submit"] {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    gap: var(--wam-spacing-2xs);
+    padding: var(--wam-spacing-sm) var(--wam-spacing-xl);
+    background-color: var(--wam-color-yellow);
+    background-clip: padding-box;
+    border: 3px solid transparent;
+    border-radius: var(--wam-radius-lg);
+    color: var(--wp--preset--color--background-500) !important;
+    font-family: var(--wam-font-body);
+    font-weight: 700;
+    font-size: 1.25rem;
+    /* même que btn-primary */
+    text-decoration: none;
+    white-space: nowrap;
+    line-height: 1.25;
+    cursor: pointer;
+    width: fit-content;
+    z-index: 1;
+    transition: opacity var(--wam-transition);
+    text-transform: none;
+    letter-spacing: normal;
+}
+
+/* Bordure gradient-brand au hover (::before) */
+.woocommerce .woocommerce-Button::before,
+.woocommerce .woocommerce-button::before,
+.woocommerce button.button::before,
+.woocommerce a.button::before,
+.woocommerce input[type="submit"]::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    padding: 3px;
+    border-radius: calc(var(--wam-radius-lg) - 3px);
+    background: var(--wam-gradient-brand);
+    -webkit-mask:
+        linear-gradient(#000 0 0) content-box,
+        linear-gradient(#000 0 0);
+    -webkit-mask-composite: destination-out;
+    mask:
+        linear-gradient(#000 0 0) content-box,
+        linear-gradient(#000 0 0);
+    mask-composite: exclude;
+    z-index: -1;
+    opacity: 0;
+    transition: opacity var(--wam-transition);
+}
+
+.woocommerce .woocommerce-Button:hover::before,
+.woocommerce .woocommerce-button:hover::before,
+.woocommerce button.button:hover::before,
+.woocommerce a.button:hover::before,
+.woocommerce input[type="submit"]:hover::before {
+    opacity: 1;
+}
+
+.woocommerce .woocommerce-Button:hover,
+.woocommerce .woocommerce-button:hover,
+.woocommerce button.button:hover,
+.woocommerce a.button:hover,
+.woocommerce input[type="submit"]:hover {
+    opacity: 1 !important;
+    background-color: var(--wam-color-yellow);
+    color: var(--wp--preset--color--background-500) !important;
+}
+
+/* Lien "Mot de passe oublié" */
+.woocommerce .woocommerce-LostPassword a {
+    color: var(--wam-color-disabled);
+    font-size: 1rem;
+    text-decoration: underline;
+    text-underline-offset: 2px;
+}
+
+.woocommerce .woocommerce-LostPassword a:hover {
+    color: var(--wam-color-yellow);
+}
+
+/* Autofill navigateur — forcer le fond sombre */
+.woocommerce input:-webkit-autofill,
+.woocommerce input:-webkit-autofill:hover,
+.woocommerce input:-webkit-autofill:focus,
+.woocommerce input:-webkit-autofill:active {
+    -webkit-box-shadow: 0 0 0 1000px var(--wam-color-input-bg) inset !important;
+    -webkit-text-fill-color: var(--wam-color-text) !important;
+    caret-color: var(--wam-color-text);
+    transition: background-color 5000s ease-in-out 0s;
+}
+
+/* Texte d'indication (em dans edit-account) */
+.woocommerce .woocommerce-form-row em,
+.woocommerce-account em {
+    font-size: 0.8rem;
+    color: var(--wam-color-subtext);
+    font-style: normal;
+}
+
+/* =====================================================
+   NOTICES WC — complétion des notices existantes
+   ===================================================== */
+
+.woocommerce-error {
+    border-top-color: var(--wam-color-orange) !important;
+}
+
+.woocommerce-error li {
+    color: var(--wam-color-orange);
+}
+
+.woocommerce-error::before {
+    color: var(--wam-color-orange) !important;
+}
+
+.woocommerce-info {
+    border-top-color: var(--wam-color-yellow) !important;
+}
+
+.woocommerce-info::before {
+    color: var(--wam-color-yellow) !important;
+}
+
+/* =====================================================
+   PANIER VIDE
+   ===================================================== */
+.wam-cart-empty {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: var(--wam-spacing-md);
+    padding: var(--wam-spacing-4xl) 0;
+    text-align: center;
+}
+
+.wam-cart-empty__icon {
+    width: 80px;
+    height: 80px;
+}
+
+.wam-cart-empty__message {
+    font-family: var(--wam-font-body);
+    font-size: var(--wam-font-size-lg);
+    color: var(--wam-color-subtext);
+    margin: 0;
 }

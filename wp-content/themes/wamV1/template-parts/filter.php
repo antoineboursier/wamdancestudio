@@ -18,9 +18,9 @@ $icons_path   = $args['icons_path'] ?? (get_template_directory_uri() . '/assets/
 <div class="cours-filter" role="search" aria-label="Filtrer les cours">
 
     <div class="cours-filter__chips">
-        <span class="cours-filter__label" aria-hidden="true">Filtrer&nbsp;:</span>
+        <span class="cours-filter__label text-md" aria-hidden="true">Filtrer&nbsp;:</span>
 
-        <button class="chip chip--active"
+        <button class="chip chip--active text-sm"
                 data-filter="all"
                 data-label="Tous"
                 type="button"
@@ -30,7 +30,7 @@ $icons_path   = $args['icons_path'] ?? (get_template_directory_uri() . '/assets/
 
         <?php if (! is_wp_error($filter_terms) && ! empty($filter_terms)) : ?>
             <?php foreach ($filter_terms as $term) : ?>
-                <button class="chip"
+                <button class="chip text-sm"
                         data-filter="<?php echo esc_attr($term->slug); ?>"
                         data-label="<?php echo esc_attr($term->name); ?>"
                         type="button"
@@ -46,7 +46,7 @@ $icons_path   = $args['icons_path'] ?? (get_template_directory_uri() . '/assets/
         <div class="cours-search-wrap">
             <input type="text"
                    id="cours-search-input"
-                   class="cours-search"
+                   class="cours-search text-md"
                    placeholder="Rechercher..."
                    autocomplete="off">
             <button type="button"

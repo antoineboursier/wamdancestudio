@@ -12,7 +12,9 @@ require_once get_template_directory() . '/inc/roles.php';
 require_once get_template_directory() . '/inc/admin-config.php';
 require_once get_template_directory() . '/inc/schema.php';
 require_once get_template_directory() . '/inc/shortcodes.php';
+require_once get_template_directory() . '/inc/no-comments.php';
 require_once get_template_directory() . '/inc/accessibility.php';
+require_once get_template_directory() . '/inc/theme-tweaks.php';
 require_once get_template_directory() . '/inc/nav-walker.php';
 
 // -------------------------------------------------------
@@ -35,8 +37,6 @@ if (!function_exists('wamv1_setup')):
         add_theme_support('editor-styles');
         add_theme_support('html5', array(
             'search-form',
-            'comment-form',
-            'comment-list',
             'gallery',
             'caption',
             'style',
@@ -97,16 +97,6 @@ function wamv1_register_text_styles()
 add_action('init', 'wamv1_register_text_styles');
 
 // -------------------------------------------------------
-// Performance - Preconnect pour Google Fonts
-// -------------------------------------------------------
-function wamv1_font_preconnect()
-{
-    echo '<link rel="preconnect" href="https://fonts.googleapis.com">' . "\n";
-    echo '<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>' . "\n";
-}
-add_action('wp_head', 'wamv1_font_preconnect', 1);
-
-// -------------------------------------------------------
 function wamv1_scripts()
 {
     $ver = wp_get_theme()->get('Version');
@@ -114,14 +104,9 @@ function wamv1_scripts()
     $js = get_template_directory_uri() . '/assets/js/';
 
     // -------------------------------------------------------
-    // 0. Fonts — Outfit de Google Fonts
-    // -------------------------------------------------------
-    wp_enqueue_style('wamv1-fonts', 'https://fonts.googleapis.com/css2?family=Outfit:wght@100..900&display=swap', array(), null);
-
-    // -------------------------------------------------------
     // 1. style.css — requis WordPress (header thème)
     // -------------------------------------------------------
-    wp_enqueue_style('wamv1-style', get_stylesheet_uri(), array('wamv1-fonts'), $ver);
+    wp_enqueue_style('wamv1-style', get_stylesheet_uri(), array(), $ver);
 
     // -------------------------------------------------------
     // 2. tokens.css — variables CSS WP (--wp--preset--*)
@@ -201,7 +186,7 @@ function wamv1_scripts()
     // -------------------------------------------------------
     // WooCommerce — shop.css
     // -------------------------------------------------------
-    if (class_exists('WooCommerce')) {
+    if (class_exists('WooCommerce') && (is_woocommerce() || is_cart() || is_checkout() || is_account_page())) {
         wp_enqueue_style('wamv1-shop', $css . 'shop.css', array('wamv1-layout'), $ver);
     }
 
@@ -675,3 +660,9 @@ add_filter('show_admin_bar', function ($show) {
 // =============================================================================
 
 require_once get_template_directory() . '/inc/llms-txt.php';
+
+// =============================================================================
+// WOOCOMMERCE — Hooks et intégration
+// =============================================================================
+
+require_once get_template_directory() . '/inc/woocommerce.php';

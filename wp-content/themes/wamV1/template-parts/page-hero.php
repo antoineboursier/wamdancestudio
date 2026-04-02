@@ -33,7 +33,7 @@ $has_thumbnail    = $page_id && has_post_thumbnail($page_id);
         <div class="page-cours__hero-head">
             <h1 class="page-header__title is-style-title-sign-lg"><?php echo esc_html($page_title); ?></h1>
             <?php if ($page_desc) : ?>
-                <p class="page-cours__hero-desc"><?php echo esc_html($page_desc); ?></p>
+                <p class="page-cours__hero-desc text-xs"><?php echo esc_html($page_desc); ?></p>
             <?php endif; ?>
         </div>
 
@@ -41,8 +41,8 @@ $has_thumbnail    = $page_id && has_post_thumbnail($page_id);
             <img src="<?php echo esc_url($icons_path . 'map.svg'); ?>" class="page-cours__address-icon" alt=""
                 aria-hidden="true" width="24" height="24">
             <div class="page-cours__address-info">
-                <span class="page-cours__address-name">WAM Dance Studio</span>
-                <span class="page-cours__address-street">202 rue Jean Jaurès à Villeneuve&nbsp;d'Ascq</span>
+                <span class="page-cours__address-name text-md">WAM Dance Studio</span>
+                <span class="page-cours__address-street text-sm">202 rue Jean Jaurès à Villeneuve&nbsp;d'Ascq</span>
             </div>
             <?php if ($show_planning && $planning_url) : ?>
                 <a href="<?php echo esc_url($planning_url); ?>"

@@ -37,6 +37,20 @@
             transparent 100%);
 }
 
+@media (max-width: 768px) {
+    .section-hero {
+        background-size: 140%;
+    }
+
+    .section-hero::before {
+        background: linear-gradient(to right,
+                transparent 0%,
+                var(--wam-color-page-bg) 16%,
+                var(--wam-color-page-bg) 84%,
+                transparent 100%);
+    }
+}
+
 .section-hero__logo,
 .section-hero__address {
     position: relative;
@@ -114,7 +128,6 @@
     width: 100%;
 }
 
-/* Mot (absolu, un seul visible à la fois) */
 .keyword-word {
     position: absolute;
     opacity: 0;
@@ -122,9 +135,18 @@
     align-items: center;
     justify-content: center;
     white-space: nowrap;
+    max-width: 100vw;
+    padding: 0 var(--wam-spacing-md);
+    box-sizing: border-box;
     color: var(--wam-color-text);
     pointer-events: none;
     transition: opacity 0.3s ease;
+}
+
+@media (max-width: 768px) {
+    .keyword-word.is-style-title-sign-lg { font-size: 32px !important; }
+    .keyword-word.is-style-title-cool-lg { font-size: 36px !important; }
+    .keyword-word.is-style-title-norm-lg { font-size: 28px !important; }
 }
 
 .keyword-word.kw-visible {
@@ -155,24 +177,7 @@
     }
 }
 
-/* Polices des mots (3 styles : Mallia / Cholo / Outfit) */
-.kw-mallia {
-    font-family: var(--wam-font-graphical-1);
-    font-size: var(--wam-font-size-h1);
-    font-weight: 400;
-}
-
-.kw-cholo {
-    font-family: var(--wam-font-graphical-2);
-    font-size: var(--wam-font-size-display-lg);
-    font-weight: 400;
-}
-
-.kw-outfit {
-    font-size: 59px;
-    /* One-off spécifique à l'animation keywords */
-    line-height: 1.375;
-}
+/* Les styles de police sont désormais gérés par les classes globales .is-style-title-* */
 
 /* =====================================================
    SECTION VIDÉOS — grille collage Figma
@@ -200,50 +205,84 @@
 .videos-col--left {
     grid-column: 1;
     grid-row: 1 / 3;
+    display: flex;
+    flex-direction: column;
+    gap: var(--wam-spacing-xs);
     align-items: flex-end;
-    /* items-end : vidéos et titre alignés à droite */
 }
 
-/* Bloc texte "We are / move" — flex child dans la colonne gauche */
+.videos-col--right {
+    grid-column: 3;
+    grid-row: 1 / 3;
+    display: flex;
+    flex-direction: column;
+    gap: var(--wam-spacing-xs);
+    position: relative;
+}
+
+/* Bloc texte "We are / move" */
 .videos-title {
     display: flex;
     flex-direction: column;
     align-items: flex-end;
-    /* items-end : textes alignés à droite */
     justify-content: center;
     pointer-events: none;
     padding: 0 var(--wam-spacing-lg);
     min-width: 200px;
 }
 
-/* Texte "We are" (Cholo Rhita — couleur texte normale) */
+/* Texte "We are" */
 .videos-title__we-are {
     display: block;
     color: var(--wam-color-text);
 }
 
-/* Texte "move" (Cholo Rhita — jaune, font-size 6.25rem via style inline documenté) */
-.videos-title__move {
-    display: block;
-    font-family: var(--wam-font-graphical-2);
-    font-style: normal;
-    line-height: 1;
-    color: var(--wam-color-yellow);
+/* Exception unique : MOVE en 140px (Desktop & Mobile) */
+.videos-move-xl {
+    font-size: 140px !important;
 }
 
-.videos-col--right {
-    grid-column: 3;
-    grid-row: 1 / 3;
-    position: relative;
-    /* nécessaire pour le positionnement absolu du bouton pause */
+/* Bouton pause */
+.videos-pause-wrapper {
+    position: absolute;
+    top: calc(-1 * var(--wam-spacing-2xs));
+    right: calc(-1 * var(--wam-spacing-2xs));
+    z-index: 10;
 }
 
-/* Colonne générique (flex col gap) */
-.videos-col {
-    display: flex;
-    flex-direction: column;
-    gap: var(--wam-spacing-xs);
-    /* 12px = gap-3 */
+/* Version responsive — passage en colonne "tranquille" */
+@media (max-width: 768px) {
+    .videos-wrapper {
+        display: flex;
+        flex-direction: column;
+        gap: var(--wam-spacing-xl);
+        padding: 0 var(--wam-page-mx);
+    }
+
+    .videos-col--left,
+    .videos-col--right {
+        align-items: center;
+        width: 100%;
+    }
+
+    .videos-title {
+        align-items: center;
+        padding: var(--wam-spacing-lg) 0;
+        min-width: 0;
+    }
+
+
+    .videos-pause-wrapper {
+        position: static;
+        margin-bottom: var(--wam-spacing-md);
+        display: flex;
+        justify-content: center;
+    }
+
+    .video-card {
+        width: 100%;
+        max-width: 100% !important;
+    }
 }
 
 /* Carte vidéo individuelle */
@@ -270,22 +309,29 @@
     z-index: 10;
 }
 
+@media (max-width: 768px) {
+    .videos-pause-wrapper {
+        position: static;
+        order: 10;
+        display: flex;
+        justify-content: center;
+        margin: var(--wam-spacing-md) 0;
+    }
+}
+
 /* Proportions Figma pour le collage de 4 vidéos (max-width par position) */
-.video-card--v1 {
-    max-width: 485px;
-}
-
-.video-card--v2 {
-    max-width: 309px;
-}
-
-.video-card--v3 {
-    max-width: 377px;
-}
-
+.video-card--v1,
+.video-card--v2,
+.video-card--v3,
 .video-card--v4 {
-    max-width: 449px;
-    margin-top: var(--wam-spacing-xs);
+    max-width: 100%;
+}
+
+@media (min-width: 769px) {
+    .video-card--v1 { max-width: 485px; }
+    .video-card--v2 { max-width: 309px; }
+    .video-card--v3 { max-width: 377px; }
+    .video-card--v4 { max-width: 449px; margin-top: var(--wam-spacing-xs); }
 }
 
 /* mt-3 extra */

@@ -11,7 +11,7 @@
  *
  * Champs ACF réels utilisés :
  *   cours      → sous_titre, prof_cours (user multi), jour_de_cours, heure_debut,
- *                heure_de_fin, tarif_cours (post_object), complete_cours, description_cours
+ *                heure_de_fin, tarif_cours (text — ex: "250€"), complete_cours, description_cours
  *   stages     → sous_titre, description, date_stage (d/m/Y), heure_debut, heure_de_fin,
  *                tarifs{tarif_1,tarif_2,tarif_3}, intervenant·e{stage_intervenant_inout,
  *                stage_intervenant (user), stage_intervenant_out}, complete_cours
@@ -206,7 +206,7 @@ if ( ! function_exists( 'wamv1_schema_cours' ) ) {
         $jour        = get_field( 'jour_de_cours',     $post_id ) ?: '';
         $heure_debut = get_field( 'heure_debut',       $post_id ) ?: '';
         $heure_fin   = get_field( 'heure_de_fin',      $post_id ) ?: '';
-        $tarif_obj   = get_field( 'tarif_cours',       $post_id );   // WP_Post|null (post_object)
+        $tarif_obj   = get_field( 'tarif_cours',       $post_id );   // text — ex: "250€"
         $prof_cours  = get_field( 'prof_cours',        $post_id ) ?: []; // user (multi) → array d'arrays
         $complet     = get_field( 'complete_cours',    $post_id );
 
@@ -262,7 +262,7 @@ if ( ! function_exists( 'wamv1_schema_cours' ) ) {
             }
         }
 
-        /* ---- Offer — tarif_cours est un post_object (WP_Post) ---- */
+        /* ---- Offer — tarif_cours est un champ text (ex: "250€") ---- */
         $offer = [
             '@type'        => 'Offer',
             'url'          => $permalink,
@@ -272,9 +272,8 @@ if ( ! function_exists( 'wamv1_schema_cours' ) ) {
                 ? 'https://schema.org/SoldOut'
                 : 'https://schema.org/InStock',
         ];
-        // Le post_title du post Tarif est le libellé (ex. "40€/trimestre")
-        if ( $tarif_obj instanceof WP_Post && $tarif_obj->post_title ) {
-            $offer['name'] = $tarif_obj->post_title;
+        if ( $tarif_obj && is_string( $tarif_obj ) ) {
+            $offer['name'] = $tarif_obj;
         }
         $schema['offers'] = $offer;
 

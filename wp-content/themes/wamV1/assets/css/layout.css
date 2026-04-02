@@ -133,70 +133,119 @@
     gap: var(--wam-spacing-4xl);
     /* 56px entre chaque enfant */
     align-items: stretch;
-    /* chaque enfant occupe toute la largeur */
     padding-top: var(--wam-spacing-3xl);
     /* 48px */
     padding-bottom: var(--wam-spacing-3xl);
     /* 48px */
-    /* Full-width intentionnel — chaque enfant gère son propre max-width + margin: 0 auto.
-       Les éléments full-bleed (separator, section-teachers…) doivent rester sans contrainte. */
+    padding-left: var(--wam-page-mx);
+    padding-right: var(--wam-page-mx);
+    /* --wam-page-mx gère la valeur desktop (96px) et mobile (32px à 640px).
+       Les enfants ne déclarent plus de padding horizontal — voir règles ci-dessous. */
     position: relative;
     width: 100%;
+    box-sizing: border-box;
+}
+
+@media (max-width: 768px) {
+    .page-layout__inner {
+        gap: var(--wam-spacing-lg);
+        padding-bottom: 0;
+    }
+}
+
+/* Enfants : le wrapper gère le padding horizontal sur tous les breakpoints.
+   Ces classes conservent leur max-width + margin: 0 auto pour le centrage. */
+.page-layout__inner .page-hero,
+.page-layout__inner .page-content,
+.page-layout__inner .wam-container,
+.page-layout__inner .wam-breadcrumb--full,
+.page-layout__inner .cours-videos,
+.page-layout__inner .cours-description,
+.page-layout__inner .section-similaires,
+.page-layout__inner .page-cours__hero,
+.page-layout__inner .section-content {
+    padding-left: 0;
+    padding-right: 0;
+}
+
+/* Séparateur full-bleed : marges négatives pour contrebalancer le padding du wrapper. */
+.page-layout__inner .wam-separator {
+    margin-left: calc(-1 * var(--wam-page-mx));
+    margin-right: calc(-1 * var(--wam-page-mx));
+    width: calc(100% + 2 * var(--wam-page-mx));
 }
 
 /* Breadcrumb → voir .wam-breadcrumb dans components.css */
 
 /* =====================================================
-   PAGE HEADER — En-tête article/page (single + page)
+   PAGE HERO — En-tête unifié pour tous les singles
+   Remplace : .page-header (pages/events/profs) + .cours-hero (cours/stages)
    ===================================================== */
-.page-header {
+
+/* Conteneur principal */
+.page-hero {
     display: flex;
     flex-direction: column;
     gap: var(--wam-spacing-xl);
-    /* 32px = gap-8 */
-    align-items: center;
+    /* 32px mobile */
+    align-items: flex-start;
     max-width: var(--wam-max-screen);
     width: 100%;
     padding: 0 var(--wam-page-mx);
     margin: 0 auto;
-    position: relative;
     box-sizing: border-box;
 }
 
 @media (min-width: 1024px) {
-    .page-header {
+    .page-hero {
         flex-direction: row;
         gap: var(--wam-spacing-9xl);
-        /* 96px = gap-24 */
+        /* 96px desktop */
     }
 }
 
-/* Colonne gauche : titre + méta */
-.page-header__meta {
+/* Colonne texte */
+.page-hero__content {
     display: flex;
     flex: 1;
     flex-direction: column;
     gap: var(--wam-spacing-sm);
-    /* 16px = gap-4 — article */
+    /* 16px — article, cours */
     align-items: flex-start;
     width: 100%;
 }
 
-/* Variante page statique : gap plus large */
-.page-header__meta--lg {
+/* Variante gap plus large — pages statiques, événements */
+.page-hero__content--lg {
     gap: var(--wam-spacing-xl);
-    /* 32px = gap-8 */
+    /* 32px */
 }
 
-/* Titre de page — structure uniquement, typographie portée par is-style-title-* */
-.page-header__title {
+/* Titre — structure uniquement, typographie portée par is-style-* ou classes utilitaires */
+.page-hero__title {
     color: var(--wam-color-text);
     width: 100%;
     margin: 0;
 }
 
-/* Bloc date + temps de lecture */
-.page-header__dateline {
+/* Sous-titre */
+.page-hero__subtitle {
+    color: var(--wam-color-subtext);
+    margin: 0;
+}
+
+/* Wrapper titre + sous-titre (cours/stages) */
+.page-hero__heading {
+    display: flex;
+    flex-direction: column;
+    gap: var(--wam-spacing-sm);
+    /* 16px */
+    align-items: flex-start;
+    width: 100%;
+}
+
+/* Bloc date + temps de lecture (article) */
+.page-hero__dateline {
     display: flex;
     flex-direction: column;
     font-family: var(--wam-font-body);
@@ -207,17 +256,23 @@
     width: 100%;
 }
 
-.page-header__date {
+.page-hero__date {
     color: var(--wam-color-pink);
     font-size: var(--wam-font-size-sm);
     width: 100%;
     margin: 0;
 }
 
-.page-header__reading-time {
+.page-hero__reading-time {
     color: var(--wam-color-text);
     font-size: var(--wam-font-size-md);
     width: 100%;
+    margin: 0;
+}
+
+/* Ligne prof (cours/stages) */
+.page-hero__profs {
+    color: var(--wam-color-disabled);
     margin: 0;
 }
 
@@ -226,45 +281,69 @@
     font-size: var(--wam-font-size-md);
     color: var(--wam-color-text);
     line-height: 1.25;
+    margin: 0;
 }
 
 .page-cours__address-street {
     font-size: var(--wam-font-size-sm);
     color: var(--wam-color-subtext);
     line-height: 1.25;
+    margin: 0;
 }
 
-/* Colonne droite : image à la une */
-.page-header__photo-outer {
-    display: flex;
-    flex: 1;
-    align-items: center;
-    align-self: stretch;
-    width: 100%;
-    margin-top: var(--wam-spacing-xl);
-    /* mt-8 = 32px mobile */
-}
+@media (max-width: 640px) {
+    .page-cours__address {
+        flex-direction: column !important;
+        align-items: flex-start !important;
+        gap: var(--wam-spacing-sm) !important;
+    }
 
-@media (min-width: 1024px) {
-    .page-header__photo-outer {
-        margin-top: 0;
+    .page-cours__address-icon {
+        margin-bottom: -8px !important;
     }
 }
 
-.page-header__photo {
+/* Colonne image */
+.page-hero__image {
     flex: 1;
-    height: 100%;
-    min-height: 400px;
-    /* single article */
     position: relative;
     border-radius: var(--wam-radius-3xl);
     overflow: hidden;
     width: 100%;
+    /* Comportement par défaut : hauteur naturelle (cours/stages — portraits, A4, etc.) */
+    height: fit-content;
+    background-color: var(--wp--preset--color--background-800);
+    margin-top: var(--wam-spacing-xl);
+    /* séparation quand les colonnes sont empilées sur mobile */
 }
 
-/* Le filtre WP enveloppe the_post_thumbnail() dans .photo-wrapper (inline-block, position:relative).
-   On le force à remplir .page-header__photo pour que l'image absolute:inset-0 ait un containing block. */
-.page-header__photo>.photo-wrapper {
+@media (min-width: 1024px) {
+    .page-hero__image {
+        margin-top: 0;
+    }
+
+    /* Variantes à hauteur fixe : s'étirent sur toute la hauteur de la ligne flex */
+    .page-hero__image--sm,
+    .page-hero__image--lg {
+        align-self: stretch;
+        height: auto;
+    }
+}
+
+/* Variante hauteur minimale réduite — pages statiques, événements (200px) */
+.page-hero__image--sm {
+    min-height: 200px;
+    height: auto;
+}
+
+/* Variante hauteur minimale large — articles de blog, profil prof (400px) */
+.page-hero__image--lg {
+    min-height: 400px;
+    height: auto;
+}
+
+/* Le filtre WP enveloppe the_post_thumbnail() dans .photo-wrapper — forcing en containing block */
+.page-hero__image>.photo-wrapper {
     position: absolute;
     inset: 0;
     display: block;
@@ -272,26 +351,78 @@
     height: auto;
 }
 
-/* Variante page statique : hauteur réduite */
-.page-header__photo--sm {
-    min-height: 200px;
+/* Image — comportement par défaut : naturelle (cours/stages) */
+.page-hero__image-img {
+    display: block;
+    width: 100%;
+    height: auto;
+    object-fit: contain;
 }
 
-.page-header__photo-img {
+/* Image — comportement cover pour variantes à hauteur fixe */
+.page-hero__image--sm .page-hero__image-img,
+.page-hero__image--lg .page-hero__image-img {
     position: absolute;
     inset: 0;
-    object-fit: cover;
     width: 100%;
     height: 100%;
+    object-fit: cover;
     display: block;
 }
 
-.page-header__photo-overlay {
+.page-hero__image-overlay {
     position: absolute;
     inset: 0;
     background: var(--wam-color-page-bg);
     mix-blend-mode: lighten;
     pointer-events: none;
+}
+
+/* Variante sans image — cours sans photo (colonne unique) */
+.page-hero--no-image {
+    justify-content: flex-start;
+}
+
+/* Variante centrée — profil prof (tablette et mobile) */
+@media (max-width: 1023px) {
+    .page-hero--centered {
+        text-align: center;
+        align-items: center;
+    }
+
+    .page-hero--centered .page-hero__content {
+        align-items: center;
+    }
+}
+
+/* =====================================================
+   ÉVÉNEMENT — Bloc méta date / horaires / lieu
+   Remplace les inline styles de single-evenements.php
+   ===================================================== */
+.evenement-infos-meta {
+    display: flex;
+    flex-direction: column;
+    gap: var(--wam-spacing-sm);
+    margin-top: var(--wam-spacing-md);
+}
+
+.evenement-date-info,
+.evenement-location-info {
+    display: flex;
+    align-items: flex-start;
+    gap: var(--wam-spacing-sm);
+}
+
+.evenement-date-info .btn-icon,
+.evenement-location-info .btn-icon {
+    color: var(--wam-color-subtext);
+    margin-top: 2px;
+    flex-shrink: 0;
+}
+
+.evenement-date-info p,
+.evenement-location-info p {
+    margin: 0;
 }
 
 /* =====================================================

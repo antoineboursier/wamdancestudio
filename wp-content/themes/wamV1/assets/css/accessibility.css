@@ -36,7 +36,7 @@
     font-size: var(--wam-font-size-sm);
     cursor: pointer;
     box-shadow: var(--wam-shadow-md);
-    transition: background 0.2s ease, border-color 0.2s ease, color 0.2s ease,
+    transition: background var(--wam-transition), border-color var(--wam-transition), color var(--wam-transition),
                 padding 0.3s ease;
     white-space: nowrap;
     overflow: hidden;
@@ -66,8 +66,8 @@
     font-size: var(--wam-font-size-sm);
     cursor: pointer;
     box-shadow: var(--wam-shadow-md);
-    transition: background 0.2s ease, border-color 0.2s ease, color 0.2s ease,
-                transform 0.2s ease, padding 0.3s ease;
+    transition: background var(--wam-transition), border-color var(--wam-transition), color var(--wam-transition),
+                transform var(--wam-transition), padding 0.3s ease;
     overflow: hidden;
 }
 
@@ -79,7 +79,7 @@
     display: inline;
     max-width: 120px;
     opacity: 1;
-    transition: max-width 0.3s ease, opacity 0.2s ease;
+    transition: max-width 0.3s ease, opacity var(--wam-transition);
     overflow: hidden;
 }
 
@@ -142,7 +142,7 @@
 
     background: var(--wp--preset--color--background-600);
     border: 1px solid var(--wp--preset--color--background-500);
-    border-radius: 20px;
+    border-radius: var(--wam-radius-xl);
     box-shadow: var(--wam-shadow-panel);
 
     color: var(--wp--preset--color--text-normal);
@@ -150,7 +150,7 @@
     /* Animation d'ouverture */
     transform: translateY(12px);
     opacity: 0;
-    transition: transform 0.25s cubic-bezier(0.34, 1.4, 0.64, 1), opacity 0.2s ease;
+    transition: transform 0.25s cubic-bezier(0.34, 1.4, 0.64, 1), opacity var(--wam-transition);
     pointer-events: none;
 }
 
@@ -180,7 +180,7 @@
     top: 0;
     background: var(--wp--preset--color--background-600);
     z-index: 1;
-    border-radius: 20px 20px 0 0;
+    border-radius: var(--wam-radius-xl) var(--wam-radius-xl) 0 0;
 }
 
 .wam-a11y-panel__title {
@@ -200,9 +200,9 @@
     height: 32px;
     background: var(--wam-color-glass-white);
     border: none;
-    border-radius: 8px;
+    border-radius: var(--wam-radius-sm);
     cursor: pointer;
-    transition: background 0.2s ease;
+    transition: background var(--wam-transition);
 }
 
 .wam-a11y-panel__close:hover {
@@ -355,7 +355,7 @@
     border: 1px solid rgba(249, 244, 236, 0.15);
     border-radius: var(--wam-radius-pill);
     position: relative;
-    transition: background 0.2s ease, border-color 0.2s ease;
+    transition: background var(--wam-transition), border-color var(--wam-transition);
 }
 
 .a11y-switch__thumb {
@@ -398,7 +398,7 @@
 .a11y-select {
     width: 100%;
     padding: 8px 12px;
-    background: rgba(249, 244, 236, 0.06);
+    background: var(--wam-color-glass-white);
     border: 1px solid var(--wp--preset--color--background-500);
     border-radius: var(--wam-radius-sm);
     color: var(--wp--preset--color--text-normal);
@@ -410,7 +410,7 @@
     background-repeat: no-repeat;
     background-position: right 12px center;
     padding-right: 32px;
-    transition: border-color 0.2s ease;
+    transition: border-color var(--wam-transition);
 }
 
 .a11y-select:hover,
@@ -434,7 +434,7 @@
     padding: var(--wam-spacing-sm) var(--wam-spacing-lg);
     border-top: 1px solid var(--wp--preset--color--background-500);
     background: var(--wp--preset--color--background-600);
-    border-radius: 0 0 20px 20px;
+    border-radius: 0 0 var(--wam-radius-xl) var(--wam-radius-xl);
     gap: 12px;
     position: sticky;
     bottom: 0;
@@ -483,8 +483,11 @@ html.wam-no-graphical-fonts {
 html.wam-no-graphical-fonts h1,
 html.wam-no-graphical-fonts h2,
 html.wam-no-graphical-fonts h3,
-html.wam-no-graphical-fonts .kw-mallia,
-html.wam-no-graphical-fonts .kw-cholo,
+html.wam-no-graphical-fonts .is-style-title-sign-lg,
+html.wam-no-graphical-fonts .is-style-title-sign-md,
+html.wam-no-graphical-fonts .is-style-title-sign-sm,
+html.wam-no-graphical-fonts .is-style-title-cool-lg,
+html.wam-no-graphical-fonts .is-style-title-cool-md,
 html.wam-no-graphical-fonts .card-article__title,
 html.wam-no-graphical-fonts .videos-title__we-are,
 html.wam-no-graphical-fonts .videos-title__move,
@@ -527,6 +530,47 @@ html.wam-line-height-increased * {
 /* =====================================================
    SR-ONLY et reduce-motion sont définis dans base.css.
    Les règles d'animation sont appliquées à deux endroits :
-   - base.css  : règle générale sur * (toutes les pages)
-   - home.css  : règles spécifiques sections (particules, kw-char...)
+    /* base.css : règle générale sur * (toutes les pages)
+       home.css : règles spécifiques sections (particules, kw-char...)
+       ===================================================== */
+
+/* =====================================================
+   DÉTECTION LIENS EXTERNES
+   Auto-marquage via .is-external (inséré par PHP)
    ===================================================== */
+.is-external {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25em; /* petit espace réglable */
+}
+
+/* Le picto hérite de la couleur du lien (fill/stroke inherit via currentColor) */
+.is-external::after {
+    content: "";
+    display: inline-block;
+    width: 14px;
+    height: 14px;
+    flex-shrink: 0;
+    background-color: currentColor; /* Couleur dynamique du lien */
+    
+    /* On utilise mask-image pour colorer l'SVG via background-color */
+    -webkit-mask-image: url('../images/Name=external%20link.svg');
+    mask-image: url('../images/Name=external%20link.svg');
+    -webkit-mask-size: contain;
+    mask-size: contain;
+    -webkit-mask-repeat: no-repeat;
+    mask-repeat: no-repeat;
+    
+    /* Alignement optique en fonction de la ligne de base */
+    margin-top: -2px;
+}
+
+/* Optionnel : transition fluide si le lien a un hover */
+.is-external::after {
+    transition: opacity var(--wam-transition), transform var(--wam-transition);
+}
+
+.is-external:hover::after {
+    transform: translate(1px, -1px); /* micro-animation directionnelle */
+}

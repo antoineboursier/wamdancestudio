@@ -36,11 +36,13 @@ $icon_dir = get_template_directory_uri() . '/assets/images/';
 
             <?php /* Thumbnail : 400×196 Figma */ ?>
             <div class="card-article__image">
-                <?php if (has_post_thumbnail()): ?>
-                    <?php the_post_thumbnail('wam-card', array('alt' => get_the_title())); ?>
-                <?php else: ?>
-                    <div class="card-article__image-placeholder" aria-hidden="true"></div>
-                <?php endif; ?>
+                <a href="<?php the_permalink(); ?>" class="card-article__image-link" aria-hidden="true" tabindex="-1">
+                    <?php if (has_post_thumbnail()): ?>
+                        <?php the_post_thumbnail('wam-card', array('alt' => get_the_title())); ?>
+                    <?php else: ?>
+                        <div class="card-article__image-placeholder" aria-hidden="true"></div>
+                    <?php endif; ?>
+                </a>
             </div>
 
             <?php /* Corps */ ?>
@@ -57,8 +59,7 @@ $icon_dir = get_template_directory_uri() . '/assets/images/';
                     </p>
 
                     <a href="<?php the_permalink(); ?>" class="btn-outlined card-article__btn"
-                        id="btn-card-article">
-                        <?php esc_html_e("M'inscrire aux spectacles", 'wamv1'); ?>
+                        id="btn-card-article" aria-label="<?php esc_attr_e('Lire l\'article', 'wamv1'); ?>">
                         <span class="btn-icon btn-icon--sm"
                             style="--icon-url: url('<?php echo esc_url($icon_dir . 'chevron-right.svg'); ?>');"
                             aria-hidden="true">

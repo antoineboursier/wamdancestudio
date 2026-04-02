@@ -247,15 +247,10 @@
 /* ---- Contenu de la card ---- */
 
 .planning-card__title {
-    font-family: var(--wam-font-body);
-    font-size: var(--wam-font-size-sm);
-    /* 16px */
-    font-weight: 700;
-    color: var(--wp--preset--color--text-normal);
-    line-height: 1.2;
     overflow: hidden;
     display: -webkit-box;
     -webkit-box-orient: vertical;
+    line-clamp: 2;
     -webkit-line-clamp: 2;
 }
 
@@ -326,12 +321,7 @@
     background: var(--wp--preset--color--background-600);
 }
 
-.planning-transcript__toggle-label {
-    font-family: var(--wam-font-body);
-    font-size: var(--wam-font-size-sm);
-    font-weight: 700;
-    color: var(--wp--preset--color--text-normal);
-}
+
 
 /* Chevron animé */
 .planning-transcript__chevron {
@@ -398,9 +388,8 @@
    =============================================== */
 
 .planning-empty {
-    font-family: var(--wam-font-body);
-    font-size: var(--wam-font-size-sm);
-    color: var(--wp--preset--color--text-subtext);
     padding: var(--wam-spacing-2xl);
     text-align: center;
+    background: var(--wam-color-card-bg);
+    border-radius: var(--wam-radius-lg);
 }

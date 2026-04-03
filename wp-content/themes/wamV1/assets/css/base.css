@@ -638,3 +638,19 @@ html.wam-reduce-motion *::after {
         margin-bottom: var(--wam-spacing-2xl);
     }
 }
+
+/* =====================================================
+   SURCHARGES RESPONSIVE (MOBILE < 768px)
+   ===================================================== */
+@media (max-width: 768px) {
+    /* Titres Mallia (H1 et Gutenberg) */
+    .is-style-title-sign-lg, 
+    h1 {
+        font-size: 40px !important;
+    }
+
+    /* Titres Norm Lg */
+    .is-style-title-norm-lg {
+        font-size: 40px !important; 
+    }
+}

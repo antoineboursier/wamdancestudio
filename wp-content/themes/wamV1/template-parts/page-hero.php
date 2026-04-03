@@ -37,13 +37,17 @@ $has_thumbnail    = $page_id && has_post_thumbnail($page_id);
             <?php endif; ?>
         </div>
 
-        <div class="page-cours__address">
-            <img src="<?php echo esc_url($icons_path . 'map.svg'); ?>" class="page-cours__address-icon" alt=""
-                aria-hidden="true" width="24" height="24">
-            <div class="page-cours__address-info">
-                <span class="page-cours__address-name text-md">WAM Dance Studio</span>
-                <span class="page-cours__address-street text-sm">202 rue Jean Jaurès à Villeneuve&nbsp;d'Ascq</span>
-            </div>
+        <?php if (function_exists('wam_adresse_visible') && wam_adresse_visible()) : ?>
+            <div class="page-cours__address wam-adresse-globale">
+                <img src="<?php echo esc_url($icons_path . 'map.svg'); ?>" class="page-cours__address-icon" alt=""
+                    aria-hidden="true" width="24" height="24">
+                <div class="page-cours__address-info">
+                    <span class="page-cours__address-name text-md"><?php echo esc_html(wam_nom_lieu()); ?></span>
+                    <span class="page-cours__address-street text-sm"><?php echo nl2br(esc_html(wam_adresse_lieu())); ?></span>
+                </div>
+        <?php else: // Si on cache l'adresse mais on a le bouton planning, il faut garder la div ouverte pour le bouton ?>
+            <div class="page-cours__address wam-adresse-globale" style="background:transparent; padding:0; gap:0;">
+        <?php endif; ?>
             <?php if ($show_planning && $planning_url) : ?>
                 <a href="<?php echo esc_url($planning_url); ?>"
                     class="btn-secondary page-cours__planning-btn" aria-label="Voir le planning des cours">

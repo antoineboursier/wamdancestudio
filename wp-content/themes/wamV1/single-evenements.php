@@ -72,13 +72,15 @@ get_header();
                             </div>
 
                             <!-- Lieu -->
-                            <div class="evenement-location-info">
-                                <span class="btn-icon" style="--icon-url: url('<?php echo esc_url($icon_dir . 'map.svg'); ?>'); --icon-size: 24px;"></span>
-                                <div>
-                                    <p class="page-cours__address-name">WAM Dance Studio</p>
-                                    <p class="page-cours__address-street mt-3xs">202 rue Jean Jaurès à Villeneuve d'Ascq</p>
+                            <?php if (wam_adresse_visible()): ?>
+                                <div class="evenement-location-info wam-adresse-globale">
+                                    <span class="btn-icon" style="--icon-url: url('<?php echo esc_url($icon_dir . 'map.svg'); ?>'); --icon-size: 24px;"></span>
+                                    <div>
+                                        <p class="page-cours__address-name"><?php echo esc_html(wam_nom_lieu()); ?></p>
+                                        <p class="page-cours__address-street mt-3xs"><?php echo nl2br(esc_html(wam_adresse_lieu())); ?></p>
+                                    </div>
                                 </div>
-                            </div>
+                            <?php endif; ?>
 
                         </div>
                     <?php endif; ?>

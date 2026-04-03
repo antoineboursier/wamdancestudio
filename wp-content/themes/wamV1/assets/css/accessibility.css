@@ -37,7 +37,7 @@
     cursor: pointer;
     box-shadow: var(--wam-shadow-md);
     transition: background var(--wam-transition), border-color var(--wam-transition), color var(--wam-transition),
-                padding 0.3s ease;
+        padding 0.3s ease;
     white-space: nowrap;
     overflow: hidden;
 }
@@ -67,7 +67,7 @@
     cursor: pointer;
     box-shadow: var(--wam-shadow-md);
     transition: background var(--wam-transition), border-color var(--wam-transition), color var(--wam-transition),
-                transform var(--wam-transition), padding 0.3s ease;
+        transform var(--wam-transition), padding 0.3s ease;
     overflow: hidden;
 }
 
@@ -125,49 +125,6 @@
 }
 
 /* =====================================
-   PANEL PRINCIPAL
-   ===================================== */
-.wam-a11y-panel {
-    position: fixed;
-    bottom: calc(var(--wam-spacing-xl) + 56px);
-    /* au-dessus du bouton */
-    right: var(--wam-spacing-xl);
-    z-index: 9100;
-    width: 360px;
-    max-width: calc(100vw - 2 * var(--wam-spacing-xl));
-    max-height: calc(100vh - 120px);
-    overflow-y: auto;
-    display: flex;
-    flex-direction: column;
-
-    background: var(--wp--preset--color--background-600);
-    border: 1px solid var(--wp--preset--color--background-500);
-    border-radius: var(--wam-radius-xl);
-    box-shadow: var(--wam-shadow-panel);
-
-    color: var(--wp--preset--color--text-normal);
-
-    /* Animation d'ouverture */
-    transform: translateY(12px);
-    opacity: 0;
-    transition: transform 0.25s cubic-bezier(0.34, 1.4, 0.64, 1), opacity var(--wam-transition);
-    pointer-events: none;
-}
-
-.wam-a11y-panel:not([hidden]) {
-    transform: translateY(0);
-    opacity: 1;
-    pointer-events: auto;
-}
-
-/* Reset hidden natif pour l'animer */
-.wam-a11y-panel[hidden] {
-    display: flex !important;
-    /* on garde flex pour l'animation */
-    pointer-events: none;
-}
-
-/* =====================================
    HEADER DU PANEL
    ===================================== */
 .wam-a11y-panel__header {
@@ -176,10 +133,7 @@
     justify-content: space-between;
     padding: var(--wam-spacing-lg) var(--wam-spacing-lg) var(--wam-spacing-sm);
     border-bottom: 1px solid var(--wp--preset--color--background-500);
-    position: sticky;
-    top: 0;
     background: var(--wp--preset--color--background-600);
-    z-index: 1;
     border-radius: var(--wam-radius-xl) var(--wam-radius-xl) 0 0;
 }
 
@@ -542,7 +496,8 @@ html.wam-line-height-increased * {
     position: relative;
     display: inline-flex;
     align-items: center;
-    gap: 0.25em; /* petit espace réglable */
+    gap: 0.25em;
+    /* petit espace réglable */
 }
 
 /* Le picto hérite de la couleur du lien (fill/stroke inherit via currentColor) */
@@ -552,8 +507,9 @@ html.wam-line-height-increased * {
     width: 14px;
     height: 14px;
     flex-shrink: 0;
-    background-color: currentColor; /* Couleur dynamique du lien */
-    
+    background-color: currentColor;
+    /* Couleur dynamique du lien */
+
     /* On utilise mask-image pour colorer l'SVG via background-color */
     -webkit-mask-image: url('../images/Name=external%20link.svg');
     mask-image: url('../images/Name=external%20link.svg');
@@ -561,7 +517,7 @@ html.wam-line-height-increased * {
     mask-size: contain;
     -webkit-mask-repeat: no-repeat;
     mask-repeat: no-repeat;
-    
+
     /* Alignement optique en fonction de la ligne de base */
     margin-top: -2px;
 }
@@ -572,5 +528,30 @@ html.wam-line-height-increased * {
 }
 
 .is-external:hover::after {
-    transform: translate(1px, -1px); /* micro-animation directionnelle */
+    transform: translate(1px, -1px);
+    /* micro-animation directionnelle */
+}
+
+/* =====================================================
+   WIDGET INLINE — Page /accessibilite/
+   Le panneau est affiché dans le flux de la page,
+   sans position:fixed ni backdrop.
+   ===================================================== */
+
+/* Centrage du widget dans la colonne de contenu */
+.a11y-widget-wrap {
+    display: flex;
+    justify-content: center;
+    width: 100%;
+}
+
+/* Panel en mode inline : position statique, toujours visible */
+.wam-a11y-panel--inline {
+    display: flex;
+    width: 100%;
+    border-radius: var(--wam-radius-xl);
+    flex-direction: column;
+    background: var(--wp--preset--color--background-600);
+    border: 1px solid var(--wp--preset--color--background-500);
+    color: var(--wp--preset--color--text-normal);
 }

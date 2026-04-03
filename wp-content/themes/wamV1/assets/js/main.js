@@ -251,4 +251,25 @@ document.addEventListener('DOMContentLoaded', () => {
             });
         }
     }
+
+    /* =====================================================
+       6. SCROLL HEADER — Hide on scroll down, show on scroll up (mobile)
+       ===================================================== */
+    if (window.matchMedia('(max-width: 800px)').matches) {
+        const header = document.querySelector('.wam-header');
+        if (header) {
+            let lastScrollY = window.scrollY;
+            window.addEventListener('scroll', () => {
+                const currentScrollY = window.scrollY;
+                // Ne masquer qu'après 80px (évite le masquage au moindre drag en haut de page)
+                if (currentScrollY > lastScrollY && currentScrollY > 80) {
+                    header.classList.add('header--hidden');
+                } else {
+                    header.classList.remove('header--hidden');
+                }
+                lastScrollY = currentScrollY;
+            }, { passive: true });
+        }
+    }
+
 });

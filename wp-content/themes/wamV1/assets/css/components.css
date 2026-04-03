@@ -423,6 +423,24 @@ html.wam-theme-light .btn-outlined {
     background-position: top;
 }
 
+/* Hide-on-scroll : masquer en scrollant vers le bas, réafficher vers le haut (mobile) */
+@media (max-width: 800px) {
+    .wam-header {
+        transition: transform 0.3s ease,
+            border-color var(--wam-transition),
+            background var(--wam-transition);
+    }
+
+    .wam-header.header--hidden {
+        transform: translateY(-100%);
+    }
+
+    .wam-header__separator {
+        height: 20px;
+        background-size: 480px;
+    }
+}
+
 .wam-header__inner {
     position: relative;
     /* Nécessaire pour le centrage absolu du logo */
@@ -431,12 +449,12 @@ html.wam-theme-light .btn-outlined {
     justify-content: space-between;
     max-width: var(--wam-max-screen);
     margin: 0 auto;
-    padding: var(--wam-spacing-lg) var(--wam-page-mx);
+    padding: var(--wam-spacing-md) var(--wam-page-mx);
 }
 
 /* Logo — drop-shadow CSS (remplace le filtre Figma supprimé du SVG pour rendu full-res) */
 .wam-header__logo {
-    height: 60px;
+    height: 48px;
     width: auto;
     display: block;
     filter: drop-shadow(0px 4px 8px rgba(33, 44, 80, 0.5));
@@ -474,7 +492,7 @@ html.wam-theme-light .btn-outlined {
 
 /* "DANCE\nSTUDIO" — texte à droite du logo (center-forced) */
 .wam-header__logo-subtitle {
-    height: 16px;
+    height: 14px;
     width: auto;
     display: block;
 }
@@ -543,14 +561,14 @@ html.wam-theme-light .btn-outlined {
     display: inline-flex;
     align-items: center;
     gap: var(--wam-spacing-sm);
-    padding: var(--wam-spacing-sm) var(--wam-spacing-lg);
+    padding: var(--wam-spacing-sm) var(--wam-spacing-md);
     background: var(--wp--preset--color--background-600);
     border: 1px solid var(--wp--preset--color--background-500);
     border-radius: var(--wam-radius-xl);
     cursor: pointer;
     box-shadow: var(--wam-shadow-card);
     color: var(--wam-color-subtext);
-    font-size: var(--wam-font-size-sm);
+    font-size: var(--wam-font-size-xs);
     text-decoration: none;
     transition: background var(--wam-transition), border-color var(--wam-transition);
 }
@@ -570,8 +588,8 @@ html.wam-theme-light .btn-outlined {
 
 .wam-header__hamburger span {
     display: block;
-    height: 4px;
-    width: 32px;
+    height: 2px;
+    width: 24px;
     border-radius: 80px;
 }
 
@@ -2268,11 +2286,8 @@ html.wam-no-graphical-fonts .title-sign-sm {
     color: var(--wam-color-disabled);
 }
 
-/* Variante pleine largeur — utilisée hors container (page.php, single-cours, single-wam_membre) */
+/* Variante pleine largeur — utilisée dans .page-layout__inner (padding géré par > *:not(.wam-separator)) */
 .wam-breadcrumb--full {
-    max-width: var(--wam-max-screen);
     width: 100%;
-    padding: 0 var(--wam-page-mx);
     box-sizing: border-box;
-    margin: 0 auto;
 }

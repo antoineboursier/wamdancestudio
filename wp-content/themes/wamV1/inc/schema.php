@@ -91,10 +91,11 @@ if ( ! function_exists( 'wamv1_inject_schema_jsonld' ) ) {
  */
 if ( ! function_exists( 'wamv1_schema_organization_ref' ) ) {
     function wamv1_schema_organization_ref(): array {
+        $nom = function_exists('wam_nom_lieu') ? wam_nom_lieu() : 'WAM Dance Studio';
         return [
             '@type' => [ 'Organization', 'DanceSchool' ],
             '@id'   => home_url( '/#organization' ),
-            'name'  => 'WAM Dance Studio',
+            'name'  => $nom,
             'url'   => home_url( '/' ),
         ];
     }
@@ -105,14 +106,14 @@ if ( ! function_exists( 'wamv1_schema_organization_ref' ) ) {
  */
 if ( ! function_exists( 'wamv1_schema_place_wam' ) ) {
     function wamv1_schema_place_wam(): array {
+        $nom = function_exists('wam_nom_lieu') ? wam_nom_lieu() : 'WAM Dance Studio';
+        $adresse = function_exists('wam_adresse_lieu') ? str_replace("\n", ' ', wam_adresse_lieu()) : '202 rue Jean Jaurès, Villeneuve-d\'Ascq';
         return [
             '@type'   => 'Place',
-            'name'    => 'WAM Dance Studio',
+            'name'    => $nom,
             'address' => [
                 '@type'           => 'PostalAddress',
-                'streetAddress'   => '202 rue Jean Jaurès',
-                'addressLocality' => "Villeneuve-d'Ascq",
-                'postalCode'      => '59491',
+                'streetAddress'   => $adresse,
                 'addressCountry'  => 'FR',
             ],
         ];

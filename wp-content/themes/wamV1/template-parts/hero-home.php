@@ -13,12 +13,11 @@ $logo_url = get_template_directory_uri() . '/assets/images/wam_logo_hero.svg';
             class="section-hero__logo-img" loading="eager">
     </div>
 
-    <address class="section-hero__address">
-        <p class="text-sm">
-            <?php esc_html_e('202 rue Jean Jaurès', 'wamv1'); ?>
-        </p>
-        <p class="text-xs">
-            <?php esc_html_e("Villeneuve d'Ascq", 'wamv1'); ?>
-        </p>
-    </address>
+    <?php if (function_exists('wam_adresse_visible') && wam_adresse_visible()): ?>
+        <address class="section-hero__address wam-adresse-globale">
+            <p class="text-sm">
+                <?php echo nl2br(esc_html(wam_adresse_lieu())); ?>
+            </p>
+        </address>
+    <?php endif; ?>
 </section>

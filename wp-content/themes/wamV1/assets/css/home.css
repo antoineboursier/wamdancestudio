@@ -37,32 +37,16 @@
             transparent 100%);
 }
 
-@media (max-width: 768px) {
-    .section-hero {
-        background-size: 140%;
-    }
-
-    .section-hero::before {
-        background: linear-gradient(to right,
-                transparent 0%,
-                var(--wam-color-page-bg) 16%,
-                var(--wam-color-page-bg) 84%,
-                transparent 100%);
-    }
-}
-
 .section-hero__logo,
 .section-hero__address {
     position: relative;
     z-index: 10;
 }
 
-/* Image du logo hero (taille Figma, max-width responsive) */
 .section-hero__logo-img {
     width: 400px;
     max-width: 90vw;
     height: auto;
-    filter: drop-shadow(0px 4px 8px rgba(33, 44, 80, 0.5));
 }
 
 .section-hero__address {
@@ -75,6 +59,25 @@
     color: var(--wam-color-subtext);
     font-family: var(--wam-font-body);
 }
+
+@media (max-width: 768px) {
+    .section-hero {
+        background-size: 130%;
+    }
+
+    .section-hero::before {
+        background: linear-gradient(to right,
+                transparent 0%,
+                var(--wam-color-page-bg) 20%,
+                var(--wam-color-page-bg) 80%,
+                transparent 100%);
+    }
+
+    .section-hero__logo-img {
+        max-width: 70vw;
+    }
+}
+
 /* =====================================================
    SECTION ARTICLE ÉPINGLÉ
    ===================================================== */
@@ -144,9 +147,17 @@
 }
 
 @media (max-width: 768px) {
-    .keyword-word.is-style-title-sign-lg { font-size: 32px !important; }
-    .keyword-word.is-style-title-cool-lg { font-size: 36px !important; }
-    .keyword-word.is-style-title-norm-lg { font-size: 28px !important; }
+    .keyword-word.is-style-title-sign-lg {
+        font-size: 32px !important;
+    }
+
+    .keyword-word.is-style-title-cool-lg {
+        font-size: 36px !important;
+    }
+
+    .keyword-word.is-style-title-norm-lg {
+        font-size: 28px !important;
+    }
 }
 
 .keyword-word.kw-visible {
@@ -328,10 +339,22 @@
 }
 
 @media (min-width: 769px) {
-    .video-card--v1 { max-width: 485px; }
-    .video-card--v2 { max-width: 309px; }
-    .video-card--v3 { max-width: 377px; }
-    .video-card--v4 { max-width: 449px; margin-top: var(--wam-spacing-xs); }
+    .video-card--v1 {
+        max-width: 485px;
+    }
+
+    .video-card--v2 {
+        max-width: 309px;
+    }
+
+    .video-card--v3 {
+        max-width: 377px;
+    }
+
+    .video-card--v4 {
+        max-width: 449px;
+        margin-top: var(--wam-spacing-xs);
+    }
 }
 
 /* mt-3 extra */
@@ -429,5 +452,9 @@
         width: 100%;
         height: auto;
         aspect-ratio: 16/9;
+    }
+
+    .section-signature__text-mallia.title-sign-lg {
+        font-size: 32px !important;
     }
 }

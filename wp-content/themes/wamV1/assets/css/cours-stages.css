@@ -26,17 +26,14 @@
     color: var(--wp--preset--color--accent-yellow) !important;
 }
 
-/* Hero 2 colonnes */
+/* Hero 2 colonnes — max-width / margin / padding gérés par .page-layout__inner > *:not(.wam-separator) */
 .page-cours__hero {
     display: grid;
     grid-template-columns: 1fr;
     gap: var(--wam-spacing-3xl);
     align-items: center;
-    max-width: var(--wam-max-screen);
     width: 100%;
-    padding: 0 var(--wam-page-mx);
     box-sizing: border-box;
-    margin: 0 auto;
 }
 
 @media (min-width: 1024px) {
@@ -798,6 +795,13 @@
     font-weight: 400;
 }
 
+@media (max-width: 768px) {
+    .page-hero__title--enfant {
+        font-size: 54px !important;
+    }
+}
+
+
 /* =====================================================
    INFO CARD — Encart horaires / lieu / tarif
    Figma : gradient bg600→bg800, rounded-3xl
@@ -931,17 +935,15 @@
 /* =====================================================
    SECTIONS DESCRIPTION — Pédagogie, Tenue
    ===================================================== */
+/* max-width / margin / padding gérés par .page-layout__inner > *:not(.wam-separator) */
 .cours-sections {
     display: flex;
     flex-direction: column;
     gap: var(--wam-spacing-9xl);
     /* 96px = gap-24 */
     align-items: flex-start;
-    max-width: var(--wam-max-screen);
     width: 100%;
-    padding: 0 var(--wam-page-mx);
     box-sizing: border-box;
-    margin: 0 auto;
 }
 
 /* Section individuelle : row (photo | texte) */

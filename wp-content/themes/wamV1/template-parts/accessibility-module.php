@@ -3,13 +3,21 @@
  * Template Part : Module Accessibilité
  * HTML du panel et du bouton flottant déclencheur
  *
+ * Paramètres via $args :
+ *   'inline' (bool) — true sur la page /accessibilite/ :
+ *       - pas de bouton flottant ni de backdrop
+ *       - panel visible sans [hidden], role="region"
+ *
  * @package wamv1
  */
 
-$icon_dir = get_template_directory_uri() . '/assets/images/';
+$icon_dir  = get_template_directory_uri() . '/assets/images/';
+$is_inline = $args['inline'] ?? false;
 ?>
+
+<?php if ( ! $is_inline ) : ?>
 <?php /* =====================================================
-BOUTON FLOTTANT — toujours visible sur le site
+BOUTON FLOTTANT — toujours visible sur le site (mode normal)
 ===================================================== */ ?>
 <div class="wam-a11y-trigger-wrap" id="wam-a11y-trigger-wrap">
     <?php
@@ -40,21 +48,30 @@ BOUTON FLOTTANT — toujours visible sur le site
         </span>
     </button>
 </div>
+<?php endif; // ! $is_inline — fin du bouton flottant ?>
 
 <?php /* =====================================================
-PANEL — overlay flottant
+PANEL — dialog flottant (normal) ou widget inline (/accessibilite/)
 ===================================================== */ ?>
-<aside class="wam-a11y-panel" id="wam-a11y-panel" role="dialog" aria-modal="false"
-    aria-label="<?php esc_attr_e("Options d'accessibilité", 'wamv1'); ?>" hidden>
+<section class="wam-a11y-panel<?php echo $is_inline ? ' wam-a11y-panel--inline' : ''; ?>"
+    id="wam-a11y-panel"
+    <?php echo $is_inline ? 'role="region"' : 'role="dialog" aria-modal="false"'; ?>
+    aria-label="<?php esc_attr_e("Options d'accessibilité", 'wamv1'); ?>"
+    <?php echo $is_inline ? '' : 'hidden'; ?>>
+
     <?php /* En-tête du panel */ ?>
     <div class="wam-a11y-panel__header">
-        <p class="wam-a11y-panel__title">
-            <?php esc_html_e('Personnalisation', 'wamv1'); ?>
+        <p class="wam-a11y-panel__title<?php echo $is_inline ? ' is-style-title-norm-md' : ''; ?>">
+            <?php echo $is_inline
+                ? esc_html__('Personnalisez votre expérience sur notre site', 'wamv1')
+                : esc_html__('Personnalisation', 'wamv1'); ?>
         </p>
+        <?php if ( ! $is_inline ) : ?>
         <button class="wam-a11y-panel__close" id="wam-a11y-close"
             aria-label="<?php esc_attr_e('Fermer le panel accessibilité', 'wamv1'); ?>" type="button">
             <img src="<?php echo esc_url($icon_dir . 'close.svg'); ?>" alt="" width="16" height="16">
         </button>
+        <?php endif; ?>
     </div>
 
     <div class="wam-a11y-panel__body">
@@ -199,5 +216,7 @@ PANEL — overlay flottant
     </div>
 </aside>
 
-<?php /* Fond opaque cliquable pour fermer le panel sur mobile */ ?>
+<?php if ( ! $is_inline ) : ?>
+<?php /* Fond opaque cliquable pour fermer le panel sur mobile (mode normal uniquement) */ ?>
 <div class="wam-a11y-backdrop" id="wam-a11y-backdrop" aria-hidden="true"></div>
+<?php endif; ?>

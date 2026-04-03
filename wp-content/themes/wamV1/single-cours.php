@@ -289,14 +289,16 @@ get_header();
                             </div>
                         <?php endif; ?>
 
-                        <div class="cours-info-card__row">
-                            <span class="btn-icon"
-                                style="--icon-url: url('<?php echo esc_url($icon_dir); ?>map.svg'); --icon-size: 24px; color: <?php echo $ic['map']; ?>;"></span>
-                            <div class="cours-info-card__cell">
-                                <p class="cours-info-card__lieu text-md">WAM Dance Studio</p>
-                                <p class="cours-info-card__adresse text-sm">202 rue Jean Jaurès à Villeneuve d'Ascq</p>
+                        <?php if (wam_adresse_visible()): ?>
+                            <div class="cours-info-card__row wam-adresse-globale">
+                                <span class="btn-icon"
+                                    style="--icon-url: url('<?php echo esc_url($icon_dir); ?>map.svg'); --icon-size: 24px; color: <?php echo $ic['map']; ?>;"></span>
+                                <div class="cours-info-card__cell">
+                                    <p class="cours-info-card__lieu text-md"><?php echo esc_html(wam_nom_lieu()); ?></p>
+                                    <p class="cours-info-card__adresse text-sm"><?php echo nl2br(esc_html(wam_adresse_lieu())); ?></p>
+                                </div>
                             </div>
-                        </div>
+                        <?php endif; ?>
 
                         <?php if ($tarif_label): ?>
                             <div class="cours-info-card__row">

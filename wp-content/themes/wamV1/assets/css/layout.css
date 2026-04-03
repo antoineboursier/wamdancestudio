@@ -137,13 +137,22 @@
     /* 48px */
     padding-bottom: var(--wam-spacing-3xl);
     /* 48px */
-    padding-left: var(--wam-page-mx);
-    padding-right: var(--wam-page-mx);
-    /* --wam-page-mx gère la valeur desktop (96px) et mobile (32px à 640px).
-       Les enfants ne déclarent plus de padding horizontal — voir règles ci-dessous. */
+    /* Pas de padding horizontal ici — géré par les enfants directs.
+       Le séparateur (.wam-separator) est enfant direct sans padding → full-bleed naturel. */
     position: relative;
     width: 100%;
+}
+
+/* Enfants directs (hors séparateur) : centrage + padding horizontal.
+   Pattern identique au header/footer : max-width + margin auto + padding sur le même élément. */
+.page-layout__inner > *:not(.wam-separator) {
+    max-width: var(--wam-max-screen);
+    margin-left: auto;
+    margin-right: auto;
+    padding-left: var(--wam-page-mx);
+    padding-right: var(--wam-page-mx);
     box-sizing: border-box;
+    width: 100%;
 }
 
 @media (max-width: 768px) {
@@ -151,28 +160,6 @@
         gap: var(--wam-spacing-lg);
         padding-bottom: 0;
     }
-}
-
-/* Enfants : le wrapper gère le padding horizontal sur tous les breakpoints.
-   Ces classes conservent leur max-width + margin: 0 auto pour le centrage. */
-.page-layout__inner .page-hero,
-.page-layout__inner .page-content,
-.page-layout__inner .wam-container,
-.page-layout__inner .wam-breadcrumb--full,
-.page-layout__inner .cours-videos,
-.page-layout__inner .cours-description,
-.page-layout__inner .section-similaires,
-.page-layout__inner .page-cours__hero,
-.page-layout__inner .section-content {
-    padding-left: 0;
-    padding-right: 0;
-}
-
-/* Séparateur full-bleed : marges négatives pour contrebalancer le padding du wrapper. */
-.page-layout__inner .wam-separator {
-    margin-left: calc(-1 * var(--wam-page-mx));
-    margin-right: calc(-1 * var(--wam-page-mx));
-    width: calc(100% + 2 * var(--wam-page-mx));
 }
 
 /* Breadcrumb → voir .wam-breadcrumb dans components.css */
@@ -183,16 +170,14 @@
    ===================================================== */
 
 /* Conteneur principal */
+/* max-width / margin / padding : gérés par .page-layout__inner > *:not(.wam-separator) */
 .page-hero {
     display: flex;
     flex-direction: column;
     gap: var(--wam-spacing-xl);
     /* 32px mobile */
     align-items: flex-start;
-    max-width: var(--wam-max-screen);
     width: 100%;
-    padding: 0 var(--wam-page-mx);
-    margin: 0 auto;
     box-sizing: border-box;
 }
 
@@ -203,6 +188,12 @@
         /* 96px desktop */
     }
 }
+
+/* Alignement centré exclusif pour les articles de blog (single.php) */
+body.single-post #section-article-header.page-hero {
+    align-items: center;
+}
+
 
 /* Colonne texte */
 .page-hero__content {
@@ -428,14 +419,12 @@
 /* =====================================================
    PAGE CONTENT — Zone de contenu Gutenberg
    ===================================================== */
+/* max-width / margin / padding : gérés par .page-layout__inner > *:not(.wam-separator) */
 .page-content {
     display: flex;
     flex-direction: column;
     align-items: flex-start;
-    max-width: var(--wam-max-screen);
     width: 100%;
-    padding: 0 var(--wam-page-mx);
-    margin: 0 auto;
     position: relative;
     box-sizing: border-box;
     color: var(--wam-color-text);

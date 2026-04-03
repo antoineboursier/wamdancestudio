@@ -79,13 +79,10 @@
        INITIALISATION DU PANEL
        ===================================================== */
     document.addEventListener('DOMContentLoaded', function () {
-        const trigger = document.getElementById('wam-a11y-trigger');
         const panel = document.getElementById('wam-a11y-panel');
-        const closeBtn = document.getElementById('wam-a11y-close');
-        const backdrop = document.getElementById('wam-a11y-backdrop');
         const resetBtn = document.getElementById('wam-a11y-reset');
 
-        if (!trigger || !panel) return;
+        if (!panel) return;
 
         let prefs = loadPrefs();
 
@@ -116,36 +113,6 @@
             if (motionCheck) motionCheck.checked = !!prefs.reduceMotion;
         }
 
-        /* ----- Ouverture / Fermeture ----- */
-        function openPanel() {
-            panel.removeAttribute('hidden');
-            trigger.setAttribute('aria-expanded', 'true');
-            backdrop.classList.add('is-visible');
-            panel.focus && setTimeout(() => {
-                const first = panel.querySelector('input, select, button');
-                if (first) first.focus();
-            }, 50);
-        }
-
-        function closePanel() {
-            panel.setAttribute('hidden', '');
-            trigger.setAttribute('aria-expanded', 'false');
-            backdrop.classList.remove('is-visible');
-            trigger.focus();
-        }
-
-        trigger.addEventListener('click', () => {
-            const isOpen = !panel.hasAttribute('hidden');
-            isOpen ? closePanel() : openPanel();
-        });
-
-        closeBtn && closeBtn.addEventListener('click', closePanel);
-        backdrop && backdrop.addEventListener('click', closePanel);
-
-        document.addEventListener('keydown', (e) => {
-            if (e.key === 'Escape' && !panel.hasAttribute('hidden')) closePanel();
-        });
-
         /* ----- Écoute des changements ----- */
         panel.addEventListener('change', function (e) {
             const el = e.target;
@@ -172,24 +139,6 @@
 
         /* ----- Sync initiale ----- */
         syncUI();
-
-        /* ----- Mode icône au scroll ----- */
-        const triggerWrap = document.getElementById('wam-a11y-trigger-wrap');
-        if (triggerWrap) {
-            const SCROLL_THRESHOLD = 80;
-            const ICON_CLASS = 'wam-a11y-trigger-wrap--icon';
-
-            function updateIconMode() {
-                if (window.scrollY > SCROLL_THRESHOLD) {
-                    triggerWrap.classList.add(ICON_CLASS);
-                } else {
-                    triggerWrap.classList.remove(ICON_CLASS);
-                }
-            }
-
-            window.addEventListener('scroll', updateIconMode, { passive: true });
-            updateIconMode();
-        }
     });
 
 })();

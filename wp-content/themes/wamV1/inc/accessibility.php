@@ -56,13 +56,3 @@ function wamv1_shortcode_accessibility($atts)
 }
 add_shortcode('wam_accessibility', 'wamv1_shortcode_accessibility');
 
-/**
- * Injection automatique du panel dans le footer de toutes les pages.
- * (On évite d'injecter si le shortcode l'a déjà fait via une page dédiée,
- *  mais dans notre cas le panel est un overlay global, donc double-safe.)
- */
-function wamv1_inject_accessibility_panel()
-{
-    get_template_part('template-parts/accessibility-module');
-}
-add_action('wp_footer', 'wamv1_inject_accessibility_panel', 99);

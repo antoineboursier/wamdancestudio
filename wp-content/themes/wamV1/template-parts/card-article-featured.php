@@ -36,7 +36,7 @@ $icon_dir = get_template_directory_uri() . '/assets/images/';
 
             <?php /* Thumbnail : 400×196 Figma */ ?>
             <div class="card-article__image">
-                <a href="<?php the_permalink(); ?>" class="card-article__image-link" aria-hidden="true" tabindex="-1">
+                <a href="<?php the_permalink(); ?>" class="card-article__image-link">
                     <?php if (has_post_thumbnail()): ?>
                         <?php the_post_thumbnail('wam-card', array('alt' => get_the_title())); ?>
                     <?php else: ?>

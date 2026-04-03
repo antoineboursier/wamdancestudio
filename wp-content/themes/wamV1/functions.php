@@ -99,7 +99,8 @@ add_action('init', 'wamv1_register_text_styles');
 // -------------------------------------------------------
 function wamv1_scripts()
 {
-    $ver = wp_get_theme()->get('Version');
+    // On utilise filemtime pour forcer le rafraîchissement du cache (cache-busting)
+    $ver = filemtime(get_template_directory() . '/style.css');
     $css = get_template_directory_uri() . '/assets/css/';
     $js = get_template_directory_uri() . '/assets/js/';
 

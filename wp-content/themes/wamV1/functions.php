@@ -34,6 +34,7 @@ if (!function_exists('wamv1_setup')):
         add_image_size('wam-stage-portrait', 1204, 1704, false); // A4 portrait x2 Retina pour écrans densités (602x852 @2x) - Pas de recadrage forcé
         add_image_size('wam-portrait', 960, 1280, true); // photo profil portrait (Retina x2)
         add_image_size('wam-thumb', 800, 600, true); // miniature vignette compacte (Retina x2)
+        add_image_size('wam-event-card', 810, 486, true); // card event paysage (Retina x2 de 405×243)
         add_theme_support('editor-styles');
         add_theme_support('html5', array(
             'search-form',
@@ -160,17 +161,19 @@ function wamv1_scripts()
     }
 
     // -------------------------------------------------------
-    // Cours & Stages — singles CPT + pages listing + planning
+    // Programme (cours, stages, events) — singles + pages listing + planning
     // -------------------------------------------------------
     if (
         is_singular('cours') ||
         is_singular('stages') ||
+        is_singular('evenements') ||
         is_page_template('page-cours-collectifs.php') ||
         is_page_template('page-stages-tous.php') ||
+        is_page_template('page-events-tous.php') ||
         is_page_template('page-prof-wam.php') ||
         is_page_template('page-planning-cours.php')
     ) {
-        wp_enqueue_style('wamv1-cours', $css . 'cours-stages.css', array('wamv1-accessibility'), $ver);
+        wp_enqueue_style('wamv1-programme', $css . 'programme.css', array('wamv1-accessibility'), $ver);
     }
 
     // JS filtrage — pages listing (cours collectifs + stages)
@@ -178,10 +181,20 @@ function wamv1_scripts()
         wp_enqueue_script('wamv1-filter', $js . 'filter.js', array(), $ver, true);
     }
 
-    // CSS + JS planning — page planning uniquement (dépend de cours-stages.css)
+    // CSS + JS planning — page planning uniquement (dépend de programme.css)
     if (is_page_template('page-planning-cours.php')) {
-        wp_enqueue_style('wamv1-planning', $css . 'planning.css', array('wamv1-cours'), $ver);
+        wp_enqueue_style('wamv1-planning', $css . 'planning.css', array('wamv1-programme'), $ver);
         wp_enqueue_script('wamv1-planning', $js . 'planning.js', array(), $ver, true);
+    }
+
+    // -------------------------------------------------------
+    // Events — CSS spécifique (dépend de programme.css)
+    // -------------------------------------------------------
+    if (
+        is_singular('evenements') ||
+        is_page_template('page-events-tous.php')
+    ) {
+        wp_enqueue_style('wamv1-events', $css . 'events.css', array('wamv1-programme'), $ver);
     }
 
     // -------------------------------------------------------
@@ -342,9 +355,13 @@ function wamv1_register_cpt_stages()
 add_action('init', 'wamv1_register_cpt_stages');
 
 
+
+// CPT events géré via ACF → Post Types (interface back-office)
+// Ne pas déclarer ici pour éviter le conflit de double registration.
+
 function wamv1_disable_gutenberg_cours($use_block_editor, $post_type)
 {
-    if (in_array($post_type, array('cours', 'stages'))) {
+    if (in_array($post_type, array('cours', 'stages', 'events'))) {
         return false;
     }
     return $use_block_editor;

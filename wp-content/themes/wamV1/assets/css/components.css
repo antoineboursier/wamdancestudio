@@ -612,7 +612,7 @@ html.wam-theme-light .btn-outlined {
 /* =====================================================
    RESPONSIVE — Header & Menu Mobile
    ===================================================== */
-@media (max-width: 640px) {
+@media (max-width: 1080px) {
     .wam-header__inner {
         padding: var(--wam-spacing-md) var(--wam-spacing-md);
         justify-content: space-between;
@@ -705,7 +705,7 @@ html.wam-theme-light .wam-header--home {
     position: relative;
     box-sizing: border-box;
     transition: border-color var(--wam-transition), background var(--wam-transition);
-    width: 92%;
+    width: 90%;
     margin: 0 auto;
 }
 
@@ -864,6 +864,156 @@ html.wam-theme-light .wam-header--home {
         width: 100%;
     }
 }
+
+/* =====================================================
+   CARD ARTICLE LIST — Vignette verticale listing blog
+   Réutilisable dans home.php et tout listing d'articles.
+   ===================================================== */
+
+.card-article-list {
+    position: relative;
+    isolation: isolate;
+    display: flex;
+    flex-direction: column;
+    background: linear-gradient(to bottom,
+        var(--wp--preset--color--background-800) 0%,
+        var(--wp--preset--color--background-600) 100%);
+    border: 3px solid var(--wp--preset--color--background-800);
+    border-radius: var(--wam-radius-xl);
+    overflow: hidden;
+    transition: box-shadow var(--wam-transition), transform var(--wam-transition), border-color var(--wam-transition);
+}
+
+/* Gradient border au survol — donut technique */
+.card-article-list::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    padding: 3px;
+    border-radius: inherit;
+    background: var(--wam-gradient-brand);
+    -webkit-mask:
+        linear-gradient(#000 0 0) content-box,
+        linear-gradient(#000 0 0);
+    -webkit-mask-composite: destination-out;
+    mask:
+        linear-gradient(#000 0 0) content-box,
+        linear-gradient(#000 0 0);
+    mask-composite: exclude;
+    z-index: -1;
+    opacity: 0;
+    transition: opacity var(--wam-transition);
+    pointer-events: none;
+}
+
+.card-article-list:hover,
+.card-article-list:focus-within {
+    box-shadow: var(--wam-shadow-md);
+    transform: translateY(-2px);
+    border-color: transparent;
+}
+
+.card-article-list:hover::before,
+.card-article-list:focus-within::before {
+    opacity: 1;
+}
+
+/* ---- Image ---- */
+
+.card-article-list__media {
+    display: block;
+    width: 100%;
+    aspect-ratio: 4 / 3;
+    overflow: hidden;
+    flex-shrink: 0;
+    text-decoration: none;
+}
+
+.card-article-list__img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+    transition: transform var(--wam-transition-slow);
+}
+
+.card-article-list:hover .card-article-list__img {
+    transform: scale(1.04);
+}
+
+.card-article-list__img-placeholder {
+    width: 100%;
+    height: 100%;
+    background: var(--wam-color-card-bg);
+}
+
+/* ---- Corps ---- */
+
+.card-article-list__body {
+    display: flex;
+    flex-direction: column;
+    gap: var(--wam-spacing-xs);
+    padding: var(--wam-spacing-md);
+    flex: 1;
+}
+
+.card-article-list__meta {
+    display: flex;
+    align-items: center;
+    gap: var(--wam-spacing-2xs);
+}
+
+.card-article-list__title {
+    margin: 0;
+    color: var(--wam-color-text);
+}
+
+.card-article-list__excerpt {
+    margin: 0;
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+/* ---- Footer CTA ---- */
+
+.card-article-list__footer {
+    margin-top: auto;
+    display: flex;
+    justify-content: flex-end;
+    padding-top: var(--wam-spacing-xs);
+}
+
+.card-article-list__cta {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    padding: var(--wam-spacing-sm);
+    border: 2px solid var(--wam-color-subtext);
+    border-radius: var(--wam-radius-sm);
+    color: var(--wam-color-subtext);
+    text-decoration: none;
+    transition: all var(--wam-transition);
+}
+
+.card-article-list:hover .card-article-list__cta,
+.card-article-list:focus-within .card-article-list__cta {
+    border-color: var(--wam-color-green);
+    color: var(--wam-color-green);
+}
+
+/* stretched-link */
+.card-article-list .stretched-link::after {
+    position: absolute;
+    inset: 0;
+    z-index: 1;
+    content: "";
+    border-radius: inherit;
+}
+
 
 /* =====================================================
    GRILLE PROFS — Layout réutilisable
@@ -2290,4 +2440,47 @@ html.wam-no-graphical-fonts .title-sign-sm {
 .wam-breadcrumb--full {
     width: 100%;
     box-sizing: border-box;
+}
+
+/* =====================================================
+   BOUTON MODIFIER FLOTTANT (ADMIN)
+   ===================================================== */
+.wam-floating-edit {
+    position: fixed;
+    bottom: var(--wam-spacing-md);
+    right: var(--wam-spacing-md);
+    z-index: 9999;
+    display: flex;
+    align-items: center;
+    gap: var(--wam-spacing-2xs);
+    padding: 10px 20px;
+    background: var(--wam-color-yellow);
+    color: var(--wam-color-page-bg) !important;
+    text-decoration: none !important;
+    border-radius: var(--wam-radius-full);
+    font-weight: 700;
+    font-size: var(--wam-font-size-sm);
+    box-shadow: 0 4px 16px rgba(19, 22, 32, 0.4);
+    transition: transform var(--wam-transition), background-color var(--wam-transition);
+}
+
+.wam-floating-edit:hover {
+    transform: translateY(-2px);
+    background: #fff;
+}
+
+.wam-floating-edit__icon {
+    font-size: 1.25em;
+    line-height: 1;
+}
+
+@media (max-width: 1024px) {
+    .wam-floating-edit {
+        bottom: 80px; /* Évite de bloquer d'autres boutons mobile */
+        right: var(--wam-spacing-sm);
+        padding: 12px;
+    }
+    .wam-floating-edit__label {
+        display: none;
+    }
 }

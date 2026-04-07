@@ -1,0 +1,299 @@
+/* =====================================================
+   events.css — Page listing et single événements
+   Chargé sur is_singular('events'), page-events-tous.php
+   ===================================================== */
+
+
+/* =====================================================
+   PAGE EVENTS — Layout général (calqué sur .page-stages)
+   ===================================================== */
+
+.page-events {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    align-items: stretch;
+    gap: var(--wam-spacing-4xl);
+    padding-bottom: var(--wam-spacing-4xl);
+}
+
+
+/* =====================================================
+   GRILLE — 1 col mobile → 2 col tablette → 3 col desktop
+   ===================================================== */
+
+.page-events__grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: var(--wam-spacing-xl);
+}
+
+@media (min-width: 640px) {
+    .page-events__grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+@media (min-width: 1024px) {
+    .page-events__grid {
+        grid-template-columns: repeat(3, 1fr);
+    }
+}
+
+.page-events__empty {
+    color: var(--wam-color-subtext);
+}
+
+
+/* =====================================================
+   HISTORIQUE — section événements passés
+   ===================================================== */
+
+.page-events__history {
+    gap: var(--wam-spacing-xl);
+}
+
+.page-events__history-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: var(--wam-spacing-md);
+    margin-top: var(--wam-spacing-xl);
+}
+
+@media (min-width: 640px) {
+    .page-events__history-grid {
+        grid-template-columns: repeat(3, 1fr);
+    }
+}
+
+@media (min-width: 1024px) {
+    .page-events__history-grid {
+        grid-template-columns: repeat(4, 1fr);
+    }
+}
+
+
+/* =====================================================
+   CARD EVENT
+   ===================================================== */
+
+.card-event {
+    position: relative;
+    isolation: isolate;
+    display: flex;
+    flex-direction: column;
+    background: linear-gradient(to bottom,
+        var(--wp--preset--color--background-800) 0%,
+        var(--wp--preset--color--background-600) 100%);
+    border: 3px solid var(--wp--preset--color--background-800);
+    border-radius: var(--wam-radius-xl);
+    overflow: hidden;
+    padding: var(--wam-spacing-2xs);
+    gap: var(--wam-spacing-md);
+    transition: box-shadow var(--wam-transition), transform var(--wam-transition), border-color var(--wam-transition);
+}
+
+/* Gradient border au survol — même technique donut que card-stage */
+.card-event::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    padding: 3px;
+    border-radius: inherit;
+    background: var(--wam-gradient-brand);
+    -webkit-mask:
+        linear-gradient(#000 0 0) content-box,
+        linear-gradient(#000 0 0);
+    -webkit-mask-composite: destination-out;
+    mask:
+        linear-gradient(#000 0 0) content-box,
+        linear-gradient(#000 0 0);
+    mask-composite: exclude;
+    z-index: -1;
+    opacity: 0;
+    transition: opacity var(--wam-transition);
+    pointer-events: none;
+}
+
+.card-event:hover,
+.card-event:focus-within {
+    box-shadow: var(--wam-shadow-md);
+    transform: translateY(-2px);
+    border-color: transparent;
+}
+
+.card-event:hover::before,
+.card-event:focus-within::before {
+    opacity: 1;
+}
+
+/* stretched-link — couvre toute la card (défini ici car cours-stages.css
+   n'est pas toujours chargé dans les mêmes contextes) */
+.card-event .stretched-link::after {
+    position: absolute;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    z-index: 1;
+    content: "";
+    border-radius: inherit;
+}
+
+
+/* ---- Media (image paysage) ---- */
+
+.card-event__media {
+    position: relative;
+    width: 100%;
+    aspect-ratio: 405 / 243;
+    overflow: hidden;
+    border-radius: var(--wam-radius-xl);
+    flex-shrink: 0;
+}
+
+.card-event__img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+}
+
+.card-event__img-overlay {
+    position: absolute;
+    inset: 0;
+    background: var(--wam-color-page-bg);
+    mix-blend-mode: lighten;
+    pointer-events: none;
+}
+
+.card-event__img-placeholder {
+    width: 100%;
+    height: 100%;
+    background: var(--wam-color-card-bg);
+}
+
+
+/* ---- Badge "Complet" ---- */
+
+.card-event__badge--complet {
+    position: absolute;
+    top: var(--wam-spacing-sm);
+    right: var(--wam-spacing-sm);
+    display: flex;
+    align-items: center;
+    gap: var(--wam-spacing-2xs);
+    background: var(--wam-color-orange);
+    color: var(--wam-color-page-bg);
+    padding: var(--wam-spacing-2xs) var(--wam-spacing-xs);
+    border-radius: var(--wam-radius-pill);
+    font-size: var(--wam-font-size-sm);
+    font-weight: 700;
+}
+
+
+/* ---- Pill de date (bas-gauche de l'image) ---- */
+
+.card-event__date {
+    position: absolute;
+    bottom: var(--wam-spacing-sm);
+    left: var(--wam-spacing-sm);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 2px;
+    background: var(--wam-color-glass-white);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border-radius: var(--wam-radius-md);
+    padding: var(--wam-spacing-xs) var(--wam-spacing-sm);
+    min-width: 64px;
+}
+
+.card-event__date-day {
+    color: var(--wam-color-subtext);
+}
+
+.card-event__date-num {
+    color: var(--wam-color-text);
+    line-height: 1;
+}
+
+.card-event__date-month {
+    color: var(--wam-color-text);
+}
+
+.card-event__date-year {
+    color: var(--wam-color-subtext);
+}
+
+
+/* ---- Body ---- */
+
+.card-event__body {
+    display: flex;
+    flex-direction: column;
+    gap: var(--wam-spacing-xs);
+    padding: var(--wam-spacing-md);
+    flex: 1;
+}
+
+.card-event__title {
+    margin: 0;
+    color: var(--wam-color-text);
+}
+
+.card-event__subtitle {
+    display: block;
+    font-family: var(--wam-font-body);
+    font-size: var(--wam-font-size-md);
+    font-weight: 400;
+    color: var(--wam-color-subtext);
+    margin-top: var(--wam-spacing-2xs);
+}
+
+.card-event__time {
+    color: var(--wam-color-text);
+    margin: 0;
+}
+
+
+/* ---- Footer CTA ---- */
+
+.card-event__footer {
+    margin-top: auto;
+    display: flex;
+    justify-content: flex-end;
+    padding-top: var(--wam-spacing-xs);
+}
+
+.card-event__cta {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    padding: var(--wam-spacing-sm);
+    border: 2px solid var(--wam-color-subtext);
+    border-radius: var(--wam-radius-sm);
+    color: var(--wam-color-subtext);
+    text-decoration: none;
+    transition: all var(--wam-transition);
+}
+
+.card-event:hover .card-event__cta,
+.card-event:focus-within .card-event__cta {
+    border-color: var(--wam-color-text);
+    color: var(--wam-color-text);
+}
+
+.card-event__cta--disabled {
+    pointer-events: none;
+    opacity: 0.4;
+}
+
+
+/* ---- Modificateur complet — opacité réduite sur le media ---- */
+
+.card-event--complet .card-event__media {
+    opacity: 0.6;
+}

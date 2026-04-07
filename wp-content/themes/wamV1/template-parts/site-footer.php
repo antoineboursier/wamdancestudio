@@ -284,5 +284,9 @@ $icon_dir       = get_template_directory_uri() . '/assets/images/';
             ?>
         </p>
 
+
+        <?php /* Bouton Modifier flottant (uniquement pour admins/éditeurs) */ 
+        if ( function_exists('wamv1_admin_floating_edit') ) wamv1_admin_floating_edit(); ?>
+
     </div><!-- /.wam-footer__container -->
 </footer>

@@ -239,6 +239,12 @@ function wamv1_custom_login_assets()
             box-shadow: 0 0 0 1px var(--wam-color-yellow) !important;
             outline: none;
         }
+
+        .login .message,
+        .login .notice,
+        .login .success {
+            background: transparent;
+        }
     </style>
     <?php
 }
@@ -252,3 +258,32 @@ function wamv1_custom_login_logo_url()
     return home_url();
 }
 add_filter('login_headerurl', 'wamv1_custom_login_logo_url');
+
+/**
+ * Bouton "Modifier" flottant pour les admins (bas à droite)
+ * Permet un accès rapide au back-office depuis le front.
+ */
+function wamv1_admin_floating_edit()
+{
+    // Ne pas afficher si admin back-office, ou si pas les droits d'édition
+    if (is_admin() || !current_user_can('edit_post', get_the_ID())) {
+        return;
+    }
+
+    // Pas sur les pages sensibles WooCommerce (évite la pollution visuelle sur le tunnel)
+    if (function_exists('is_account_page') && (is_account_page() || is_cart() || is_checkout())) {
+        return;
+    }
+
+    $edit_url = get_edit_post_link();
+    if (!$edit_url) {
+        return;
+    }
+
+    echo '<a href="' . esc_url($edit_url) . '" class="wam-floating-edit" aria-label="Modifier cette page">';
+    echo '<span class="wam-floating-edit__icon" aria-hidden="true">&#9998;</span>'; // Pictogramme crayon unicode
+    echo '<span class="wam-floating-edit__label">Modifier</span>';
+    echo '</a>';
+}
+// add_action('wp_footer', 'wamv1_admin_floating_edit', 100); // Déplacé dans site-footer.php
+

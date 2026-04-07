@@ -1,7 +1,8 @@
 /* =====================================================
-   cours-stages.css — Styles cours collectifs, single cours et stages
-   Chargé sur is_singular('cours'), is_singular('stages'),
-   page-cours-collectifs.php, page-stages-tous.php, page-planning-cours.php
+   programme.css — Styles du programme WAM : cours collectifs, stages, events
+   Chargé sur is_singular('cours'), is_singular('stages'), is_singular('evenements'),
+   page-cours-collectifs.php, page-stages-tous.php, page-events-tous.php,
+   page-prof-wam.php, page-planning-cours.php
    ===================================================== */
 
 /* =====================================================

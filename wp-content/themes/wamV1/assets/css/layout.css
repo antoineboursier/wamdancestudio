@@ -145,7 +145,7 @@
 
 /* Enfants directs (hors séparateur) : centrage + padding horizontal.
    Pattern identique au header/footer : max-width + margin auto + padding sur le même élément. */
-.page-layout__inner > *:not(.wam-separator) {
+.page-layout__inner>*:not(.wam-separator) {
     max-width: var(--wam-max-screen);
     margin-left: auto;
     margin-right: auto;
@@ -158,7 +158,6 @@
 @media (max-width: 768px) {
     .page-layout__inner {
         gap: var(--wam-spacing-lg);
-        padding-bottom: 0;
     }
 }
 
@@ -469,4 +468,97 @@ body.single-post #section-article-header.page-hero {
     width: 100%;
     height: 100%;
     object-fit: cover;
+}
+
+
+/* =====================================================
+   PAGE BLOG (home.php)
+   ===================================================== */
+
+.page-blog__hero {
+    display: flex;
+    flex-direction: column;
+    gap: var(--wam-spacing-sm);
+    padding-bottom: var(--wam-spacing-xl);
+}
+
+.page-blog__title {
+    margin: 0;
+}
+
+.page-blog__desc {
+    margin: 0;
+    max-width: 60ch;
+}
+
+.page-blog__grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: var(--wam-spacing-xl);
+}
+
+@media (min-width: 640px) {
+    .page-blog__grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+@media (min-width: 1024px) {
+    .page-blog__grid {
+        grid-template-columns: repeat(3, 1fr);
+    }
+}
+
+.page-blog__pagination {
+    margin-top: var(--wam-spacing-3xl);
+    display: flex;
+    justify-content: center;
+}
+
+.page-blog__empty {
+    text-align: center;
+    padding: var(--wam-spacing-3xl) 0;
+}
+
+
+/* =====================================================
+   PAGE 404
+   ===================================================== */
+
+.page-404 {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    gap: var(--wam-spacing-3xl);
+    padding-bottom: var(--wam-spacing-4xl);
+}
+
+.page-404__visual {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: var(--wam-spacing-lg);
+}
+
+.page-404__emoji {
+    display: block;
+    width: 72px;
+    height: 72px;
+    color: var(--wam-color-yellow);
+}
+
+.page-404__emoji svg {
+    width: 100%;
+    height: 100%;
+}
+
+.page-404__title {
+    margin: 0;
+}
+
+.page-404__desc {
+    color: var(--wam-color-subtext);
+    max-width: 48ch;
+    margin: 0 auto;
 }

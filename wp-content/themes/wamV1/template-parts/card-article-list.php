@@ -19,10 +19,16 @@ $reading_time = ceil(str_word_count(strip_tags(get_the_content())) / 200);
     <!-- ---- Image ---- -->
     <a href="<?php the_permalink(); ?>" class="card-article-list__media" tabindex="-1" aria-hidden="true">
         <?php if (has_post_thumbnail()) : ?>
-            <?php the_post_thumbnail('wam-card', [
-                'class' => 'card-article-list__img',
-                'alt'   => esc_attr(get_the_title()),
-            ]); ?>
+            <?php echo wp_get_attachment_image(
+                get_post_thumbnail_id(),
+                'wam-thumb',
+                false,
+                [
+                    'class' => 'card-article-list__img',
+                    'alt'   => esc_attr(get_the_title()),
+                    'sizes' => '(min-width: 1024px) 33vw, (min-width: 640px) 50vw, 100vw',
+                ]
+            ); ?>
         <?php else : ?>
             <div class="card-article-list__img-placeholder" aria-hidden="true"></div>
         <?php endif; ?>
@@ -33,7 +39,7 @@ $reading_time = ceil(str_word_count(strip_tags(get_the_content())) / 200);
 
         <div class="card-article-list__meta text-xs color-subtext">
             <time datetime="<?php echo esc_attr(get_the_date('c')); ?>">
-                <?php echo esc_html(get_the_date()); ?>
+                <?php echo esc_html(get_the_date('d/m/Y')); ?>
             </time>
             <?php if ($reading_time) : ?>
                 <span aria-hidden="true">·</span>

@@ -342,28 +342,6 @@ get_header();
                         </div>
                     <?php endif; ?>
 
-                    <!-- CTAs — inscription + réserver un essai -->
-                    <!-- Priorité : cours complet > inscriptions globalement fermées > bouton actif -->
-                    <div id="section-ctas" class="cours-ctas">
-                        <?php if ($complet): ?>
-                            <!-- Inscription désactivée : cours complet -->
-                            <div id="btn-inscription" class="btn-inscription btn-inscription--disabled">
-                                <span class="btn-inscription__label"><?php echo wam_btn_inscription_texte(); ?></span>
-                            </div>
-                        <?php elseif (!wam_inscriptions_actives()): ?>
-                            <!-- Inscription désactivée : globalement fermées (Réglages > Configuration WAM) -->
-                            <div id="btn-inscription" class="btn-inscription btn-inscription--disabled">
-                                <span class="btn-inscription__label"><?php echo wam_message_inscriptions_fermees(); ?></span>
-                            </div>
-                        <?php else: ?>
-                            <a id="btn-inscription" href="<?php echo esc_url(wam_btn_inscription_url()); ?>" class="btn-primary btn-inscription">
-                                <span class="btn-inscription__label"><?php echo wam_btn_inscription_texte(); ?></span>
-                                <span class="btn-icon btn-icon--sm"
-                                    style="--icon-url: url('<?php echo esc_url($icon_dir); ?>chevron-right.svg');"></span>
-                            </a>
-                        <?php endif; ?>
-
-                    </div>
 
                 </div><!-- /infos -->
             </div><!-- /hero -->

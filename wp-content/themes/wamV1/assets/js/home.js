@@ -173,26 +173,49 @@
     }
 
     /* =====================================================
-       VIDÉOS — Pause globale avec icône play/pause
+       VIDÉOS YOUTUBE — Pause globale via API
        ===================================================== */
     const pauseVideoBtn = document.getElementById('pause-videos');
-    const videos = document.querySelectorAll('.video-card video');
+    const ytPlayers = [];
+    let videosPaused = prefersReduced;
 
-    if (pauseVideoBtn && videos.length) {
-        let videosPaused = false;
+    // 1. Chargement de l'API YouTube
+    if (pauseVideoBtn) {
+        const tag = document.createElement('script');
+        tag.src = "https://www.youtube.com/iframe_api";
+        const firstScriptTag = document.getElementsByTagName('script')[0];
+        firstScriptTag.parentNode.insertBefore(tag, firstScriptTag);
+    }
 
+    // 2. Initialisation des lecteurs (appelé par l'API YT)
+    window.onYouTubeIframeAPIReady = function () {
+        document.querySelectorAll('.youtube-player').forEach((iframe, index) => {
+            const player = new YT.Player(iframe.id, {
+                events: {
+                    'onReady': (event) => {
+                        ytPlayers.push(event.target);
+                        // Si Reduced Motion ou déjà cliqué sur pause, on arrête
+                        if (videosPaused) event.target.pauseVideo();
+                    }
+                }
+            });
+        });
+    };
+
+    if (pauseVideoBtn) {
         if (prefersReduced) {
-            videos.forEach(v => { v.pause(); v.removeAttribute('autoplay'); });
-            videosPaused = true;
             pauseVideoBtn.setAttribute('aria-pressed', 'true');
             setPauseIcon(pauseVideoBtn, true);
-            const lbl = pauseVideoBtn.querySelector('.btn-pause__label');
+            const lbl = pauseVideoBtn.querySelector('span:not(.btn-icon)');
             if (lbl) lbl.textContent = 'Reprendre les vidéos';
         }
 
         pauseVideoBtn.addEventListener('click', () => {
             videosPaused = !videosPaused;
-            videos.forEach(v => videosPaused ? v.pause() : v.play().catch(() => { }));
+            ytPlayers.forEach(p => {
+                if (videosPaused) p.pauseVideo();
+                else p.playVideo();
+            });
             pauseVideoBtn.setAttribute('aria-pressed', videosPaused ? 'true' : 'false');
             setPauseIcon(pauseVideoBtn, videosPaused);
             const lbl = pauseVideoBtn.querySelector('span:not(.btn-icon)');

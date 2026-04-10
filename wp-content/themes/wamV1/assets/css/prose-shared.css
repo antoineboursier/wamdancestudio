@@ -1,0 +1,377 @@
+/* =====================================================
+   PROSE SHARED — WAM Dance Studio
+   Source unique de vérité pour les styles de contenu
+   éditorial (Gutenberg / articles / cours).
+   ===================================================== */
+
+/* -------------------------------------------------------
+   Titres — Marges contextuelles
+   ------------------------------------------------------- */
+
+.wam-prose h1,
+.editor-styles-wrapper h1 {
+    margin: var(--wam-spacing-xl) 0 var(--wam-spacing-3xl);
+}
+
+.wam-prose h2,
+.editor-styles-wrapper h2 {
+    margin: var(--wam-spacing-3xl) 0 var(--wam-spacing-lg);
+}
+
+.wam-prose h3,
+.editor-styles-wrapper h3 {
+    margin: var(--wam-spacing-xl) 0 var(--wam-spacing-md);
+}
+
+.wam-prose h4,
+.editor-styles-wrapper h4 {
+    margin: var(--wam-spacing-lg) 0 var(--wam-spacing-sm);
+}
+
+.wam-prose h5,
+.editor-styles-wrapper h5 {
+    margin: var(--wam-spacing-lg) 0 var(--wam-spacing-sm);
+}
+
+.wam-prose h6,
+.editor-styles-wrapper h6 {
+    margin: var(--wam-spacing-lg) 0 var(--wam-spacing-sm);
+}
+
+/* -------------------------------------------------------
+   Paragraphes & Espacements
+   ------------------------------------------------------- */
+
+.wam-prose p,
+.editor-styles-wrapper p {
+    font-size: var(--wam-font-size-md);
+}
+
+.wam-prose p+p,
+.editor-styles-wrapper p+p {
+    margin-top: var(--wam-spacing-lg);
+}
+
+/* -------------------------------------------------------
+   Listes
+   ------------------------------------------------------- */
+
+.wam-prose ul,
+.editor-styles-wrapper ul,
+.wam-prose ol,
+.editor-styles-wrapper ol {
+    padding: var(--wam-spacing-md) 0 var(--wam-spacing-md) var(--wam-spacing-2xl);
+    font-size: var(--wam-font-size-md);
+    margin: 0;
+}
+
+.wam-prose ul li+li,
+.editor-styles-wrapper ul li+li,
+.wam-prose ol li+li,
+.editor-styles-wrapper ol li+li {
+    margin-top: var(--wam-spacing-2xs);
+}
+
+/* -------------------------------------------------------
+   Séparateur
+   ------------------------------------------------------- */
+
+.wam-prose hr,
+.editor-styles-wrapper hr,
+.wam-prose .wp-block-separator,
+.editor-styles-wrapper .wp-block-separator {
+    margin: var(--wam-spacing-3xl) 0;
+    border: none;
+    height: 2px;
+    background: var(--wam-gradient-brand);
+    border-radius: var(--wam-radius-pill);
+    opacity: 1;
+    /* Override Gutenberg default opacity */
+}
+
+/* -------------------------------------------------------
+   Liens
+   ------------------------------------------------------- */
+
+.wam-prose a,
+.editor-styles-wrapper a {
+    color: var(--wam-color-yellow);
+    text-decoration: underline;
+    text-underline-offset: 3px;
+    transition: opacity var(--wam-transition);
+}
+
+.wam-prose a:hover,
+.editor-styles-wrapper a:hover {
+    opacity: 0.75;
+}
+
+/* -------------------------------------------------------
+   Accordéon (wp-block-details)
+   ------------------------------------------------------- */
+
+.wam-prose .wp-block-details,
+.editor-styles-wrapper .wp-block-details {
+    background-color: var(--wam-color-card-bg);
+    border: 1px solid var(--wam-color-input-bg);
+    border-radius: var(--wam-radius-md);
+    margin: var(--wam-spacing-md) 0;
+    transition: border-color var(--wam-transition), box-shadow var(--wam-transition);
+    overflow: hidden;
+}
+
+.wam-prose .wp-block-details[open],
+.editor-styles-wrapper .wp-block-details[open] {
+    border-color: var(--wam-color-yellow);
+    box-shadow: var(--wam-shadow-md);
+}
+
+.wam-prose .wp-block-details summary,
+.editor-styles-wrapper .wp-block-details summary {
+    list-style: none;
+    padding: var(--wam-spacing-md) var(--wam-spacing-lg);
+    font-size: var(--wam-font-size-md);
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    transition: background-color var(--wam-transition);
+    user-select: none;
+}
+
+.wam-prose .wp-block-details summary::-webkit-details-marker,
+.editor-styles-wrapper .wp-block-details summary::-webkit-details-marker {
+    display: none;
+}
+
+.wam-prose .wp-block-details summary:hover,
+.editor-styles-wrapper .wp-block-details summary:hover {
+    background-color: var(--wam-color-glass-yellow);
+}
+
+.wam-prose .wp-block-details summary::after,
+.editor-styles-wrapper .wp-block-details summary::after {
+    content: "";
+    display: inline-block;
+    width: 20px;
+    height: 20px;
+    background-color: currentColor;
+    -webkit-mask: url('../images/chevron_down.svg') no-repeat center / contain;
+    mask: url('../images/chevron_down.svg') no-repeat center / contain;
+    transition: transform var(--wam-transition-slow);
+    flex-shrink: 0;
+    margin-left: var(--wam-spacing-md);
+}
+
+.wam-prose .wp-block-details[open] summary::after,
+.editor-styles-wrapper .wp-block-details[open] summary::after {
+    transform: rotate(180deg);
+}
+
+.wam-prose .wp-block-details>*:not(summary),
+.editor-styles-wrapper .wp-block-details>*:not(summary) {
+    padding: var(--wam-spacing-lg) var(--wam-spacing-lg);
+    /* Aligné sur .text-md (tokens.md) */
+    font-size: var(--wam-font-size-md);
+    color: var(--wam-color-text);
+}
+
+.wam-prose .wp-block-details[open]>*:not(summary),
+.editor-styles-wrapper .wp-block-details[open]>*:not(summary) {
+    animation: wamDetailsFadeIn var(--wam-transition-slow) forwards;
+}
+
+@keyframes wamDetailsFadeIn {
+    0% {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+
+    100% {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* -------------------------------------------------------
+   Blockquote
+   ------------------------------------------------------- */
+
+.wam-prose blockquote,
+.editor-styles-wrapper blockquote,
+.wam-prose .wp-block-quote,
+.editor-styles-wrapper .wp-block-quote {
+    font-style: italic;
+    padding: var(--wam-spacing-md) var(--wam-spacing-lg);
+    border: 1px solid var(--wam-color-card-bg);
+    border-radius: var(--wam-radius-md);
+    margin: var(--wam-spacing-3xl) 0;
+    color: var(--wam-color-subtext);
+}
+
+.wam-prose .wp-block-quote p,
+.editor-styles-wrapper .wp-block-quote p {
+    color: var(--wam-color-subtext);
+}
+
+.wam-prose .wp-block-quote cite,
+.editor-styles-wrapper .wp-block-quote cite,
+.wam-prose .wp-block-quote footer,
+.editor-styles-wrapper .wp-block-quote footer {
+    font-size: var(--wam-font-size-xs);
+    color: var(--wam-color-disabled);
+    font-style: normal;
+    margin-top: var(--wam-spacing-sm);
+    display: block;
+}
+
+/* -------------------------------------------------------
+   Images Gutenberg
+   ------------------------------------------------------- */
+
+.wam-prose .wp-block-image,
+.editor-styles-wrapper .wp-block-image {
+    margin: var(--wam-spacing-2xl) 0;
+}
+
+.wam-prose .wp-block-image img,
+.editor-styles-wrapper .wp-block-image img {
+    border-radius: var(--wam-radius-3xl);
+    box-shadow:
+        -1px -4px 0px 0px var(--wam-color-yellow),
+        4px 6px 0px 0px var(--wam-color-pink),
+        6px -2px 0px 0px var(--wam-color-orange),
+        -5px 4px 0px 0px var(--wam-color-green);
+    display: block;
+    max-width: 100%;
+    height: auto;
+}
+
+.wam-prose figcaption,
+.editor-styles-wrapper figcaption {
+    margin-top: var(--wam-spacing-md);
+    font-size: var(--wam-font-size-xs);
+    color: var(--wam-color-subtext);
+    text-align: center;
+    font-style: italic;
+}
+
+/* -------------------------------------------------------
+   Alignements (Gutenberg)
+   ------------------------------------------------------- */
+
+.wam-prose .alignleft,
+.editor-styles-wrapper .alignleft {
+    float: left;
+    margin-right: var(--wam-spacing-4xl);
+    margin-bottom: var(--wam-spacing-lg);
+    max-width: 50%;
+}
+
+.wam-prose .alignright,
+.editor-styles-wrapper .alignright {
+    float: right;
+    margin-left: var(--wam-spacing-4xl);
+    margin-bottom: var(--wam-spacing-lg);
+    max-width: 50%;
+}
+
+.wam-prose .aligncenter,
+.editor-styles-wrapper .aligncenter {
+    display: table;
+    margin-left: auto;
+    margin-right: auto;
+    margin-top: var(--wam-spacing-4xl);
+    margin-bottom: var(--wam-spacing-4xl);
+}
+
+/* -------------------------------------------------------
+   Group (core/group)
+   ------------------------------------------------------- */
+
+.wam-prose .wp-block-group,
+.editor-styles-wrapper .wp-block-group {
+    margin: var(--wam-spacing-2xl) 0;
+}
+
+/* Exception : Pas de marge sur les groupes à l'intérieur de colonnes */
+.wam-prose .wp-block-columns .wp-block-group,
+.editor-styles-wrapper .wp-block-columns .wp-block-group {
+    margin: 0;
+}
+
+/* -------------------------------------------------------
+   Tableau (core/table)
+   ------------------------------------------------------- */
+
+.wam-prose .wp-block-table table,
+.editor-styles-wrapper .wp-block-table table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: var(--wam-font-size-xs);
+}
+
+.wam-prose .wp-block-table td,
+.editor-styles-wrapper .wp-block-table td,
+.wam-prose .wp-block-table th,
+.editor-styles-wrapper .wp-block-table th {
+    padding: var(--wam-spacing-sm) var(--wam-spacing-md);
+    border: 1px solid var(--wam-color-card-bg);
+}
+
+.wam-prose .wp-block-table thead td,
+.editor-styles-wrapper .wp-block-table thead td,
+.wam-prose .wp-block-table th,
+.editor-styles-wrapper .wp-block-table th {
+    background-color: var(--wam-color-card-bg);
+    font-weight: 700;
+    color: var(--wam-color-yellow);
+}
+
+/* -------------------------------------------------------
+   Code / Preformatted
+   ------------------------------------------------------- */
+
+.wam-prose code,
+.editor-styles-wrapper code,
+.wam-prose pre,
+.editor-styles-wrapper pre {
+    font-family: 'Courier New', Courier, monospace;
+    font-size: var(--wam-font-size-xs);
+    background-color: var(--wam-color-card-bg);
+    border-radius: var(--wam-radius-sm);
+    color: var(--wam-color-green);
+}
+
+.wam-prose code,
+.editor-styles-wrapper code {
+    padding: 2px 6px;
+}
+
+.wam-prose pre,
+.editor-styles-wrapper pre {
+    padding: var(--wam-spacing-md);
+    overflow-x: auto;
+}
+
+/* -------------------------------------------------------
+   Responsive
+   ------------------------------------------------------- */
+
+@media (max-width: 1024px) {
+
+    .wam-prose .alignleft,
+    .wam-prose .alignright {
+        float: none;
+        margin-left: 0;
+        margin-right: 0;
+        max-width: 100%;
+        width: 100%;
+        margin-bottom: var(--wam-spacing-xl);
+    }
+
+    .wam-prose .aligncenter {
+        margin-top: var(--wam-spacing-2xl);
+        margin-bottom: var(--wam-spacing-2xl);
+    }
+}

@@ -79,11 +79,24 @@ if (!function_exists('wamv1_setup')):
             'https://fonts.googleapis.com/css2?family=Outfit:wght@100..900&display=swap',
             'assets/css/tokens.css',
             'assets/css/base.css',
+            'assets/css/prose-shared.css',
             'assets/css/editor.css',
         ));
     }
 endif;
 add_action('after_setup_theme', 'wamv1_setup');
+
+// -------------------------------------------------------
+// Injection de la classe wam-prose sur le body de l'éditeur Gutenberg
+// Permet à prose-shared.css d'être actif dans le back via un seul fichier CSS
+// -------------------------------------------------------
+add_filter('block_editor_settings_all', function ($settings) {
+    $settings['bodyClassName'] = trim(($settings['bodyClassName'] ?? '') . ' wam-prose');
+    return $settings;
+});
+add_filter('mce_body_class', function ($classes) {
+    return $classes . ' wam-prose';
+});
 
 // -------------------------------------------------------
 // Styles de display custom (Gutenberg Block Styles)
@@ -169,6 +182,12 @@ function wamv1_scripts()
     // TOUTES LES PAGES (formulaires peuvent apparaître partout)
     // -------------------------------------------------------
     wp_enqueue_style('wamv1-forms', $css . 'forms.css', array('wamv1-accessibility'), $ver);
+
+    // -------------------------------------------------------
+    // prose-shared.css — Source unique des styles de contenu éditorial
+    // Chargé après base.css, TOUTES LES PAGES
+    // -------------------------------------------------------
+    wp_enqueue_style('wamv1-prose', $css . 'prose-shared.css', array('wamv1-base'), $ver);
 
     // -------------------------------------------------------
     // Page d'accueil uniquement

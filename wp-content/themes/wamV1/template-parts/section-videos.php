@@ -14,7 +14,7 @@ $icon_dir = get_template_directory_uri() . '/assets/images/';
 $home_id = get_option('page_on_front');
 $has_acf = function_exists('get_field');
 $videos = [
-    $has_acf ? (get_field('video_home_1', $home_id) ?: 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4') : 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4',
+    $has_acf ? (get_field('video_home_1', $home_id) ?: 'https://youtu.be/Xnp3cjpOyjM?is=blWSj8ItNNmqPiLP') : 'https://youtu.be/Xnp3cjpOyjM?is=blWSj8ItNNmqPiLP',
     $has_acf ? (get_field('video_home_2', $home_id) ?: 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ElephantsDream.mp4') : 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ElephantsDream.mp4',
     $has_acf ? (get_field('video_home_3', $home_id) ?: 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4') : 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4',
     $has_acf ? (get_field('video_home_4', $home_id) ?: 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerFun.mp4') : 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerFun.mp4',
@@ -28,8 +28,7 @@ $videos = [
         <?php /* Colonne gauche : 2 vidéos empilées + titre "We are move" */ ?>
         <div class="videos-col videos-col--left">
             <div class="video-card video-card--v1">
-                <video src="<?php echo esc_url($videos[0]); ?>"
-                    autoplay muted loop playsinline
+                <video src="<?php echo esc_url($videos[0]); ?>" autoplay muted loop playsinline
                     aria-label="<?php esc_attr_e('Vidéo de danse 1', 'wamv1'); ?>"></video>
             </div>
             <div class="videos-title" aria-hidden="true">
@@ -37,8 +36,7 @@ $videos = [
                 <span class="is-style-title-cool-lg color-yellow videos-move-xl">move</span>
             </div>
             <div class="video-card video-card--v3">
-                <video src="<?php echo esc_url($videos[2]); ?>"
-                    autoplay muted loop playsinline
+                <video src="<?php echo esc_url($videos[2]); ?>" autoplay muted loop playsinline
                     aria-label="<?php esc_attr_e('Vidéo de danse 3', 'wamv1'); ?>"></video>
             </div>
         </div>
@@ -56,13 +54,11 @@ $videos = [
                 </button>
             </div>
             <div class="video-card video-card--v2">
-                <video src="<?php echo esc_url($videos[1]); ?>"
-                    autoplay muted loop playsinline
+                <video src="<?php echo esc_url($videos[1]); ?>" autoplay muted loop playsinline
                     aria-label="<?php esc_attr_e('Vidéo de danse 2', 'wamv1'); ?>"></video>
             </div>
             <div class="video-card video-card--v4">
-                <video src="<?php echo esc_url($videos[3]); ?>"
-                    autoplay muted loop playsinline
+                <video src="<?php echo esc_url($videos[3]); ?>" autoplay muted loop playsinline
                     aria-label="<?php esc_attr_e('Vidéo de danse 4', 'wamv1'); ?>"></video>
             </div>
         </div>

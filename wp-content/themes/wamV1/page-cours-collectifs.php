@@ -54,7 +54,7 @@ $terms = get_terms([
              BREADCRUMB
              ============================================================ -->
             <?php get_template_part('template-parts/breadcrumb', null, [
-                'id'   => 'breadcrumb-cours-collectifs',
+                'id' => 'breadcrumb-cours-collectifs',
                 'full' => true,
             ]); ?>
 
@@ -62,12 +62,12 @@ $terms = get_terms([
              HERO — titre + adresse + planning | image décorative
              ============================================================ -->
             <?php get_template_part('template-parts/page-hero', null, [
-                'page'             => $page,
-                'page_title'       => $page_title,
-                'page_desc'        => 'Tous nos cours de danse sur Villeneuve d\'Ascq (Croix / Hem / Wasquehal / Lille / Roubaix)',
-                'icons_path'       => $icons_path,
-                'show_planning_btn'=> true,
-                'planning_url'     => get_permalink(get_page_by_path('planning')),
+                'page' => $page,
+                'page_title' => $page_title,
+                'page_desc' => '',
+                'icons_path' => $icons_path,
+                'show_planning_btn' => true,
+                'planning_url' => get_permalink(get_page_by_path('planning')),
             ]); ?>
 
         </div><!-- .page-layout__inner -->
@@ -182,6 +182,17 @@ $terms = get_terms([
             ?>
 
         </div><!-- .wam-container #cours-results -->
+
+        <?php
+        $cours_outro = get_post_field('post_content', $page->ID ?? get_the_ID());
+        if (!empty(trim($cours_outro))): ?>
+            <!-- Conclusion de la page (the_content) -->
+            <div class="page-cours__outro wam-container">
+                <div class="wam-prose text-sm color-subtext">
+                    <?php echo apply_filters('the_content', $cours_outro); ?>
+                </div>
+            </div>
+        <?php endif; ?>
 
     </div><!-- .page-cours -->
 </main>

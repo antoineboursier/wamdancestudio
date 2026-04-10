@@ -109,7 +109,7 @@ if (!empty($stages_passes)) {
             <?php get_template_part('template-parts/page-hero', null, [
                 'page'       => $current_page,
                 'page_title' => $page_title,
-                'page_desc'  => $page_desc,
+                'page_desc'  => '',
                 'icons_path' => $icons_path,
             ]); ?>
 
@@ -171,6 +171,17 @@ if (!empty($stages_passes)) {
                 ?>
             </div>
         </section>
+    <?php endif; ?>
+
+    <?php
+    $stages_outro = get_post_field('post_content', $current_page->ID ?? get_the_ID());
+    if (!empty(trim($stages_outro))): ?>
+        <!-- Conclusion de la page (the_content) -->
+        <div class="page-cours__outro wam-container">
+            <div class="wam-prose text-sm color-subtext">
+                <?php echo apply_filters('the_content', $stages_outro); ?>
+            </div>
+        </div>
     <?php endif; ?>
 
 </div><!-- .page-stages -->

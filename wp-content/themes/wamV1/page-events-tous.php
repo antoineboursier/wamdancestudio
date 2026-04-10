@@ -109,7 +109,7 @@ if (!empty($events_passes)) {
             <?php get_template_part('template-parts/page-hero', null, [
                 'page'       => $current_page,
                 'page_title' => $page_title,
-                'page_desc'  => $page_desc,
+                'page_desc'  => '', // Désactivé ici pour éviter le doublon avec le bloc du bas
                 'icons_path' => $icons_path,
             ]); ?>
 
@@ -162,6 +162,17 @@ if (!empty($events_passes)) {
                 </div>
             </section>
 
+        <?php endif; ?>
+
+        <?php
+        $events_outro = get_post_field('post_content', $current_page->ID ?? get_the_ID());
+        if (!empty(trim($events_outro))): ?>
+            <!-- Conclusion de la page (the_content) -->
+            <div class="page-cours__outro wam-container">
+                <div class="wam-prose text-sm color-subtext">
+                    <?php echo apply_filters('the_content', $events_outro); ?>
+                </div>
+            </div>
         <?php endif; ?>
 
     </div><!-- .page-events -->

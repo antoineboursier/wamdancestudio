@@ -75,7 +75,7 @@ $icon_dir = get_template_directory_uri() . '/assets/images/';
         $home_content = get_the_content();
         if (!empty(trim($home_content))): ?>
             <!-- Contenu éditorial Gutenberg de la page d'accueil -->
-            <div id="section-content" class="section-content">
+            <div id="section-content" class="section-content wam-prose">
                 <?php echo apply_filters('the_content', $home_content); ?>
             </div>
         <?php endif; ?>

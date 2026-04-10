@@ -33,22 +33,9 @@ $icons_path = get_template_directory_uri() . '/assets/images/';
             <?php get_template_part('template-parts/page-hero', null, [
                 'page'       => $page,
                 'page_title' => $page_title,
-                'page_desc'  => $page_desc,
+                'page_desc'  => '', // On vide la description ici pour éviter le doublon avec le bloc du bas
                 'icons_path' => $icons_path,
             ]); ?>
-
-            <?php
-            $prof_description = get_post_field('post_content', $page->ID);
-            if (!empty(trim($prof_description))): ?>
-                <!-- ============================================================
-                     CONTENU ÉDITORIAL
-                     ============================================================ -->
-                <div id="section-content" class="section-content wam-container">
-                    <div class="wam-prose">
-                        <?php echo apply_filters('the_content', $prof_description); ?>
-                    </div>
-                </div>
-            <?php endif; ?>
 
             <!-- ============================================================
                  GRILLE DES PROFS (Réutilisation du composant section-teachers)
@@ -60,6 +47,17 @@ $icons_path = get_template_directory_uri() . '/assets/images/';
                     'no_pattern' => true,
                 ]); ?>
             </div>
+
+            <?php
+            $profs_outro = get_post_field('post_content', $page->ID ?? get_the_ID());
+            if (!empty(trim($profs_outro))): ?>
+                <!-- Conclusion de la page (the_content) -->
+                <div class="page-cours__outro wam-container">
+                    <div class="wam-prose text-sm color-subtext">
+                        <?php echo apply_filters('the_content', $profs_outro); ?>
+                    </div>
+                </div>
+            <?php endif; ?>
 
         </div><!-- .page-layout__inner -->
     </div><!-- .page-cours -->

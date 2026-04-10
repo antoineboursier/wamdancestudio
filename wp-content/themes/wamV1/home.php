@@ -36,9 +36,6 @@ $icons_path   = get_template_directory_uri() . '/assets/images/';
              ============================================================ -->
         <section class="page-blog__hero">
             <h1 class="page-blog__title title-sign-lg"><?php echo esc_html($page_title); ?></h1>
-            <?php if ($page_desc) : ?>
-                <p class="page-blog__desc text-md color-subtext"><?php echo esc_html($page_desc); ?></p>
-            <?php endif; ?>
         </section>
 
     </div><!-- .page-layout__inner -->
@@ -69,8 +66,21 @@ $icons_path   = get_template_directory_uri() . '/assets/images/';
         <?php else : ?>
             <p class="page-blog__empty text-md color-subtext">Aucun article pour le moment.</p>
         <?php endif; ?>
-
     </div><!-- .wam-container -->
+
+    <?php
+    // Utilisation forcée de l'ID de la page des articles pour contourner les limites de la boucle
+    $blog_page_id = get_option('page_for_posts');
+    $blog_outro   = get_post_field('post_content', $blog_page_id);
+
+    if (!empty(trim($blog_outro))): ?>
+        <!-- Conclusion de la page (the_content) - ID: <?php echo $blog_page_id; ?> -->
+        <div class="page-blog__outro wam-container">
+            <div class="wam-prose text-sm color-subtext">
+                <?php echo apply_filters('the_content', $blog_outro); ?>
+            </div>
+        </div>
+    <?php endif; ?>
 
 </main>
 

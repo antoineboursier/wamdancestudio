@@ -265,23 +265,31 @@ add_filter('login_headerurl', 'wamv1_custom_login_logo_url');
  */
 function wamv1_admin_floating_edit()
 {
-    // Ne pas afficher si admin back-office, ou si pas les droits d'édition
-    if (is_admin() || !current_user_can('edit_post', get_the_ID())) {
+    // Déterminer l'ID à éditer selon le contexte
+    $post_id = get_the_ID();
+
+    // Si on est sur la page des articles (Blog), on veut éditer la page parente
+    if (is_home()) {
+        $post_id = get_option('page_for_posts');
+    }
+
+    // Ne pas afficher si admin back-office, ou si pas les droits d'édition sur cet ID
+    if (is_admin() || !current_user_can('edit_post', $post_id)) {
         return;
     }
 
-    // Pas sur les pages sensibles WooCommerce (évite la pollution visuelle sur le tunnel)
+    // Pas sur les pages sensibles WooCommerce
     if (function_exists('is_account_page') && (is_account_page() || is_cart() || is_checkout())) {
         return;
     }
 
-    $edit_url = get_edit_post_link();
+    $edit_url = get_edit_post_link($post_id);
     if (!$edit_url) {
         return;
     }
 
     echo '<a href="' . esc_url($edit_url) . '" class="wam-floating-edit" aria-label="Modifier cette page">';
-    echo '<span class="wam-floating-edit__icon" aria-hidden="true">&#9998;</span>'; // Pictogramme crayon unicode
+    echo '<span class="wam-floating-edit__icon" aria-hidden="true">&#9998;</span>';
     echo '<span class="wam-floating-edit__label">Modifier</span>';
     echo '</a>';
 }

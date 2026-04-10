@@ -20,63 +20,7 @@
     padding-right: var(--wam-spacing-3xl) !important;
 }
 
-/* -------------------------------------------------------
-   Titres sémantiques H1 → H5
-   ------------------------------------------------------- */
-
-.editor-styles-wrapper h1 {
-    font-family: var(--wp--preset--font-family--mallia);
-    font-size: 46px;
-    font-weight: 400;
-    line-height: 1.3;
-    color: var(--wp--preset--color--accent-yellow);
-    margin: var(--wam-spacing-4xl) 0 var(--wam-spacing-xl);
-}
-
-.editor-styles-wrapper h2 {
-    font-family: var(--wp--preset--font-family--outfit);
-    font-size: 32px;
-    font-weight: 700;
-    line-height: 1.1;
-    color: var(--wp--preset--color--accent-yellow);
-    margin: var(--wam-spacing-3xl) 0 var(--wam-spacing-lg);
-}
-
-.editor-styles-wrapper h3 {
-    font-family: var(--wp--preset--font-family--outfit);
-    font-size: 28px;
-    font-weight: 700;
-    line-height: 1.1;
-    color: var(--wp--preset--color--accent-yellow);
-    margin: var(--wam-spacing-xl) 0 var(--wam-spacing-md);
-}
-
-.editor-styles-wrapper h4 {
-    font-family: var(--wp--preset--font-family--outfit);
-    font-size: 22px;
-    font-weight: 700;
-    line-height: 1.1;
-    color: var(--wp--preset--color--accent-yellow);
-    margin: var(--wam-spacing-lg) 0 var(--wam-spacing-sm);
-}
-
-.editor-styles-wrapper h5 {
-    font-family: var(--wp--preset--font-family--outfit);
-    font-size: 26px;
-    font-weight: 400;
-    line-height: 1.25;
-    color: var(--wp--preset--color--accent-yellow);
-    margin: var(--wam-spacing-lg) 0 var(--wam-spacing-sm);
-}
-
-.editor-styles-wrapper h6 {
-    font-family: var(--wp--preset--font-family--outfit);
-    font-size: 16px;
-    font-weight: 700;
-    line-height: 1.25;
-    color: var(--wp--preset--color--text-subtext);
-    margin: var(--wam-spacing-lg) 0 var(--wam-spacing-sm);
-}
+/* Les titres sémantiques H1 → H6 sont gérés par prose-shared.css */
 
 /* -------------------------------------------------------
    Tailles de texte Gutenberg (has-*-font-size)
@@ -245,118 +189,38 @@
     line-height: 1.1;
 }
 
-/* -------------------------------------------------------
-   Paragraphe
-   ------------------------------------------------------- */
-
-.editor-styles-wrapper p {
-    font-family: var(--wp--preset--font-family--outfit);
-    font-size: 20px;
-    line-height: 1.5;
-    color: var(--wp--preset--color--text-normal);
-}
-
-.editor-styles-wrapper p+p {
-    margin-top: var(--wam-spacing-lg);
-}
+/* Le paragraphe de base est géré par prose-shared.css */
 
 /* -------------------------------------------------------
-   Listes
+   Visualisation des Espacements (Spacer)
+   Uniquement en BO pour distinguer les blocs vides
    ------------------------------------------------------- */
 
-.editor-styles-wrapper ul,
-.editor-styles-wrapper ol {
-    padding: var(--wam-spacing-md) 0 var(--wam-spacing-md) var(--wam-spacing-2xl);
-    font-size: 20px;
-    line-height: 1.5;
-    color: var(--wp--preset--color--text-normal);
+.editor-styles-wrapper .wp-block-spacer {
+    background-color: var(--wp--preset--color--background-600) !important;
+    border-radius: var(--wam-radius-sm);
+    position: relative;
 }
 
-.editor-styles-wrapper ul li+li,
-.editor-styles-wrapper ol li+li {
-    margin-top: var(--wam-spacing-2xs);
+.editor-styles-wrapper .wp-block-spacer::before {
+    content: "ESPACEMENT";
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    color: var(--wp--preset--color--background-500);
+    opacity: 0.5;
+    pointer-events: none;
 }
 
 /* -------------------------------------------------------
-   Séparateur
+   Séparateur (couleur forcée pour la "couleur" svg)
    ------------------------------------------------------- */
 
-.editor-styles-wrapper hr,
-.editor-styles-wrapper .wp-block-separator {
-    margin: var(--wam-spacing-2xl) 0;
-    border: none;
-    height: 1px;
-    background-color: var(--wp--preset--color--background-500);
-}
-
-/* -------------------------------------------------------
-   Blockquote
-   ------------------------------------------------------- */
-
-.editor-styles-wrapper blockquote {
-    font-style: italic;
-    padding: var(--wam-spacing-md) var(--wam-spacing-lg);
-    border: 1px solid var(--wp--preset--color--background-500);
-    border-radius: var(--wam-radius-md);
-    margin: var(--wam-spacing-3xl) 0;
-    color: var(--wp--preset--color--text-subtext);
-}
-
-/* -------------------------------------------------------
-   Images Gutenberg
-   ------------------------------------------------------- */
-
-.editor-styles-wrapper .wp-block-image {
-    margin: var(--wam-spacing-2xl) 0;
-}
-
-.editor-styles-wrapper .wp-block-image img {
-    border-radius: var(--wam-radius-3xl);
-    box-shadow:
-        -1px -4px 0px 0px var(--wam-color-yellow),
-        4px 6px 0px 0px var(--wam-color-pink),
-        6px -2px 0px 0px var(--wam-color-orange),
-        -5px 4px 0px 0px var(--wam-color-green);
-    display: block;
-    max-width: 100%;
-    height: auto;
-}
-
-.editor-styles-wrapper figcaption {
-    margin-top: var(--wam-spacing-md);
-    font-size: var(--wam-font-size-sm);
-    color: var(--wp--preset--color--text-disabled);
-    text-align: center;
-    font-style: italic;
-}
-
-/* -------------------------------------------------------
-   Alignements
-   ------------------------------------------------------- */
-
-.editor-styles-wrapper .alignleft {
-    float: left;
-    margin-top: 0;
-    margin-right: var(--wam-spacing-4xl);
-    margin-bottom: var(--wam-spacing-lg);
-    max-width: 50%;
-}
-
-.editor-styles-wrapper .alignright {
-    float: right;
-    margin-top: 0;
-    margin-left: var(--wam-spacing-4xl);
-    margin-bottom: var(--wam-spacing-lg);
-    max-width: 50%;
-}
-
-.editor-styles-wrapper .aligncenter {
-    display: table;
-    margin-left: auto;
-    margin-right: auto;
-    margin-top: var(--wam-spacing-4xl);
-    margin-bottom: var(--wam-spacing-4xl);
-}
+/* Les séparateurs sont gérés par prose-shared.css */
 
 /* -------------------------------------------------------
    BOUTONS (Gutenberg Block Overrides)

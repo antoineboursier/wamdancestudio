@@ -66,7 +66,7 @@
     font-weight: 700;
 }
 
-/* Échantillon de couleur (miniature de card) */
+/* Dots de légende : couleur synchronisée avec les cards via --dot-accent */
 .planning-legend__dot {
     --dot-accent: var(--wam-color-yellow);
     width: 28px;
@@ -79,21 +79,25 @@
 }
 
 .planning-legend__item.is-active .planning-legend__dot {
-    /* Plus saturé quand le filtre est actif */
     background: color-mix(in srgb, var(--dot-accent) 40%, var(--wp--preset--color--background-600));
 }
 
-.planning-legend__dot--standard {
-    --dot-accent: var(--wam-color-yellow);
-}
+/* --- Dots par catégorie (slug → accent) --- */
+/* Danse solo / adulte - accent jaune (défaut) */
+[data-filter="cat:danse-solo"] .planning-legend__dot { --dot-accent: var(--wam-color-yellow); }
 
-.planning-legend__dot--enfant {
-    --dot-accent: var(--wam-color-green);
-}
+/* Enfants - accent vert */
+[data-filter="cat:enfants"] .planning-legend__dot  { --dot-accent: var(--wam-color-green); }
 
-.planning-legend__dot--complet {
-    --dot-accent: var(--wam-color-orange);
-}
+/* Ados - accent vert clair (même famille que enfants) */
+[data-filter="cat:ados"] .planning-legend__dot     { --dot-accent: var(--wam-color-green); }
+
+/* À deux / couple - accent rose */
+[data-filter="cat:a-deux"] .planning-legend__dot   { --dot-accent: var(--wam-color-pink); }
+
+/* Cours complet - accent orange */
+[data-filter="complet"] .planning-legend__dot,
+.planning-legend__dot--complet                      { --dot-accent: var(--wam-color-orange); }
 
 /* ===============================================
    SCROLL WRAPPER
@@ -228,18 +232,44 @@
     background: transparent;
 }
 
-/* Variante enfants — accent green */
-.planning-card--enfant {
+/* =====================================================
+   COULEURS PAR CATÉGORIE — via data-cats
+   Système : chaque slug cat_cours surcharge --card-accent.
+   Le bg, la border et le texte horaire héritent automatiquement.
+   ===================================================== */
+
+/* Danse solo (adultes) — Jaune (défaut déjà dans .planning-card) */
+.planning-card[data-cats~="danse-solo"] {
+    --card-accent: var(--wam-color-yellow);
+}
+
+/* À deux / couple — Rose */
+.planning-card[data-cats~="a-deux"] {
+    --card-accent: var(--wam-color-pink);
+}
+
+/* Enfants — Vert */
+.planning-card[data-cats~="enfants"] {
     --card-accent: var(--wam-color-green);
 }
 
-/* Variante cours complet — contour orange sans bg ni opacité (accessibilité) */
+/* Ados — Vert (même famille que enfants) */
+.planning-card[data-cats~="ados"] {
+    --card-accent: var(--wam-color-green);
+}
+
+/* Cours complet — Contour orange, fond transparent */
 .planning-card--complet {
     --card-accent: var(--wam-color-orange);
     background: transparent;
 }
 
-/* Atténuation par le filtre JS — carte toujours visible et cliquable */
+.planning-card--complet:hover,
+.planning-card--complet:focus-visible {
+    background: transparent;
+}
+
+/* Atténuation par le filtre JS */
 .planning-card--hidden {
     opacity: 0.15;
 }

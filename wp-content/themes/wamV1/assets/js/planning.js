@@ -1,14 +1,14 @@
 /**
- * planning.js — Filtrage multi-select du planning hebdomadaire
+ * planning.js — Filtrage par catégorie et état "Complet"
  *
  * Écoute les clics sur .planning-legend__item[data-filter].
  * Filtre via .planning-card--hidden (display:none) sur .planning-card.
  *
  * Logique :
- *   - Aucun filtre actif → tout visible.
- *   - Filtres actifs (OR) : "standard" = adultes sans --enfant,
- *                           "enfant"   = avec --enfant,
- *                           "complet"  = avec --complet.
+ *   - "all"       → Réinitialise tout, tout visible.
+ *   - "cat:SLUG"  → Filtre sur data-cats de la card (slugs cat_cours).
+ *   - "complet"   → Filtre sur classe .planning-card--complet.
+ *   - Multi-select (OR) : plusieurs filtres peuvent être actifs.
  *   - Cliquer un filtre actif le désactive.
  *
  * @package wamv1
@@ -35,14 +35,18 @@
                     return;
                 }
 
-                var isEnfant  = card.classList.contains('planning-card--enfant');
+                var cardCats  = (card.dataset.cats || '').split(' ').filter(Boolean);
                 var isComplet = card.classList.contains('planning-card--complet');
                 var matches   = false;
 
-                /* OR entre les filtres actifs */
-                if (activeFilters.has('standard') && !isEnfant) matches = true;
-                if (activeFilters.has('enfant')   && isEnfant)  matches = true;
-                if (activeFilters.has('complet')   && isComplet) matches = true;
+                activeFilters.forEach(function (f) {
+                    if (f === 'complet' && isComplet) {
+                        matches = true;
+                    } else if (f.startsWith('cat:')) {
+                        var slug = f.slice(4); // 'cat:enfants' → 'enfants'
+                        if (cardCats.indexOf(slug) !== -1) matches = true;
+                    }
+                });
 
                 card.classList.toggle('planning-card--hidden', !matches);
             });
@@ -53,6 +57,26 @@
             btn.addEventListener('click', function () {
                 var filter = btn.dataset.filter;
 
+                /* Bouton "Tous" : réinitialise tout */
+                if (filter === 'all') {
+                    activeFilters.clear();
+                    filterBtns.forEach(function (b) {
+                        b.classList.remove('is-active');
+                        b.setAttribute('aria-pressed', 'false');
+                    });
+                    btn.classList.add('is-active');
+                    btn.setAttribute('aria-pressed', 'true');
+                    applyFilters();
+                    return;
+                }
+
+                /* Désactiver le bouton "Tous" si on active un filtre spécifique */
+                var allBtn = document.querySelector('.planning-legend__item[data-filter="all"]');
+                if (allBtn) {
+                    allBtn.classList.remove('is-active');
+                    allBtn.setAttribute('aria-pressed', 'false');
+                }
+
                 if (activeFilters.has(filter)) {
                     activeFilters.delete(filter);
                     btn.classList.remove('is-active');
@@ -61,6 +85,12 @@
                     activeFilters.add(filter);
                     btn.classList.add('is-active');
                     btn.setAttribute('aria-pressed', 'true');
+                }
+
+                /* Si plus aucun filtre actif → réactiver "Tous" */
+                if (activeFilters.size === 0 && allBtn) {
+                    allBtn.classList.add('is-active');
+                    allBtn.setAttribute('aria-pressed', 'true');
                 }
 
                 applyFilters();

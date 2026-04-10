@@ -77,6 +77,11 @@ function wamv1_import_cours_logic($dry_run = false) {
             $slugs = array_map('trim', explode('|', $data['cat_cours']));
             $term_ids = array();
             foreach ($slugs as $slug) {
+                // Normalisation : On force la version plurielle "enfants" comme demandé
+                if ($slug === 'enfant' || $slug === 'danse-enfant') {
+                    $slug = 'enfants';
+                }
+
                 $term = get_term_by('slug', $slug, 'cat_cours');
                 if (! $term) {
                     // Création de la catégorie à la volée si elle n'existe pas

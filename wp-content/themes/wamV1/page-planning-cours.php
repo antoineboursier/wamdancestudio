@@ -58,6 +58,15 @@ $all_cours_query = new WP_Query( [
     'no_found_rows'  => true,
 ] );
 
+/* ---- Termes cat_cours pour la légende dynamique ---- */
+$legend_terms = get_terms( [
+    'taxonomy'   => 'cat_cours',
+    'hide_empty' => true,
+    'orderby'    => 'menu_order',
+    'order'      => 'ASC',
+] );
+if ( is_wp_error( $legend_terms ) ) $legend_terms = [];
+
 /* ---- Construction des items ---- */
 $planning_items = [];
 
@@ -83,17 +92,22 @@ if ( $all_cours_query->have_posts() ) {
         $is_enfant = wamv1_is_enfant_variant();
         $complet   = get_field( 'complete_cours' );
 
+        /* Slugs des catégories du cours, pour le filtrage JS */
+        $cats = wp_get_post_terms( get_the_ID(), 'cat_cours', [ 'fields' => 'slugs' ] );
+        if ( is_wp_error( $cats ) ) $cats = [];
+
         $planning_items[] = [
-            'title'     => get_the_title(),
-            'permalink' => get_permalink(),
+            'title'      => get_the_title(),
+            'permalink'  => get_permalink(),
             'sous_titre' => get_field( 'sous_titre' ),
-            'col'       => $wam_day_map[ $jour ]['col'],
-            'row_start' => wamv1_time_to_grid_row( $start_min, $wam_planning_start, $wam_planning_granularity ),
-            'row_end'   => wamv1_time_to_grid_row( $end_min,   $wam_planning_start, $wam_planning_granularity ),
-            'debut'     => $heure_debut,
-            'fin'       => $heure_fin,
-            'is_enfant' => $is_enfant,
-            'complet'   => $complet,
+            'col'        => $wam_day_map[ $jour ]['col'],
+            'row_start'  => wamv1_time_to_grid_row( $start_min, $wam_planning_start, $wam_planning_granularity ),
+            'row_end'    => wamv1_time_to_grid_row( $end_min,   $wam_planning_start, $wam_planning_granularity ),
+            'debut'      => $heure_debut,
+            'fin'        => $heure_fin,
+            'is_enfant'  => $is_enfant,
+            'complet'    => $complet,
+            'cats'       => $cats, // slugs cat_cours
         ];
     }
     wp_reset_postdata();
@@ -140,26 +154,29 @@ get_header();
 
     <div class="wam-container">
 
-        <!-- Légende / Filtres (cliquer pour filtrer, multi-select) -->
+        <!-- Légende / Filtres — générés dynamiquement depuis cat_cours + état Complet -->
         <div class="planning-legend" role="group" aria-label="Filtrer par type de cours">
 
-            <button class="planning-legend__item"
-                    data-filter="standard"
+            <!-- Bouton Tous -->
+            <button class="planning-legend__item is-active"
+                    data-filter="all"
                     type="button"
-                    aria-pressed="false">
-                <span class="planning-legend__dot planning-legend__dot--standard" aria-hidden="true"></span>
-                Cours adultes
+                    aria-pressed="true">
+                Tous
             </button>
 
+            <?php foreach ( $legend_terms as $term ) : ?>
             <button class="planning-legend__item"
-                    data-filter="enfant"
+                    data-filter="cat:<?php echo esc_attr( $term->slug ); ?>"
                     type="button"
                     aria-pressed="false">
-                <span class="planning-legend__dot planning-legend__dot--enfant" aria-hidden="true"></span>
-                Cours enfants
+                <span class="planning-legend__dot" aria-hidden="true"></span>
+                <?php echo esc_html( $term->name ); ?>
             </button>
+            <?php endforeach; ?>
 
-            <button class="planning-legend__item"
+            <!-- Filtre Cours complet (ACF) -->
+            <button class="planning-legend__item planning-legend__item--complet"
                     data-filter="complet"
                     type="button"
                     aria-pressed="false">
@@ -211,9 +228,11 @@ get_header();
                     $classes = 'planning-card';
                     if ( $item['is_enfant'] ) $classes .= ' planning-card--enfant';
                     if ( $item['complet']   ) $classes .= ' planning-card--complet';
+                    $data_cats = implode( ' ', array_map( 'sanitize_html_class', $item['cats'] ) );
                 ?>
                     <a href="<?php echo esc_url( $item['permalink'] ); ?>"
                        class="<?php echo $classes; ?>"
+                       data-cats="<?php echo esc_attr( implode( ' ', $item['cats'] ) ); ?>"
                        style="grid-column: <?php echo $item['col']; ?>; grid-row: <?php echo $item['row_start']; ?> / <?php echo $item['row_end']; ?>;"
                        aria-label="<?php echo esc_attr( $item['title'] . ', ' . $item['debut'] . ' – ' . $item['fin'] ); ?>">
 

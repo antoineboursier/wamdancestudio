@@ -22,6 +22,9 @@ require_once get_template_directory() . '/inc/import/import-profs.php';
 require_once get_template_directory() . '/inc/import/import-cours.php';
 require_once get_template_directory() . '/inc/import/cli-commands.php';
 
+require_once get_template_directory() . '/inc/smtp-config.php';
+require_once get_template_directory() . '/inc/contact-form-handler.php';
+
 // -------------------------------------------------------
 // Setup
 // -------------------------------------------------------
@@ -232,6 +235,13 @@ function wamv1_scripts()
             ['in_footer' => true, 'strategy' => 'defer']
         );
     }
+
+    // Scripts chargés à la demande
+    $contact_ver = file_exists(get_template_directory() . '/assets/js/contact.js') ? filemtime(get_template_directory() . '/assets/js/contact.js') : $ver;
+    wp_register_script('wamv1-contact', $js . 'contact.js', array(), $contact_ver, ['in_footer' => true, 'strategy' => 'defer']);
+    wp_localize_script('wamv1-contact', 'wamParams', array(
+        'ajaxurl' => admin_url('admin-ajax.php')
+    ));
 }
 add_action('wp_enqueue_scripts', 'wamv1_scripts');
 
@@ -697,3 +707,70 @@ require_once get_template_directory() . '/inc/llms-txt.php';
 // =============================================================================
 
 require_once get_template_directory() . '/inc/woocommerce.php';
+
+// =============================================================================
+// YOAST SEO : CORRECTION DU FIL D'ARIANE DES CPTs
+// =============================================================================
+
+add_filter('wpseo_breadcrumb_links', 'wamv1_corriger_fil_ariane_yoast');
+function wamv1_corriger_fil_ariane_yoast($links) {
+    // Règle manuelle pour les Cours
+    if (is_singular('cours')) {
+        $links[1]['url']  = home_url('/cours-collectifs/'); // Modifiez si le slug de votre page Cours est différent
+        $links[1]['text'] = 'Cours collectifs';
+    }
+    // Règle manuelle pour les Professeurs
+    elseif (is_singular('wam_membre')) {
+        $breadcrumb_equipe = array(
+            'url'  => home_url('/prof-wam/'),
+            'text' => 'Notre Équipe'
+        );
+        // Comme le CPT prof n'a pas d'archive, le titre est en position 1. 
+        // On "insère" la page équipe en position 1 sans écraser la position du prof.
+        array_splice($links, 1, 0, array($breadcrumb_equipe));
+    }
+    // Règle manuelle pour les Stages
+    elseif (is_singular('stages')) {
+        $links[1]['url']  = home_url('/stages-workshop-ateliers/'); 
+        $links[1]['text'] = 'Les stages';
+    }
+    // Règle manuelle pour les Évènements
+    elseif (is_singular('evenements')) {
+        $links[1]['url']  = home_url('/les-evenements-au-studio/'); 
+        $links[1]['text'] = 'Évènements';
+    }
+    return $links;
+}
+
+// =============================================================================
+// ADMIN : Favicon spécifique pour le Back-Office
+// =============================================================================
+
+/**
+ * Forcer un Favicon spécifique (favicon_bo.png) pour tout l'admin et login
+ */
+/**
+ * Gestion des Favicons via le thème (Front vs Back)
+ * Outrepasse les réglages "Identité du site" de WordPress
+ */
+function wamv1_custom_favicon_filter($url) {
+    if (is_admin() || is_network_admin() || $GLOBALS['pagenow'] === 'wp-login.php') {
+        return get_template_directory_uri() . '/favicon_bo.png';
+    }
+    // Par défaut pour le front-office
+    return get_template_directory_uri() . '/favicon.png';
+}
+add_filter('get_site_icon_url', 'wamv1_custom_favicon_filter', 99);
+
+function wamv1_custom_favicon_output() {
+    $is_bo = is_admin() || is_network_admin() || $GLOBALS['pagenow'] === 'wp-login.php';
+    $file = $is_bo ? '/favicon_bo.png' : '/favicon.png';
+    $favicon_url = get_template_directory_uri() . $file;
+    
+    echo '<link rel="icon" href="' . esc_url($favicon_url) . '" type="image/png" />';
+    echo '<link rel="shortcut icon" href="' . esc_url($favicon_url) . '" type="image/png" />';
+}
+// Injecter sur tout le site
+add_action('wp_head', 'wamv1_custom_favicon_output', 1);
+add_action('admin_head', 'wamv1_custom_favicon_output', 1);
+add_action('login_head', 'wamv1_custom_favicon_output', 1);

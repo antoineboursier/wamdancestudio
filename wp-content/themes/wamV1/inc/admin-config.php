@@ -35,14 +35,14 @@ function wam_config_register_settings(): void
         'wam_section_inscriptions',
         'Inscriptions',
         '', // pas de callback pour la description
-        'wam-config'
+        'wam-config-general'
     );
 
     add_settings_field(
         'inscriptions_actives',
         'Inscriptions ouvertes',
         'wam_field_inscriptions_actives',
-        'wam-config',
+        'wam-config-general',
         'wam_section_inscriptions'
     );
 
@@ -50,7 +50,7 @@ function wam_config_register_settings(): void
         'btn_inscription_texte',
         'Texte du bouton',
         'wam_field_btn_texte',
-        'wam-config',
+        'wam-config-general',
         'wam_section_inscriptions'
     );
 
@@ -58,7 +58,7 @@ function wam_config_register_settings(): void
         'message_inscriptions_fermees',
         'Message si fermées',
         'wam_field_message_ferme',
-        'wam-config',
+        'wam-config-general',
         'wam_section_inscriptions'
     );
 
@@ -66,14 +66,14 @@ function wam_config_register_settings(): void
         'wam_section_lieux',
         'Localisation & Lieux',
         '', // pas de callback
-        'wam-config'
+        'wam-config-general'
     );
 
     add_settings_field(
         'adresse_visible',
         'Afficher l\'adresse sur le site',
         'wam_field_adresse_visible',
-        'wam-config',
+        'wam-config-general',
         'wam_section_lieux'
     );
 
@@ -81,7 +81,7 @@ function wam_config_register_settings(): void
         'nom_lieu',
         'Nom du lieu',
         'wam_field_nom_lieu',
-        'wam-config',
+        'wam-config-general',
         'wam_section_lieux'
     );
 
@@ -89,23 +89,50 @@ function wam_config_register_settings(): void
         'adresse_lieu',
         'Adresse complète',
         'wam_field_adresse_lieu',
-        'wam-config',
+        'wam-config-general',
         'wam_section_lieux'
     );
 
-    // Section Synchronisation
+    add_settings_section(
+        'wam_section_socials',
+        'Réseaux Sociaux',
+        '', // pas de callback
+        'wam-config-socials'
+    );
+
+    add_settings_field('url_instagram', 'Lien Instagram', 'wam_field_url_instagram', 'wam-config-socials', 'wam_section_socials');
+    add_settings_field('url_facebook', 'Lien Facebook', 'wam_field_url_facebook', 'wam-config-socials', 'wam_section_socials');
+    add_settings_field('url_tiktok', 'Lien TikTok', 'wam_field_url_tiktok', 'wam-config-socials', 'wam_section_socials');
+    add_settings_field('url_linkedin', 'Lien LinkedIn', 'wam_field_url_linkedin', 'wam-config-socials', 'wam_section_socials');
+    add_settings_field('url_youtube', 'Lien YouTube', 'wam_field_url_youtube', 'wam-config-socials', 'wam_section_socials');
+
+    add_settings_section(
+        'wam_section_smtp',
+        'Configuration SMTP (Envoi Email)',
+        'wam_section_smtp_desc',
+        'wam-config-smtp'
+    );
+    add_settings_field('smtp_host', 'Serveur SMTP (Hôte)', 'wam_field_smtp_host', 'wam-config-smtp', 'wam_section_smtp');
+    add_settings_field('smtp_port', 'Port', 'wam_field_smtp_port', 'wam-config-smtp', 'wam_section_smtp');
+    add_settings_field('smtp_user', 'Identifiant / Email', 'wam_field_smtp_user', 'wam-config-smtp', 'wam_section_smtp');
+    add_settings_field('smtp_pass', 'Mot de passe', 'wam_field_smtp_pass', 'wam-config-smtp', 'wam_section_smtp');
+    add_settings_field('smtp_secure', 'Sécurité (SSL/TLS)', 'wam_field_smtp_secure', 'wam-config-smtp', 'wam_section_smtp');
+    add_settings_field('smtp_from_email', 'Email expéditeur par défaut', 'wam_field_smtp_from_email', 'wam-config-smtp', 'wam_section_smtp');
+    add_settings_field('smtp_from_name', 'Nom expéditeur par défaut', 'wam_field_smtp_from_name', 'wam-config-smtp', 'wam_section_smtp');
+    add_settings_field('smtp_to_emails', 'Destinataire(s) des formulaires', 'wam_field_smtp_to_emails', 'wam-config-smtp', 'wam_section_smtp');
+
     add_settings_section(
         'wam_section_sync',
         'Synchronisation des données (CSV)',
         'wam_section_sync_desc',
-        'wam-config'
+        'wam-config-sync'
     );
 
     add_settings_field(
         'sync_profs',
         'Professeurs',
         'wam_field_sync_profs',
-        'wam-config',
+        'wam-config-sync',
         'wam_section_sync'
     );
 
@@ -113,7 +140,7 @@ function wam_config_register_settings(): void
         'sync_cours',
         'Cours',
         'wam_field_sync_cours',
-        'wam-config',
+        'wam-config-sync',
         'wam_section_sync'
     );
 }
@@ -131,12 +158,102 @@ function wam_sanitize_config(array $input): array
         'adresse_visible'              => (bool) isset($input['adresse_visible']),
         'nom_lieu'                     => sanitize_text_field($input['nom_lieu'] ?? ''),
         'adresse_lieu'                 => sanitize_textarea_field($input['adresse_lieu'] ?? ''),
+        'url_instagram'                => esc_url_raw($input['url_instagram'] ?? ''),
+        'url_facebook'                 => esc_url_raw($input['url_facebook'] ?? ''),
+        'url_tiktok'                   => esc_url_raw($input['url_tiktok'] ?? ''),
+        'url_linkedin'                 => esc_url_raw($input['url_linkedin'] ?? ''),
+        'url_youtube'                  => esc_url_raw($input['url_youtube'] ?? ''),
+        'smtp_host'                    => sanitize_text_field($input['smtp_host'] ?? ''),
+        'smtp_port'                    => absint($input['smtp_port'] ?? 465),
+        'smtp_user'                    => sanitize_text_field($input['smtp_user'] ?? ''),
+        'smtp_pass'                    => sanitize_text_field($input['smtp_pass'] ?? ''),
+        'smtp_secure'                  => sanitize_text_field($input['smtp_secure'] ?? 'ssl'),
+        'smtp_from_email'              => sanitize_email($input['smtp_from_email'] ?? ''),
+        'smtp_from_name'               => sanitize_text_field($input['smtp_from_name'] ?? 'WAM Dance Studio'),
+        'smtp_to_emails'               => sanitize_text_field($input['smtp_to_emails'] ?? ''),
     ];
 }
 
 // -------------------------------------------------------
 // Callbacks des champs
 // -------------------------------------------------------
+function wam_field_url_instagram(): void {
+    $opts = get_option('wam_config', []);
+    $val  = esc_attr($opts['url_instagram'] ?? 'https://www.instagram.com/wam_dance_studio/');
+    echo '<input type="url" name="wam_config[url_instagram]" value="' . $val . '" class="regular-text">';
+}
+function wam_field_url_facebook(): void {
+    $opts = get_option('wam_config', []);
+    $val  = esc_attr($opts['url_facebook'] ?? 'https://www.facebook.com/WAMDanceStudio/');
+    echo '<input type="url" name="wam_config[url_facebook]" value="' . $val . '" class="regular-text">';
+}
+function wam_field_url_tiktok(): void {
+    $opts = get_option('wam_config', []);
+    $val  = esc_attr($opts['url_tiktok'] ?? 'https://www.tiktok.com/@wamdancestudio');
+    echo '<input type="url" name="wam_config[url_tiktok]" value="' . $val . '" class="regular-text">';
+}
+function wam_field_url_linkedin(): void {
+    $opts = get_option('wam_config', []);
+    $val  = esc_attr($opts['url_linkedin'] ?? 'https://www.linkedin.com/company/wam-dance-studio');
+    echo '<input type="url" name="wam_config[url_linkedin]" value="' . $val . '" class="regular-text">';
+}
+function wam_field_url_youtube(): void {
+    $opts = get_option('wam_config', []);
+    $val  = esc_attr($opts['url_youtube'] ?? '');
+    echo '<input type="url" name="wam_config[url_youtube]" value="' . $val . '" class="regular-text">';
+}
+
+// --- Callbacks SMTP ---
+function wam_section_smtp_desc(): void {
+    echo '<p>Configurez ici les accès à votre serveur d\'envoi email (SMTP) pour garantir la bonne réception de vos messages de contact et notifications. Laissez vide si vous souhaitez utiliser le système par défaut de votre serveur d\'hébergement (déconseillé).</p>';
+}
+function wam_field_smtp_host(): void {
+    $opts = get_option('wam_config', []);
+    $val  = esc_attr($opts['smtp_host'] ?? '');
+    echo '<input type="text" name="wam_config[smtp_host]" value="' . $val . '" class="regular-text" placeholder="ex: smtp.gmail.com">';
+}
+function wam_field_smtp_port(): void {
+    $opts = get_option('wam_config', []);
+    $val  = esc_attr($opts['smtp_port'] ?? '465');
+    echo '<input type="number" name="wam_config[smtp_port]" value="' . $val . '" class="small-text">';
+}
+function wam_field_smtp_user(): void {
+    $opts = get_option('wam_config', []);
+    $val  = esc_attr($opts['smtp_user'] ?? '');
+    echo '<input type="text" name="wam_config[smtp_user]" value="' . $val . '" class="regular-text">';
+}
+function wam_field_smtp_pass(): void {
+    $opts = get_option('wam_config', []);
+    $val  = esc_attr($opts['smtp_pass'] ?? '');
+    echo '<input type="password" name="wam_config[smtp_pass]" value="' . $val . '" class="regular-text" placeholder="Votre mot de passe">';
+    echo '<p class="description">Le mot de passe sera enregistré en toute sécurité dans la base de données.</p>';
+}
+function wam_field_smtp_secure(): void {
+    $opts = get_option('wam_config', []);
+    $val  = esc_attr($opts['smtp_secure'] ?? 'ssl');
+    echo '<select name="wam_config[smtp_secure]">
+        <option value="ssl" ' . selected($val, 'ssl', false) . '>SSL (recommandé port 465)</option>
+        <option value="tls" ' . selected($val, 'tls', false) . '>TLS (recommandé port 587)</option>
+        <option value="none" ' . selected($val, 'none', false) . '>Aucune (non recommandé)</option>
+    </select>';
+}
+function wam_field_smtp_from_email(): void {
+    $opts = get_option('wam_config', []);
+    $val  = esc_attr($opts['smtp_from_email'] ?? get_option('admin_email'));
+    echo '<input type="email" name="wam_config[smtp_from_email]" value="' . $val . '" class="regular-text">';
+}
+function wam_field_smtp_from_name(): void {
+    $opts = get_option('wam_config', []);
+    $val  = esc_attr($opts['smtp_from_name'] ?? 'WAM Dance Studio');
+    echo '<input type="text" name="wam_config[smtp_from_name]" value="' . $val . '" class="regular-text">';
+}
+function wam_field_smtp_to_emails(): void {
+    $opts = get_option('wam_config', []);
+    $val  = esc_attr($opts['smtp_to_emails'] ?? '');
+    echo '<input type="text" name="wam_config[smtp_to_emails]" value="' . $val . '" class="large-text" placeholder="ex: contact@wamdancestudio.fr, direction@wamdancestudio.fr">';
+    echo '<p class="description">Séparez les adresses e-mail par une virgule. Si ce champ est vide, l\'e-mail de l\'administrateur du site ('. get_option('admin_email') .') sera utilisé.</p>';
+}
+
 function wam_field_inscriptions_actives(): void
 {
     $opts    = get_option('wam_config', []);
@@ -268,9 +385,17 @@ function wam_config_page_html(): void
 
     $opts    = get_option('wam_config', []);
     $checked = (bool) ($opts['inscriptions_actives'] ?? true);
+    $active_tab = isset($_GET['tab']) ? sanitize_text_field($_GET['tab']) : 'general';
     ?>
     <div class="wrap">
         <h1><?php echo esc_html(get_admin_page_title()); ?></h1>
+
+        <h2 class="nav-tab-wrapper">
+            <a href="?page=wam-config&tab=general" class="nav-tab <?php echo $active_tab === 'general' ? 'nav-tab-active' : ''; ?>">Général</a>
+            <a href="?page=wam-config&tab=smtp" class="nav-tab <?php echo $active_tab === 'smtp' ? 'nav-tab-active' : ''; ?>">Envoi Email (SMTP)</a>
+            <a href="?page=wam-config&tab=socials" class="nav-tab <?php echo $active_tab === 'socials' ? 'nav-tab-active' : ''; ?>">Réseaux Sociaux</a>
+            <a href="?page=wam-config&tab=sync" class="nav-tab <?php echo $active_tab === 'sync' ? 'nav-tab-active' : ''; ?>">Synchronisation</a>
+        </h2>
 
         <?php if ($sync_message): ?>
             <div class="notice notice-success is-dismissible">
@@ -278,11 +403,28 @@ function wam_config_page_html(): void
             </div>
         <?php endif; ?>
 
-        <form method="post" action="">
+        <?php
+        // Si on est sur l'onglet sync, le formulaire doit poster sur lui-même pour intercepter l'action.
+        // Sinon, il poste vers options.php pour enregistrer les paramètres via l'API Settings WP.
+        $form_action = ($active_tab === 'sync') ? '' : 'options.php';
+        ?>
+        <form method="post" action="<?php echo esc_attr($form_action); ?>">
             <?php
             settings_fields('wam_config_group');
-            do_settings_sections('wam-config');
-            submit_button('Enregistrer');
+            
+            if ($active_tab === 'general') {
+                do_settings_sections('wam-config-general');
+            } elseif ($active_tab === 'smtp') {
+                do_settings_sections('wam-config-smtp');
+            } elseif ($active_tab === 'socials') {
+                do_settings_sections('wam-config-socials');
+            } elseif ($active_tab === 'sync') {
+                do_settings_sections('wam-config-sync');
+            }
+            // En mode sync, le bouton enregistrer n'est pas nécessaire (il ne sauvegarde rien).
+            if ($active_tab !== 'sync') {
+                submit_button('Enregistrer');
+            }
             ?>
         </form>
     </div>
@@ -414,5 +556,47 @@ if (!function_exists('wam_adresse_lieu')):
     {
         $opts = get_option('wam_config', []);
         return esc_html($opts['adresse_lieu'] ?? "202 rue Jean Jaurès\nVilleneuve d'Ascq");
+    }
+endif;
+
+// --- Réseaux Sociaux Helpers ---
+
+if (!function_exists('wam_url_instagram')):
+    function wam_url_instagram(): string
+    {
+        $opts = get_option('wam_config', []);
+        return esc_url($opts['url_instagram'] ?? '');
+    }
+endif;
+
+if (!function_exists('wam_url_facebook')):
+    function wam_url_facebook(): string
+    {
+        $opts = get_option('wam_config', []);
+        return esc_url($opts['url_facebook'] ?? '');
+    }
+endif;
+
+if (!function_exists('wam_url_tiktok')):
+    function wam_url_tiktok(): string
+    {
+        $opts = get_option('wam_config', []);
+        return esc_url($opts['url_tiktok'] ?? '');
+    }
+endif;
+
+if (!function_exists('wam_url_linkedin')):
+    function wam_url_linkedin(): string
+    {
+        $opts = get_option('wam_config', []);
+        return esc_url($opts['url_linkedin'] ?? '');
+    }
+endif;
+
+if (!function_exists('wam_url_youtube')):
+    function wam_url_youtube(): string
+    {
+        $opts = get_option('wam_config', []);
+        return esc_url($opts['url_youtube'] ?? '');
     }
 endif;

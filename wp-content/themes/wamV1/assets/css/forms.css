@@ -62,7 +62,12 @@ label,
 /* Astérisque champ requis (Fluent Forms) */
 .ff-el-input--label.ff-el-is-required.asterisk-right label::after {
     content: ' *';
-    color: var(--wp--preset--color--accent-orange);
+    color: var(--wam-color-pink);
+}
+
+/* Astérisque formulaire WAM */
+.wam-contact-form .required {
+    color: var(--wam-color-pink) !important;
 }
 
 /* =====================================================
@@ -177,6 +182,7 @@ select,
     background-position: right var(--wam-field-px) center !important;
     padding-right: calc(var(--wam-field-px) * 2.5) !important;
     cursor: pointer;
+    background-color: transparent !important;
 }
 
 select option {
@@ -203,24 +209,29 @@ input:-webkit-autofill:focus {
    ÉTATS ERREUR
    ===================================================== */
 
-/* Champ en erreur — Fluent Forms
+/* Champ en erreur — Fluent Forms + Natif
    Double ciblage : classe sur le parent (.has-error) ET aria-invalid sur l'input. */
 .ff-el-group.has-error .ff-el-form-control,
 .ff-el-form-control[aria-invalid="true"],
+.wam-contact-form input[aria-invalid="true"],
+.wam-contact-form select[aria-invalid="true"],
+.wam-contact-form textarea[aria-invalid="true"],
 .ff_input_error {
     border: var(--wam-field-border-error) !important;
 }
 
-/* Message d'erreur — Fluent Forms */
+/* Message d'erreur — Fluent Forms + Natif */
 .ff-el-group .error,
 .ff-el-group .ff-error,
+.wam-field-error,
 .error-element {
     font-family: var(--wam-font-body);
     font-size: var(--wam-label-font-size);
     line-height: 1.25;
     color: var(--wp--preset--color--accent-orange);
     padding: 0 var(--wam-spacing-2xs);
-    margin: 0;
+    margin-top: 4px;
+    display: block;
 }
 
 /* Message validation MailPoet */
@@ -312,4 +323,120 @@ input:-webkit-autofill:focus {
 /* Espaceur MailPoet — neutralisé */
 .mailpoet_spacer {
     display: none !important;
+}
+
+/* =====================================================
+   FORMULAIRE DE CONTACT NATIF (SHORTCODE)
+   ===================================================== */
+.wam-contact-form-wrapper {
+    margin: var(--wam-spacing-lg) 0;
+}
+
+.wam-contact-form {
+    max-width: 800px;
+    gap: 0;
+}
+
+.wam-contact-form-wrapper .wam-form-row {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: var(--wam-spacing-lg);
+    margin-bottom: var(--wam-spacing-lg);
+}
+
+@media (min-width: 768px) {
+    .wam-contact-form-wrapper .wam-form-row.form-row-2 {
+        grid-template-columns: 1fr 1fr;
+    }
+}
+
+.wam-contact-form-wrapper .wam-form-group {
+    display: flex;
+    flex-direction: column;
+    gap: var(--wam-field-gap);
+    margin-bottom: var(--wam-spacing-lg);
+}
+
+/* Messages de retour AJAX */
+.wam-form-response {
+    margin-top: var(--wam-spacing-md);
+    padding: var(--wam-spacing-sm);
+    border-radius: var(--wam-field-radius);
+    font-family: var(--wam-font-body);
+    font-size: var(--wam-font-size-xs);
+    text-align: center;
+    display: none;
+    /* Masqué par défaut */
+}
+
+.wam-form-response.is-visible {
+    display: block;
+}
+
+.wam-form-response.is-success {
+    background-color: rgba(30, 166, 114, 0.1);
+    color: var(--wam-color-green);
+    border: 1px solid var(--wam-color-green);
+}
+
+.wam-form-response.is-error {
+    background-color: rgba(222, 59, 83, 0.1);
+    color: var(--wam-color-orange);
+    border: 1px solid var(--wam-color-orange);
+}
+
+.wam-form-response p {
+    margin: 0;
+}
+
+/* Notice champs obligatoires */
+.wam-contact-form-notice {
+    font-size: var(--wam-font-size-xs);
+    margin-bottom: var(--wam-spacing-lg);
+    color: var(--wam-color-subtext);
+    max-width: 800px;
+}
+
+.wam-contact-form-notice .required {
+    color: var(--wam-color-pink);
+}
+
+/* Animation Bouton Chargement "Shimmer" */
+.wam-contact-form .btn {
+    position: relative;
+    overflow: hidden;
+    transition: opacity 0.3s ease;
+}
+
+/* Cache Honeypot Anti-Spam */
+.wam-hp-field {
+    position: absolute;
+    left: -9999px;
+    top: auto;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    opacity: 0;
+}
+
+.wam-contact-form .btn.is-loading {
+    pointer-events: none;
+    opacity: 0.8;
+}
+
+.wam-contact-form .btn.is-loading::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 50%;
+    height: 100%;
+    background: linear-gradient(to right, transparent, rgba(255, 255, 255, 0.4), transparent);
+    animation: button-shimmer 1.5s infinite;
+}
+
+@keyframes button-shimmer {
+    100% {
+        left: 200%;
+    }
 }

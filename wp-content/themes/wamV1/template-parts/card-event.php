@@ -68,6 +68,9 @@ if ($complet) $card_classes[] = 'card-event--complet';
     <!-- ---- Media (image paysage) ---- -->
     <div class="card-event__media">
 
+        <!-- Lien cliquable sur la zone image -->
+        <a href="<?php the_permalink(); ?>" style="position: absolute; inset: 0; z-index: 1;" aria-hidden="true" tabindex="-1"></a>
+
         <?php if (has_post_thumbnail()) : ?>
             <?php echo wp_get_attachment_image(
                 get_post_thumbnail_id(),

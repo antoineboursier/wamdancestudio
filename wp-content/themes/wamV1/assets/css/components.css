@@ -503,10 +503,6 @@ html.wam-theme-light .btn-outlined {
 }
 
 /* Label "Menu" dans le bouton burger */
-.wam-header__menu-label {
-    letter-spacing: 0.05em;
-    /* tracking-wider */
-}
 
 /* Lien Panier Header */
 .wam-header__cart-link {
@@ -548,10 +544,12 @@ html.wam-theme-light .btn-outlined {
         transform: scale(0.5);
         opacity: 0;
     }
+
     50% {
         transform: scale(1.1);
         opacity: 1;
     }
+
     100% {
         transform: scale(1);
         opacity: 1;

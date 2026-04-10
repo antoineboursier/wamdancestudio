@@ -101,6 +101,9 @@ if (isset($current_type['class'])) $card_classes[] = $current_type['class'];
     <!-- ---- Media (image portrait) ---- -->
     <div class="card-stage__media">
 
+        <!-- Lien cliquable sur toute la zone de l'image -->
+        <a href="<?php the_permalink(); ?>" style="position: absolute; inset: 0; z-index: 1;" aria-hidden="true" tabindex="-1"></a>
+
         <?php if (has_post_thumbnail()) : ?>
             <?php echo wp_get_attachment_image(
                 get_post_thumbnail_id(),

@@ -43,34 +43,51 @@ $icon_dir       = get_template_directory_uri() . '/assets/images/';
 
             <?php /* Réseaux sociaux — milieu-droite, icônes colorées via CSS mask */ ?>
             <div class="wam-footer__socials">
-                <a href="https://www.instagram.com/wam_dance_studio/" class="wam-footer__social-link" target="_blank"
+                <?php if (wam_url_instagram()) : ?>
+                <a href="<?php echo esc_url(wam_url_instagram()); ?>" class="wam-footer__social-link" target="_blank"
                     rel="noopener noreferrer"
                     aria-label="<?php esc_attr_e('WAM Dance Studio sur Instagram', 'wamv1'); ?>">
                     <span class="wam-footer__social-icon"
                         style="-webkit-mask-image: url('<?php echo esc_url($icon_dir . 'logo_insta.svg'); ?>'); mask-image: url('<?php echo esc_url($icon_dir . 'logo_insta.svg'); ?>')"
                         aria-hidden="true"></span>
                 </a>
-                <a href="https://www.facebook.com/WAMDanceStudio/" class="wam-footer__social-link" target="_blank"
+                <?php endif; ?>
+                <?php if (wam_url_facebook()) : ?>
+                <a href="<?php echo esc_url(wam_url_facebook()); ?>" class="wam-footer__social-link" target="_blank"
                     rel="noopener noreferrer"
                     aria-label="<?php esc_attr_e('WAM Dance Studio sur Facebook', 'wamv1'); ?>">
                     <span class="wam-footer__social-icon"
                         style="-webkit-mask-image: url('<?php echo esc_url($icon_dir . 'logo_fb.svg'); ?>'); mask-image: url('<?php echo esc_url($icon_dir . 'logo_fb.svg'); ?>')"
                         aria-hidden="true"></span>
                 </a>
-                <a href="https://www.tiktok.com/@wamdancestudio" class="wam-footer__social-link" target="_blank"
+                <?php endif; ?>
+                <?php if (wam_url_tiktok()) : ?>
+                <a href="<?php echo esc_url(wam_url_tiktok()); ?>" class="wam-footer__social-link" target="_blank"
                     rel="noopener noreferrer"
                     aria-label="<?php esc_attr_e('WAM Dance Studio sur TikTok', 'wamv1'); ?>">
                     <span class="wam-footer__social-icon"
                         style="-webkit-mask-image: url('<?php echo esc_url($icon_dir . 'logo_tiktok.svg'); ?>'); mask-image: url('<?php echo esc_url($icon_dir . 'logo_tiktok.svg'); ?>')"
                         aria-hidden="true"></span>
                 </a>
-                <a href="https://www.linkedin.com/company/wam-dance-studio" class="wam-footer__social-link" target="_blank"
+                <?php endif; ?>
+                <?php if (wam_url_linkedin()) : ?>
+                <a href="<?php echo esc_url(wam_url_linkedin()); ?>" class="wam-footer__social-link" target="_blank"
                     rel="noopener noreferrer"
                     aria-label="<?php esc_attr_e('WAM Dance Studio sur LinkedIn', 'wamv1'); ?>">
                     <span class="wam-footer__social-icon"
                         style="-webkit-mask-image: url('<?php echo esc_url($icon_dir . 'logo_lkn.svg'); ?>'); mask-image: url('<?php echo esc_url($icon_dir . 'logo_lkn.svg'); ?>')"
                         aria-hidden="true"></span>
                 </a>
+                <?php endif; ?>
+                <?php if (wam_url_youtube()) : ?>
+                <a href="<?php echo esc_url(wam_url_youtube()); ?>" class="wam-footer__social-link" target="_blank"
+                    rel="noopener noreferrer"
+                    aria-label="<?php esc_attr_e('WAM Dance Studio sur YouTube', 'wamv1'); ?>">
+                    <span class="wam-footer__social-icon"
+                        style="-webkit-mask-image: url('<?php echo esc_url($icon_dir . 'logo_youtube.svg'); ?>'); mask-image: url('<?php echo esc_url($icon_dir . 'logo_youtube.svg'); ?>')"
+                        aria-hidden="true"></span>
+                </a>
+                <?php endif; ?>
             </div>
 
             <?php /* Logo — far right */ ?>

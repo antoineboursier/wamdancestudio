@@ -79,6 +79,9 @@ if ($complet)   $card_classes[] = 'card-cours--complet';
     <!-- Media — uniquement si image à la une disponible -->
     <?php if (has_post_thumbnail()) : ?>
     <div class="card-cours__media">
+        <!-- Lien cliquable sur la zone image -->
+        <a href="<?php the_permalink(); ?>" style="position: absolute; inset: 0; z-index: 1;" aria-hidden="true" tabindex="-1"></a>
+
         <?php echo wamv1_get_image_with_overlay(
             get_post_thumbnail_id(),
             'wam-card-thumbnail',

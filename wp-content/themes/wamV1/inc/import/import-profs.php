@@ -124,8 +124,10 @@ function wamv1_import_profs_logic($dry_run = false) {
         );
 
         foreach ($yoast_map as $col => $meta_key) {
-            if (!empty($data[$col])) {
+            if (isset($data[$col]) && $data[$col] !== '') {
                 update_post_meta($post_id, $meta_key, sanitize_text_field($data[$col]));
+            } else {
+                delete_post_meta($post_id, $meta_key);
             }
         }
     }

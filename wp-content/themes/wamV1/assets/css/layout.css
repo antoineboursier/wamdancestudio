@@ -562,3 +562,45 @@ body.single-post #section-article-header.page-hero {
     max-width: 48ch;
     margin: 0 auto;
 }
+
+/* =====================================================
+   SEARCH RESULTS
+   ===================================================== */
+
+.search-results {
+    min-height: 50vh;
+}
+
+.search-results__header {
+    padding: var(--wam-spacing-2xl) var(--wam-page-mx);
+}
+
+.search-results__content {
+    padding: 0 var(--wam-page-mx) var(--wam-spacing-3xl);
+}
+
+.search-results__list {
+    display: flex;
+    flex-direction: column;
+    gap: var(--wam-spacing-lg);
+}
+
+.search-result-item {
+    border-bottom: 1px solid var(--wam-color-disabled);
+    padding-bottom: var(--wam-spacing-md);
+}
+
+.search-result-item__link {
+    text-decoration: none;
+    color: inherit;
+}
+
+.search-result-item__link:hover h2 {
+    color: var(--wam-color-yellow);
+}
+
+.search-results__empty {
+    background: var(--wam-color-card-bg);
+    padding: var(--wam-spacing-lg);
+    border-radius: var(--wam-radius-md);
+}

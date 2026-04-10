@@ -92,6 +92,30 @@ function wam_config_register_settings(): void
         'wam-config',
         'wam_section_lieux'
     );
+
+    // Section Synchronisation
+    add_settings_section(
+        'wam_section_sync',
+        'Synchronisation des données (CSV)',
+        'wam_section_sync_desc',
+        'wam-config'
+    );
+
+    add_settings_field(
+        'sync_profs',
+        'Professeurs',
+        'wam_field_sync_profs',
+        'wam-config',
+        'wam_section_sync'
+    );
+
+    add_settings_field(
+        'sync_cours',
+        'Cours',
+        'wam_field_sync_cours',
+        'wam-config',
+        'wam_section_sync'
+    );
 }
 add_action('admin_init', 'wam_config_register_settings');
 
@@ -185,6 +209,29 @@ function wam_field_adresse_lieu(): void
     echo '</span>';
 }
 
+// --- Callbacks Synchronisation ---
+function wam_section_sync_desc(): void
+{
+    echo '<p>Utilisez ces boutons pour mettre à jour les données du site à partir des fichiers CSV présents dans le thème (dossier <code>data/</code>).</p>';
+}
+
+function wam_field_sync_profs(): void
+{
+    $date = function_exists('wamv1_get_csv_mtime') ? wamv1_get_csv_mtime('profs_wam_import.csv') : 'Inconnue';
+    echo '<p>Dernier changement du fichier : <strong>' . $date . '</strong></p>';
+    echo '<button type="submit" name="wam_sync_action" value="sync_profs" class="button button-secondary">Synchroniser les professeurs</button>';
+}
+
+function wam_field_sync_cours(): void
+{
+    $date = function_exists('wamv1_get_csv_mtime') ? wamv1_get_csv_mtime('cours_wam_import.csv') : 'Inconnue';
+    echo '<p>Dernier changement du fichier : <strong>' . $date . '</strong></p>';
+    echo '<div style="display:flex; gap:10px;">';
+    echo '<button type="submit" name="wam_sync_action" value="sync_cours" class="button button-secondary">Synchroniser les cours</button>';
+    echo '<button type="submit" name="wam_sync_action" value="purge_cours" class="button button-link-delete js-confirm-purge" style="color:#d63638; text-decoration:none; align-self:center;">Vider tous les cours</button>';
+    echo '</div>';
+}
+
 // -------------------------------------------------------
 // Page admin
 // -------------------------------------------------------
@@ -205,12 +252,33 @@ function wam_config_page_html(): void
     if (!current_user_can('manage_options')) {
         return;
     }
+
+    // Gestion du déclenchement manuel de la synchronisation
+    $sync_message = '';
+    if (isset($_POST['wam_sync_action']) && check_admin_referer('wam_config_group-options')) {
+        $action = $_POST['wam_sync_action'];
+        if ($action === 'sync_profs' && function_exists('wamv1_import_profs_logic')) {
+            $sync_message = wamv1_import_profs_logic();
+        } elseif ($action === 'sync_cours' && function_exists('wamv1_import_cours_logic')) {
+            $sync_message = wamv1_import_cours_logic();
+        } elseif ($action === 'purge_cours' && function_exists('wamv1_purge_cours_logic')) {
+            $sync_message = wamv1_purge_cours_logic();
+        }
+    }
+
     $opts    = get_option('wam_config', []);
     $checked = (bool) ($opts['inscriptions_actives'] ?? true);
     ?>
     <div class="wrap">
         <h1><?php echo esc_html(get_admin_page_title()); ?></h1>
-        <form method="post" action="options.php">
+
+        <?php if ($sync_message): ?>
+            <div class="notice notice-success is-dismissible">
+                <p><strong>Synchronisation réussie :</strong> <?php echo esc_html($sync_message); ?></p>
+            </div>
+        <?php endif; ?>
+
+        <form method="post" action="">
             <?php
             settings_fields('wam_config_group');
             do_settings_sections('wam-config');
@@ -250,6 +318,16 @@ function wam_config_page_html(): void
             }
             toggleAddr(checkboxAddr.checked);
             checkboxAddr.addEventListener('change', function () { toggleAddr(this.checked); });
+        }
+
+        // Confirmation de purge
+        var purgeBtn = document.querySelector('.js-confirm-purge');
+        if (purgeBtn) {
+            purgeBtn.addEventListener('click', function (e) {
+                if (!confirm('ATTENTION : Voulez-vous vraiment supprimer TOUS les cours de la base de données ?\n\nCette action est irréversible.')) {
+                    e.preventDefault();
+                }
+            });
         }
     })();
     </script>

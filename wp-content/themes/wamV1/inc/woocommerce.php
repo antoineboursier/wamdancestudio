@@ -18,18 +18,19 @@
 //    On charge notre shop.css à la place (voir functions.php)
 // ============================================================================
 
-add_filter( 'woocommerce_enqueue_styles', '__return_empty_array' );
+add_filter('woocommerce_enqueue_styles', '__return_empty_array');
 
 // ============================================================================
 // B. Retirer les endpoints inutiles du menu Mon compte
 //    Adresses et Téléchargements ne sont pas pertinents pour une école de danse
 // ============================================================================
 
-add_filter( 'woocommerce_account_menu_items', 'wamv1_wc_account_menu_items' );
+add_filter('woocommerce_account_menu_items', 'wamv1_wc_account_menu_items');
 
-function wamv1_wc_account_menu_items( array $items ): array {
-    unset( $items['edit-address'] ); // Adresses — inutile (pas de livraison physique)
-    unset( $items['downloads'] );    // Téléchargements — pas de produits numériques
+function wamv1_wc_account_menu_items(array $items): array
+{
+    unset($items['edit-address']); // Adresses — inutile (pas de livraison physique)
+    unset($items['downloads']);    // Téléchargements — pas de produits numériques
     return $items;
 }
 
@@ -38,14 +39,16 @@ function wamv1_wc_account_menu_items( array $items ): array {
 //    La boutique WC native n'est pas exposée — les CPTs servent de listing
 // ============================================================================
 
-add_action( 'template_redirect', 'wamv1_redirect_boutique' );
+add_action('template_redirect', 'wamv1_redirect_boutique');
 
-function wamv1_redirect_boutique(): void {
-    if ( ! function_exists( 'is_shop' ) || ! is_shop() ) return;
+function wamv1_redirect_boutique(): void
+{
+    if (!function_exists('is_shop') || !is_shop())
+        return;
 
-    $page  = get_page_by_path( 'cours-collectifs' );
-    $cours_url = $page ? get_permalink( $page->ID ) : home_url( '/cours-collectifs/' );
-    wp_safe_redirect( $cours_url, 301 );
+    $page = get_page_by_path('cours-collectifs');
+    $cours_url = $page ? get_permalink($page->ID) : home_url('/cours-collectifs/');
+    wp_safe_redirect($cours_url, 301);
     exit;
 }
 
@@ -54,16 +57,19 @@ function wamv1_redirect_boutique(): void {
 //    Le champ ACF wc_product_id est de type "relationship" (retourne array de WP_Post)
 // ============================================================================
 
-function wamv1_get_wc_product_id( int $post_id ): int {
-    if ( ! function_exists( 'get_field' ) ) return 0;
+function wamv1_get_wc_product_id(int $post_id): int
+{
+    if (!function_exists('get_field'))
+        return 0;
 
-    $products = get_field( 'wc_product_id', $post_id );
+    $products = get_field('wc_product_id', $post_id);
 
     // relationship retourne un array de WP_Post (ou vide)
-    if ( empty( $products ) || ! is_array( $products ) ) return 0;
+    if (empty($products) || !is_array($products))
+        return 0;
 
     $first = $products[0];
-    return is_object( $first ) ? (int) $first->ID : (int) $first;
+    return is_object($first) ? (int) $first->ID : (int) $first;
 }
 
 // ============================================================================
@@ -71,21 +77,26 @@ function wamv1_get_wc_product_id( int $post_id ): int {
 //    mettre à jour le statut de stock du produit WC lié
 // ============================================================================
 
-add_action( 'acf/save_post', 'wamv1_sync_wc_stock_from_acf', 20 );
+add_action('acf/save_post', 'wamv1_sync_wc_stock_from_acf', 20);
 
-function wamv1_sync_wc_stock_from_acf( $post_id ): void {
-    $post_type = get_post_type( $post_id );
-    if ( ! in_array( $post_type, [ 'cours', 'stages' ], true ) ) return;
-    if ( ! function_exists( 'get_field' ) || ! function_exists( 'wc_get_product' ) ) return;
+function wamv1_sync_wc_stock_from_acf($post_id): void
+{
+    $post_type = get_post_type($post_id);
+    if (!in_array($post_type, ['cours', 'stages'], true))
+        return;
+    if (!function_exists('get_field') || !function_exists('wc_get_product'))
+        return;
 
-    $product_id = wamv1_get_wc_product_id( (int) $post_id );
-    if ( ! $product_id ) return;
+    $product_id = wamv1_get_wc_product_id((int) $post_id);
+    if (!$product_id)
+        return;
 
-    $product = wc_get_product( $product_id );
-    if ( ! $product ) return;
+    $product = wc_get_product($product_id);
+    if (!$product)
+        return;
 
-    $complet = (bool) get_field( 'complete_cours', $post_id );
-    $product->set_stock_status( $complet ? 'outofstock' : 'instock' );
+    $complet = (bool) get_field('complete_cours', $post_id);
+    $product->set_stock_status($complet ? 'outofstock' : 'instock');
     $product->save();
 }
 
@@ -94,36 +105,42 @@ function wamv1_sync_wc_stock_from_acf( $post_id ): void {
 //    Visible dans le panier, la commande et le back-office
 // ============================================================================
 
-add_filter( 'woocommerce_add_cart_item_data', 'wamv1_add_wc_item_meta', 10, 2 );
+add_filter('woocommerce_add_cart_item_data', 'wamv1_add_wc_item_meta', 10, 2);
 
-function wamv1_add_wc_item_meta( array $cart_item_data, int $product_id ): array {
-    if ( ! function_exists( 'get_field' ) ) return $cart_item_data;
+function wamv1_add_wc_item_meta(array $cart_item_data, int $product_id): array
+{
+    if (!function_exists('get_field'))
+        return $cart_item_data;
 
-    foreach ( [ 'cours', 'stages' ] as $post_type ) {
-        $linked = get_posts( [
-            'post_type'      => $post_type,
+    foreach (['cours', 'stages'] as $post_type) {
+        $linked = get_posts([
+            'post_type' => $post_type,
             'posts_per_page' => 1,
-            'post_status'    => 'publish',
-            'no_found_rows'  => true,
+            'post_status' => 'publish',
+            'no_found_rows' => true,
             // relationship stocke les IDs séparés par virgule ou sérialisés
-            'meta_query'     => [ [ 'key' => 'wc_product_id', 'value' => $product_id, 'compare' => 'LIKE' ] ],
-        ] );
+            'meta_query' => [['key' => 'wc_product_id', 'value' => $product_id, 'compare' => 'LIKE']],
+        ]);
 
-        if ( ! $linked ) continue;
+        if (!$linked)
+            continue;
 
         $cpt_id = $linked[0]->ID;
 
-        if ( $post_type === 'cours' ) {
-            $jour        = get_field( 'jour_de_cours', $cpt_id );
-            $heure_debut = get_field( 'heure_debut',   $cpt_id );
-            $heure_fin   = get_field( 'heure_de_fin',  $cpt_id );
-            if ( $jour )        $cart_item_data['wam_jour']  = wamv1_get_day_label( $jour );
-            if ( $heure_debut ) $cart_item_data['wam_heure'] = "{$heure_debut} – {$heure_fin}";
+        if ($post_type === 'cours') {
+            $jour = get_field('jour_de_cours', $cpt_id);
+            $heure_debut = get_field('heure_debut', $cpt_id);
+            $heure_fin = get_field('heure_de_fin', $cpt_id);
+            if ($jour)
+                $cart_item_data['wam_jour'] = wamv1_get_day_label($jour);
+            if ($heure_debut)
+                $cart_item_data['wam_heure'] = "{$heure_debut} – {$heure_fin}";
         }
 
-        if ( $post_type === 'stages' ) {
-            $date = get_field( 'date_stage', $cpt_id );
-            if ( $date ) $cart_item_data['wam_date'] = $date;
+        if ($post_type === 'stages') {
+            $date = get_field('date_stage', $cpt_id);
+            if ($date)
+                $cart_item_data['wam_date'] = $date;
         }
 
         break;
@@ -134,34 +151,36 @@ function wamv1_add_wc_item_meta( array $cart_item_data, int $product_id ): array
 
 // Afficher les métadonnées WAM dans le tableau panier et le récapitulatif commande
 
-add_filter( 'woocommerce_get_item_data', 'wamv1_display_wc_item_meta', 10, 2 );
+add_filter('woocommerce_get_item_data', 'wamv1_display_wc_item_meta', 10, 2);
 
-function wamv1_display_wc_item_meta( array $item_data, array $cart_item ): array {
-    if ( ! empty( $cart_item['wam_jour'] ) ) {
-        $item_data[] = [ 'name' => 'Jour',  'value' => $cart_item['wam_jour'] ];
+function wamv1_display_wc_item_meta(array $item_data, array $cart_item): array
+{
+    if (!empty($cart_item['wam_jour'])) {
+        $item_data[] = ['name' => 'Jour', 'value' => $cart_item['wam_jour']];
     }
-    if ( ! empty( $cart_item['wam_heure'] ) ) {
-        $item_data[] = [ 'name' => 'Heure', 'value' => $cart_item['wam_heure'] ];
+    if (!empty($cart_item['wam_heure'])) {
+        $item_data[] = ['name' => 'Heure', 'value' => $cart_item['wam_heure']];
     }
-    if ( ! empty( $cart_item['wam_date'] ) ) {
-        $item_data[] = [ 'name' => 'Date',  'value' => $cart_item['wam_date'] ];
+    if (!empty($cart_item['wam_date'])) {
+        $item_data[] = ['name' => 'Date', 'value' => $cart_item['wam_date']];
     }
     return $item_data;
 }
 
 // Persister les métadonnées dans la commande (visible dans le back-office)
 
-add_action( 'woocommerce_checkout_create_order_line_item', 'wamv1_save_wc_item_meta_to_order', 10, 3 );
+add_action('woocommerce_checkout_create_order_line_item', 'wamv1_save_wc_item_meta_to_order', 10, 3);
 
-function wamv1_save_wc_item_meta_to_order( $item, $_cart_item_key, $values ): void {
-    if ( ! empty( $values['wam_jour'] ) ) {
-        $item->add_meta_data( 'Jour',  $values['wam_jour'],  true );
+function wamv1_save_wc_item_meta_to_order($item, $_cart_item_key, $values): void
+{
+    if (!empty($values['wam_jour'])) {
+        $item->add_meta_data('Jour', $values['wam_jour'], true);
     }
-    if ( ! empty( $values['wam_heure'] ) ) {
-        $item->add_meta_data( 'Heure', $values['wam_heure'], true );
+    if (!empty($values['wam_heure'])) {
+        $item->add_meta_data('Heure', $values['wam_heure'], true);
     }
-    if ( ! empty( $values['wam_date'] ) ) {
-        $item->add_meta_data( 'Date',  $values['wam_date'],  true );
+    if (!empty($values['wam_date'])) {
+        $item->add_meta_data('Date', $values['wam_date'], true);
     }
 }
 
@@ -170,8 +189,9 @@ function wamv1_save_wc_item_meta_to_order( $item, $_cart_item_key, $values ): vo
 //    (déjà déclarée dans functions.php — guard pour éviter le double-declare)
 // ============================================================================
 
-if ( ! function_exists( 'wamv1_get_day_label' ) ) {
-    function wamv1_get_day_label( string $slug ): string {
+if (!function_exists('wamv1_get_day_label')) {
+    function wamv1_get_day_label(string $slug): string
+    {
         $labels = [
             '01day' => 'Lundi',
             '02day' => 'Mardi',
@@ -181,6 +201,58 @@ if ( ! function_exists( 'wamv1_get_day_label' ) ) {
             '06day' => 'Samedi',
             '07day' => 'Dimanche',
         ];
-        return $labels[ $slug ] ?? $slug;
+        return $labels[$slug] ?? $slug;
     }
 }
+
+// ============================================================================
+// G. AJAX Cart Fragments — Mise à jour dynamique de l'icône
+//    Remplace le markup du panier et ajoute la classe is-animating
+// ============================================================================
+
+add_filter('woocommerce_add_to_cart_fragments', 'wamv1_cart_fragment_refresh');
+
+function wamv1_cart_fragment_refresh($fragments)
+{
+    ob_start();
+    $cart_count = WC()->cart ? WC()->cart->get_cart_contents_count() : 0;
+    $empty_class = $cart_count === 0 ? ' is-empty' : ' is-animating'; // is-animating déclenche l'animation
+    ?>
+    <a href="<?php echo esc_url(wc_get_cart_url()); ?>"
+        class="wam-header__cart-link wam-cart-fragment<?php echo $empty_class; ?>"
+        aria-label="<?php esc_attr_e('Voir le panier', 'wamv1'); ?>">
+        <span class="btn-icon"
+            style="--icon-url: url('<?php echo esc_url(get_template_directory_uri() . '/assets/images/panier.svg'); ?>'); --icon-size: 34px;"></span>
+        <?php if ($cart_count > 0): ?>
+            <span class="wam-header__cart-count text-xs fw-bold"><?php echo esc_html($cart_count); ?></span>
+        <?php endif; ?>
+    </a>
+    <?php
+    $fragments['a.wam-cart-fragment'] = ob_get_clean();
+    return $fragments;
+}
+
+// ============================================================================
+// H. Nettoyage des fonctionnalités WooCommerce inutilisées
+//    (Avis, Produits liés, Widgets)
+// ============================================================================
+
+// Supprimer le wrapper de fin natif (sécurité propreté HTML)
+add_action('init', function() {
+    remove_action('woocommerce_after_main_content', 'woocommerce_output_content_wrapper_end', 10);
+});
+
+// Supprimer les produits liés / upsells / cross-sells (inutile pour des cours)
+remove_action('woocommerce_after_single_product_summary', 'woocommerce_upsell_display', 15);
+remove_action('woocommerce_after_single_product_summary', 'woocommerce_output_related_products', 20);
+add_filter('woocommerce_cross_sells_total', '__return_zero');
+
+// Supprimer les avis (reviews) dans les tabs
+add_filter('woocommerce_product_tabs', function($tabs) {
+    unset($tabs['reviews']);
+    return $tabs;
+});
+
+// Désactiver l'enregistrement des widgets WC 
+add_filter('woocommerce_widgets_init', '__return_false');
+

@@ -16,6 +16,11 @@ require_once get_template_directory() . '/inc/no-comments.php';
 require_once get_template_directory() . '/inc/accessibility.php';
 require_once get_template_directory() . '/inc/theme-tweaks.php';
 require_once get_template_directory() . '/inc/nav-walker.php';
+require_once get_template_directory() . '/inc/cleanup.php';
+require_once get_template_directory() . '/inc/import/import-logic.php';
+require_once get_template_directory() . '/inc/import/import-profs.php';
+require_once get_template_directory() . '/inc/import/import-cours.php';
+require_once get_template_directory() . '/inc/import/cli-commands.php';
 
 // -------------------------------------------------------
 // Setup
@@ -23,6 +28,15 @@ require_once get_template_directory() . '/inc/nav-walker.php';
 if (!function_exists('wamv1_setup')):
     function wamv1_setup()
     {
+        /* Déclaration du textdomain pour la traduction (i18n) */
+        load_theme_textdomain('wamv1', get_template_directory() . '/languages');
+
+        /* Largeur maximale du contenu (oEmbeds, images) */
+        global $content_width;
+        if (!isset($content_width)) {
+            $content_width = 1200; // Aligné sur max-width éditorial dans Tokens CSS
+        }
+
         add_theme_support('title-tag');
         add_theme_support('post-thumbnails');
         add_image_size('wamv1-page-hero', 1536, 600, true); // banner pages (landscape)
@@ -205,9 +219,9 @@ function wamv1_scripts()
     }
 
     // -------------------------------------------------------
-    // Scripts JS
+    // Scripts JS (defer pour ne pas bloquer le rendu)
     // -------------------------------------------------------
-    wp_enqueue_script('wamv1-main', $js . 'main.js', array(), $ver, true);
+    wp_enqueue_script('wamv1-main', $js . 'main.js', array(), $ver, ['in_footer' => true, 'strategy' => 'defer']);
 
     if (is_front_page()) {
         wp_enqueue_script(
@@ -215,11 +229,21 @@ function wamv1_scripts()
             $js . 'home.js',
             array(),
             $ver,
-            true
+            ['in_footer' => true, 'strategy' => 'defer']
         );
     }
 }
 add_action('wp_enqueue_scripts', 'wamv1_scripts');
+
+// -------------------------------------------------------
+// Resource Hints — preload de la police Outfit (critique FCP)
+// -------------------------------------------------------
+function wamv1_preload_fonts()
+{
+    $font_url = get_template_directory_uri() . '/fonts/Outfit-VariableFont_wght.woff2';
+    echo '<link rel="preload" href="' . esc_url($font_url) . '" as="font" type="font/woff2" crossorigin>' . "\n";
+}
+add_action('wp_head', 'wamv1_preload_fonts', 1);
 
 // -------------------------------------------------------
 // Scripts & Styles Admin WP
@@ -254,6 +278,7 @@ function wamv1_add_user_specialty_field($user)
         </tr>
     </table>
     <?php
+    wp_nonce_field('wamv1_save_specialty_' . $user->ID, 'wamv1_specialty_nonce');
 }
 add_action('show_user_profile', 'wamv1_add_user_specialty_field');
 add_action('edit_user_profile', 'wamv1_add_user_specialty_field');
@@ -261,6 +286,8 @@ add_action('edit_user_profile', 'wamv1_add_user_specialty_field');
 function wamv1_save_user_specialty_field($user_id)
 {
     if (!current_user_can('edit_user', $user_id))
+        return;
+    if (!isset($_POST['wamv1_specialty_nonce']) || !wp_verify_nonce($_POST['wamv1_specialty_nonce'], 'wamv1_save_specialty_' . $user_id))
         return;
     if (isset($_POST['wam_specialite'])) {
         update_user_meta($user_id, 'wam_specialite', sanitize_text_field($_POST['wam_specialite']));
@@ -368,24 +395,10 @@ function wamv1_disable_gutenberg_cours($use_block_editor, $post_type)
 }
 add_filter('use_block_editor_for_post_type', 'wamv1_disable_gutenberg_cours', 10, 2);
 
-// Affiche "Titre — Sous-titre" dans la colonne titre des CPT cours/stages en admin
-function wamv1_admin_title_with_subtitle($title, $post_id)
-{
-    if (!is_admin() || !function_exists('get_field'))
-        return $title;
-    $post = get_post($post_id);
-    if (!$post || !in_array($post->post_type, ['cours', 'stages']))
-        return $title;
-    $sous_titre = get_field('sous_titre', $post_id);
-    if ($sous_titre)
-        $title .= ' - ' . $sous_titre;
-    return $title;
-}
-add_filter('the_title', 'wamv1_admin_title_with_subtitle', 10, 2);
 
-// =============================================================================
-// CPT : MEMBRES (Professeur·es & Directrice)
-// =============================================================================
+// -------------------------------------------------------
+// Performances - Génération d'images AVIF par défaut
+// -------------------------------------------------------
 
 function wamv1_register_cpt_membre()
 {

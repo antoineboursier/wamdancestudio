@@ -31,29 +31,45 @@ $sub_src = esc_url($icon_dir . 'dancestudio_header.svg');
 
         <?php if (!$is_home): ?>
             <a href="<?php echo esc_url(home_url('/')); ?>" class="wam-header__logo-link">
-                <img src="<?php echo $logo_src; ?>" alt="WAM Dance Studio" class="wam-header__logo">
+                <img src="<?php echo $logo_src; ?>" alt="WAM Dance Studio" class="wam-header__logo" width="120" height="55">
             </a>
 
             <div class="wam-header__right">
-                <img src="<?php echo $sub_src; ?>" alt="Dance Studio" class="wam-header__logo-subtitle">
+                <img src="<?php echo $sub_src; ?>" alt="Dance Studio" class="wam-header__logo-subtitle" width="140" height="14">
 
-                <a href="<?php echo function_exists('wc_get_cart_url') ? esc_url(wc_get_cart_url()) : '#'; ?>"
-                    class="wam-header__cart-link" aria-label="<?php esc_attr_e('Voir le panier', 'wamv1'); ?>">
+                <?php if (class_exists('WooCommerce')): ?>
+                <?php 
+                    $cart_count = WC()->cart ? WC()->cart->get_cart_contents_count() : 0; 
+                    $empty_class = $cart_count === 0 ? ' is-empty' : '';
+                ?>
+                <a href="<?php echo esc_url(wc_get_cart_url()); ?>"
+                    class="wam-header__cart-link wam-cart-fragment<?php echo $empty_class; ?>" aria-label="<?php esc_attr_e('Voir le panier', 'wamv1'); ?>">
                     <span class="btn-icon"
                         style="--icon-url: url('<?php echo esc_url($icon_dir . 'panier.svg'); ?>'); --icon-size: 34px;"></span>
-                    <span class="wam-header__cart-count text-xs fw-bold">23</span>
+                    <?php if ($cart_count > 0): ?>
+                        <span class="wam-header__cart-count text-xs fw-bold"><?php echo esc_html($cart_count); ?></span>
+                    <?php endif; ?>
                 </a>
+                <?php endif; ?>
             </div>
 
         <?php else: ?>
             <div class="wam-header__logo-spacer" aria-hidden="true"></div>
 
-            <a href="<?php echo function_exists('wc_get_cart_url') ? esc_url(wc_get_cart_url()) : '#'; ?>"
-                class="wam-header__cart-link" aria-label="<?php esc_attr_e('Voir le panier', 'wamv1'); ?>">
+            <?php if (class_exists('WooCommerce')): ?>
+            <?php 
+                $cart_count = WC()->cart ? WC()->cart->get_cart_contents_count() : 0; 
+                $empty_class = $cart_count === 0 ? ' is-empty' : '';
+            ?>
+            <a href="<?php echo esc_url(wc_get_cart_url()); ?>"
+                class="wam-header__cart-link wam-cart-fragment<?php echo $empty_class; ?>" aria-label="<?php esc_attr_e('Voir le panier', 'wamv1'); ?>">
                 <span class="btn-icon"
                     style="--icon-url: url('<?php echo esc_url($icon_dir . 'panier.svg'); ?>'); --icon-size: 34px;"></span>
-                <span class="wam-header__cart-count">23</span>
+                <?php if ($cart_count > 0): ?>
+                    <span class="wam-header__cart-count text-xs fw-bold"><?php echo esc_html($cart_count); ?></span>
+                <?php endif; ?>
             </a>
+            <?php endif; ?>
         <?php endif; ?>
 
     </div>
@@ -75,7 +91,7 @@ $sub_src = esc_url($icon_dir . 'dancestudio_header.svg');
                 <?php
                 $logo_path = get_template_directory() . '/assets/images/logo_menu_wam.svg';
                 if (file_exists($logo_path)) {
-                    echo file_get_contents($logo_path);
+                    include $logo_path;
                 }
                 ?>
             </div>

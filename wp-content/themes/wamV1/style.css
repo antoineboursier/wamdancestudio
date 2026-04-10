@@ -68,7 +68,7 @@ body {
 /* --- Titres "Norm" (Outfit Bold) --- */
 .title-norm-lg {
     font-family: var(--wam-font-body);
-    font-size: 32px;
+    font-size: var(--wam-font-size-h2);
     font-weight: 700;
     line-height: 1.1;
     letter-spacing: 0;
@@ -84,7 +84,7 @@ body {
 
 .title-norm-sm {
     font-family: var(--wam-font-body);
-    font-size: 22px;
+    font-size: var(--wam-font-size-h3);
     font-weight: 700;
     line-height: 1.1;
     letter-spacing: 0;
@@ -217,4 +217,30 @@ body {
     outline: 3px solid var(--wp--preset--color--accent-yellow);
     outline-offset: 2px;
     border-radius: 2px;
+}
+
+/* Menu caché de liens d'évitement */
+.skip-links-list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+}
+
+/* Skip link — visible uniquement au focus clavier (WCAG 2.4.1) */
+.skip-link:focus {
+    position: fixed;
+    top: var(--wam-spacing-sm);
+    left: var(--wam-spacing-sm);
+    z-index: 99999;
+    padding: var(--wam-spacing-xs) var(--wam-spacing-lg);
+    background: var(--wam-color-yellow);
+    color: var(--wam-color-page-bg);
+    font-weight: 700;
+    font-size: var(--wam-font-size-sm);
+    border-radius: var(--wam-radius-sm);
+    clip: auto;
+    width: auto;
+    height: auto;
+    text-decoration: none;
+    box-shadow: var(--wam-shadow-md);
 }

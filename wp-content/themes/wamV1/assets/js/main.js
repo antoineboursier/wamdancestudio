@@ -19,6 +19,13 @@ document.addEventListener('DOMContentLoaded', () => {
             menuOverlay.setAttribute('aria-hidden', 'false');
             menuToggle.setAttribute('aria-expanded', 'true');
             body.style.overflow = 'hidden'; // Prevent scroll
+
+            // Focus trap : rendre le contenu principal inerte
+            const main = document.querySelector('#primary');
+            if (main) main.setAttribute('inert', '');
+            const footer = document.querySelector('.wam-footer');
+            if (footer) footer.setAttribute('inert', '');
+
             createNavParticles();
 
             // Prepare staggered entrance animations
@@ -28,7 +35,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 item.style.transitionDelay = `${100 + index * 60}ms`;
             });
 
-            // Trap focus or just focus close button
+            // Focus close button
             if (menuClose) setTimeout(() => menuClose.focus(), 100);
         };
 
@@ -37,6 +44,12 @@ document.addEventListener('DOMContentLoaded', () => {
             menuOverlay.setAttribute('aria-hidden', 'true');
             menuToggle.setAttribute('aria-expanded', 'false');
             body.style.overflow = '';
+
+            // Retirer le focus trap
+            const main = document.querySelector('#primary');
+            if (main) main.removeAttribute('inert');
+            const footer = document.querySelector('.wam-footer');
+            if (footer) footer.removeAttribute('inert');
 
             closeNavParticles(); // Wave right→left then clean up
 

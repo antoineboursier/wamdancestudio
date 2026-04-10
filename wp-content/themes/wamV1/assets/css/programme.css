@@ -486,7 +486,8 @@
     border-radius: var(--wam-radius-xl);
     transition: background-color var(--wam-transition), background-image var(--wam-transition);
     text-decoration: none;
-    min-width: calc(50% - var(--wam-spacing-2xl));
+    min-width: 40%;
+    max-width: calc(50% - var(--wam-spacing-xl) / 2);
 }
 
 /* Gradient border — caché au repos.

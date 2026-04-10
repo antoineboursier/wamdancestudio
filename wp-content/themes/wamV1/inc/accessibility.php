@@ -56,3 +56,14 @@ function wamv1_shortcode_accessibility($atts)
 }
 add_shortcode('wam_accessibility', 'wamv1_shortcode_accessibility');
 
+/**
+ * Accessibilité : Forcer alt="" pour les images sans texte alternatif
+ * Empêche les lecteurs d'écran d'épeler le nom du fichier (WCAG 1.1.1)
+ */
+function wamv1_force_empty_alt_for_decorative_images($attr, $attachment, $size) {
+    if (empty($attr['alt'])) {
+        $attr['alt'] = '';
+    }
+    return $attr;
+}
+add_filter('wp_get_attachment_image_attributes', 'wamv1_force_empty_alt_for_decorative_images', 10, 3);

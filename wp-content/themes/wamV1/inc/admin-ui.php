@@ -14,14 +14,23 @@ function wamv1_clean_admin_menu() {
 
     // --- LOGIQUE DIRECTRICE ---
     if (in_array('directrice', (array) $user->roles)) {
-        // On masque les menus techniques
+        // Menus techniques masqués
         remove_menu_page('edit-comments.php');
         remove_menu_page('plugins.php');
         remove_menu_page('tools.php');
-        remove_menu_page('options-general.php'); // Masque les réglages WP
-        
-        // MAIS on veut garder l'accès à notre page de config WAM
-        // Elle reste accessible via l'URL directe ou via un nouveau point d'entrée
+        remove_menu_page('options-general.php');
+        remove_menu_page('themes.php');
+        remove_menu_page('edit.php?post_type=acf-field-group');
+
+        // Yoast SEO — tous les slugs connus
+        remove_menu_page('wpseo_dashboard');
+        remove_menu_page('wpseo_workouts');
+        remove_submenu_page('wpseo_dashboard', 'wpseo_dashboard');
+        remove_submenu_page('wpseo_dashboard', 'wpseo_page_settings');
+        remove_submenu_page('wpseo_dashboard', 'wpseo_workouts');
+        remove_submenu_page('wpseo_dashboard', 'wpseo_redirects');
+        remove_submenu_page('wpseo_dashboard', 'wpseo_licenses');
+
         add_menu_page(
             'Configuration WAM',
             'Configuration WAM',
@@ -35,12 +44,9 @@ function wamv1_clean_admin_menu() {
 
     // --- LOGIQUE PROFESSEUR ---
     if (in_array('professeur', (array) $user->roles)) {
-        // On masque presque tout sauf : Équipe, Cours, Stages
-        remove_menu_page('index.php'); // Tableau de bord
-        remove_menu_page('edit.php'); // Articles Blog
+        remove_menu_page('index.php');
+        remove_menu_page('edit.php');
         remove_menu_page('edit.php?post_type=page');
-        // On garde : edit.php?post_type=cours
-        // On garde : edit.php?post_type=stages
         remove_menu_page('edit.php?post_type=evenements');
         remove_menu_page('edit.php?post_type=product');
         remove_menu_page('upload.php');
@@ -52,8 +58,15 @@ function wamv1_clean_admin_menu() {
         remove_menu_page('options-general.php');
         remove_menu_page('edit.php?post_type=acf-field-group');
 
-        // MASQUAGE DES BOUTONS "AJOUTER" (CSS)
-        // Les profs peuvent éditer mais pas créer de nouveaux contenus
+        // Yoast SEO — tous les slugs connus
+        remove_menu_page('wpseo_dashboard');
+        remove_menu_page('wpseo_workouts');
+        remove_submenu_page('wpseo_dashboard', 'wpseo_dashboard');
+        remove_submenu_page('wpseo_dashboard', 'wpseo_page_settings');
+        remove_submenu_page('wpseo_dashboard', 'wpseo_workouts');
+        remove_submenu_page('wpseo_dashboard', 'wpseo_redirects');
+        remove_submenu_page('wpseo_dashboard', 'wpseo_licenses');
+
         echo '<style>
             .wp-admin.post-type-wam_membre .page-title-action,
             .wp-admin.post-type-cours .page-title-action,
@@ -67,6 +80,42 @@ function wamv1_clean_admin_menu() {
     }
 }
 add_action('admin_menu', 'wamv1_clean_admin_menu', 999);
+
+/**
+ * 1b. Masquage des meta boxes Yoast et LiteSpeed dans l'éditeur
+ *     Pour directrice et professeur : interface de rédaction épurée
+ */
+function wamv1_hide_plugin_metaboxes() {
+    $user = wp_get_current_user();
+    $restricted_roles = ['directrice', 'professeur'];
+    $is_restricted = !empty(array_intersect($restricted_roles, (array) $user->roles));
+
+    if (!$is_restricted) return;
+
+    // Yoast SEO — meta boxes enregistrées par le plugin
+    $post_types = ['post', 'page', 'cours', 'stages', 'wam_membre', 'evenements'];
+    foreach ($post_types as $pt) {
+        remove_meta_box('wpseo_meta', $pt, 'normal');
+        remove_meta_box('wpseo_meta', $pt, 'side');
+    }
+
+    // CSS de secours : masque les panneaux résiduels Yoast et LiteSpeed
+    echo '<style>
+        /* Yoast */
+        #wpseo_meta,
+        #yoast-seo-document-panel,
+        .yoast-seo-sidebar-panel,
+        #wpseo-sidebar-panel-document,
+        [id^="wpseo"] { display: none !important; }
+
+        /* LiteSpeed Cache */
+        #litespeed-metabox,
+        #litespeed_optimizer,
+        [id^="litespeed"] { display: none !important; }
+    </style>';
+}
+add_action('admin_head', 'wamv1_hide_plugin_metaboxes');
+add_action('add_meta_boxes', 'wamv1_hide_plugin_metaboxes', 999);
 
 /**
  * 2. Filtrage de la liste des posts pour les professeurs

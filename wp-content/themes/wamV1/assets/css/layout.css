@@ -158,6 +158,7 @@
 
 @media (max-width: 768px) {
     .page-layout__inner {
+        padding-top: var(--wam-spacing-md);
         gap: var(--wam-spacing-lg);
     }
 }
@@ -604,4 +605,5 @@ body.single-post #section-article-header.page-hero {
     background: var(--wam-color-card-bg);
     padding: var(--wam-spacing-lg);
     border-radius: var(--wam-radius-md);
+}
 }

@@ -9,6 +9,18 @@
  */
 
 /**
+ * Ajoute le slug de la page aux classes du body
+ */
+function wamv1_add_slug_body_class($classes) {
+    global $post;
+    if (isset($post) && is_page()) {
+        $classes[] = 'page-slug-' . $post->post_name;
+    }
+    return $classes;
+}
+add_filter('body_class', 'wamv1_add_slug_body_class');
+
+/**
  * Détection automatique des liens externes
  * Ajoute la classe .is-external et un texte pour les lecteurs d'écran.
  */
@@ -243,12 +255,90 @@ function wamv1_custom_login_assets()
         .login .message,
         .login .notice,
         .login .success {
-            background: transparent;
+            background-color: var(--wam-color-card-bg) !important;
+            border: 1px solid rgba(255, 255, 255, 0.1) !important;
+            color: var(--wam-color-text) !important;
+            border-radius: var(--wam-radius-sm);
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4);
+            margin-bottom: 20px !important;
+            padding: 16px !important;
         }
+
+        .login .message a {
+            color: var(--wam-color-yellow);
+        }
+
+        .wam-local-accounts {
+            background: rgba(255, 220, 8, 0.1);
+            border: 1px solid var(--wam-color-yellow);
+            border-radius: var(--wam-radius-sm);
+            padding: 12px;
+            margin-bottom: 20px;
+            font-size: 13px;
+            color: var(--wam-color-text);
+        }
+        .wam-local-accounts strong { color: var(--wam-color-yellow); }
     </style>
     <?php
+    // Affichage des comptes uniquement en local
+    if ($_SERVER['HTTP_HOST'] === 'wam-v1.ddev.site') {
+        echo '<div class="wam-local-accounts">';
+        echo '<strong>Accès Tests (Local uniquement) :</strong><br>';
+        echo 'Directrice : <code>test_directrice</code> / <code>wam_test_2024</code><br>';
+        echo 'Professeur : <code>test_prof</code> / <code>wam_test_2024</code>';
+        echo '</div>';
+    }
 }
-add_action('login_enqueue_scripts', 'wamv1_custom_login_assets');
+add_action('login_message', 'wamv1_custom_login_assets');
+// On remplace 'login_enqueue_scripts' par 'login_message' pour permettre l'affichage HTML au bon endroit.
+
+/**
+ * Sécurité anti-prod et création auto en local.
+ */
+function wamv1_manage_test_accounts() {
+    $is_local = ($_SERVER['HTTP_HOST'] === 'wam-v1.ddev.site');
+    $test_users = [
+        [
+            'login' => 'test_directrice',
+            'email' => 'directrice@test.wam',
+            'role'  => 'directrice',
+            'pass'  => 'wam_test_2024'
+        ],
+        [
+            'login' => 'test_prof',
+            'email' => 'prof@test.wam',
+            'role'  => 'professeur',
+            'pass'  => 'wam_test_2024'
+        ]
+    ];
+
+    if ($is_local) {
+        // En LOCAL : On s'assure que les comptes existent
+        foreach ($test_users as $u) {
+            if (!username_exists($u['login'])) {
+                wp_insert_user([
+                    'user_login' => $u['login'],
+                    'user_email' => $u['email'],
+                    'user_pass'  => $u['pass'],
+                    'role'       => $u['role'],
+                    'display_name' => ucfirst(str_replace('test_', '', $u['login'])) . ' Test'
+                ]);
+            }
+        }
+    } else {
+        // En PROD (ou autre) : On supprime les comptes s'ils existent
+        foreach ($test_users as $u) {
+            $user = get_user_by('login', $u['login']);
+            if ($user) {
+                require_once(ABSPATH . 'wp-admin/includes/user.php');
+                wp_delete_user($user->ID);
+            }
+        }
+    }
+}
+add_action('init', 'wamv1_manage_test_accounts');
+
+
 
 /**
  * Lien du logo wp-login redirigeant vers l'accueil du site

@@ -31,8 +31,36 @@ function wamv1_wc_account_menu_items(array $items): array
 {
     unset($items['edit-address']); // Adresses — inutile (pas de livraison physique)
     unset($items['downloads']);    // Téléchargements — pas de produits numériques
+
+    // Ajouter le lien Administration pour les rôles autorisés
+    // On vérifie si l'utilisateur peut éditer des posts (rôles gestionnaires)
+    if (current_user_can('edit_posts')) {
+        // On veut l'insérer avant "Déconnexion" (customer-logout)
+        $new_items = [];
+        foreach ($items as $key => $label) {
+            if ($key === 'customer-logout') {
+                $new_items['wp-admin-link'] = 'Administration';
+            }
+            $new_items[$key] = $label;
+        }
+        $items = $new_items;
+    }
+
     return $items;
 }
+
+/**
+ * Rediriger l'endpoint factice vers l'URL réelle de l'admin
+ */
+add_filter('woocommerce_get_endpoint_url', 'wamv1_wc_admin_endpoint_url', 10, 4);
+function wamv1_wc_admin_endpoint_url($url, $endpoint, $value, $permalink)
+{
+    if ($endpoint === 'wp-admin-link') {
+        return admin_url();
+    }
+    return $url;
+}
+
 
 // ============================================================================
 // C. Rediriger /boutique → /cours-collectifs
@@ -238,7 +266,7 @@ function wamv1_cart_fragment_refresh($fragments)
 // ============================================================================
 
 // Supprimer le wrapper de fin natif (sécurité propreté HTML)
-add_action('init', function() {
+add_action('init', function () {
     remove_action('woocommerce_after_main_content', 'woocommerce_output_content_wrapper_end', 10);
 });
 
@@ -248,7 +276,7 @@ remove_action('woocommerce_after_single_product_summary', 'woocommerce_output_re
 add_filter('woocommerce_cross_sells_total', '__return_zero');
 
 // Supprimer les avis (reviews) dans les tabs
-add_filter('woocommerce_product_tabs', function($tabs) {
+add_filter('woocommerce_product_tabs', function ($tabs) {
     unset($tabs['reviews']);
     return $tabs;
 });

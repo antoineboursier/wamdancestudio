@@ -585,3 +585,20 @@ html.wam-reduce-motion *::after {
         font-size: 40px !important;
     }
 }
+
+/* =====================================================
+   SPECIFIC PAGE OVERRIDES
+   ===================================================== */
+
+/**
+ * Page EVJF / EVG Animation Danse
+ * On force la police Cholo Rhita via la nouvelle classe de slug.
+ */
+.page-slug-evjf-evg-animation-danse h1,
+.page-slug-evjf-evg-animation-danse .page-hero__title {
+    font-family: var(--wam-font-graphical-2) !important;
+    font-size: var(--wam-font-size-display-lg) !important;
+    text-transform: none !important;
+    letter-spacing: normal !important;
+    font-weight: 400 !important;
+}

@@ -18,7 +18,7 @@
  *   type_format      (radio)   — type_stage | type_atel | type_wshop
  *   tarifs           (group)   — tarif_1, tarif_2, tarif_3
  *
- * Variante enfant : terme slug 'danse-enfant' → titre Cholo Rhita (title-cool-lg), icônes colorées
+ * Variante enfant : terme slug 'enfants' → titre Cholo Rhita (title-cool-lg), icônes colorées
  *
  * @package wamv1
  */

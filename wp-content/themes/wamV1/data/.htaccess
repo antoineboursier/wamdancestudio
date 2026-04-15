@@ -1,5 +1,0 @@
-# Désactiver l'accès direct aux fichiers CSV via un navigateur
-<Files "*.csv">
-    Order Deny,Allow
-    Deny from all
-</Files>

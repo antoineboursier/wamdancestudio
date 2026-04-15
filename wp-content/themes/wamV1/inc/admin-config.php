@@ -63,6 +63,29 @@ function wam_config_register_settings(): void
     );
 
     add_settings_section(
+        'wam_section_rentree',
+        'Informations de la rentrée',
+        '', // pas de callback
+        'wam-config-general'
+    );
+
+    add_settings_field(
+        'show_rentree',
+        'Afficher la date de rentrée',
+        'wam_field_show_rentree',
+        'wam-config-general',
+        'wam_section_rentree'
+    );
+
+    add_settings_field(
+        'date_rentree',
+        'Date de rentrée',
+        'wam_field_date_rentree',
+        'wam-config-general',
+        'wam_section_rentree'
+    );
+
+    add_settings_section(
         'wam_section_lieux',
         'Localisation & Lieux',
         '', // pas de callback
@@ -121,28 +144,6 @@ function wam_config_register_settings(): void
     add_settings_field('smtp_from_name', 'Nom expéditeur par défaut', 'wam_field_smtp_from_name', 'wam-config-smtp', 'wam_section_smtp');
     add_settings_field('smtp_to_emails', 'Destinataire(s) des formulaires', 'wam_field_smtp_to_emails', 'wam-config-smtp', 'wam_section_smtp');
 
-    add_settings_section(
-        'wam_section_sync',
-        'Synchronisation des données (CSV)',
-        'wam_section_sync_desc',
-        'wam-config-sync'
-    );
-
-    add_settings_field(
-        'sync_profs',
-        'Professeurs',
-        'wam_field_sync_profs',
-        'wam-config-sync',
-        'wam_section_sync'
-    );
-
-    add_settings_field(
-        'sync_cours',
-        'Cours',
-        'wam_field_sync_cours',
-        'wam-config-sync',
-        'wam_section_sync'
-    );
 }
 add_action('admin_init', 'wam_config_register_settings');
 
@@ -158,6 +159,8 @@ function wam_sanitize_config(array $input): array
         'adresse_visible'              => (bool) isset($input['adresse_visible']),
         'nom_lieu'                     => sanitize_text_field($input['nom_lieu'] ?? ''),
         'adresse_lieu'                 => sanitize_textarea_field($input['adresse_lieu'] ?? ''),
+        'show_rentree'                 => (bool) isset($input['show_rentree']),
+        'date_rentree'                 => sanitize_text_field($input['date_rentree'] ?? ''),
         'url_instagram'                => esc_url_raw($input['url_instagram'] ?? ''),
         'url_facebook'                 => esc_url_raw($input['url_facebook'] ?? ''),
         'url_tiktok'                   => esc_url_raw($input['url_tiktok'] ?? ''),
@@ -291,6 +294,32 @@ function wam_field_message_ferme(): void
     echo '</span>';
 }
 
+function wam_field_show_rentree(): void
+{
+    $opts    = get_option('wam_config', []);
+    $checked = (bool) ($opts['show_rentree'] ?? false);
+    ?>
+    <label>
+        <input type="checkbox"
+               id="wam-show-rentree"
+               name="wam_config[show_rentree]"
+               value="1"
+               <?php checked($checked); ?>>
+        Cocher pour afficher la date de rentrée sur toutes les fiches de cours.
+    </label>
+    <?php
+}
+
+function wam_field_date_rentree(): void
+{
+    $opts = get_option('wam_config', []);
+    $val  = esc_attr($opts['date_rentree'] ?? '19/04/2025');
+    echo '<span id="wam-row-date-rentree">';
+    echo '<input type="text" name="wam_config[date_rentree]" value="' . $val . '" class="regular-text" placeholder="ex: 19/04/2025">';
+    echo '<p class="description">Le texte qui sera affiché après "Date de rentrée : ".</p>';
+    echo '</span>';
+}
+
 function wam_field_adresse_visible(): void
 {
     $opts    = get_option('wam_config', []);
@@ -326,29 +355,6 @@ function wam_field_adresse_lieu(): void
     echo '</span>';
 }
 
-// --- Callbacks Synchronisation ---
-function wam_section_sync_desc(): void
-{
-    echo '<p>Utilisez ces boutons pour mettre à jour les données du site à partir des fichiers CSV présents dans le thème (dossier <code>data/</code>).</p>';
-}
-
-function wam_field_sync_profs(): void
-{
-    $date = function_exists('wamv1_get_csv_mtime') ? wamv1_get_csv_mtime('profs_wam_import.csv') : 'Inconnue';
-    echo '<p>Dernier changement du fichier : <strong>' . $date . '</strong></p>';
-    echo '<button type="submit" name="wam_sync_action" value="sync_profs" class="button button-secondary">Synchroniser les professeurs</button>';
-}
-
-function wam_field_sync_cours(): void
-{
-    $date = function_exists('wamv1_get_csv_mtime') ? wamv1_get_csv_mtime('cours_wam_import.csv') : 'Inconnue';
-    echo '<p>Dernier changement du fichier : <strong>' . $date . '</strong></p>';
-    echo '<div style="display:flex; gap:10px;">';
-    echo '<button type="submit" name="wam_sync_action" value="sync_cours" class="button button-secondary">Synchroniser les cours</button>';
-    echo '<button type="submit" name="wam_sync_action" value="purge_cours" class="button button-link-delete js-confirm-purge" style="color:#d63638; text-decoration:none; align-self:center;">Vider tous les cours</button>';
-    echo '</div>';
-}
-
 // -------------------------------------------------------
 // Page admin
 // -------------------------------------------------------
@@ -370,19 +376,6 @@ function wam_config_page_html(): void
         return;
     }
 
-    // Gestion du déclenchement manuel de la synchronisation
-    $sync_message = '';
-    if (isset($_POST['wam_sync_action']) && check_admin_referer('wam_config_group-options')) {
-        $action = $_POST['wam_sync_action'];
-        if ($action === 'sync_profs' && function_exists('wamv1_import_profs_logic')) {
-            $sync_message = wamv1_import_profs_logic();
-        } elseif ($action === 'sync_cours' && function_exists('wamv1_import_cours_logic')) {
-            $sync_message = wamv1_import_cours_logic();
-        } elseif ($action === 'purge_cours' && function_exists('wamv1_purge_cours_logic')) {
-            $sync_message = wamv1_purge_cours_logic();
-        }
-    }
-
     $opts    = get_option('wam_config', []);
     $checked = (bool) ($opts['inscriptions_actives'] ?? true);
     $active_tab = isset($_GET['tab']) ? sanitize_text_field($_GET['tab']) : 'general';
@@ -394,21 +387,9 @@ function wam_config_page_html(): void
             <a href="?page=wam-config&tab=general" class="nav-tab <?php echo $active_tab === 'general' ? 'nav-tab-active' : ''; ?>">Général</a>
             <a href="?page=wam-config&tab=smtp" class="nav-tab <?php echo $active_tab === 'smtp' ? 'nav-tab-active' : ''; ?>">Envoi Email (SMTP)</a>
             <a href="?page=wam-config&tab=socials" class="nav-tab <?php echo $active_tab === 'socials' ? 'nav-tab-active' : ''; ?>">Réseaux Sociaux</a>
-            <a href="?page=wam-config&tab=sync" class="nav-tab <?php echo $active_tab === 'sync' ? 'nav-tab-active' : ''; ?>">Synchronisation</a>
         </h2>
 
-        <?php if ($sync_message): ?>
-            <div class="notice notice-success is-dismissible">
-                <p><strong>Synchronisation réussie :</strong> <?php echo esc_html($sync_message); ?></p>
-            </div>
-        <?php endif; ?>
-
-        <?php
-        // Si on est sur l'onglet sync, le formulaire doit poster sur lui-même pour intercepter l'action.
-        // Sinon, il poste vers options.php pour enregistrer les paramètres via l'API Settings WP.
-        $form_action = ($active_tab === 'sync') ? '' : 'options.php';
-        ?>
-        <form method="post" action="<?php echo esc_attr($form_action); ?>">
+        <form method="post" action="options.php">
             <?php
             settings_fields('wam_config_group');
             
@@ -418,16 +399,23 @@ function wam_config_page_html(): void
                 do_settings_sections('wam-config-smtp');
             } elseif ($active_tab === 'socials') {
                 do_settings_sections('wam-config-socials');
-            } elseif ($active_tab === 'sync') {
-                do_settings_sections('wam-config-sync');
             }
-            // En mode sync, le bouton enregistrer n'est pas nécessaire (il ne sauvegarde rien).
-            if ($active_tab !== 'sync') {
-                submit_button('Enregistrer');
-            }
+            submit_button('Enregistrer');
             ?>
         </form>
     </div>
+
+    <style>
+        /* Separateurs visuels entre les sections Settings API */
+        .form-table + h2 {
+            border-top: 1px solid #ccc;
+            padding-top: 20px;
+            margin-top: 30px !important;
+        }
+        /* Amélioration de l'aspect des sections */
+        .wrap h2 { margin-bottom: 5px; }
+        .form-table { margin-bottom: 20px; }
+    </style>
 
     <script>
     (function () {
@@ -462,14 +450,16 @@ function wam_config_page_html(): void
             checkboxAddr.addEventListener('change', function () { toggleAddr(this.checked); });
         }
 
-        // Confirmation de purge
-        var purgeBtn = document.querySelector('.js-confirm-purge');
-        if (purgeBtn) {
-            purgeBtn.addEventListener('click', function (e) {
-                if (!confirm('ATTENTION : Voulez-vous vraiment supprimer TOUS les cours de la base de données ?\n\nCette action est irréversible.')) {
-                    e.preventDefault();
-                }
-            });
+        // --- Logique pour la date de rentrée ---
+        var checkboxRentree = document.getElementById('wam-show-rentree');
+        var rowDateRentree  = document.getElementById('wam-row-date-rentree');
+        if (checkboxRentree && rowDateRentree) {
+            function toggleRentree(isChecked) {
+                rowDateRentree.style.opacity = isChecked ? '1' : '0.4';
+                rowDateRentree.querySelector('input').disabled = !isChecked;
+            }
+            toggleRentree(checkboxRentree.checked);
+            checkboxRentree.addEventListener('change', function () { toggleRentree(this.checked); });
         }
     })();
     </script>
@@ -556,6 +546,28 @@ if (!function_exists('wam_adresse_lieu')):
     {
         $opts = get_option('wam_config', []);
         return esc_html($opts['adresse_lieu'] ?? "202 rue Jean Jaurès\nVilleneuve d'Ascq");
+    }
+endif;
+
+/**
+ * La date de rentrée doit-elle être affichée ?
+ */
+if (!function_exists('wam_show_rentree')):
+    function wam_show_rentree(): bool
+    {
+        $opts = get_option('wam_config', []);
+        return (bool) ($opts['show_rentree'] ?? false);
+    }
+endif;
+
+/**
+ * Valeur de la date de rentrée.
+ */
+if (!function_exists('wam_date_rentree')):
+    function wam_date_rentree(): string
+    {
+        $opts = get_option('wam_config', []);
+        return sanitize_text_field($opts['date_rentree'] ?? '19/04/2025');
     }
 endif;
 

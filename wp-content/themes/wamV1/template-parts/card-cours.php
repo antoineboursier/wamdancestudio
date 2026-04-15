@@ -123,11 +123,13 @@ if ($complet)   $card_classes[] = 'card-cours--complet';
                 <?php endif; ?>
             </div>
 
-            <span class="card-cours__cta <?php echo $complet ? 'card-cours__cta--disabled' : ''; ?>"
-                  aria-hidden="true">
+            <a href="<?php the_permalink(); ?>"
+               class="card-cours__cta <?php echo $complet ? 'card-cours__cta--disabled' : ''; ?>"
+               aria-label="<?php echo esc_attr('Voir le cours : ' . get_the_title()); ?>"
+               <?php echo $complet ? 'tabindex="-1"' : ''; ?>>
                 <span class="btn-icon btn-icon--sm"
                       style="--icon-url: url('<?php echo $icons_path; ?>chevron-right.svg');"></span>
-            </span>
+            </a>
 
         </div><!-- .card-cours__footer -->
 

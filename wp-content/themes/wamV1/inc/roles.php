@@ -7,35 +7,42 @@
 
 function wamv1_register_roles()
 {
-    // Rôle Professeur·e
+    // 1. Rôle PROFESSEUR (Capacités minimales + accès épuré)
+    if (!get_role('professeur')) {
         add_role('professeur', __('Professeur·e', 'wamv1'), array(
             'read'         => true,
-            'edit_posts'   => true, // Nécessaire pour éditer sa propre fiche (CPT wam_membre)
-            'edit_pages'   => true, // Nécessaire pour éditer ses cours/stages (capability_type => 'page')
-            'upload_files' => true, // Pour changer sa photo de profil
-            'delete_posts' => false,
-            'delete_pages' => false,
+            'edit_posts'   => true, // Pour sa propre fiche wam_membre
+            'edit_pages'   => true, // Pour ses propres cours/stages
+            'upload_files' => true,
         ));
+    }
 
-    // Rôle Directrice
+    // 2. Rôle DIRECTRICE (Base Admin / Éditeur + Config)
     if (!get_role('directrice')) {
-        add_role('directrice', __('Directrice', 'wamv1'), array(
-            'read'                   => true,
-            'edit_posts'             => true,
-            'edit_others_posts'      => true,
-            'publish_posts'          => true,
-            'edit_published_posts'   => true,
-            'delete_posts'           => true,
-            'delete_others_posts'    => true,
-            'edit_pages'             => true, // Pour les Cours et Stages (capability_type => 'page')
-            'edit_others_pages'      => true,
-            'publish_pages'          => true,
-            'edit_published_pages'   => true,
-            'delete_pages'           => true,
-            'delete_others_pages'    => true,
-            'upload_files'           => true,
-            'manage_options'         => true, // Pour accéder à la page "Configuration WAM"
-        ));
+        add_role('directrice', __('Directrice', 'wamv1'), array('read' => true));
+    }
+
+    $directrice = get_role('directrice');
+    if ($directrice) {
+        $caps = array(
+            // Contenu global (Posts & Pages)
+            'edit_posts', 'edit_others_posts', 'publish_posts', 'edit_published_posts',
+            'delete_posts', 'delete_others_posts', 'delete_published_posts',
+            'edit_pages', 'edit_others_pages', 'publish_pages', 'edit_published_pages',
+            'delete_pages', 'delete_others_pages', 'delete_published_pages',
+            // Contenu privé
+            'read_private_posts', 'edit_private_posts', 'delete_private_posts',
+            'read_private_pages', 'edit_private_pages', 'delete_private_pages',
+            // Médias et Taxonomies
+            'upload_files', 'manage_categories', 'moderate_comments', 'unfiltered_html',
+            // Administration & Config WAM
+            'manage_options',      // Accès configuration WAM
+            'edit_theme_options',  // Accès Menus & Widgets
+        );
+
+        foreach ($caps as $cap) {
+            $directrice->add_cap($cap);
+        }
     }
 }
 add_action('init', 'wamv1_register_roles');

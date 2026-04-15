@@ -18,11 +18,6 @@ require_once get_template_directory() . '/inc/accessibility.php';
 require_once get_template_directory() . '/inc/theme-tweaks.php';
 require_once get_template_directory() . '/inc/nav-walker.php';
 require_once get_template_directory() . '/inc/cleanup.php';
-require_once get_template_directory() . '/inc/import/import-logic.php';
-require_once get_template_directory() . '/inc/import/import-profs.php';
-require_once get_template_directory() . '/inc/import/import-cours.php';
-require_once get_template_directory() . '/inc/import/cli-commands.php';
-
 require_once get_template_directory() . '/inc/smtp-config.php';
 require_once get_template_directory() . '/inc/contact-form-handler.php';
 
@@ -592,7 +587,7 @@ endif;
 
 /**
  * Vérifie si le post courant (ou $post_id) appartient à la variante "Enfant"
- * (terme slug "danse-enfant" dans la taxonomie cat_cours).
+ * (terme slug "enfants" dans la taxonomie cat_cours).
  * Utilisé dans card-cours.php, card-stage.php, single-cours.php,
  * single-stages.php, page-planning-cours.php.
  *
@@ -602,7 +597,7 @@ endif;
 if (!function_exists('wamv1_is_enfant_variant')):
     function wamv1_is_enfant_variant(int $post_id = 0): bool
     {
-        return has_term('danse-enfant', 'cat_cours', $post_id ?: null);
+        return has_term('enfants', 'cat_cours', $post_id ?: null);
     }
 endif;
 

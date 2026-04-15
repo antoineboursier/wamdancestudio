@@ -3,11 +3,11 @@
  * Template for single cours CPT
  *
  * Variant detection :
- *   enfant  — terme slug 'danse-enfant' dans la taxonomie cat_cours → Cholo Rhita 68px, jour vert
+ *   enfant  — terme slug 'enfants' dans la taxonomie cat_cours → Cholo Rhita 68px, jour vert
  *   adulte  — défaut → Mallia 46px (title-sign-lg), jour blanc
  *
  * Taxonomie : cat_cours (assignée à Cours et Stage via ACF)
- *   Slug "danse-enfant" → réservé à la détection enfant/adulte.
+ *   Slug "enfants" → réservé à la détection enfant/adulte.
  *   Autres termes → affichés en chips.
  *
  * Champs ACF (groupe "Métadonnées Cours") :
@@ -54,7 +54,7 @@ get_header();
             /*
              * Détection de la variante enfant / adulte.
              * Taxonomie : cat_cours (créée via ACF, assignée aux CPT cours et stage).
-             * Règle : si le terme slug "danse-enfant" est présent → variante enfant.
+             * Règle : si le terme slug "enfants" est présent → variante enfant.
              * Tous les autres termes alimentent les chips d'affichage.
              */
             $is_enfant = wamv1_is_enfant_variant();
@@ -320,7 +320,18 @@ get_header();
                             </div>
                         <?php endif; ?>
 
+                        <?php if (wam_show_rentree()) : ?>
+                            <div class="cours-info-card__row">
+                                <span class="btn-icon"
+                                    style="--icon-url: url('<?php echo esc_url($icon_dir); ?>icon_date.svg'); --icon-size: 24px; color: var(--wam-color-pink);"></span>
+                                <p class="cours-info-card__info text-md fw-bold" style="color: var(--wam-color-pink);">
+                                    Date de rentrée : <?php echo esc_html(wam_date_rentree()); ?>
+                                </p>
+                            </div>
+                        <?php endif; ?>
+
                     </div><!-- /info card -->
+
 
                     <?php if ($chips): ?>
                         <!-- Chips taxonomie -->

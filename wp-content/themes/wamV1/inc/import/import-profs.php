@@ -72,7 +72,8 @@ function wamv1_import_profs_logic($dry_run = false) {
             'post_type'   => 'wam_membre',
             'post_status' => 'publish',
             'post_title'  => $data['post_title'],
-            'post_name'   => $data['slug']
+            'post_name'   => $data['slug'],
+            'post_author' => $user_id ?: 1 // On met l'admin (ID 1) par défaut si pas d'utilisateur lié
         );
 
         if ($post_id) {

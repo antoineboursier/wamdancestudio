@@ -68,5 +68,19 @@ function wamv1_register_roles()
             $directrice->add_cap($cap);
         }
     }
+
+    // 3. Rôle ADMIN TECHNIQUE (Base Administrateur complet)
+    if (!get_role('admin_technique')) {
+        add_role('admin_technique', __('Admin technique', 'wamv1'), array('read' => true));
+    }
+
+    $admin_tech = get_role('admin_technique');
+    $wp_admin   = get_role('administrator');
+
+    if ($admin_tech && $wp_admin) {
+        foreach ($wp_admin->capabilities as $cap => $value) {
+            $admin_tech->add_cap($cap);
+        }
+    }
 }
 add_action('init', 'wamv1_register_roles');

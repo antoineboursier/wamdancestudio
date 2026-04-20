@@ -78,11 +78,56 @@ function wamv1_clean_admin_menu() {
             }
         </style>';
     }
+
+    // --- LOGIQUE ADMIN TECHNIQUE ---
+    if ($user && in_array('admin_technique', (array) $user->roles)) {
+        // Bloquer MailPoet (menu principal)
+        remove_menu_page('mailpoet-homepage');
+
+        // Bloquer Outils
+        remove_menu_page('tools.php');
+
+        // Bloquer Éditeur de thème (sous Apparence)
+        remove_submenu_page('themes.php', 'theme-editor.php');
+
+        // Yoast SEO — tous les slugs connus
+        remove_menu_page('wpseo_dashboard');
+        remove_menu_page('wpseo_workouts');
+        remove_submenu_page('wpseo_dashboard', 'wpseo_dashboard');
+        remove_submenu_page('wpseo_dashboard', 'wpseo_page_settings');
+        remove_submenu_page('wpseo_dashboard', 'wpseo_workouts');
+        remove_submenu_page('wpseo_dashboard', 'wpseo_redirects');
+        remove_submenu_page('wpseo_dashboard', 'wpseo_licenses');
+    }
 }
 add_action('admin_menu', 'wamv1_clean_admin_menu', 999);
 
 /**
- * 1b. Masquage des meta boxes Yoast et LiteSpeed dans l'éditeur
+ * 1b. Bloque l'accès direct aux pages sensibles pour l'Admin technique
+ */
+function wamv1_restrict_admin_access() {
+    if (!is_admin() || (defined('DOING_AJAX') && DOING_AJAX)) return;
+
+    $user = wp_get_current_user();
+    if ($user && in_array('admin_technique', (array) $user->roles)) {
+        global $pagenow;
+        $page = $_GET['page'] ?? '';
+
+        // Liste des accès PHP interdits
+        $blocked_scripts = ['theme-editor.php', 'tools.php', 'import.php', 'export.php'];
+        
+        // Blocage MailPoet et Yoast via paramètre 'page'
+        $is_blocked_page = (strpos($page, 'mailpoet-') === 0 || strpos($page, 'wpseo_') === 0);
+
+        if (in_array($pagenow, $blocked_scripts) || $is_blocked_page) {
+            wp_die("Accès refusé : Le rôle Admin technique n'est pas autorisé à accéder à cette section.", "Accès restreint", ['back_link' => true]);
+        }
+    }
+}
+add_action('admin_init', 'wamv1_restrict_admin_access');
+
+/**
+ * 2. Masquage des meta boxes Yoast et LiteSpeed dans l'éditeur
  *     Pour directrice et professeur : interface de rédaction épurée
  */
 function wamv1_hide_plugin_metaboxes() {

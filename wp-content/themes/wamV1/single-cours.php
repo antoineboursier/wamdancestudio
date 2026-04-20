@@ -353,6 +353,59 @@ get_header();
                         </div>
                     <?php endif; ?>
 
+                    <!-- ============ CTA INSCRIPTION ============ -->
+                    <?php
+                    /*
+                     * Logique d'affichage du bouton d'inscription pour les cours collectifs.
+                     *
+                     * Priorité :
+                     *   1. Cours complet (champ ACF) → bouton désactivé "Cours complet"
+                     *   2. wam_inscriptions_actives() → true : afficher le bouton
+                     *      a. wam_btn_cours_est_desactive() → true : bouton grisé non cliquable
+                     *      b. sinon : bouton cliquable normal
+                     *   3. wam_inscriptions_actives() → false : message de remplacement
+                     */
+                    $icon_dir_cta = get_template_directory_uri() . '/assets/images/';
+                    ?>
+                    <div class="cours-ctas">
+                        <?php if ($complet): ?>
+                            <!-- Cours complet : <button disabled> — retiré du focus, non interactif -->
+                            <button type="button"
+                                    class="btn-primary btn-inscription"
+                                    disabled>
+                                Cours complet
+                            </button>
+
+                        <?php elseif (function_exists('wam_inscriptions_actives') && wam_inscriptions_actives()): ?>
+                            <?php if (function_exists('wam_btn_cours_est_desactive') && wam_btn_cours_est_desactive()): ?>
+                                <!-- Bouton désactivé config WAM : aria-disabled="true" — focusable, annoncé "non disponible" -->
+                                <button type="button"
+                                        class="btn-primary btn-inscription"
+                                        aria-disabled="true"
+                                        onclick="return false;">
+                                    <?php echo esc_html(function_exists('wam_btn_cours_desactive_texte') ? wam_btn_cours_desactive_texte() : 'Inscriptions bientôt disponibles'); ?>
+                                </button>
+                            <?php else: ?>
+                                <!-- Bouton cliquable normal -->
+                                <a href="<?php echo esc_url(function_exists('wam_btn_inscription_url') ? wam_btn_inscription_url() : '#inscription'); ?>"
+                                   class="btn-primary btn-inscription"
+                                   id="btn-inscription-cours">
+                                    <?php echo esc_html(function_exists('wam_btn_inscription_texte') ? wam_btn_inscription_texte() : 'S\'inscrire'); ?>
+                                    <span class="btn-icon btn-icon--sm"
+                                          style="--icon-url: url('<?php echo esc_url($icon_dir_cta . 'chevron-right.svg'); ?>');"
+                                          aria-hidden="true"></span>
+                                </a>
+                            <?php endif; ?>
+
+                        <?php else: ?>
+                            <!-- Inscriptions fermées : message de remplacement -->
+                            <?php $msg = function_exists('wam_message_inscriptions_fermees') ? wam_message_inscriptions_fermees() : ''; ?>
+                            <?php if ($msg): ?>
+                                <p class="cours-inscriptions-fermees text-sm"><?php echo esc_html($msg); ?></p>
+                            <?php endif; ?>
+
+                        <?php endif; ?>
+                    </div><!-- /cours-ctas -->
 
                 </div><!-- /infos -->
             </div><!-- /hero -->

@@ -500,7 +500,7 @@
             var(--wp--preset--color--background-800) 0%,
             var(--wp--preset--color--background-600) 100%);
     background-clip: padding-box;
-    border: 2px solid transparent;
+    border: 2px solid var(--wp--preset--color--background-600);
     border-radius: var(--wam-radius-xl);
     transition: background-color var(--wam-transition), background-image var(--wam-transition);
     text-decoration: none;
@@ -942,6 +942,13 @@
 
 .btn-inscription--disabled .btn-inscription__label {
     color: var(--wam-color-subtext);
+}
+
+/* Message de remplacement quand les inscriptions sont fermées */
+.cours-inscriptions-fermees {
+    color: var(--wam-color-subtext);
+    font-style: italic;
+    padding: var(--wam-spacing-sm) 0;
 }
 
 /* Bouton essai (similaire à btn-secondary) */
@@ -1537,7 +1544,7 @@
     background: linear-gradient(to bottom,
             var(--wp--preset--color--background-800) 0%,
             var(--wp--preset--color--background-600) 100%);
-    border: 3px solid var(--wp--preset--color--background-800);
+    border: 2px solid var(--wp--preset--color--background-600);
     border-radius: var(--wam-radius-xl);
     overflow: hidden;
     padding: var(--wam-spacing-2xs);

@@ -19,6 +19,185 @@ function wamv1_add_slug_body_class($classes) {
     return $classes;
 }
 add_filter('body_class', 'wamv1_add_slug_body_class');
+// -------------------------------------------------------
+// llms.txt — Contenu dynamique pour les LLMs et robots
+// -------------------------------------------------------
+
+/**
+ * Génère le contenu Markdown du fichier llms.txt dynamiquement.
+ *
+ * Toutes les données proviennent de WordPress / Config WAM :
+ *   - URLs via home_url()
+ *   - Adresse via wam_nom_lieu() / wam_adresse_lieu()
+ *   - Réseaux sociaux via wam_url_instagram() / facebook() / tiktok() / etc.
+ *
+ * Aucun fichier statique n'est nécessaire.
+ */
+function wamv1_generate_llms_content(): string
+{
+    $base = rtrim(home_url('/'), '/');
+
+    // --- Réseaux sociaux (depuis Config WAM) ---
+    $socials = [];
+    if (function_exists('wam_url_instagram') && wam_url_instagram()) {
+        $socials[] = '- [Instagram](' . wam_url_instagram() . ')';
+    }
+    if (function_exists('wam_url_facebook') && wam_url_facebook()) {
+        $socials[] = '- [Facebook](' . wam_url_facebook() . ')';
+    }
+    if (function_exists('wam_url_tiktok') && wam_url_tiktok()) {
+        $socials[] = '- [TikTok](' . wam_url_tiktok() . ')';
+    }
+    if (function_exists('wam_url_linkedin') && wam_url_linkedin()) {
+        $socials[] = '- [LinkedIn](' . wam_url_linkedin() . ')';
+    }
+    if (function_exists('wam_url_youtube') && wam_url_youtube()) {
+        $socials[] = '- [YouTube](' . wam_url_youtube() . ')';
+    }
+    $socials_md = $socials ? implode("\n", $socials) : '_Aucun réseau configuré._';
+
+    // --- Adresse (depuis Config WAM) ---
+    $nom_lieu    = function_exists('wam_nom_lieu') ? wam_nom_lieu() : 'WAM Dance Studio';
+    $adresse_raw = function_exists('wam_adresse_lieu') ? wam_adresse_lieu() : "202 rue Jean Jaurès\nVilleneuve d'Ascq";
+    // Transforme les retours à la ligne en séparateur inline pour le format Markdown
+    $adresse_md  = str_replace(["\r\n", "\r", "\n"], ', ', trim($adresse_raw));
+
+    // --- Construction du document Markdown ---
+    $md  = "# WAM Dance Studio\n\n";
+    $md .= "> École de danse à Croix (59170), proche de Lille, Roubaix et Wasquehal. ";
+    $md .= "WAM Dance Studio propose des cours collectifs, stages, ateliers et services événementiels ";
+    $md .= "pour tous les niveaux et tous les âges (enfants, ados, adultes). ";
+    $md .= "Styles pluriels : danses de salon, urbain, contemporain, K-Pop, Heels, Comédie musicale, et plus encore.\n\n";
+
+    $md .= "## À propos\n\n";
+    $md .= "WAM Dance Studio est une association de danse (loi 1901) basée à Croix (Nord, Hauts-de-France). ";
+    $md .= "L'école accueille débutants et danseurs confirmés dans une ambiance bienveillante et inclusive. ";
+    $md .= "L'équipe pédagogique est composée de professeurs diplômés d'État et de professionnels de la scène.\n\n";
+    $md .= "**Établissement :** {$nom_lieu}  \n";
+    $md .= "**Adresse :** {$adresse_md}  \n";
+    $md .= "**Accès :** Bus ligne 32 (arrêt Pont du Breucq) · Tramway (arrêt Le Sart) · Métro (station Croix Centre)  \n";
+    $md .= "**Proximité :** ~20 min de Lille · ~15 min de Roubaix · ~10 min de Wasquehal et Marcq-en-Barœul\n\n";
+
+    $md .= "## Pages principales\n\n";
+    $md .= "- [Accueil]({$base}/)\n";
+    $md .= "- [Notre école de danse]({$base}/notre-ecole-de-danse/)\n";
+    $md .= "- [Cours collectifs]({$base}/cours-collectifs/)\n";
+    $md .= "- [Stages, Workshops & Ateliers]({$base}/stages-workshop-ateliers/)\n";
+    $md .= "- [Cours particuliers]({$base}/cours-particuliers/)\n";
+    $md .= "- [Nos professeur·es]({$base}/prof-wam/)\n";
+    $md .= "- [Nos tarifs]({$base}/tarifs/)\n";
+    $md .= "- [Événements chez WAM]({$base}/evenements/)\n";
+    $md .= "- [Services spécialisés]({$base}/services/)\n";
+    $md .= "- [Contact]({$base}/contact/)\n\n";
+
+    $md .= "## Cours collectifs — Catégories\n\n";
+    $md .= "### Danses à deux\n";
+    $md .= "- Circuit Swing\n";
+    $md .= "- Danse de salon\n\n";
+    $md .= "### Solo — Urbain & Moderne\n";
+    $md .= "- K-Pop\n";
+    $md .= "- Street Jazz\n";
+    $md .= "- Heels\n";
+    $md .= "- Jazz solo\n";
+    $md .= "- Danse moderne\n";
+    $md .= "- Contemporain\n";
+    $md .= "- Comédie musicale\n";
+    $md .= "- Danse orientale\n";
+    $md .= "- Danse de caractère\n";
+    $md .= "- Dance Solo\n";
+    $md .= "- Dance Workout\n\n";
+    $md .= "### Enfants & Ados\n";
+    $md .= "- Éveil danse (niveaux 1 & 2)\n";
+    $md .= "- Initiation danse\n";
+    $md .= "- Danse moderne Ados\n\n";
+
+    $md .= "## Services événementiels et spéciaux\n\n";
+    $md .= "- **Ouvertures de bal de mariage** : Chorégraphies personnalisées pour les mariés.\n";
+    $md .= "- **EVJF & EVG** : Cours et expériences danse pour enterrements de vie de jeune fille/garçon.\n";
+    $md .= "- **Team building** : Ateliers danse pour entreprises et groupes.\n";
+    $md .= "- **Interventions scolaires** : Ateliers TAP/NAP en milieu scolaire.\n\n";
+
+    $md .= "## Informations pratiques\n\n";
+    $md .= "- Inscriptions en ligne disponibles sur le site.\n";
+    $md .= "- Paiement en plusieurs fois accepté.\n";
+    $md .= "- Tous niveaux acceptés, de débutant à confirmé.\n";
+    $md .= "- Cours ouverts aux enfants dès le plus jeune âge (éveil danse).\n\n";
+
+    $md .= "## Réseaux sociaux\n\n";
+    $md .= $socials_md . "\n";
+
+    return $md;
+}
+
+/**
+ * Enregistre une réécriture WordPress pour /llms.txt → ?wam_llms=1
+ * afin que la requête passe par PHP et non par un éventuel fichier statique.
+ *
+ * Endpoint REST API de secours : /wp-json/wam/v1/llms
+ */
+function wamv1_llms_rewrite_rule(): void
+{
+    add_rewrite_rule('^llms\\.txt$', 'index.php?wam_llms=1', 'top');
+}
+add_action('init', 'wamv1_llms_rewrite_rule');
+
+/** Déclare la query var personnalisée à WordPress. */
+function wamv1_llms_query_vars(array $vars): array
+{
+    $vars[] = 'wam_llms';
+    return $vars;
+}
+add_filter('query_vars', 'wamv1_llms_query_vars');
+
+/** Sert le contenu dynamique quand /llms.txt est demandé. */
+function wamv1_llms_serve(): void
+{
+    if (!get_query_var('wam_llms')) return;
+
+    header('Content-Type: text/plain; charset=UTF-8');
+    header('X-Robots-Tag: noindex');
+    header('Cache-Control: public, max-age=3600'); // 1h (dynamique, donc cache plus court)
+    header_remove('X-Pingback');
+    echo wamv1_generate_llms_content();
+    exit;
+}
+add_action('template_redirect', 'wamv1_llms_serve', 1);
+
+/**
+ * Endpoint REST API (fallback universel) : /wp-json/wam/v1/llms
+ * Fonctionne même si la réécriture n'est pas active.
+ */
+function wamv1_register_llms_endpoint(): void
+{
+    register_rest_route('wam/v1', '/llms', [
+        'methods'             => 'GET',
+        'callback'            => 'wamv1_rest_llms_callback',
+        'permission_callback' => '__return_true',
+    ]);
+}
+add_action('rest_api_init', 'wamv1_register_llms_endpoint');
+
+function wamv1_rest_llms_callback(): WP_REST_Response
+{
+    return new WP_REST_Response(wamv1_generate_llms_content(), 200, [
+        'Content-Type' => 'text/plain; charset=UTF-8',
+    ]);
+}
+
+/**
+ * Mentionne /llms.txt dans le robots.txt généré par WordPress.
+ * Permet aux robots et LLMs de découvrir le fichier automatiquement.
+ */
+function wamv1_robots_txt(string $output): string
+{
+    $llms_url = home_url('/llms.txt');
+    $output  .= "\n# Fichier de contexte pour les LLMs (standard llmstxt.org)\n";
+    $output  .= "# LLM-Context: {$llms_url}\n";
+    return $output;
+}
+add_filter('robots_txt', 'wamv1_robots_txt');
+
+
 
 /**
  * Détection automatique des liens externes
@@ -285,7 +464,8 @@ function wamv1_custom_login_assets()
         echo '<div class="wam-local-accounts">';
         echo '<strong>Accès Tests (Local uniquement) :</strong><br>';
         echo 'Directrice : <code>test_directrice</code> / <code>wam_test_2024</code><br>';
-        echo 'Professeur : <code>test_prof</code> / <code>wam_test_2024</code>';
+        echo 'Professeur : <code>test_prof</code> / <code>wam_test_2024</code><br>';
+        echo 'Admin technique : <code>test_admin_tech</code> / <code>wam_test_2024</code>';
         echo '</div>';
     }
 }
@@ -308,6 +488,12 @@ function wamv1_manage_test_accounts() {
             'login' => 'test_prof',
             'email' => 'prof@test.wam',
             'role'  => 'professeur',
+            'pass'  => 'wam_test_2024'
+        ],
+        [
+            'login' => 'test_admin_tech',
+            'email' => 'admin_tech@test.wam',
+            'role'  => 'admin_technique',
             'pass'  => 'wam_test_2024'
         ]
     ];

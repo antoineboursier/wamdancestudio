@@ -6,18 +6,22 @@
  * Accessible sous Réglages > Configuration WAM (capacité manage_options).
  *
  * Options stockées :
- *   inscriptions_actives         (bool)   — interrupteur global des inscriptions
+ *   inscriptions_actives         (bool)   — interrupteur global : affiche le bouton d'inscription des cours
  *   btn_inscription_texte        (string) — libellé du bouton d'inscription
+ *   btn_cours_desactive          (bool)   — si true : bouton affiché mais désactivé (cliquable = non)
+ *   btn_cours_desactive_texte    (string) — texte du bouton quand il est désactivé
  *   message_inscriptions_fermees (string) — message affiché si inscriptions fermées
+ *   inscription_ouverture        (int)    — timestamp UTC d'ouverture programmée (0 = désactivé)
+ *   inscription_fermeture        (int)    — timestamp UTC de fermeture programmée (0 = désactivé)
  *
  * Helper functions (utilisables partout dans le thème) :
- *   wam_inscriptions_actives()
+ *   wam_inscriptions_actives()           — source de vérité (tient compte de la programmation)
  *   wam_btn_inscription_texte()
- *   wam_btn_inscription_url()        — retourne toujours "#inscription" (URL fixe)
+ *   wam_btn_inscription_url()            — retourne toujours "#inscription" (URL fixe)
  *   wam_message_inscriptions_fermees()
- *   wam_adresse_visible()            — boolean, true par défaut
- *   wam_nom_lieu()                   — string, nom du lieu "WAM Dance Studio"
- *   wam_adresse_lieu()               — string, adresse avec retours éventuels
+ *   wam_adresse_visible()                — boolean, true par défaut
+ *   wam_nom_lieu()                       — string, nom du lieu "WAM Dance Studio"
+ *   wam_adresse_lieu()                   — string, adresse avec retours éventuels
  *
  * @package wamv1
  */
@@ -40,7 +44,7 @@ function wam_config_register_settings(): void
 
     add_settings_field(
         'inscriptions_actives',
-        'Inscriptions ouvertes',
+        'Activer le bouton pour les cours',
         'wam_field_inscriptions_actives',
         'wam-config-general',
         'wam_section_inscriptions'
@@ -55,9 +59,41 @@ function wam_config_register_settings(): void
     );
 
     add_settings_field(
+        'btn_cours_desactive',
+        'Désactiver l\'utilisation du bouton',
+        'wam_field_btn_cours_desactive',
+        'wam-config-general',
+        'wam_section_inscriptions'
+    );
+
+    add_settings_field(
+        'btn_cours_desactive_texte',
+        'Texte du bouton désactivé',
+        'wam_field_btn_cours_desactive_texte',
+        'wam-config-general',
+        'wam_section_inscriptions'
+    );
+
+    add_settings_field(
         'message_inscriptions_fermees',
         'Message si fermées',
         'wam_field_message_ferme',
+        'wam-config-general',
+        'wam_section_inscriptions'
+    );
+
+    add_settings_field(
+        'inscription_ouverture',
+        'Ouverture programmée',
+        'wam_field_inscription_ouverture',
+        'wam-config-general',
+        'wam_section_inscriptions'
+    );
+
+    add_settings_field(
+        'inscription_fermeture',
+        'Fermeture programmée',
+        'wam_field_inscription_fermeture',
         'wam-config-general',
         'wam_section_inscriptions'
     );
@@ -152,10 +188,41 @@ add_action('admin_init', 'wam_config_register_settings');
 // -------------------------------------------------------
 function wam_sanitize_config(array $input): array
 {
-    return [
+    // Conversion des dates "datetime-local" (format HTML : Y-m-dTH:i) en timestamps UTC
+    // Les dates saisies par l'utilisateur sont en heure locale Paris (Europe/Paris)
+    $tz_paris = new DateTimeZone('Europe/Paris');
+    $tz_utc   = new DateTimeZone('UTC');
+
+    $ts_ouverture = 0;
+    if (!empty($input['inscription_ouverture'])) {
+        try {
+            $dt = new DateTime($input['inscription_ouverture'], $tz_paris);
+            $dt->setTimezone($tz_utc);
+            $ts_ouverture = $dt->getTimestamp();
+        } catch (Exception $e) {
+            $ts_ouverture = 0;
+        }
+    }
+
+    $ts_fermeture = 0;
+    if (!empty($input['inscription_fermeture'])) {
+        try {
+            $dt = new DateTime($input['inscription_fermeture'], $tz_paris);
+            $dt->setTimezone($tz_utc);
+            $ts_fermeture = $dt->getTimestamp();
+        } catch (Exception $e) {
+            $ts_fermeture = 0;
+        }
+    }
+
+    $sanitized = [
         'inscriptions_actives'         => (bool) isset($input['inscriptions_actives']),
         'btn_inscription_texte'        => sanitize_text_field($input['btn_inscription_texte'] ?? ''),
+        'btn_cours_desactive'          => (bool) isset($input['btn_cours_desactive']),
+        'btn_cours_desactive_texte'    => sanitize_text_field($input['btn_cours_desactive_texte'] ?? ''),
         'message_inscriptions_fermees' => sanitize_textarea_field($input['message_inscriptions_fermees'] ?? ''),
+        'inscription_ouverture'        => $ts_ouverture,
+        'inscription_fermeture'        => $ts_fermeture,
         'adresse_visible'              => (bool) isset($input['adresse_visible']),
         'nom_lieu'                     => sanitize_text_field($input['nom_lieu'] ?? ''),
         'adresse_lieu'                 => sanitize_textarea_field($input['adresse_lieu'] ?? ''),
@@ -175,6 +242,11 @@ function wam_sanitize_config(array $input): array
         'smtp_from_name'               => sanitize_text_field($input['smtp_from_name'] ?? 'WAM Dance Studio'),
         'smtp_to_emails'               => sanitize_text_field($input['smtp_to_emails'] ?? ''),
     ];
+
+    // Planification des événements WP-Cron si des dates sont définies
+    wam_schedule_inscription_cron($sanitized);
+
+    return $sanitized;
 }
 
 // -------------------------------------------------------
@@ -268,8 +340,9 @@ function wam_field_inscriptions_actives(): void
                name="wam_config[inscriptions_actives]"
                value="1"
                <?php checked($checked); ?>>
-        Cocher pour activer les inscriptions sur tous les cours
+        Cocher pour afficher le bouton d'inscription sur les fiches de cours
     </label>
+    <p class="description">Quand décoché, le bouton est masqué et un message de remplacement est affiché ci-dessous.</p>
     <?php
 }
 
@@ -277,9 +350,40 @@ function wam_field_btn_texte(): void
 {
     $opts = get_option('wam_config', []);
     $val  = esc_attr($opts['btn_inscription_texte'] ?? 'Inscription 2024/25');
-    // Grisé quand les inscriptions sont fermées (JS ci-dessous)
     echo '<span id="wam-row-btn-texte">';
     echo '<input type="text" name="wam_config[btn_inscription_texte]" value="' . $val . '" class="regular-text">';
+    echo '<p class="description">Texte affiché sur le bouton quand les inscriptions sont actives.</p>';
+    echo '</span>';
+}
+
+/**
+ * Champ : "Désactiver l'utilisation du bouton"
+ * Rend le bouton visible mais non cliquable (aria-disabled), avec un texte spécifique.
+ */
+function wam_field_btn_cours_desactive(): void
+{
+    $opts    = get_option('wam_config', []);
+    $checked = (bool) ($opts['btn_cours_desactive'] ?? false);
+    ?>
+    <label>
+        <input type="checkbox"
+               id="wam-btn-cours-desactive"
+               name="wam_config[btn_cours_desactive]"
+               value="1"
+               <?php checked($checked); ?>>
+        Cocher pour afficher le bouton en mode <strong>désactivé</strong> (visible mais non cliquable)
+    </label>
+    <p class="description">Utile pour signaler que les inscriptions arrivent bientôt, sans cacheter le bouton. Nécessite que le bouton soit activé ci-dessus.</p>
+    <?php
+}
+
+function wam_field_btn_cours_desactive_texte(): void
+{
+    $opts = get_option('wam_config', []);
+    $val  = esc_attr($opts['btn_cours_desactive_texte'] ?? 'Inscriptions bientôt disponibles');
+    echo '<span id="wam-row-btn-desactive-texte">';
+    echo '<input type="text" name="wam_config[btn_cours_desactive_texte]" value="' . $val . '" class="regular-text">';
+    echo '<p class="description">Texte affiché sur le bouton désactivé (grisé, non cliquable).</p>';
     echo '</span>';
 }
 
@@ -287,10 +391,56 @@ function wam_field_message_ferme(): void
 {
     $opts = get_option('wam_config', []);
     $val  = esc_textarea($opts['message_inscriptions_fermees'] ?? 'Les inscriptions sont actuellement fermées.');
-    // Grisé quand les inscriptions sont ouvertes (JS ci-dessous)
     echo '<span id="wam-row-message-ferme">';
     echo '<textarea name="wam_config[message_inscriptions_fermees]" rows="3" class="large-text">' . $val . '</textarea>';
-    echo '<p class="description">Affiché à la place du bouton quand les inscriptions sont désactivées.</p>';
+    echo '<p class="description">Affiché à la place du bouton quand les inscriptions sont désactivées (bouton masqué).</p>';
+    echo '</span>';
+}
+
+/**
+ * Champ : date/heure d'ouverture programmée.
+ * Affiché en heure Paris, stocké en UTC.
+ */
+function wam_field_inscription_ouverture(): void
+{
+    $opts = get_option('wam_config', []);
+    $ts   = (int) ($opts['inscription_ouverture'] ?? 0);
+
+    // Reconversion UTC → Paris pour l'affichage dans l'input
+    $val = '';
+    if ($ts > 0) {
+        $dt  = new DateTime('@' . $ts, new DateTimeZone('UTC'));
+        $dt->setTimezone(new DateTimeZone('Europe/Paris'));
+        $val = $dt->format('Y-m-d\TH:i'); // format attendu par datetime-local
+    }
+
+    echo '<span id="wam-row-inscription-ouverture">';
+    echo '<input type="datetime-local" id="wam-inscription-ouverture" name="wam_config[inscription_ouverture]" value="' . esc_attr($val) . '" class="regular-text">';
+    echo '<button type="button" class="button button-small wam-clear-datetime" data-target="wam-inscription-ouverture" style="margin-left:8px;">Effacer</button>';
+    echo '<p class="description">Heure de Paris (Europe/Paris). Si définie, les inscriptions s\'ouvriront automatiquement à cette date/heure, <strong>quelle que soit la case à cocher ci-dessus</strong>.</p>';
+    echo '</span>';
+}
+
+/**
+ * Champ : date/heure de fermeture programmée.
+ * Affiché en heure Paris, stocké en UTC.
+ */
+function wam_field_inscription_fermeture(): void
+{
+    $opts = get_option('wam_config', []);
+    $ts   = (int) ($opts['inscription_fermeture'] ?? 0);
+
+    $val = '';
+    if ($ts > 0) {
+        $dt  = new DateTime('@' . $ts, new DateTimeZone('UTC'));
+        $dt->setTimezone(new DateTimeZone('Europe/Paris'));
+        $val = $dt->format('Y-m-d\TH:i');
+    }
+
+    echo '<span id="wam-row-inscription-fermeture">';
+    echo '<input type="datetime-local" id="wam-inscription-fermeture" name="wam_config[inscription_fermeture]" value="' . esc_attr($val) . '" class="regular-text">';
+    echo '<button type="button" class="button button-small wam-clear-datetime" data-target="wam-inscription-fermeture" style="margin-left:8px;">Effacer</button>';
+    echo '<p class="description">Heure de Paris (Europe/Paris). Si définie, les inscriptions se fermeront automatiquement à cette date/heure.</p>';
     echo '</span>';
 }
 
@@ -376,12 +526,49 @@ function wam_config_page_html(): void
         return;
     }
 
-    $opts    = get_option('wam_config', []);
-    $checked = (bool) ($opts['inscriptions_actives'] ?? true);
+    $opts       = get_option('wam_config', []);
     $active_tab = isset($_GET['tab']) ? sanitize_text_field($_GET['tab']) : 'general';
+
+    // --- Calcul du statut d'inscription pour le bandeau ---
+    $ts_now        = time();
+    $ts_ouverture  = (int) ($opts['inscription_ouverture'] ?? 0);
+    $ts_fermeture  = (int) ($opts['inscription_fermeture'] ?? 0);
+    $inscr_actives = wam_inscriptions_actives();
+
+    $tz_paris = new DateTimeZone('Europe/Paris');
+    $bandeau_class = '';
+    $bandeau_msg   = '';
+
+    if ($ts_ouverture > 0 || $ts_fermeture > 0) {
+        if ($inscr_actives) {
+            $bandeau_class = 'notice-success';
+            if ($ts_fermeture > $ts_now) {
+                $dt = new DateTime('@' . $ts_fermeture, new DateTimeZone('UTC'));
+                $dt->setTimezone($tz_paris);
+                $bandeau_msg = '✅ Inscriptions <strong>ouvertes</strong>. Fermeture programmée le <strong>' . $dt->format('d/m/Y à H\hi') . '</strong> (heure de Paris).';
+            } else {
+                $bandeau_msg = '✅ Inscriptions <strong>ouvertes</strong> (programmation active).';
+            }
+        } else {
+            $bandeau_class = 'notice-warning';
+            if ($ts_ouverture > $ts_now) {
+                $dt = new DateTime('@' . $ts_ouverture, new DateTimeZone('UTC'));
+                $dt->setTimezone($tz_paris);
+                $bandeau_msg = '⏳ Inscriptions <strong>fermées</strong>. Ouverture programmée le <strong>' . $dt->format('d/m/Y à H\hi') . '</strong> (heure de Paris).';
+            } else {
+                $bandeau_msg = '🔴 Inscriptions <strong>fermées</strong>.';
+            }
+        }
+    }
     ?>
     <div class="wrap">
         <h1><?php echo esc_html(get_admin_page_title()); ?></h1>
+
+        <?php if ($bandeau_msg): ?>
+        <div class="notice <?php echo esc_attr($bandeau_class); ?> is-dismissible" style="margin-top:12px;">
+            <p><?php echo $bandeau_msg; ?></p>
+        </div>
+        <?php endif; ?>
 
         <h2 class="nav-tab-wrapper">
             <a href="?page=wam-config&tab=general" class="nav-tab <?php echo $active_tab === 'general' ? 'nav-tab-active' : ''; ?>">Général</a>
@@ -392,7 +579,7 @@ function wam_config_page_html(): void
         <form method="post" action="options.php">
             <?php
             settings_fields('wam_config_group');
-            
+
             if ($active_tab === 'general') {
                 do_settings_sections('wam-config-general');
             } elseif ($active_tab === 'smtp') {
@@ -419,26 +606,82 @@ function wam_config_page_html(): void
 
     <script>
     (function () {
-        var checkbox  = document.getElementById('wam-inscriptions-actives');
-        var rowTexte  = document.getElementById('wam-row-btn-texte');
-        var rowMsg    = document.getElementById('wam-row-message-ferme');
+        // --- Toggle global : bouton actif / désactivé ---
+        var checkboxActif  = document.getElementById('wam-inscriptions-actives');
+        var rowTexte       = document.getElementById('wam-row-btn-texte');
+        var rowMsg         = document.getElementById('wam-row-message-ferme');
+        var checkboxDesact = document.getElementById('wam-btn-cours-desactive');
+        var rowDesactTexte = document.getElementById('wam-row-btn-desactive-texte');
 
-        function toggle(isChecked) {
-            // Inscriptions ouvertes → texte du bouton actif, message grisé
-            rowTexte.style.opacity  = isChecked ? '1'   : '0.4';
-            rowTexte.querySelector('input').disabled = !isChecked;
-            rowMsg.style.opacity    = isChecked ? '0.4' : '1';
-            rowMsg.querySelector('textarea').disabled = isChecked;
+        // Récupère le <tr> parent d'un élément
+        function getTR(el) { return el ? el.closest('tr') : null; }
+
+        var trDesact      = getTR(checkboxDesact);
+        var trDesactTexte = getTR(rowDesactTexte);
+
+        function updateAll() {
+            var actif  = checkboxActif.checked;
+            var desact = checkboxDesact && checkboxDesact.checked;
+
+            // --- "Texte du bouton" : toujours visible, jamais effacé ---
+            // Grisé seulement si "Désactiver" est coché (=le texte normal est remplacé par l'autre)
+            rowTexte.style.opacity = desact ? '0.4' : '1';
+            rowTexte.querySelector('input').disabled = desact;
+
+            // --- Ligne "Désactiver l'utilisation du bouton" ---
+            // Visible uniquement si le bouton global est actif
+            if (trDesact) {
+                trDesact.style.display = actif ? '' : 'none';
+                // Si on décoche "actif", on réinitialise aussi "désactiver"
+                if (!actif && checkboxDesact) {
+                    checkboxDesact.checked = false;
+                }
+            }
+
+            // Recalcul après éventuelle réinitialisation
+            var desactNow = checkboxDesact && checkboxDesact.checked;
+
+            // --- Ligne "Texte du bouton désactivé" ---
+            // Cachée par défaut, visible + required seulement si "Désactiver" est coché ET bouton actif
+            var showDesactTexte = actif && desactNow;
+            if (trDesactTexte) {
+                trDesactTexte.style.display = showDesactTexte ? '' : 'none';
+            }
+            if (rowDesactTexte) {
+                var inp = rowDesactTexte.querySelector('input');
+                if (inp) {
+                    inp.disabled = !showDesactTexte;
+                    inp.required = showDesactTexte; // obligatoire pour la sauvegarde quand visible
+                }
+            }
+
+            // --- Message fermé : visible uniquement quand bouton inactif ---
+            rowMsg.style.opacity = actif ? '0.4' : '1';
+            rowMsg.querySelector('textarea').disabled = actif;
         }
 
-        toggle(checkbox.checked);
-        checkbox.addEventListener('change', function () { toggle(this.checked); });
-        
+        // Initialisation (masque le TR "Texte désactivé" si besoin dès le chargement)
+        updateAll();
+
+        checkboxActif.addEventListener('change', updateAll);
+        if (checkboxDesact) {
+            checkboxDesact.addEventListener('change', updateAll);
+        }
+
+        // --- Boutons "Effacer" pour les champs datetime ---
+        document.querySelectorAll('.wam-clear-datetime').forEach(function (btn) {
+            btn.addEventListener('click', function () {
+                var targetId = this.getAttribute('data-target');
+                var field    = document.getElementById(targetId);
+                if (field) { field.value = ''; }
+            });
+        });
+
         // --- Logique pour l'adresse ---
         var checkboxAddr = document.getElementById('wam-adresse-visible');
         var rowNomLieu   = document.getElementById('wam-row-nom-lieu');
         var rowAddrLieu  = document.getElementById('wam-row-adresse-lieu');
-        
+
         if (checkboxAddr && rowNomLieu && rowAddrLieu) {
             function toggleAddr(isChecked) {
                 rowNomLieu.style.opacity = isChecked ? '1' : '0.4';
@@ -467,23 +710,118 @@ function wam_config_page_html(): void
 }
 
 // -------------------------------------------------------
+// WP-Cron : planification du vidage de cache
+// -------------------------------------------------------
+
+/**
+ * Planifie (ou re-planifie) les événements Cron quand les dates changent.
+ * Appelé depuis wam_sanitize_config() à chaque sauvegarde.
+ */
+function wam_schedule_inscription_cron(array $opts): void
+{
+    // Nettoyage des éventuels anciens événements
+    $hook_open  = 'wam_cron_ouvrir_inscriptions';
+    $hook_close = 'wam_cron_fermer_inscriptions';
+
+    $ts_next_open  = wp_next_scheduled($hook_open);
+    $ts_next_close = wp_next_scheduled($hook_close);
+    if ($ts_next_open)  { wp_unschedule_event($ts_next_open,  $hook_open); }
+    if ($ts_next_close) { wp_unschedule_event($ts_next_close, $hook_close); }
+
+    $ts_ouverture = (int) ($opts['inscription_ouverture'] ?? 0);
+    $ts_fermeture = (int) ($opts['inscription_fermeture'] ?? 0);
+    $now          = time();
+
+    // Planifier seulement si la date est dans le futur
+    if ($ts_ouverture > $now) {
+        wp_schedule_single_event($ts_ouverture, $hook_open);
+    }
+    if ($ts_fermeture > $now) {
+        wp_schedule_single_event($ts_fermeture, $hook_close);
+    }
+}
+
+/**
+ * Callback Cron : vide le cache à l'heure d'ouverture / fermeture.
+ * Compatible avec les principaux plugins de cache.
+ */
+function wam_vider_cache_inscription(): void
+{
+    // LiteSpeed Cache
+    if (class_exists('LiteSpeed_Cache_API')) {
+        do_action('litespeed_purge_all');
+    }
+    // WP Rocket
+    if (function_exists('rocket_clean_domain')) {
+        rocket_clean_domain();
+    }
+    // WP Fastest Cache
+    if (function_exists('wpfc_clear_all_cache')) {
+        wpfc_clear_all_cache();
+    }
+    // W3 Total Cache
+    if (function_exists('w3tc_flush_all')) {
+        w3tc_flush_all();
+    }
+    // WP Super Cache
+    if (function_exists('wp_cache_clear_cache')) {
+        wp_cache_clear_cache();
+    }
+    // Fallback générique : supprime les transients liés aux inscriptions
+    delete_transient('wam_inscriptions_cache');
+}
+add_action('wam_cron_ouvrir_inscriptions',  'wam_vider_cache_inscription');
+add_action('wam_cron_fermer_inscriptions',  'wam_vider_cache_inscription');
+
+// -------------------------------------------------------
 // Helper functions — utilisables dans tout le thème
 // -------------------------------------------------------
 
 /**
  * Les inscriptions sont-elles globalement ouvertes ?
- * Défaut : true (pas de régression si l'option n'a jamais été sauvegardée).
+ *
+ * Logique de priorité :
+ *   1. Si une fenêtre temporelle est programmée ET on est dedans → TRUE
+ *   2. Si une fenêtre temporelle est programmée ET on est dehors → FALSE
+ *   3. Sinon → valeur du toggle manuel (comportement historique)
+ *
+ * Fuseau horaire : Europe/Paris (géré via timestamp UTC en base).
+ * Cache résistant : pas de transient ici, lecture directe de l'option
+ * pour garantir la fraîcheur même si WP-Cron tarde légèrement.
  */
 if (!function_exists('wam_inscriptions_actives')):
     function wam_inscriptions_actives(): bool
     {
-        $opts = get_option('wam_config', []);
+        $opts         = get_option('wam_config', []);
+        $ts_now       = time(); // UTC
+        $ts_ouverture = (int) ($opts['inscription_ouverture'] ?? 0);
+        $ts_fermeture = (int) ($opts['inscription_fermeture'] ?? 0);
+
+        $has_ouverture = $ts_ouverture > 0;
+        $has_fermeture = $ts_fermeture > 0;
+
+        // Fenêtre complète : ouverture ET fermeture définies
+        if ($has_ouverture && $has_fermeture) {
+            return $ts_now >= $ts_ouverture && $ts_now < $ts_fermeture;
+        }
+
+        // Ouverture seule : actif dès l'heure d'ouverture, sans fin
+        if ($has_ouverture && !$has_fermeture) {
+            return $ts_now >= $ts_ouverture;
+        }
+
+        // Fermeture seule : actif jusqu'à l'heure de fermeture
+        if (!$has_ouverture && $has_fermeture) {
+            return $ts_now < $ts_fermeture;
+        }
+
+        // Aucune programmation → toggle manuel
         return (bool) ($opts['inscriptions_actives'] ?? true);
     }
 endif;
 
 /**
- * Texte du bouton d'inscription.
+ * Texte du bouton d'inscription (bouton actif).
  * Défaut : "Inscription 2024/25".
  */
 if (!function_exists('wam_btn_inscription_texte')):
@@ -501,6 +839,30 @@ if (!function_exists('wam_btn_inscription_url')):
     function wam_btn_inscription_url(): string
     {
         return '#inscription';
+    }
+endif;
+
+/**
+ * Le bouton d'inscription est-il en mode "désactivé" ?
+ * Si true : bouton visible mais non cliquable (aria-disabled, style grisé).
+ */
+if (!function_exists('wam_btn_cours_est_desactive')):
+    function wam_btn_cours_est_desactive(): bool
+    {
+        $opts = get_option('wam_config', []);
+        return (bool) ($opts['btn_cours_desactive'] ?? false);
+    }
+endif;
+
+/**
+ * Texte du bouton quand il est en mode désactivé.
+ * Défaut : "Inscriptions bientôt disponibles".
+ */
+if (!function_exists('wam_btn_cours_desactive_texte')):
+    function wam_btn_cours_desactive_texte(): string
+    {
+        $opts = get_option('wam_config', []);
+        return sanitize_text_field($opts['btn_cours_desactive_texte'] ?? 'Inscriptions bientôt disponibles');
     }
 endif;
 

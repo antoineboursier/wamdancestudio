@@ -167,6 +167,40 @@
     filter: brightness(0);
 }
 
+/*
+ * États désactivés du bouton primaire
+ * ─────────────────────────────────────
+ * :disabled         → <button disabled> : retiré du tab order, non interactif.
+ *                     Utilisé pour les cas définitivement bloqués (cours complet).
+ * [aria-disabled]   → bouton visible et focusable, mais non cliquable.
+ *                     Utilisé pour "inscriptions bientôt disponibles" (config WAM) :
+ *                     les lecteurs d'écran l'annoncent comme "grisé / non disponible"
+ *                     tout en permettant de l'atteindre au clavier.
+ */
+.btn-primary:disabled,
+.btn-primary[aria-disabled="true"] {
+    background-color: var(--wam-color-card-bg);
+    color: var(--wam-color-subtext);
+    cursor: not-allowed;
+    pointer-events: none;
+    /* bloque le clic souris */
+    opacity: 1;
+    /* on garde la lisibilité, pas d'assombrissement */
+}
+
+/* Supprime l'effet de bordure gradient au hover sur état désactivé */
+.btn-primary:disabled::before,
+.btn-primary[aria-disabled="true"]::before {
+    display: none;
+}
+
+/* L'icône doit s'adapter à la couleur de texte (subtext) */
+.btn-primary:disabled .btn-icon,
+.btn-primary[aria-disabled="true"] .btn-icon {
+    color: var(--wam-color-subtext);
+    opacity: 0.5;
+}
+
 /* Ajout automatique du chevron sur les boutons WordPress (Gutenberg) */
 .wp-block-button__link::after {
     content: '';
@@ -476,6 +510,8 @@ html.wam-theme-light .btn-outlined {
     align-items: center;
     transition: opacity var(--wam-transition);
     z-index: 2;
+    height: 100%;
+    padding: 0 var(--wam-spacing-lg);
 }
 
 .wam-header__logo-link:hover {
@@ -645,7 +681,7 @@ html.wam-theme-light .btn-outlined {
    ===================================================== */
 @media (max-width: 1080px) {
     .wam-header__inner {
-        padding: var(--wam-spacing-md) var(--wam-spacing-md);
+        padding: var(--wam-spacing-2xs) var(--wam-spacing-md);
         justify-content: space-between;
         gap: var(--wam-spacing-sm);
     }
@@ -660,7 +696,7 @@ html.wam-theme-light .btn-outlined {
         position: static;
         transform: none;
         order: 2;
-        /* Logo au milieu */
+        min-height: 64px;
     }
 
     .wam-header__menu-btn {

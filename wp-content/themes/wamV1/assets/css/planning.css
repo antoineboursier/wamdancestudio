@@ -66,14 +66,30 @@
     font-weight: 700;
 }
 
+/* État barré — filtres non sélectionnés quand un filtre est actif */
+.planning-legend__item.is-struck {
+    color: var(--wp--preset--color--text-disabled);
+    text-decoration: line-through;
+    opacity: 0.5;
+}
+
+.planning-legend__item.is-struck .planning-legend__dot {
+    opacity: 0.3;
+}
+
+.planning-legend__item.is-struck:hover {
+    opacity: 0.8;
+    color: var(--wp--preset--color--text-subtext);
+}
+
 /* Dots de légende : couleur synchronisée avec les cards via --dot-accent */
 .planning-legend__dot {
     --dot-accent: var(--wam-color-yellow);
     width: 28px;
     height: 14px;
     border-radius: var(--wam-radius-xs);
-    background: color-mix(in srgb, var(--dot-accent) 20%, var(--wp--preset--color--background-600));
-    border: 1px solid color-mix(in srgb, var(--dot-accent) 40%, transparent);
+    background: color-mix(in srgb, var(--dot-accent) 40%, var(--wp--preset--color--background-600));
+    border: 1px solid color-mix(in srgb, var(--dot-accent) 80%, transparent);
     flex-shrink: 0;
     transition: background var(--wam-transition);
 }
@@ -84,20 +100,30 @@
 
 /* --- Dots par catégorie (slug → accent) --- */
 /* Danse solo / adulte - accent jaune (défaut) */
-[data-filter="cat:danse-solo"] .planning-legend__dot { --dot-accent: var(--wam-color-yellow); }
+[data-filter="cat:danse-solo"] .planning-legend__dot {
+    --dot-accent: var(--wam-color-yellow);
+}
 
 /* Enfants - accent vert */
-[data-filter="cat:enfants"] .planning-legend__dot  { --dot-accent: var(--wam-color-green); }
+[data-filter="cat:enfants"] .planning-legend__dot {
+    --dot-accent: var(--wam-color-green);
+}
 
 /* Ados - accent vert clair (même famille que enfants) */
-[data-filter="cat:ados"] .planning-legend__dot     { --dot-accent: var(--wam-color-green); }
+[data-filter="cat:ados"] .planning-legend__dot {
+    --dot-accent: var(--wam-color-green);
+}
 
 /* À deux / couple - accent rose */
-[data-filter="cat:a-deux"] .planning-legend__dot   { --dot-accent: var(--wam-color-pink); }
+[data-filter="cat:a-deux"] .planning-legend__dot {
+    --dot-accent: var(--wam-color-pink);
+}
 
 /* Cours complet - accent orange */
 [data-filter="complet"] .planning-legend__dot,
-.planning-legend__dot--complet                      { --dot-accent: var(--wam-color-orange); }
+.planning-legend__dot--complet {
+    --dot-accent: var(--wam-color-orange);
+}
 
 /* ===============================================
    SCROLL WRAPPER
@@ -206,8 +232,8 @@
     margin: 2px 3px;
     padding: var(--wam-spacing-2xs) var(--wam-spacing-xs);
     border-radius: var(--wam-radius-sm);
-    background: color-mix(in srgb, var(--card-accent) 15%, var(--wp--preset--color--background-600));
-    border: 1px solid color-mix(in srgb, var(--card-accent) 35%, transparent);
+    background: color-mix(in srgb, var(--card-accent) 24%, var(--wp--preset--color--background-600));
+    border: 1px solid color-mix(in srgb, var(--card-accent) 64%, transparent);
     text-decoration: none;
     transition:
         background var(--wam-transition),
@@ -339,13 +365,16 @@
     justify-content: space-between;
     padding: var(--wam-spacing-sm) var(--wam-spacing-md);
     cursor: pointer;
-    list-style: none; /* Masque le triangle natif Firefox */
+    list-style: none;
+    /* Masque le triangle natif Firefox */
     user-select: none;
     gap: var(--wam-spacing-xs);
 }
 
 /* Masque le triangle natif WebKit */
-.planning-transcript__toggle::-webkit-details-marker { display: none; }
+.planning-transcript__toggle::-webkit-details-marker {
+    display: none;
+}
 
 .planning-transcript__toggle:hover {
     background: var(--wp--preset--color--background-600);
@@ -422,4 +451,257 @@
     text-align: center;
     background: var(--wam-color-card-bg);
     border-radius: var(--wam-radius-lg);
+}
+
+/* ===============================================
+   VUE MOBILE — base (masquée sur desktop)
+   =============================================== */
+
+.planning-mobile {
+    display: none;
+}
+
+/* Couleurs par catégorie — cards mobiles */
+.planning-mobile__card                          { --card-accent: var(--wam-color-yellow); }
+.planning-mobile__card[data-cats~="danse-solo"] { --card-accent: var(--wam-color-yellow); }
+.planning-mobile__card[data-cats~="enfants"]    { --card-accent: var(--wam-color-green); }
+.planning-mobile__card[data-cats~="ados"]       { --card-accent: var(--wam-color-green); }
+.planning-mobile__card[data-cats~="a-deux"]     { --card-accent: var(--wam-color-pink); }
+.planning-mobile__card--complet                 { --card-accent: var(--wam-color-orange); }
+
+/* ===============================================
+   RESPONSIVE MOBILE (≤ 768px)
+   =============================================== */
+
+@media (max-width: 768px) {
+
+    .page-planning {
+        padding-block: var(--wam-spacing-xl);
+    }
+
+    /* Filtres : wrap compact */
+    .planning-legend {
+        gap: var(--wam-spacing-3xs);
+        margin-bottom: var(--wam-spacing-md);
+    }
+
+    .planning-legend__item {
+        font-size: var(--wam-font-size-xs);
+        padding: var(--wam-spacing-3xs) var(--wam-spacing-2xs);
+    }
+
+    .planning-legend__dot {
+        width: 20px;
+        height: 10px;
+    }
+
+    /* Grille : réduire la taille minimale des colonnes */
+    .planning-grid {
+        grid-template-columns: 40px repeat(7, minmax(90px, 1fr));
+        min-width: 600px;
+    }
+
+    /* Labels horaires plus compacts */
+    .planning-time-label {
+        font-size: 10px;
+        padding-right: var(--wam-spacing-3xs);
+    }
+
+    /* En-têtes jours raccourcis via font-size */
+    .planning-header-day {
+        font-size: var(--wam-font-size-2xs, 11px);
+        padding-block: var(--wam-spacing-2xs);
+    }
+
+    /* Cards plus compactes */
+    .planning-card {
+        padding: var(--wam-spacing-3xs) var(--wam-spacing-2xs);
+        margin: 1px 2px;
+        gap: 2px;
+    }
+
+    .planning-card__title {
+        font-size: 11px;
+    }
+
+    .planning-card__subtitle {
+        font-size: 10px;
+    }
+
+    .planning-card__time {
+        font-size: 10px;
+    }
+
+    .planning-card__complet-badge {
+        font-size: 8px;
+        padding: 1px 3px;
+    }
+
+    /* Transcription */
+    .planning-transcript__toggle {
+        padding: var(--wam-spacing-xs) var(--wam-spacing-sm);
+    }
+
+    .planning-transcript__body {
+        padding: var(--wam-spacing-sm);
+    }
+
+    /* Ancre #planning-jour : décalage pour le header sticky */
+    .planning-mobile {
+        scroll-margin-top: 100px;
+    }
+
+    /* ---- Masquer la grille desktop, afficher les vues mobiles ---- */
+    .planning-scroll-wrapper {
+        display: none;
+    }
+
+    .planning-mobile {
+        display: block;
+    }
+
+    /* ==============================================
+       VUE JOUR PAR JOUR — slider
+       ============================================== */
+
+    .planning-mobile__nav {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: var(--wam-spacing-sm) var(--wam-spacing-xs);
+        margin-bottom: var(--wam-spacing-xs);
+        position: sticky;
+        top: 0;
+        z-index: 20;
+        background: var(--wp--preset--color--background-800);
+        border-bottom: 1px solid var(--wp--preset--color--background-600);
+    }
+
+    .planning-mobile__arrow {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 44px;
+        height: 44px;
+        border: none;
+        border-radius: 50%;
+        background: var(--wp--preset--color--background-600);
+        color: var(--wp--preset--color--text-normal);
+        cursor: pointer;
+        transition: background var(--wam-transition);
+    }
+
+    .planning-mobile__arrow:hover {
+        background: var(--wp--preset--color--background-500);
+    }
+
+    .planning-mobile__arrow:disabled {
+        opacity: 0.25;
+        cursor: default;
+    }
+
+    .planning-mobile__day-label {
+        color: var(--wp--preset--color--text-normal);
+    }
+
+    .planning-mobile__track-wrapper {
+        position: relative;
+    }
+
+    .planning-mobile__track {
+        touch-action: pan-y;
+    }
+
+    .planning-mobile__panel {
+        display: none;
+        flex-direction: column;
+        gap: var(--wam-spacing-sm);
+        padding: 0 var(--wam-spacing-3xs);
+    }
+
+    .planning-mobile__panel.is-active {
+        display: flex;
+    }
+
+    /* Card mobile — bande latérale colorée */
+    .planning-mobile__card {
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+        padding: var(--wam-spacing-sm) var(--wam-spacing-md);
+        border-left: 3px solid var(--card-accent);
+        background: color-mix(in srgb, var(--card-accent) 8%, var(--wp--preset--color--background-600));
+        border-radius: var(--wam-radius-sm);
+        text-decoration: none;
+        color: inherit;
+        transition: background var(--wam-transition), opacity var(--wam-transition);
+    }
+
+    .planning-mobile__card:hover {
+        background: color-mix(in srgb, var(--card-accent) 18%, var(--wp--preset--color--background-600));
+    }
+
+    .planning-mobile__card--complet {
+        background: transparent;
+        border-left-style: dashed;
+    }
+
+    .planning-mobile__card--hidden {
+        display: none;
+    }
+
+    .planning-mobile__card-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+    }
+
+    .planning-mobile__time {
+        color: color-mix(in srgb, var(--card-accent) 80%, var(--wp--preset--color--text-normal));
+    }
+
+    .planning-mobile__title {
+        color: var(--wp--preset--color--text-normal);
+    }
+
+    .planning-mobile__badge {
+        font-size: 10px;
+        font-weight: 700;
+        color: var(--wp--preset--color--background-800);
+        background: var(--wam-color-orange);
+        padding: 2px 6px;
+        border-radius: var(--wam-radius-xs);
+        white-space: nowrap;
+    }
+
+    .planning-mobile__empty,
+    .planning-mobile__no-match {
+        text-align: center;
+        padding: var(--wam-spacing-xl) var(--wam-spacing-md);
+    }
+
+    /* Dots indicateurs */
+    .planning-mobile__dots {
+        display: flex;
+        justify-content: center;
+        gap: var(--wam-spacing-2xs);
+        padding: var(--wam-spacing-md) 0;
+    }
+
+    .planning-mobile__dot {
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        border: none;
+        padding: 0;
+        background: var(--wp--preset--color--background-500);
+        cursor: pointer;
+        transition: background var(--wam-transition), transform var(--wam-transition);
+    }
+
+    .planning-mobile__dot.is-active {
+        background: var(--wam-color-yellow);
+        transform: scale(1.4);
+    }
+
 }

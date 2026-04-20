@@ -121,6 +121,10 @@ add_action('add_meta_boxes', 'wamv1_hide_plugin_metaboxes', 999);
  * 2. Filtrage de la liste des posts pour les professeurs
  * Ils ne voient que les contenus auxquels ils sont liés
  */
+/**
+ * 2. Filtrage de la liste des posts pour les professeurs
+ * Ils ne voient que les contenus auxquels ils sont liés via ACF
+ */
 function wamv1_filter_profs_list($query) {
     if (!is_admin() || !$query->is_main_query()) return;
 
@@ -129,85 +133,60 @@ function wamv1_filter_profs_list($query) {
 
     $post_type = $query->get('post_type');
 
-    // Cas 1 : Fiche Profil (wam_membre) -> filtrage par auteur
     if ($post_type === 'wam_membre') {
-        $query->set('author', $user->ID);
+        $query->set('meta_query', array(
+            array('key' => 'user_prof', 'value' => $user->ID, 'compare' => '=')
+        ));
     }
-
-    // Cas 2 : Cours -> filtrage par champ ACF prof_cours (Multi-User)
     if ($post_type === 'cours') {
-        $meta_query = array(
-            array(
-                'key'     => 'prof_cours',
-                'value'   => '"' . $user->ID . '"', // ACF stocke les tableaux user as serialized array
-                'compare' => 'LIKE'
-            )
-        );
-        $query->set('meta_query', $meta_query);
+        // LIKE '"12"' car champ ACF mutli = tableau sérialisé
+        $query->set('meta_query', array(
+            array('key' => 'prof_cours', 'value' => '"' . $user->ID . '"', 'compare' => 'LIKE')
+        ));
     }
-
-    // Cas 3 : Stages -> filtrage par champ ACF intervenant·e_stage_intervenant
     if ($post_type === 'stages') {
-        $meta_query = array(
-            array(
-                'key'     => 'intervenant·e_stage_intervenant',
-                'value'   => $user->ID,
-                'compare' => '='
-            )
-        );
-        $query->set('meta_query', $meta_query);
+        $query->set('meta_query', array(
+            array('key' => 'intervenant·e_stage_intervenant', 'value' => $user->ID, 'compare' => '=')
+        ));
     }
 }
 add_action('pre_get_posts', 'wamv1_filter_profs_list');
 
 /**
- * 3. Permissions dynamiques (Map Meta Cap)
- * Permet d'autoriser l'édition d'un post si le prof y est assigné
+ * 3. Barrière de sécurité pour empêcher d'éditer le cours d'un collègue
+ * Même si le prof a le droit "edit_others_pages" théorique, on vérifie ACF.
  */
-function wamv1_map_teacher_caps($caps, $cap, $user_id, $args) {
-    if (!in_array($cap, array('edit_post', 'delete_post', 'read_post'))) return $caps;
-    
-    $post_id = $args[0] ?? null;
-    if (!$post_id) return $caps;
+function wamv1_guard_teacher_editing() {
+    global $pagenow;
+    if ($pagenow !== 'post.php' || !isset($_GET['post']) || !isset($_GET['action']) || $_GET['action'] !== 'edit') return;
 
-    $user = get_userdata($user_id);
-    if (!$user || !in_array('professeur', (array) $user->roles)) return $caps;
+    $user = wp_get_current_user();
+    if (!$user || !in_array('professeur', (array) $user->roles)) return;
 
+    $post_id = (int) $_GET['post'];
     $post_type = get_post_type($post_id);
 
-    // Droit d'édition sur sa PROPRE fiche prof
+    $has_access = false;
+    
     if ($post_type === 'wam_membre') {
-        $post = get_post($post_id);
-        if ($post->post_author == $user_id) {
-            return array('edit_posts'); // On mappe vers une cap de base qu'il possède
-        }
+        $val = get_field('user_prof', $post_id, false);
+        $has_access = (is_array($val) ? in_array($user->ID, $val) : $val == $user->ID);
+    } elseif ($post_type === 'cours') {
+        $val = get_field('prof_cours', $post_id, false);
+        $has_access = (is_array($val) ? in_array($user->ID, $val) : $val == $user->ID);
+    } elseif ($post_type === 'stages') {
+        $val = get_field('intervenant·e_stage_intervenant', $post_id, false);
+        $has_access = ($val == $user->ID);
+    } else {
+        // Pas le droit de modifier d'autres CPT (pages normales, articles, etc)
+        $has_access = false;
     }
 
-    // Droit d'édition sur ses COURS assignés
-    if ($post_type === 'cours' && function_exists('get_field')) {
-        $assigned_profs = get_field('prof_cours', $post_id, false); // false pour ID bruts
-        if (is_array($assigned_profs) && in_array($user_id, $assigned_profs)) {
-            return array('edit_pages');
-        }
-        // Cas mono-valeur si ACF a été configuré ainsi
-        if (!is_array($assigned_profs) && $assigned_profs == $user_id) {
-            return array('edit_pages');
-        }
+    if (!$has_access && !current_user_can('manage_options')) {
+        wp_die("Oups ! Vous n'êtes pas assigné(e) à ce contenu en tant que professeur. Contactez la directrice si c'est une erreur.");
     }
-
-    // Droit d'édition sur ses STAGES assignés
-    if ($post_type === 'stages' && function_exists('get_field')) {
-        $stage_prof = get_field('intervenant·e', $post_id);
-        $assigned_id = $stage_prof['stage_intervenant']['ID'] ?? ($stage_prof['stage_intervenant'] ?? null);
-        
-        if ($assigned_id == $user_id) {
-            return array('edit_pages');
-        }
-    }
-
-    return $caps;
 }
-add_filter('map_meta_cap', 'wamv1_map_teacher_caps', 10, 4);
+add_action('admin_head', 'wamv1_guard_teacher_editing');
 
 /**
  * 4. Redirection après login pour les profs

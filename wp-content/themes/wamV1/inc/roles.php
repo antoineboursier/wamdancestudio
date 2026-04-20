@@ -7,14 +7,28 @@
 
 function wamv1_register_roles()
 {
-    // 1. Rôle PROFESSEUR (Capacités minimales + accès épuré)
+    // 1. Rôle PROFESSEUR (Base Contributeur + upload_files)
     if (!get_role('professeur')) {
-        add_role('professeur', __('Professeur·e', 'wamv1'), array(
-            'read'         => true,
-            'edit_posts'   => true, // Pour sa propre fiche wam_membre
-            'edit_pages'   => true, // Pour ses propres cours/stages
-            'upload_files' => true,
-        ));
+        add_role('professeur', __('Professeur·e', 'wamv1'), array('read' => true));
+    }
+
+    $prof = get_role('professeur');
+    if ($prof) {
+        $prof_caps = array(
+            'read',
+            'edit_posts',
+            'delete_posts',
+            'upload_files',
+            'assign_terms',
+            'edit_pages',
+            'edit_published_posts',
+            'edit_published_pages',
+            'edit_others_posts', // Requis pour contourner l'auteur unique WP
+            'edit_others_pages', // Idem pour les cours et stages
+        );
+        foreach ($prof_caps as $cap) {
+            $prof->add_cap($cap);
+        }
     }
 
     // 2. Rôle DIRECTRICE (Base Admin / Éditeur + Config)
@@ -38,6 +52,16 @@ function wamv1_register_roles()
             // Administration & Config WAM
             'manage_options',      // Accès configuration WAM
             'edit_theme_options',  // Accès Menus & Widgets
+            // WooCommerce total access
+            'manage_woocommerce',
+            'manage_woocommerce_marketing',
+            'manage_woocommerce_settings',
+            'manage_woocommerce_tax',
+            'view_woocommerce_reports',
+            'edit_products', 'edit_others_products', 'publish_products', 'read_private_products', 'delete_products', 'delete_private_products', 'delete_published_products', 'delete_others_products', 'edit_private_products', 'edit_published_products',
+            'manage_product_terms', 'edit_product_terms', 'delete_product_terms', 'assign_product_terms',
+            'edit_shop_orders', 'edit_others_shop_orders', 'publish_shop_orders', 'read_private_shop_orders', 'delete_shop_orders', 'delete_private_shop_orders', 'delete_published_shop_orders', 'delete_others_shop_orders', 'edit_private_shop_orders', 'edit_published_shop_orders',
+            'edit_shop_coupons', 'edit_others_shop_coupons', 'publish_shop_coupons', 'read_private_shop_coupons', 'delete_shop_coupons', 'delete_private_shop_coupons', 'delete_published_shop_coupons', 'delete_others_shop_coupons', 'edit_private_shop_coupons', 'edit_published_shop_coupons',
         );
 
         foreach ($caps as $cap) {

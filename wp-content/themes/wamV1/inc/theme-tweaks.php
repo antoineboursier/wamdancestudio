@@ -149,7 +149,7 @@ function wamv1_custom_login_assets()
             --wam-color-input-bg: #232734;
             --wam-color-text: #F9F4EB;
             --wam-color-subtext: #E1CDAC;
-            --wam-color-yellow: #FFDC08;
+            --wam-color-yellow: #FBD150; /* À mettre à jour si accent-yellow change dans theme.json */
             --wam-color-page-bg: #131620;
             --wam-font-body: 'Outfit', sans-serif;
             --wam-radius-lg: 16px;

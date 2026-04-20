@@ -177,7 +177,7 @@ get_header();
 
             <!-- ============ HERO : Infos cours ============ -->
             <?php
-            $photo_id = has_post_thumbnail() ? get_post_thumbnail_id() : ($photo_cours ? $photo_cours['id'] : null);
+            $photo_id = has_post_thumbnail() ? get_post_thumbnail_id() : null;
             $has_sidebar = ($photo_id || $complet);
             ?>
             <div id="section-hero-cours" class="page-hero <?php echo !$has_sidebar ? 'page-hero--no-image' : ''; ?>">
@@ -382,14 +382,19 @@ get_header();
                         </div>
                         <?php if ($photo_cours): ?>
                             <div class="cours-section__photo">
-                                <?php echo wp_get_attachment_image($photo_cours['id'], 'wam-card', false, [
+                                <?php 
+                                $pc_id = is_array($photo_cours) ? ($photo_cours['ID'] ?? $photo_cours['id']) : $photo_cours;
+                                $pc_alt = is_array($photo_cours) ? ($photo_cours['alt'] ?? '') : get_post_meta($pc_id, '_wp_attachment_image_alt', true);
+
+                                echo wp_get_attachment_image($pc_id, 'wam-card', false, [
                                     'class' => 'cours-section__photo-img',
-                                    'alt' => esc_attr($photo_cours['alt']),
-                                    'data-no-overlay' => 'true', // Désactive le wrapper auto
+                                    'alt' => esc_attr($pc_alt),
+                                    'data-no-overlay' => 'true',
                                 ]); ?>
                                 <div class="cours-section__photo-overlay"></div>
                             </div>
                         <?php endif; ?>
+
                     </div>
                 <?php endif; ?>
 
@@ -495,15 +500,19 @@ get_header();
                         <div class="cours-section__photo cours-section__photo--tenue">
                             <?php
                             if ($photo_tenue):
-                                echo wp_get_attachment_image($photo_tenue['id'], 'wam-card', false, [
+                                $p_id = is_array($photo_tenue) ? ($photo_tenue['ID'] ?? $photo_tenue['id']) : $photo_tenue;
+                                $p_alt = is_array($photo_tenue) ? ($photo_tenue['alt'] ?? '') : get_post_meta($p_id, '_wp_attachment_image_alt', true);
+                                
+                                echo wp_get_attachment_image($p_id, 'wam-card', false, [
                                     'class' => 'cours-section__photo-img',
-                                    'alt' => esc_attr($photo_tenue['alt']),
-                                    'data-no-overlay' => 'true', // Désactive le wrapper auto
+                                    'alt' => esc_attr($p_alt),
+                                    'data-no-overlay' => 'true',
                                 ]);
                             else: ?>
                                 <img src="<?php echo esc_url($icon_dir . 'photodefaulttenue.jpg'); ?>"
                                     class="cours-section__photo-img" alt="Tenue par défaut">
                             <?php endif; ?>
+
                             <div class="cours-section__photo-overlay"></div>
                         </div>
                     </div>

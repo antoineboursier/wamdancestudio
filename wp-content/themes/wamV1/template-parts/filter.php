@@ -54,10 +54,9 @@ $icons_path   = $args['icons_path'] ?? (get_template_directory_uri() . '/assets/
                     aria-label="Effacer la recherche">
                 &times;
             </button>
-            <img src="<?php echo $icons_path; ?>search.svg"
-                 class="cours-filter__search-icon"
-                 alt=""
-                 aria-hidden="true">
+            <span class="btn-icon cours-filter__search-icon color-subtext"
+                  style="--icon-url: url('<?php echo $icons_path; ?>search.svg');"
+                  aria-hidden="true"></span>
         </div>
     </div>
 

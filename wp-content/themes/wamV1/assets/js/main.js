@@ -273,6 +273,9 @@ document.addEventListener('DOMContentLoaded', () => {
         if (header) {
             let lastScrollY = window.scrollY;
             window.addEventListener('scroll', () => {
+                // Pendant un scroll programmatique du planning, ne pas réafficher le header
+                if (header.dataset.planningScroll) return;
+
                 const currentScrollY = window.scrollY;
                 // Ne masquer qu'après 80px (évite le masquage au moindre drag en haut de page)
                 if (currentScrollY > lastScrollY && currentScrollY > 80) {

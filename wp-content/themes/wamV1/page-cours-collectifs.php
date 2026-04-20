@@ -91,12 +91,25 @@ $terms = get_terms([
 
                 <?php foreach ($terms as $term):
 
-                    /* Requête des cours de ce terme */
+                    /* Requête des cours de ce terme triés par Jour puis Heure */
                     $term_query = new WP_Query([
                         'post_type' => 'cours',
                         'posts_per_page' => -1,
-                        'orderby' => 'menu_order',
-                        'order' => 'ASC',
+                        'meta_query' => [
+                            'relation' => 'AND',
+                            'day_clause' => [
+                                'key' => 'jour_de_cours',
+                                'compare' => 'EXISTS',
+                            ],
+                            'hour_clause' => [
+                                'key' => 'heure_debut',
+                                'compare' => 'EXISTS',
+                            ],
+                        ],
+                        'orderby' => [
+                            'day_clause' => 'ASC',
+                            'hour_clause' => 'ASC',
+                        ],
                         'tax_query' => [
                             [
                                 'taxonomy' => 'cat_cours',
@@ -119,8 +132,9 @@ $terms = get_terms([
                         id="cat-<?php echo esc_attr($term->slug); ?>">
 
                         <div class="cours-categorie__header">
-                            <img src="<?php echo esc_url($icons_path . $icon_file); ?>" class="cours-categorie__icon" alt=""
-                                aria-hidden="true">
+                            <span class="btn-icon cours-categorie__icon color-subtext" 
+                                  style="--icon-url: url('<?php echo esc_url($icons_path . $icon_file); ?>');"
+                                  aria-hidden="true"></span>
                             <h2 class="is-style-title-cool-md color-text"><?php echo esc_html($term->name); ?>&nbsp;:</h2>
                         </div>
 
@@ -149,8 +163,21 @@ $terms = get_terms([
             $autres_query = new WP_Query([
                 'post_type' => 'cours',
                 'posts_per_page' => -1,
-                'orderby' => 'menu_order',
-                'order' => 'ASC',
+                'meta_query' => [
+                    'relation' => 'AND',
+                    'day_clause' => [
+                        'key' => 'jour_de_cours',
+                        'compare' => 'EXISTS',
+                    ],
+                    'hour_clause' => [
+                        'key' => 'heure_debut',
+                        'compare' => 'EXISTS',
+                    ],
+                ],
+                'orderby' => [
+                    'day_clause' => 'ASC',
+                    'hour_clause' => 'ASC',
+                ],
                 'tax_query' => [
                     [
                         'taxonomy' => 'cat_cours',
@@ -163,8 +190,9 @@ $terms = get_terms([
                 <section class="cours-categorie" data-cat="autres" id="cat-autres">
 
                     <div class="cours-categorie__header">
-                        <img src="<?php echo esc_url($icons_path); ?>dancer_autres.svg" class="cours-categorie__icon" alt=""
-                            aria-hidden="true">
+                        <span class="btn-icon cours-categorie__icon color-subtext"
+                              style="--icon-url: url('<?php echo esc_url($icons_path); ?>dancer_autres.svg');"
+                              aria-hidden="true"></span>
                         <h2 class="is-style-title-cool-md">Autres&nbsp;:</h2>
                     </div>
 

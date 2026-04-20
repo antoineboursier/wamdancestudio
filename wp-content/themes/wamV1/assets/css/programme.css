@@ -9,6 +9,21 @@
    PAGE COURS COLLECTIFS — Layout
    ===================================================== */
 
+/* =====================================================
+   LAYOUT COURS & STAGES
+   ===================================================== */
+
+/* Inversion du Hero sur mobile pour les STAGES uniquement */
+@media (max-width: 1024px) {
+    .single-stages .page-hero {
+        flex-direction: column-reverse;
+    }
+
+    .single-stages .page-hero__image {
+        margin-top: 0;
+    }
+}
+
 .page-cours {
     display: flex;
     flex-direction: column;
@@ -385,7 +400,8 @@
     width: 24px;
     height: 24px;
     pointer-events: none;
-    opacity: 0.6;
+    opacity: 1;
+    color: var(--wam-color-subtext);
 }
 
 /* =====================================================
@@ -451,8 +467,10 @@
 
 .cours-categorie__icon {
     height: 72px;
-    width: auto;
+    width: 72px;
+    /* Forcer carré pour le masque */
     flex-shrink: 0;
+    background-color: var(--wam-color-subtext);
 }
 
 /* Le titre utilise .is-style-title-cool-md (Cholo Rhita 36px) */
@@ -951,10 +969,18 @@
 /* Section individuelle : row (photo | texte) */
 .cours-section {
     display: flex;
-    gap: 64px;
-    /* gap-16 — pas de token pour 64px */
-    align-items: center;
+    flex-direction: column;
+    gap: var(--wam-spacing-xl);
+    align-items: flex-start;
     width: 100%;
+}
+
+@media (min-width: 1024px) {
+    .cours-section {
+        flex-direction: row;
+        gap: 64px;
+        align-items: center;
+    }
 }
 
 .cours-section__col {
@@ -996,8 +1022,16 @@
     border-radius: var(--wam-radius-3xl);
     overflow: hidden;
     flex-shrink: 0;
-    width: 440px;
-    height: 240px;
+    width: 100%;
+    aspect-ratio: 560 / 320;
+    height: auto;
+}
+
+@media (min-width: 1024px) {
+    .cours-section__photo {
+        width: 560px;
+        height: 320px;
+    }
 }
 
 /* Variante tenue : plus large (640×248) */
@@ -1147,6 +1181,7 @@
 
     .cours-musiques {
         border-radius: var(--wam-radius-xl) !important;
+        flex-direction: column;
     }
 
     .cours-section--tenue {

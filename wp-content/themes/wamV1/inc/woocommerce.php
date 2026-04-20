@@ -32,17 +32,27 @@ function wamv1_wc_account_menu_items(array $items): array
     unset($items['edit-address']); // Adresses — inutile (pas de livraison physique)
     unset($items['downloads']);    // Téléchargements — pas de produits numériques
 
-    // Ajouter le lien Administration pour les rôles autorisés
-    // On vérifie si l'utilisateur peut éditer des posts (rôles gestionnaires)
-    if (current_user_can('edit_posts')) {
-        // On veut l'insérer avant "Déconnexion" (customer-logout)
+    // Ajouter le lien Administration pour les rôles autorisés (Directrice et Professeurs)
+    $user = wp_get_current_user();
+    $allowed_roles = ['directrice', 'professeur', 'administrator'];
+    
+    if (array_intersect($allowed_roles, (array) $user->roles)) {
+        // On insère avant "Déconnexion" ou à la fin si non trouvé
         $new_items = [];
+        $inserted = false;
+        
         foreach ($items as $key => $label) {
             if ($key === 'customer-logout') {
                 $new_items['wp-admin-link'] = 'Administration';
+                $inserted = true;
             }
             $new_items[$key] = $label;
         }
+        
+        if (!$inserted) {
+            $new_items['wp-admin-link'] = 'Administration';
+        }
+        
         $items = $new_items;
     }
 

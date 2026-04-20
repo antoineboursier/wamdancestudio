@@ -92,9 +92,10 @@ if ( $all_cours_query->have_posts() ) {
         $is_enfant = wamv1_is_enfant_variant();
         $complet   = get_field( 'complete_cours' );
 
-        /* Slugs des catégories du cours, pour le filtrage JS */
-        $cats = wp_get_post_terms( get_the_ID(), 'cat_cours', [ 'fields' => 'slugs' ] );
-        if ( is_wp_error( $cats ) ) $cats = [];
+        /* Catégories du cours : slugs pour le filtrage JS + objets pour la transcription */
+        $cat_terms = wp_get_post_terms( get_the_ID(), 'cat_cours' );
+        if ( is_wp_error( $cat_terms ) ) $cat_terms = [];
+        $cats = wp_list_pluck( $cat_terms, 'slug' );
 
         $planning_items[] = [
             'title'      => get_the_title(),
@@ -107,7 +108,8 @@ if ( $all_cours_query->have_posts() ) {
             'fin'        => $heure_fin,
             'is_enfant'  => $is_enfant,
             'complet'    => $complet,
-            'cats'       => $cats, // slugs cat_cours
+            'cats'       => $cats,      // slugs cat_cours
+            'cat_terms'  => $cat_terms, // objets WP_Term
         ];
     }
     wp_reset_postdata();
@@ -261,6 +263,67 @@ get_header();
 
         </div><!-- .planning-scroll-wrapper -->
 
+        <!-- ============ VUE MOBILE : Jour par jour (≤768px) ============ -->
+        <div id="planning-jour" class="planning-mobile" aria-label="Planning jour par jour">
+
+            <div class="planning-mobile__nav">
+                <button class="planning-mobile__arrow planning-mobile__arrow--prev" type="button" aria-label="Jour précédent">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M15 4L7 12L15 20"/></svg>
+                </button>
+                <span class="planning-mobile__day-label text-lg fw-bold"></span>
+                <button class="planning-mobile__arrow planning-mobile__arrow--next" type="button" aria-label="Jour suivant">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M9 4L17 12L9 20"/></svg>
+                </button>
+            </div>
+
+            <div class="planning-mobile__track-wrapper">
+                <div class="planning-mobile__track">
+                    <?php foreach ( $wam_day_map as $day_key => $day_info ) :
+                        $col   = $day_info['col'];
+                        $items = $transcript_by_col[ $col ] ?? [];
+                    ?>
+                    <div class="planning-mobile__panel" data-day-col="<?php echo $col; ?>" data-day-label="<?php echo esc_attr( $day_info['label'] ); ?>">
+                        <?php if ( empty( $items ) ) : ?>
+                            <p class="planning-mobile__empty text-sm color-subtext">Aucun cours ce jour.</p>
+                        <?php else : ?>
+                            <?php foreach ( $items as $item ) :
+                                $m_classes = 'planning-mobile__card';
+                                if ( $item['complet'] ) $m_classes .= ' planning-mobile__card--complet';
+                            ?>
+                            <a href="<?php echo esc_url( $item['permalink'] ); ?>"
+                               class="<?php echo $m_classes; ?>"
+                               data-cats="<?php echo esc_attr( implode( ' ', $item['cats'] ) ); ?>"
+                               <?php if ( $item['complet'] ) echo 'data-complet'; ?>>
+                                <div class="planning-mobile__card-header">
+                                    <span class="planning-mobile__time text-sm fw-bold"><?php echo esc_html( $item['debut'] . ' – ' . $item['fin'] ); ?></span>
+                                    <?php if ( $item['complet'] ) : ?>
+                                        <span class="planning-mobile__badge">Complet</span>
+                                    <?php endif; ?>
+                                </div>
+                                <span class="planning-mobile__title text-md fw-bold"><?php echo esc_html( $item['title'] ); ?></span>
+                                <?php if ( $item['sous_titre'] ) : ?>
+                                    <span class="planning-mobile__subtitle text-sm color-subtext"><?php echo esc_html( $item['sous_titre'] ); ?></span>
+                                <?php endif; ?>
+                            </a>
+                            <?php endforeach; ?>
+                        <?php endif; ?>
+                        <p class="planning-mobile__no-match text-sm color-subtext" hidden>Aucun cours pour ce filtre.</p>
+                    </div>
+                    <?php endforeach; ?>
+                </div>
+            </div>
+
+            <div class="planning-mobile__dots" aria-hidden="true">
+                <?php $dot_i = 0; foreach ( $wam_day_map as $day_key => $day_info ) : ?>
+                    <button class="planning-mobile__dot <?php echo $dot_i === 0 ? 'is-active' : ''; ?>"
+                            type="button"
+                            data-day-index="<?php echo $dot_i; ?>"
+                            aria-label="<?php echo esc_attr( $day_info['label'] ); ?>"></button>
+                <?php $dot_i++; endforeach; ?>
+            </div>
+
+        </div><!-- .planning-mobile -->
+
         <!-- ============================================================
              TRANSCRIPTION TEXTUELLE — accessibilité
              <details>/<summary> natif : toggle sans JS, accessible par défaut.
@@ -286,8 +349,18 @@ get_header();
                                     <p class="text-sm">
                                         <span class="planning-transcript__time color-muted"><?php echo esc_html( $item['debut'] . ' – ' . $item['fin'] ); ?></span>
                                         — <span class="planning-transcript__title fw-bold"><?php echo esc_html( $item['title'] ); ?></span><?php if ( $item['sous_titre'] ) : ?> <span class="color-muted">— <?php echo esc_html( $item['sous_titre'] ); ?></span><?php endif; ?>
-                                        <span class="color-muted"> — <?php echo $item['is_enfant'] ? 'Enfant' : 'Adulte'; ?></span><?php if ( $item['complet'] ) : ?> <span class="color-orange fw-bold"> — Complet</span><?php endif; ?>
-                                        — <a href="<?php echo esc_url( $item['permalink'] ); ?>" class="planning-transcript__link">Aller sur la page du cours</a>
+                                        <?php if ( ! empty( $item['cat_terms'] ) ) :
+                                            $cours_url = get_permalink( get_page_by_path( 'cours-collectifs' ) );
+                                        ?>
+                                            <span class="color-muted"> —
+                                            <?php foreach ( $item['cat_terms'] as $i => $ct ) : ?>
+                                                <?php if ( $i > 0 ) echo ', '; ?>
+                                                <a href="<?php echo esc_url( $cours_url . '#cat-' . $ct->slug ); ?>" class="planning-transcript__link"><?php echo esc_html( $ct->name ); ?></a>
+                                            <?php endforeach; ?>
+                                            </span>
+                                        <?php endif; ?>
+                                        <?php if ( $item['complet'] ) : ?> <span class="color-orange fw-bold"> — Complet</span><?php endif; ?>
+                                        — <a href="<?php echo esc_url( $item['permalink'] ); ?>" class="planning-transcript__link" title="Aller sur la page du cours">Voir le cours</a>
                                     </p>
                                 </li>
                             <?php endforeach; ?>

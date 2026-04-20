@@ -386,7 +386,7 @@ function wamv1_register_cpt_stages()
         'labels' => $labels,
         'public' => true,
         'show_in_rest' => true,
-        'supports' => array('title', 'thumbnail'),
+        'supports' => array('title', 'thumbnail', 'author'),
         'hierarchical' => false,
         'show_ui' => true,
         'show_in_menu' => true,
@@ -446,6 +446,7 @@ function wamv1_register_cpt_membre()
         'supports' => array(
             'title',
             'thumbnail',  // Photo de profil
+            'author',     // <-- Indispensable pour modifier l'auteur
         ),
         'menu_icon' => 'dashicons-groups',
         'has_archive' => false,

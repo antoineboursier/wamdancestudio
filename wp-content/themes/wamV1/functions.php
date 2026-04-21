@@ -11,6 +11,7 @@
 require_once get_template_directory() . '/inc/roles.php';
 require_once get_template_directory() . '/inc/admin-ui.php';
 require_once get_template_directory() . '/inc/admin-config.php';
+require_once get_template_directory() . '/inc/admin-widget-cours.php';
 require_once get_template_directory() . '/inc/schema.php';
 require_once get_template_directory() . '/inc/shortcodes.php';
 require_once get_template_directory() . '/inc/no-comments.php';
@@ -180,6 +181,12 @@ function wamv1_scripts()
     wp_enqueue_style('wamv1-forms', $css . 'forms.css', array('wamv1-accessibility'), $ver);
 
     // -------------------------------------------------------
+    // overrides-light.css — Ajustements spécifiques thème clair
+    // TOUTES LES PAGES
+    // -------------------------------------------------------
+    wp_enqueue_style('wamv1-overrides-light', $css . 'overrides-light.css', array('wamv1-forms'), $ver);
+
+    // -------------------------------------------------------
     // prose-shared.css — Source unique des styles de contenu éditorial
     // Chargé après base.css, TOUTES LES PAGES
     // -------------------------------------------------------
@@ -227,6 +234,17 @@ function wamv1_scripts()
         is_page_template('page-events-tous.php')
     ) {
         wp_enqueue_style('wamv1-events', $css . 'events.css', array('wamv1-programme'), $ver);
+    }
+
+    // -------------------------------------------------------
+    // Cours single — JS add-to-cart AJAX
+    // -------------------------------------------------------
+    if (is_singular('cours') && class_exists('WooCommerce')) {
+        wp_enqueue_script('wamv1-enroll', $js . 'enroll.js', array(), $ver, ['in_footer' => true, 'strategy' => 'defer']);
+        wp_localize_script('wamv1-enroll', 'wamEnroll', [
+            'ajaxurl' => admin_url('admin-ajax.php'),
+            'nonce'   => wp_create_nonce('wam_add_to_cart'),
+        ]);
     }
 
     // -------------------------------------------------------
@@ -790,3 +808,19 @@ function wamv1_custom_favicon_output() {
 add_action('wp_head', 'wamv1_custom_favicon_output', 1);
 add_action('admin_head', 'wamv1_custom_favicon_output', 1);
 add_action('login_head', 'wamv1_custom_favicon_output', 1);
+
+// =============================================================================
+// TRACKING : Microsoft Clarity
+// =============================================================================
+function wamv1_clarity_script() {
+    ?>
+    <script type="text/javascript">
+        (function(c,l,a,r,i,t,y){
+            c[a]=c[a]||function(){(c[a].q=c[a].q||[]).push(arguments)};
+            t=l.createElement(r);t.async=1;t.src="https://www.clarity.ms/tag/"+i;
+            y=l.getElementsByTagName(r)[0];y.parentNode.insertBefore(t,y);
+        })(window, document, "clarity", "script", "wf22qdm90w");
+    </script>
+    <?php
+}
+add_action('wp_head', 'wamv1_clarity_script');

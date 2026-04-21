@@ -499,15 +499,24 @@ p {
     color: var(--wam-color-pink) !important;
 }
 
-/* Espacements utilitaires */
-.mt-3xs {
-    margin-top: var(--wam-spacing-3xs) !important;
-    /* 4px */
+.mt-xs {
+    margin-top: var(--wam-spacing-xs) !important;
 }
 
-.mt-2xs {
-    margin-top: var(--wam-spacing-2xs) !important;
-    /* 8px */
+.mt-sm {
+    margin-top: var(--wam-spacing-sm) !important;
+}
+
+.mt-md {
+    margin-top: var(--wam-spacing-md) !important;
+}
+
+.mt-lg {
+    margin-top: var(--wam-spacing-lg) !important;
+}
+
+.mt-xl {
+    margin-top: var(--wam-spacing-xl) !important;
 }
 
 .mt-2xl {

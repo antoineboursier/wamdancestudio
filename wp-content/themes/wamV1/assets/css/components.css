@@ -77,7 +77,8 @@
 .wamformcss .ff-btn-submit,
 .wamformcss .ff_btn_style,
 .wamformcss form.fluent_form_3 .ff-btn-submit:not(.ff_btn_no_style),
-#mailpoet_form_1 .mailpoet_submit {
+#mailpoet_form_1 .mailpoet_submit,
+.woocommerce-checkout #place_order {
     position: relative;
     display: inline-flex;
     align-items: center;
@@ -106,7 +107,8 @@
 .wamformcss .ff-btn-submit::before,
 .wamformcss .ff_btn_style::before,
 .wamformcss form.fluent_form_3 .ff-btn-submit:not(.ff_btn_no_style)::before,
-#mailpoet_form_1 .mailpoet_submit::before {
+#mailpoet_form_1 .mailpoet_submit::before,
+.woocommerce-checkout #place_order::before {
     content: '';
     position: absolute;
     inset: 0;
@@ -132,7 +134,8 @@
 .wamformcss .ff-btn-submit:hover::before,
 .wamformcss .ff_btn_style:hover::before,
 .wamformcss form.fluent_form_3 .ff-btn-submit:hover::before,
-#mailpoet_form_1 .mailpoet_submit:hover::before {
+#mailpoet_form_1 .mailpoet_submit:hover::before,
+.woocommerce-checkout #place_order:hover::before {
     opacity: 1;
 }
 
@@ -142,7 +145,8 @@
 .wamformcss .ff-btn-submit:hover,
 .wamformcss .ff_btn_style:hover,
 .wamformcss form.fluent_form_3 .ff-btn-submit:hover,
-#mailpoet_form_1 .mailpoet_submit:hover {
+#mailpoet_form_1 .mailpoet_submit:hover,
+.woocommerce-checkout #place_order:hover {
     opacity: 1 !important;
     background-color: var(--wam-color-yellow);
 }

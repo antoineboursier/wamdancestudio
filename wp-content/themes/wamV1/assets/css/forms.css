@@ -65,9 +65,12 @@ label,
     color: var(--wam-color-pink);
 }
 
-/* Astérisque formulaire WAM */
-.wam-contact-form .required {
+/* Astérisque formulaire WAM et global */
+.required,
+abbr.required {
     color: var(--wam-color-pink) !important;
+    text-decoration: none !important;
+    border-bottom: none !important;
 }
 
 /* =====================================================
@@ -102,6 +105,7 @@ select,
     appearance: none;
     -webkit-appearance: none;
     transition: border-color 0.2s ease, box-shadow 0.2s ease;
+    margin-bottom: var(--wam-spacing-2xs) !important;
 }
 
 input.cours-search {

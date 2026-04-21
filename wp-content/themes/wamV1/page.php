@@ -37,9 +37,8 @@ get_header();
             <?php
             $page_content = get_the_content();
             if (!empty(trim($page_content))): ?>
-                <!-- Contenu Gutenberg -->
                 <div id="section-page-content" class="page-content">
-                    <div class="page-content__inner wam-prose">
+                    <div class="page-content__inner <?php echo (is_cart() || is_checkout()) ? '' : 'wam-prose'; ?>">
                         <?php echo apply_filters('the_content', $page_content); ?>
                     </div>
                 </div>

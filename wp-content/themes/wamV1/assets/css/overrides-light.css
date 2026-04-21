@@ -1,0 +1,50 @@
+/* =====================================================
+   OVERRIDES THÈME CLAIR — COMPOSANTS SPÉCIFIQUES
+   Ce fichier contient les corrections visuelles qui ne 
+   peuvent pas être gérées uniquement par les tokens CSS.
+   Il cible exclusivement html.wam-theme-light.
+   ===================================================== */
+
+/* 1. Logos et Images critiques
+   Si le logo est un SVG blanc, on peut l'inverser ici
+   ----------------------------------------------------- */
+html.wam-theme-light .site-logo img,
+html.wam-theme-light .wam-header__logo img {
+    /* Ex: si logo blanc à l'origine, on le passe en bleu WAM ou noir */
+    /* filter: invert(1) brightness(0.5) sepia(1) hue-rotate(200deg) saturate(3); */
+}
+
+/* 2. Filtres d'accessibilité sur icônes
+   ----------------------------------------------------- */
+html.wam-theme-light .btn-icon,
+html.wam-theme-light .icon-colorable {
+    /* En mode clair, on veut souvent des icônes sombres */
+    filter: brightness(0.2);
+}
+
+/* 3. Particules et Décorations
+   ----------------------------------------------------- */
+html.wam-theme-light .particles-container canvas {
+    /* Si les particules sont blanches, on réduit leur visibilité ou on change leur blend mode */
+    opacity: 0.4;
+    filter: invert(1);
+}
+
+/* 4. Overlays et Blend Modes
+   ----------------------------------------------------- */
+html.wam-theme-light .photo-overlay {
+    /* L'overlay par défaut est souvent trop sombre pour le mode clair */
+    mix-blend-mode: multiply; /* au lieu de lighten/screen */
+    opacity: 0.15;
+}
+
+/* 5. Corrections de contrastes spécifiques
+   ----------------------------------------------------- */
+html.wam-theme-light .btn-primary {
+    /* On s'assure que le bouton primaire reste lisible */
+    border-color: rgba(29, 54, 127, 0.1);
+}
+
+html.wam-theme-light .card {
+    border: 1px solid rgba(29, 54, 127, 0.08); /* Ajout d'une fine bordure car l'ombre peut ne pas suffire */
+}

@@ -20,9 +20,9 @@ $sad_emoji_url = get_template_directory_uri() . '/assets/images/sad-emoji.svg';
 </div>
 
 <?php if (wc_get_page_id('shop') > 0) : ?>
-    <p class="return-to-shop">
-        <a class="button wc-backward" href="<?php echo esc_url(apply_filters('woocommerce_return_to_shop_redirect', wc_get_page_permalink('shop'))); ?>">
-            <?php echo esc_html(apply_filters('woocommerce_return_to_shop_text', __('Retour aux cours', 'wamv1'))); ?>
+    <div class="return-to-shop mt-lg" style="text-align: center;">
+        <a class="button btn-primary wc-backward" href="<?php echo esc_url(home_url('/cours-collectifs/')); ?>">
+            <?php esc_html_e('Retour aux cours', 'wamv1'); ?>
         </a>
-    </p>
+    </div>
 <?php endif; ?>

@@ -377,24 +377,53 @@ get_header();
                             </button>
 
                         <?php elseif (function_exists('wam_inscriptions_actives') && wam_inscriptions_actives()): ?>
-                            <?php if (function_exists('wam_btn_cours_est_desactive') && wam_btn_cours_est_desactive()): ?>
-                                <!-- Bouton désactivé config WAM : aria-disabled="true" — focusable, annoncé "non disponible" -->
-                                <button type="button"
-                                        class="btn-primary btn-inscription"
-                                        aria-disabled="true"
-                                        onclick="return false;">
-                                    <?php echo esc_html(function_exists('wam_btn_cours_desactive_texte') ? wam_btn_cours_desactive_texte() : 'Inscriptions bientôt disponibles'); ?>
+                            <?php 
+                                $has_acf         = function_exists('get_field');
+                                $places_totales  = $has_acf ? (int) get_field('places_totales') : 0;
+                                $places_res      = $has_acf ? (int) get_field('places_reservees') : 0;
+                                $complet_manuel  = $has_acf ? get_field('complete_cours') : false;
+                                
+                                // Un cours est complet si : quota atteint OU case cochée manuellement
+                                $est_complet = ($places_totales > 0 && $places_res >= $places_totales) || $complet_manuel;
+                                
+                                $config_desactive = function_exists('wam_btn_cours_est_desactive') && wam_btn_cours_est_desactive();
+                            ?>
+
+                            <?php if ($est_complet): ?>
+                                <!-- Bouton Cours Complet -->
+                                <button type="button" class="btn-primary btn-inscription is-complet" aria-disabled="true" onclick="return false;">
+                                    <?php _e('Cours complet', 'wamv1'); ?>
+                                </button>
+                            <?php elseif ($config_desactive): ?>
+                                <!-- Bouton désactivé config WAM -->
+                                <button type="button" class="btn-primary btn-inscription" aria-disabled="true" onclick="return false;">
+                                    <?php echo esc_html(function_exists('wam_btn_cours_desactive_texte') ? wam_btn_cours_desactive_texte() : 'Inscriptions fermées'); ?>
                                 </button>
                             <?php else: ?>
-                                <!-- Bouton cliquable normal -->
-                                <a href="<?php echo esc_url(function_exists('wam_btn_inscription_url') ? wam_btn_inscription_url() : '#inscription'); ?>"
-                                   class="btn-primary btn-inscription"
-                                   id="btn-inscription-cours">
-                                    <?php echo esc_html(function_exists('wam_btn_inscription_texte') ? wam_btn_inscription_texte() : 'S\'inscrire'); ?>
-                                    <span class="btn-icon btn-icon--sm"
-                                          style="--icon-url: url('<?php echo esc_url($icon_dir_cta . 'chevron-right.svg'); ?>');"
-                                          aria-hidden="true"></span>
-                                </a>
+                                <!-- Bouton add-to-cart AJAX -->
+                                <?php $wc_pid = wamv1_get_wc_product_id(get_the_ID()); ?>
+                                <?php if ($wc_pid): ?>
+                                    <button type="button"
+                                            class="btn-primary btn-inscription"
+                                            id="btn-inscription-cours"
+                                            data-product-id="<?php echo esc_attr($wc_pid); ?>"
+                                            data-course-id="<?php echo esc_attr(get_the_ID()); ?>">
+                                        <?php echo esc_html(function_exists('wam_btn_inscription_texte') ? wam_btn_inscription_texte() : 'S\'inscrire'); ?>
+                                        <span class="btn-icon btn-icon--sm"
+                                              style="--icon-url: url('<?php echo esc_url($icon_dir_cta . 'chevron-right.svg'); ?>');"
+                                              aria-hidden="true"></span>
+                                    </button>
+                                <?php else: ?>
+                                    <!-- Fallback si aucun produit WC n'est lié -->
+                                    <a href="<?php echo esc_url(function_exists('wam_btn_inscription_url') ? wam_btn_inscription_url() : '#inscription'); ?>"
+                                       class="btn-primary btn-inscription"
+                                       id="btn-inscription-cours">
+                                        <?php echo esc_html(function_exists('wam_btn_inscription_texte') ? wam_btn_inscription_texte() : 'S\'inscrire'); ?>
+                                        <span class="btn-icon btn-icon--sm"
+                                              style="--icon-url: url('<?php echo esc_url($icon_dir_cta . 'chevron-right.svg'); ?>');"
+                                              aria-hidden="true"></span>
+                                    </a>
+                                <?php endif; ?>
                             <?php endif; ?>
 
                         <?php else: ?>

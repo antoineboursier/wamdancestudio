@@ -1,0 +1,569 @@
+/* =====================================================
+   admin-widget-cours.css — Widgets Dashboard WAM
+   Suivi du remplissage des CPT cours & stages.
+   Scope : [id^="wam-widget-"].wam-widget
+   ===================================================== */
+
+[id^="wam-widget-"].wam-widget {
+    --w-bg: #FBF7EE;
+    --w-card: #FFFFFF;
+    --w-ink: #1D367F;
+    --w-ink-soft: #5F6E9B;
+    --w-line: rgba(29, 54, 127, 0.10);
+    --w-line-2: rgba(29, 54, 127, 0.18);
+    --w-green: #00D6B2;
+    --w-yellow: #F1CE00;
+    --w-orange: #FF6207;
+    --w-pink: #FF74AB;
+    --w-grad: linear-gradient(90deg, #00D6B2 0%, #F1CE00 33%, #FF6207 66%, #FF74AB 100%);
+
+    margin: -12px;
+    padding: 20px 20px 16px;
+    background: var(--w-bg);
+    color: var(--w-ink);
+    font-family: 'Outfit', -apple-system, 'Segoe UI', sans-serif;
+    font-size: 14px;
+    font-weight: 400;
+    line-height: 1.45;
+    border-radius: 0 0 4px 4px;
+}
+
+[id^="wam-widget-"].wam-widget *,
+[id^="wam-widget-"].wam-widget *::before,
+[id^="wam-widget-"].wam-widget *::after {
+    box-sizing: border-box;
+    font-weight: inherit;
+}
+
+[id^="wam-widget-"].wam-widget p,
+[id^="wam-widget-"].wam-widget ul {
+    margin: 0;
+}
+
+[id^="wam-widget-"].wam-widget ul {
+    list-style: none;
+    padding: 0;
+}
+
+/* -------------------------------------------------------
+   HEAD — Donut + totaux
+   ------------------------------------------------------- */
+.wam-widget__head {
+    display: grid;
+    grid-template-columns: 120px 1fr;
+    gap: 20px;
+    align-items: center;
+    padding-bottom: 18px;
+    border-bottom: 1px solid var(--w-line);
+}
+
+.wam-widget__donut {
+    position: relative;
+    width: 120px;
+    height: 120px;
+    animation: wam-fade-up .5s ease both;
+}
+
+.wam-widget__donut-track {
+    fill: none;
+    stroke: var(--w-line-2);
+    stroke-width: 10;
+}
+
+.wam-widget__donut-fill {
+    fill: none;
+    stroke-width: 10;
+    stroke-linecap: round;
+    transition: stroke-dashoffset 1s cubic-bezier(.25, 1, .3, 1);
+    filter: drop-shadow(0 2px 6px rgba(255, 98, 7, 0.25));
+}
+
+.wam-widget__donut-label {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+}
+
+.wam-widget__donut-num {
+    font-size: 34px;
+    line-height: 1;
+    color: var(--w-ink);
+}
+
+.wam-widget__donut-num em {
+    font-style: normal;
+    font-size: 24px;
+    margin-left: 2px;
+}
+
+.wam-widget__donut-cap {
+    font-size: 16px;
+}
+
+/* Totaux */
+.wam-widget__total-num {
+    font-size: 40px;
+    line-height: 1;
+    color: var(--w-ink);
+}
+
+.wam-widget__total-cap {
+    font-size: 24px;
+    text-transform: uppercase;
+    color: var(--w-ink-soft);
+    margin-top: 2px;
+}
+
+.wam-widget__statuses {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px 14px;
+    margin-top: 12px;
+}
+
+.wam-widget__status {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 16px;
+    color: var(--w-ink-soft);
+}
+
+.wam-widget__status-num {
+    color: var(--w-ink);
+    font-variant-numeric: tabular-nums;
+}
+
+.wam-widget__status-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--w-ink-soft);
+    flex-shrink: 0;
+}
+
+.wam-widget__status--publish .wam-widget__status-dot {
+    background: var(--w-green);
+}
+
+.wam-widget__status--draft .wam-widget__status-dot {
+    background: var(--w-yellow);
+}
+
+.wam-widget__status--pending .wam-widget__status-dot {
+    background: var(--w-orange);
+}
+
+.wam-widget__status--future .wam-widget__status-dot {
+    background: var(--w-pink);
+}
+
+.wam-widget__status--private .wam-widget__status-dot {
+    background: var(--w-ink);
+}
+
+/* -------------------------------------------------------
+   GROUPES — barres segmentées
+   ------------------------------------------------------- */
+.wam-widget__groups {
+    padding: 16px 0 4px;
+}
+
+.wam-widget__section-title {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 10px;
+    font-size: 13px;
+    color: var(--w-ink);
+    margin-bottom: 12px;
+}
+
+.wam-widget__scope {
+    font-size: 13px;
+    text-transform: none;
+    color: var(--w-ink-soft);
+}
+
+.wam-widget__bars {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.wam-widget__bar {
+    padding: 16px 20px;
+    background: var(--w-card);
+    border-radius: 10px;
+    animation: wam-fade-up .5s ease both;
+}
+
+.wam-widget__bar:nth-child(1) {
+    animation-delay: .05s;
+}
+
+.wam-widget__bar:nth-child(2) {
+    animation-delay: .10s;
+}
+
+.wam-widget__bar:nth-child(3) {
+    animation-delay: .15s;
+}
+
+.wam-widget__bar:nth-child(4) {
+    animation-delay: .20s;
+}
+
+.wam-widget__bar:nth-child(5) {
+    animation-delay: .25s;
+}
+
+.wam-widget__bar:nth-child(6) {
+    animation-delay: .30s;
+}
+
+.wam-widget__bar:nth-child(7) {
+    animation-delay: .35s;
+}
+
+.wam-widget__bar.is-critical {
+    background:
+        linear-gradient(135deg, rgba(255, 98, 7, 0.06), rgba(255, 116, 171, 0.06)),
+        var(--w-card);
+    border-color: rgba(255, 98, 7, 0.35);
+    box-shadow: 0 4px 16px rgba(255, 98, 7, 0.08);
+    position: relative;
+    overflow: hidden;
+}
+
+.wam-widget__bar.is-critical::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    width: 3px;
+    background: var(--w-grad);
+}
+
+.wam-widget__bar-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 6px;
+}
+
+.wam-widget__bar-label {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 15px;
+    color: var(--w-ink);
+}
+
+.wam-widget__bar-rate {
+    font-size: 13px;
+    color: var(--w-ink);
+    font-variant-numeric: tabular-nums;
+}
+
+.is-critical .wam-widget__bar-rate {
+    color: var(--w-orange);
+}
+
+.wam-widget__bar-track {
+    height: 6px;
+    background: var(--w-line);
+    border-radius: 999px;
+    overflow: hidden;
+    margin-bottom: 4px;
+}
+
+.wam-widget__bar-fill {
+    height: 100%;
+    background: var(--w-ink);
+    border-radius: 999px;
+    transform-origin: left center;
+    animation: wam-grow .8s cubic-bezier(.25, 1, .3, 1) both;
+}
+
+.is-critical .wam-widget__bar-fill {
+    background: var(--w-grad);
+}
+
+.wam-widget__bar-meta {
+    font-size: 13px;
+    color: var(--w-ink-soft);
+    margin-top: 8px;
+    font-variant-numeric: tabular-nums;
+}
+
+/* Détail champ par champ (catégorie Essentiels) */
+.wam-widget__fields {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 4px 12px;
+    margin-top: 10px !important;
+    padding-top: 10px;
+    border-top: 1px dashed var(--w-line);
+}
+
+.wam-widget__field {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 13px;
+    color: var(--w-ink-soft);
+    min-width: 0;
+}
+
+.wam-widget__field-dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    flex-shrink: 0;
+    background: var(--w-ink-soft);
+}
+
+.wam-widget__field.is-full .wam-widget__field-dot {
+    background: var(--w-green);
+}
+
+.wam-widget__field.is-mid .wam-widget__field-dot {
+    background: var(--w-yellow);
+}
+
+.wam-widget__field.is-low .wam-widget__field-dot {
+    background: var(--w-orange);
+}
+
+.wam-widget__field-label {
+    flex: 1 1 auto;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.wam-widget__field-rate {
+    font-variant-numeric: tabular-nums;
+    color: var(--w-ink);
+    flex-shrink: 0;
+}
+
+/* Pulse accent (catégorie WC) */
+.wam-widget__pulse {
+    display: inline-block;
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--w-orange);
+    position: relative;
+    flex-shrink: 0;
+}
+
+.wam-widget__pulse::after {
+    content: '';
+    position: absolute;
+    inset: -4px;
+    border-radius: 50%;
+    border: 2px solid var(--w-orange);
+    opacity: 0;
+    animation: wam-pulse 2s infinite ease-out;
+}
+
+/* -------------------------------------------------------
+   ALERTE — Cours/stages publiés sans lien WC
+   Désormais imbriquée dans la barre « WooCommerce »
+   ------------------------------------------------------- */
+.wam-widget__alert {
+    margin-top: 12px;
+    padding: 10px 12px;
+    border-radius: 8px;
+    background: linear-gradient(135deg, #FFEEDD 0%, #FFDDE8 100%);
+    border: 1px solid rgba(255, 98, 7, 0.3);
+    gap: 16px;
+    display: flex;
+    flex-direction: column;
+}
+
+.wam-widget__alert-head {
+    display: flex;
+    gap: 10px;
+    align-items: flex-start;
+}
+
+.wam-widget__alert-icon {
+    flex-shrink: 0;
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    background: var(--w-orange);
+    color: #fff;
+    font-size: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    line-height: 1;
+    margin-top: 1px;
+}
+
+.wam-widget__alert-title {
+    font-size: 12.5px;
+    color: #8A2E00;
+    line-height: 1.3;
+}
+
+.wam-widget__alert-text {
+    font-size: 13px;
+    color: #8A2E00;
+    opacity: 0.9;
+    margin-top: 2px;
+}
+
+.wam-widget__alert-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 5px;
+    margin-top: 8px;
+    margin-left: 30px;
+}
+
+.wam-widget__alert-list a {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 3px 9px;
+    background: #fff;
+    border: 1px solid rgba(255, 98, 7, 0.35);
+    border-radius: 999px;
+    font-size: 13px;
+    color: var(--w-ink);
+    text-decoration: none;
+    transition: all 0.2s ease;
+}
+
+.wam-widget__alert-list a:hover {
+    background: var(--w-orange);
+    color: #fff;
+    border-color: var(--w-orange);
+    transform: translateY(-1px);
+}
+
+/* -------------------------------------------------------
+   FOOT
+   ------------------------------------------------------- */
+.wam-widget__foot {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    margin-top: 16px;
+    padding-top: 12px;
+    border-top: 1px solid var(--w-line);
+}
+
+.wam-widget__cta {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 8px 14px;
+    background: var(--w-ink);
+    color: #fff;
+    border-radius: 999px;
+    text-decoration: none;
+    font-size: 12.5px;
+    transition: all 0.2s ease;
+    box-shadow: 0 2px 8px rgba(29, 54, 127, 0.25);
+}
+
+.wam-widget__cta:hover {
+    background: var(--w-orange);
+    color: #fff;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(255, 98, 7, 0.35);
+}
+
+.wam-widget__cta span {
+    transition: transform 0.2s ease;
+}
+
+.wam-widget__cta:hover span {
+    transform: translateX(2px);
+}
+
+.wam-widget__ts {
+    font-size: 13px;
+    color: var(--w-ink-soft);
+    font-variant-numeric: tabular-nums;
+}
+
+/* -------------------------------------------------------
+   Animations
+   ------------------------------------------------------- */
+@keyframes wam-fade-up {
+    from {
+        opacity: 0;
+        transform: translateY(6px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes wam-grow {
+    from {
+        transform: scaleX(0);
+    }
+
+    to {
+        transform: scaleX(1);
+    }
+}
+
+@keyframes wam-pulse {
+    0% {
+        transform: scale(1);
+        opacity: 0.8;
+    }
+
+    100% {
+        transform: scale(2.2);
+        opacity: 0;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+
+    [id^="wam-widget-"].wam-widget *,
+    [id^="wam-widget-"].wam-widget *::after {
+        animation: none !important;
+        transition: none !important;
+    }
+}
+
+@media (max-width: 600px) {
+    .wam-widget__head {
+        grid-template-columns: 1fr;
+        text-align: center;
+        justify-items: center;
+    }
+
+    .wam-widget__statuses {
+        justify-content: center;
+    }
+
+    .wam-widget__alert-list {
+        margin-left: 0;
+    }
+
+    .wam-widget__fields {
+        grid-template-columns: 1fr;
+    }
+}

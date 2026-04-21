@@ -79,13 +79,6 @@
     /* 96px marge latérale (UI/section-mx Figma) */
 
     /* -------------------------------------------------------
-       Assets de fond
-       ------------------------------------------------------- */
-    --wam-pattern-dark-url: url('../images/bg_pattern_color_black.svg');
-    /* --wam-pattern-light-url: url('../images/bg_pattern_color_white.svg'); */
-    /* à ajouter quand disponible */
-
-    /* -------------------------------------------------------
        Couleurs sémantiques UI (raccourcis Figma UI/*)
        Les vraies valeurs viennent de --wp--preset--color--*
        Ces alias améliorent la lisibilité dans le code
@@ -104,6 +97,21 @@
     /* UI/accent-tertiary-bg Figma */
     --wam-color-glass-pink: rgba(255, 186, 213, 0.12);
     /* UI/accent-quaternary-bg Figma */
+    --wam-color-glass-orange: rgba(255, 132, 61, 0.12);
+    /* UI/accent-secondary-bg Figma */
+
+    /* Overlays de section et de cartes (par défaut Dark) */
+    --wam-color-overlay-dark: rgba(19, 22, 32, 0.8);
+    --wam-color-overlay-light: rgba(249, 246, 241, 0.9);
+    --wam-color-overlay-photo: rgba(21, 28, 50, 0.7);
+    --wam-color-overlay-photo-hover: rgba(21, 28, 50, 0.5);
+
+    /* -------------------------------------------------------
+       Assets de fond
+       ------------------------------------------------------- */
+    --wam-pattern-url: var(--wam-pattern-dark-url);
+    --wam-pattern-dark-url: url('../images/bg_pattern_color_black.svg');
+    --wam-pattern-light-url: url('../images/bg_pattern_color_white.svg'); 
 
     /* -------------------------------------------------------
        Classes utilitaires forcées pour le Menu Light
@@ -123,12 +131,6 @@
     --wam-color-glass-green: rgba(1, 227, 189, 0.12);
     --wam-color-glass-yellow: rgba(253, 217, 0, 0.10);
     /* UI/accent-secondary-bg Figma */
-
-    /* Overlays de section et de cartes */
-    --wam-color-overlay-dark: rgba(19, 22, 32, 0.8);
-    --wam-color-overlay-light: rgba(249, 246, 241, 0.9);
-    --wam-color-overlay-photo: rgba(21, 28, 50, 0.7);
-    --wam-color-overlay-photo-hover: rgba(21, 28, 50, 0.5);
 
     /* -------------------------------------------------------
        Espacements (Presets WP déportés en tokens pour sécurité)
@@ -170,6 +172,35 @@
     --wam-font-graphical-2: 'Cholo Rhita', sans-serif;
     --wam-font-body: var(--wp--preset--font-family--outfit);
     --wam-font-system: var(--wp--preset--font-family--outfit);
+}
+
+/* =====================================================
+   OVERRIDES THÈME CLAIR (WAM-THEME-LIGHT)
+   ===================================================== */
+html.wam-theme-light {
+    /* Override des couleurs de fond et texte */
+    --wam-color-page-bg: var(--wp--preset--color--background-50); /* Fond très clair */
+    --wam-color-card-bg: var(--wp--preset--color--background-100); /* Cartes légèrement plus grisées */
+    --wam-color-input-bg: #FFFFFF;
+    
+    --wam-color-text: var(--wam-color-on-light-text);
+    --wam-color-subtext: var(--wam-color-on-light-subtext);
+    
+    /* Assets et Patterns */
+    --wam-pattern-url: var(--wam-pattern-light-url);
+    
+    /* Overlays (en mode clair, on peut vouloir des overlays plus clairs ou moins saturés) */
+    --wam-color-overlay-photo: rgba(249, 244, 236, 0.6);
+    --wam-color-overlay-photo-hover: rgba(249, 244, 236, 0.4);
+    
+    /* Glassmorphism en mode clair */
+    --wam-color-glass-white: rgba(29, 54, 127, 0.04);
+    --wam-color-glass-white-hover: rgba(29, 54, 127, 0.08);
+
+    /* Ombres (plus douces en mode clair) */
+    --wam-shadow-sm: 0 4px 12px rgba(29, 54, 127, 0.1);
+    --wam-shadow-md: 0 8px 24px rgba(29, 54, 127, 0.15);
+    --wam-shadow-card: 0 10px 30px rgba(29, 54, 127, 0.12);
 }
 
 @media (max-width: 640px) {

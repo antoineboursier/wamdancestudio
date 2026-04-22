@@ -82,6 +82,36 @@
                 });
                 noMatch.hidden = !(allHidden && activeFilter);
             });
+
+            /* Mobile : si le jour courant n'a aucun cours visible sous le
+               filtre actif, sauter au premier jour qui en a au moins un
+               (évite l'impression qu'il n'y a aucun cours enfant). */
+            jumpToFirstMatchingDay();
+        }
+
+        /* Indique si un panel contient au moins une card visible */
+        function panelHasVisibleCard(panel) {
+            var cards = panel.querySelectorAll('.planning-mobile__card');
+            for (var i = 0; i < cards.length; i++) {
+                if (!cards[i].classList.contains('planning-mobile__card--hidden')) {
+                    return true;
+                }
+            }
+            return false;
+        }
+
+        function jumpToFirstMatchingDay() {
+            if (!activeFilter || !panels || !panels.length) return;
+
+            /* Jour courant déjà rempli → rien à faire */
+            if (panels[currentDay] && panelHasVisibleCard(panels[currentDay])) return;
+
+            for (var i = 0; i < panels.length; i++) {
+                if (panelHasVisibleCard(panels[i])) {
+                    goToDay(i, /* skipScroll */ true);
+                    return;
+                }
+            }
         }
 
         function updateButtons() {
@@ -148,28 +178,31 @@
         var jsDay = new Date().getDay();
         currentDay = jsDay === 0 ? 6 : jsDay - 1;
 
-        function goToDay(index) {
-            currentDay = Math.max(0, Math.min(totalDays - 1, index));
+        function goToDay(index, skipScroll) {
+            /* Boucle infinie : après dimanche → lundi, avant lundi → dimanche.
+               Modulo positif pour gérer les index négatifs proprement. */
+            currentDay = ((index % totalDays) + totalDays) % totalDays;
 
             /* Show/hide panels — hauteur s'adapte au contenu du jour */
             panels.forEach(function (p, i) {
                 p.classList.toggle('is-active', i === currentDay);
             });
 
-            /* Scroll vers le haut de la zone (respecte scroll-margin-top).
-               On masque temporairement le header pour ne pas qu'il
-               réapparaisse pendant ce scroll programmatique. */
-            var header = document.querySelector('.wam-header');
-            if (header) {
-                header.dataset.planningScroll = '1';
-                header.classList.add('header--hidden');
-            }
-            mobileView.scrollIntoView({ behavior: 'smooth', block: 'start' });
-            /* Relâcher le verrou une fois le scroll terminé */
-            if (header) {
-                setTimeout(function () {
-                    delete header.dataset.planningScroll;
-                }, 600);
+            if (!skipScroll) {
+                /* Scroll vers le haut de la zone (respecte scroll-margin-top).
+                   On masque temporairement le header pour ne pas qu'il
+                   réapparaisse pendant ce scroll programmatique. */
+                var header = document.querySelector('.wam-header');
+                if (header) {
+                    header.dataset.planningScroll = '1';
+                    header.classList.add('header--hidden');
+                }
+                mobileView.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                if (header) {
+                    setTimeout(function () {
+                        delete header.dataset.planningScroll;
+                    }, 600);
+                }
             }
 
             /* Label jour */
@@ -182,9 +215,9 @@
                 d.classList.toggle('is-active', i === currentDay);
             });
 
-            /* Flèches */
-            if (prevBtn) prevBtn.disabled = (currentDay === 0);
-            if (nextBtn) nextBtn.disabled = (currentDay === totalDays - 1);
+            /* Flèches : toujours actives en mode boucle */
+            if (prevBtn) prevBtn.disabled = false;
+            if (nextBtn) nextBtn.disabled = false;
         }
 
         /* Init */

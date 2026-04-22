@@ -169,7 +169,7 @@
        Polices graphiques (aliases pour a11y override)
        ------------------------------------------------------- */
     --wam-font-graphical-1: 'Mallia', 'Georgia', serif;
-    --wam-font-graphical-2: 'Cholo Rhita', sans-serif;
+    --wam-font-graphical-2: 'WAM Display', sans-serif;
     --wam-font-body: var(--wp--preset--font-family--outfit);
     --wam-font-system: var(--wp--preset--font-family--outfit);
 }

@@ -260,7 +260,16 @@ function wamv1_decrement_course_quota_on_payment(int $order_id): void
             continue;
 
         $places_res = (int) get_field('places_reservees', $course_id);
-        update_field('places_reservees', $places_res + 1, $course_id);
+        $new_res = $places_res + 1;
+        update_field('places_reservees', $new_res, $course_id);
+
+        // NOUVEAU : Auto-complétion si le quota est atteint
+        $places_totales = (int) get_field('places_totales', $course_id);
+        if ($places_totales > 0 && $new_res >= $places_totales) {
+            update_field('complete_cours', true, $course_id);
+            // On peut ajouter une note à la commande pour info admin
+            $order->add_order_note(sprintf('Quota atteint pour le cours #%d (%s). Inscriptions fermées.', $course_id, get_the_title($course_id)));
+        }
     }
 
     $order->add_meta_data('_wam_quota_decremented', '1', true);
@@ -442,10 +451,18 @@ function wamv1_add_adherent_fields_to_checkout($checkout)
     if (WC()->cart->is_empty())
         return;
 
+    $items = WC()->cart->get_cart();
+    $cart_count = WC()->cart->get_cart_contents_count();
+    $is_solo = ($cart_count === 1);
+
+    // MODE SOLO RADICAL : Si 1 seul cours, pas de section adhérents (on utilise billing)
+    if ($is_solo) {
+        return;
+    }
+
     echo '<div id="wam-adherents-fields" class="wam-adherents-section mt-xl">';
     echo '<h3 class="title-norm-sm color-green mb-md">Les adhérent·es</h3>';
 
-    $items = WC()->cart->get_cart();
     $index = 1;
 
     foreach ($items as $cart_item_key => $cart_item) {
@@ -461,7 +478,8 @@ function wamv1_add_adherent_fields_to_checkout($checkout)
         echo '<div class="wam-adherent-group wam-adherent-card">';
 
         echo '<div class="wam-adherent-card__header">';
-        echo '<p class="text-md mb-0">Participant·e ' . $index . '</p>';
+        $card_title = $is_solo ? 'Informations participant·e' : 'Participant·e ' . $index;
+        echo '<p class="text-md mb-0">' . $card_title . '</p>';
         echo '<div class="wam-adherent-card__course-info text-right">';
         echo '<h4 class="text-md color-yellow fw-bold m-0">' . esc_html($course_title) . '</h4>';
         if ($course_subtitle) {
@@ -473,7 +491,8 @@ function wamv1_add_adherent_fields_to_checkout($checkout)
         // Checkbox d'auto-remplissage PAR participant
         echo '<p class="form-row form-row-wide wam-adherent-auto-fill mb-md">';
         echo '<label class="woocommerce-form__label woocommerce-form__label-for-checkbox checkbox">';
-        echo '<input type="checkbox" class="wam-is-buyer-checkbox woocommerce-form__input woocommerce-form__input-checkbox input-checkbox" name="wam_is_buyer_' . $cart_item_key . '" value="1" /> ';
+        $checked = $is_solo ? 'checked="checked"' : '';
+        echo '<input type="checkbox" class="wam-is-buyer-checkbox woocommerce-form__input woocommerce-form__input-checkbox input-checkbox" name="wam_is_buyer_' . $cart_item_key . '" value="1" ' . $checked . ' /> ';
         echo '<span>Utiliser les informations de l\'adhérent·e principal·e</span>';
         echo '</label>';
         echo '</p>';
@@ -591,35 +610,42 @@ function wamv1_checkout_scripts()
             const urgentNameFact = document.getElementById('billing_urgent_name');
             const urgentPhoneFact = document.getElementById('billing_urgent_phone');
 
-            // Gestion de l'auto-remplissage par participant
             const checkboxes = document.querySelectorAll('.wam-is-buyer-checkbox');
+            if (checkboxes.length === 0) return; // Pas de participants multiples
+
+            const syncFields = (checkbox) => {
+                const card = checkbox.closest('.wam-adherent-card');
+                const prenomInput = card.querySelector('input[name^="wam_prenom_eleve_"]');
+                const nomInput = card.querySelector('input[name^="wam_nom_eleve_"]');
+                const urgentNameInput = card.querySelector('input[name^="wam_urgent_name_1_"]');
+                const urgentPhoneInput = card.querySelector('input[name^="wam_urgent_phone_1_"]');
+
+                if (checkbox.checked) {
+                    // Sauvegarde des anciennes valeurs si vides
+                    if (prenomInput.value && !prenomInput.dataset.oldVal) prenomInput.dataset.oldVal = prenomInput.value;
+                    if (nomInput.value && !nomInput.dataset.oldVal) nomInput.dataset.oldVal = nomInput.value;
+                    
+                    // Copie des infos facturation
+                    prenomInput.value = prenomFact.value;
+                    nomInput.value = nomFact.value;
+                    urgentNameInput.value = urgentNameFact.value;
+                    urgentPhoneInput.value = urgentPhoneFact.value;
+                } else if (prenomInput.dataset.oldVal !== undefined) {
+                    prenomInput.value = prenomInput.dataset.oldVal || '';
+                    nomInput.value = nomInput.dataset.oldVal || '';
+                    urgentNameInput.value = urgentNameInput.dataset.oldVal || '';
+                    urgentPhoneInput.value = urgentPhoneInput.dataset.oldVal || '';
+                }
+            };
 
             checkboxes.forEach(checkbox => {
-                checkbox.addEventListener('change', function () {
-                    const card = this.closest('.wam-adherent-card');
-                    const prenomInput = card.querySelector('input[name^="wam_prenom_eleve_"]');
-                    const nomInput = card.querySelector('input[name^="wam_nom_eleve_"]');
-                    const urgentNameInput = card.querySelector('input[name^="wam_urgent_name_1_"]');
-                    const urgentPhoneInput = card.querySelector('input[name^="wam_urgent_phone_1_"]');
+                // État initial (pour le mode solo auto-coché)
+                if (checkbox.checked) {
+                    setTimeout(() => syncFields(checkbox), 100); // Petit délai pour laisser WC peupler billing
+                }
 
-                    if (this.checked) {
-                        // Sauvegarde des anciennes valeurs
-                        prenomInput.dataset.oldVal = prenomInput.value;
-                        nomInput.dataset.oldVal = nomInput.value;
-                        urgentNameInput.dataset.oldVal = urgentNameInput.value;
-                        urgentPhoneInput.dataset.oldVal = urgentPhoneInput.value;
-                        
-                        // Copie des infos facturation
-                        prenomInput.value = prenomFact.value;
-                        nomInput.value = nomFact.value;
-                        urgentNameInput.value = urgentNameFact.value;
-                        urgentPhoneInput.value = urgentPhoneFact.value;
-                    } else {
-                        prenomInput.value = prenomInput.dataset.oldVal || '';
-                        nomInput.value = nomInput.dataset.oldVal || '';
-                        urgentNameInput.value = urgentNameInput.dataset.oldVal || '';
-                        urgentPhoneInput.value = urgentPhoneInput.dataset.oldVal || '';
-                    }
+                checkbox.addEventListener('change', function () {
+                    syncFields(this);
                 });
 
                 // Si l'utilisateur modifie manuellement, on décoche l'unification
@@ -647,10 +673,10 @@ function wamv1_checkout_scripts()
                                 const urgentNameInput = card.querySelector('input[name^="wam_urgent_name_1_"]');
                                 const urgentPhoneInput = card.querySelector('input[name^="wam_urgent_phone_1_"]');
 
-                                prenomInput.value = prenomFact.value;
-                                nomInput.value = nomFact.value;
-                                urgentNameInput.value = urgentNameFact.value;
-                                urgentPhoneInput.value = urgentPhoneFact.value;
+                                if (prenomInput && prenomFact) prenomInput.value = prenomFact.value;
+                                if (nomInput && nomFact) nomInput.value = nomFact.value;
+                                if (urgentNameInput && urgentNameFact) urgentNameInput.value = urgentNameFact.value;
+                                if (urgentPhoneInput && urgentPhoneFact) urgentPhoneInput.value = urgentPhoneFact.value;
                             }
                         });
                     });
@@ -667,8 +693,23 @@ add_action('woocommerce_checkout_process', 'wamv1_validate_adherent_fields');
 function wamv1_validate_adherent_fields()
 {
     $items = WC()->cart->get_cart();
-    $index = 1;
+    $cart_count = WC()->cart->get_cart_contents_count();
+    $is_solo = ($cart_count === 1);
 
+    // 1. Validation du contact d'urgence Billing (commun à tous les modes)
+    if (empty($_POST['billing_urgent_name'])) {
+        wc_add_notice('Le contact d\'urgence pour l\'adhérent·e principal·e est obligatoire.', 'error');
+    }
+    if (empty($_POST['billing_urgent_phone'])) {
+        wc_add_notice('Le téléphone du contact d\'urgence pour l\'adhérent·e principal·e est obligatoire.', 'error');
+    } elseif (!preg_match('/^[0-9\s\.\-\+\(\)]+$/', $_POST['billing_urgent_phone'])) {
+        wc_add_notice('Le numéro de téléphone d\'urgence (adhérent·e principal·e) n\'est pas valide.', 'error');
+    }
+
+    // 2. Validation des participants (si multi)
+    if ($is_solo) return;
+
+    $index = 1;
     foreach ($items as $cart_item_key => $cart_item) {
         $product = wc_get_product($cart_item['product_id']);
         if (!$product)
@@ -712,25 +753,50 @@ add_action('woocommerce_checkout_create_order_line_item', 'wamv1_save_adherent_t
 
 function wamv1_save_adherent_to_order_items($item, $cart_item_key, $values, $order)
 {
-    if (isset($_POST['wam_prenom_eleve_' . $cart_item_key])) {
-        $item->add_meta_data('Prénom', sanitize_text_field($_POST['wam_prenom_eleve_' . $cart_item_key]), true);
-    }
-    if (isset($_POST['wam_nom_eleve_' . $cart_item_key])) {
-        $item->add_meta_data('Nom', sanitize_text_field($_POST['wam_nom_eleve_' . $cart_item_key]), true);
-    }
+    $cart_count = WC()->cart->get_cart_contents_count();
+    $is_solo = ($cart_count === 1);
 
-    // Contacts Urgence
-    if (isset($_POST['wam_urgent_name_1_' . $cart_item_key])) {
-        $item->add_meta_data('Urgence 1 - Nom', sanitize_text_field($_POST['wam_urgent_name_1_' . $cart_item_key]), true);
+    if ($is_solo) {
+        // En mode solo, on tire les infos directement de la facturation (billing)
+        $item->add_meta_data('Prénom', sanitize_text_field($_POST['billing_first_name'] ?? ''), true);
+        $item->add_meta_data('Nom', sanitize_text_field($_POST['billing_last_name'] ?? ''), true);
+        $item->add_meta_data('Urgence 1 - Nom', sanitize_text_field($_POST['billing_urgent_name'] ?? ''), true);
+        $item->add_meta_data('Urgence 1 - Tél', sanitize_text_field($_POST['billing_urgent_phone'] ?? ''), true);
+    } else {
+        // Mode Multi-participants
+        if (isset($_POST['wam_prenom_eleve_' . $cart_item_key])) {
+            $item->add_meta_data('Prénom', sanitize_text_field($_POST['wam_prenom_eleve_' . $cart_item_key]), true);
+        }
+        if (isset($_POST['wam_nom_eleve_' . $cart_item_key])) {
+            $item->add_meta_data('Nom', sanitize_text_field($_POST['wam_nom_eleve_' . $cart_item_key]), true);
+        }
+
+        // Contacts Urgence Participant
+        if (isset($_POST['wam_urgent_name_1_' . $cart_item_key])) {
+            $item->add_meta_data('Urgence 1 - Nom', sanitize_text_field($_POST['wam_urgent_name_1_' . $cart_item_key]), true);
+        }
+        if (isset($_POST['wam_urgent_phone_1_' . $cart_item_key])) {
+            $item->add_meta_data('Urgence 1 - Tél', sanitize_text_field($_POST['wam_urgent_phone_1_' . $cart_item_key]), true);
+        }
+        if (isset($_POST['wam_urgent_name_2_' . $cart_item_key]) && !empty($_POST['wam_urgent_name_2_' . $cart_item_key])) {
+            $item->add_meta_data('Urgence 2 - Nom', sanitize_text_field($_POST['wam_urgent_name_2_' . $cart_item_key]), true);
+        }
+        if (isset($_POST['wam_urgent_phone_2_' . $cart_item_key]) && !empty($_POST['wam_urgent_phone_2_' . $cart_item_key])) {
+            $item->add_meta_data('Urgence 2 - Tél', sanitize_text_field($_POST['wam_urgent_phone_2_' . $cart_item_key]), true);
+        }
     }
-    if (isset($_POST['wam_urgent_phone_1_' . $cart_item_key])) {
-        $item->add_meta_data('Urgence 1 - Tél', sanitize_text_field($_POST['wam_urgent_phone_1_' . $cart_item_key]), true);
+}
+
+/**
+ * 5. Sauvegarder les contacts d'urgence de facturation dans les méta de commande "propres"
+ */
+add_action('woocommerce_checkout_update_order_meta', 'wamv1_save_billing_emergency_to_order_meta');
+function wamv1_save_billing_emergency_to_order_meta($order_id) {
+    if (!empty($_POST['billing_urgent_name'])) {
+        update_post_meta($order_id, 'Contact Urgence - Nom', sanitize_text_field($_POST['billing_urgent_name']));
     }
-    if (isset($_POST['wam_urgent_name_2_' . $cart_item_key]) && !empty($_POST['wam_urgent_name_2_' . $cart_item_key])) {
-        $item->add_meta_data('Urgence 2 - Nom', sanitize_text_field($_POST['wam_urgent_name_2_' . $cart_item_key]), true);
-    }
-    if (isset($_POST['wam_urgent_phone_2_' . $cart_item_key]) && !empty($_POST['wam_urgent_phone_2_' . $cart_item_key])) {
-        $item->add_meta_data('Urgence 2 - Tél', sanitize_text_field($_POST['wam_urgent_phone_2_' . $cart_item_key]), true);
+    if (!empty($_POST['billing_urgent_phone'])) {
+        update_post_meta($order_id, 'Contact Urgence - Tél', sanitize_text_field($_POST['billing_urgent_phone']));
     }
 }
 

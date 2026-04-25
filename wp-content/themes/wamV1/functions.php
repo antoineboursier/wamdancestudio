@@ -292,8 +292,10 @@ add_action('wp_enqueue_scripts', 'wamv1_scripts');
 // -------------------------------------------------------
 function wamv1_preload_fonts()
 {
-    $font_url = get_template_directory_uri() . '/fonts/Outfit-VariableFont_wght.woff2';
-    echo '<link rel="preload" href="' . esc_url($font_url) . '" as="font" type="font/woff2" crossorigin>' . "\n";
+    $font_dir = get_template_directory_uri() . '/fonts/';
+    echo '<link rel="preload" href="' . esc_url($font_dir . 'Outfit-VariableFont_wght.woff2') . '" as="font" type="font/woff2" crossorigin>' . "\n";
+    echo '<link rel="preload" href="' . esc_url($font_dir . 'WAMFont-Regular.woff2') . '" as="font" type="font/woff2" crossorigin>' . "\n";
+    echo '<link rel="preload" href="' . esc_url($font_dir . 'Mallia.woff2') . '" as="font" type="font/woff2" crossorigin>' . "\n";
 }
 add_action('wp_head', 'wamv1_preload_fonts', 1);
 

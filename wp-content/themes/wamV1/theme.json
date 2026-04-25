@@ -80,12 +80,12 @@
                     ]
                 },
                 {
-                    "fontFamily": "'WAM Display', sans-serif",
+                    "fontFamily": "'Cholo Rhita', sans-serif",
                     "name": "Cholo Rhita",
                     "slug": "cholo-rhita",
                     "fontFace": [
                         {
-                            "fontFamily": "WAM Display",
+                            "fontFamily": "Cholo Rhita",
                             "fontWeight": "400",
                             "fontStyle": "normal",
                             "fontDisplay": "swap",

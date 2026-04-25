@@ -278,7 +278,7 @@ html.wam-theme-light .wam-a11y-panel__footer {
 /* --- Polices graphiques désactivées --- */
 html.wam-no-graphical-fonts {
     --font-mallia: var(--wp--preset--font-family--outfit);
-    --font-cholo-rhita: var(--wp--preset--font-family--outfit);
+    --font-wam-font: var(--wp--preset--font-family--outfit);
 }
 
 html.wam-no-graphical-fonts h1,

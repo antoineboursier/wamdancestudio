@@ -18,7 +18,7 @@
  *   type_format      (radio)   — type_stage | type_atel | type_wshop
  *   tarifs           (group)   — tarif_1, tarif_2, tarif_3
  *
- * Variante enfant : terme slug 'enfants' → titre Cholo Rhita (title-cool-lg), icônes colorées
+ * Variante enfant : terme slug 'enfants' → titre WAM Font (title-cool-lg), icônes colorées
  *
  * @package wamv1
  */
@@ -167,7 +167,7 @@ get_header();
                         <span
                             class="stage-badge-type text-xs fw-bold <?php echo $badge_color; ?>"><?php echo esc_html($badge_label); ?></span>
 
-                        <!-- Titre — variante enfant = Cholo Rhita, adulte = Mallia -->
+                        <!-- Titre — variante enfant = WAM Font, adulte = Mallia -->
                         <h1
                             class="page-hero__title has-accent-yellow-color <?php echo $is_enfant ? 'title-cool-lg page-hero__title--enfant' : 'title-sign-lg'; ?>">
                             <?php the_title(); ?>

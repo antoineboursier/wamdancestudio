@@ -473,7 +473,7 @@
     background-color: var(--wam-color-subtext);
 }
 
-/* Le titre utilise .is-style-title-cool-md (Cholo Rhita 36px) */
+/* Le titre utilise .is-style-title-cool-md (WAM Font 36px) */
 
 .cours-categorie__grid {
     display: flex;
@@ -807,7 +807,7 @@
    (structure commune dans layout.css)
    ===================================================== */
 
-/* Variante typographique enfant — Cholo Rhita 68px */
+/* Variante typographique enfant — WAM Font 68px */
 .page-hero__title--enfant {
     font-family: var(--wam-font-graphical-2);
     font-size: 68px;
@@ -1209,7 +1209,7 @@
     color: var(--wam-color-text);
 }
 
-/* Titre étape — Cholo Rhita 36px */
+/* Titre étape — WAM Font 36px */
 .cours-etape__title {
     color: var(--wam-color-yellow);
     text-align: center;

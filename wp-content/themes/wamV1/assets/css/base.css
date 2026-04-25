@@ -379,7 +379,7 @@ p {
     line-height: 1.1;
 }
 
-/* Title Cool — Cholo Rhita */
+/* Title Cool — WAM Font */
 .is-style-title-cool-lg,
 .wam-prose .is-style-title-cool-lg {
     font-family: var(--wam-font-graphical-2);
@@ -653,7 +653,7 @@ html.wam-reduce-motion *::after {
 
 /**
  * Page EVJF / EVG Animation Danse
- * On force la police Cholo Rhita via la nouvelle classe de slug.
+ * On force la police WAM Font via la nouvelle classe de slug.
  */
 .page-slug-evjf-evg-animation-danse h1,
 .page-slug-evjf-evg-animation-danse .page-hero__title {

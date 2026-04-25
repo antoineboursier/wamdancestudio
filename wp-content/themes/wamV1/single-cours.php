@@ -3,7 +3,7 @@
  * Template for single cours CPT
  *
  * Variant detection :
- *   enfant  — terme slug 'enfants' dans la taxonomie cat_cours → Cholo Rhita 68px, jour vert
+ *   enfant  — terme slug 'enfants' dans la taxonomie cat_cours → WAM Font 68px, jour vert
  *   adulte  — défaut → Mallia 46px (title-sign-lg), jour blanc
  *
  * Taxonomie : cat_cours (assignée à Cours et Stage via ACF)

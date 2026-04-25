@@ -23,7 +23,7 @@ $icon_dir = get_template_directory_uri() . '/assets/images/';
             <p class="section-signature__text-mallia title-sign-lg">
                 <?php _e('A bientôt<br>sur le parquet !', 'wamv1'); ?>
             </p>
-            <p class="section-signature__text-cholo title-cool-lg color-yellow">
+            <p class="section-signature__text-graphical title-cool-lg color-yellow">
                 <?php _e('L’équipe wam', 'wamv1'); ?>
             </p>
         </div>

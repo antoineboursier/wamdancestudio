@@ -162,14 +162,14 @@
     --wam-font-size-h1: 46px;   /* Mallia LG */
     --wam-font-size-h2: 32px;   /* Mallia MD / Outfit Bold */
     --wam-font-size-h3: 24px;   /* Mallia SM */
-    --wam-font-size-display-lg: 48px; /* Cholo Rhita LG — title-cool-lg */
-    --wam-font-size-display-md: 36px; /* Cholo Rhita MD — title-cool-md */
+    --wam-font-size-display-lg: 48px; /* WAM Font LG — title-cool-lg */
+    --wam-font-size-display-md: 36px; /* WAM Font MD — title-cool-md */
 
     /* -------------------------------------------------------
        Polices graphiques (aliases pour a11y override)
        ------------------------------------------------------- */
     --wam-font-graphical-1: 'Mallia', 'Georgia', serif;
-    --wam-font-graphical-2: 'Cholo Rhita', sans-serif;
+    --wam-font-graphical-2: 'WAM Font', sans-serif;
     --wam-font-body: var(--wp--preset--font-family--outfit);
     --wam-font-system: var(--wp--preset--font-family--outfit);
 }

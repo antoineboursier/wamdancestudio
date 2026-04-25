@@ -14,7 +14,7 @@
  *   dernieres_places (true_false) — badge jaune "Dernières places" (optionnel)
  *
  * Variante enfant : terme slug 'danse-enfant' dans cat_cours
- *   → titre en Cholo Rhita (is-style-title-cool-md)
+ *   → titre en WAM Font (is-style-title-cool-md)
  *
  * @package wamv1
  */

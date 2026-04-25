@@ -59,7 +59,7 @@ $icon_dir  = get_template_directory_uri() . '/assets/images/';
                 </span>
             </label>
             <p class="a11y-group__desc">
-                <?php esc_html_e('Remplace Mallia et Cholo Rhita par Outfit (lecture facilitée).', 'wamv1'); ?>
+                <?php esc_html_e('Remplace Mallia et WAM Font par Outfit (lecture facilitée).', 'wamv1'); ?>
             </p>
         </fieldset>
 

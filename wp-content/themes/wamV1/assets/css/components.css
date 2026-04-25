@@ -2589,7 +2589,7 @@ html.wam-no-graphical-fonts .title-sign-sm {
 
 .wam-price-card__price {
     font-family: var(--wam-font-title-cool);
-    /* Cholo Rhita fallback */
+    /* WAM Font fallback */
     font-weight: normal;
     color: var(--wam-color-subtext);
 }

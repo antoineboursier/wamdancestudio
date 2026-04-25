@@ -52,7 +52,7 @@ $icon_dir = get_template_directory_uri() . '/assets/images/';
             <?php /* Corps */ ?>
             <div class="card-article__body">
 
-                <?php /* Titre : Cholo Rhita vert */ ?>
+                <?php /* Titre : WAM Font vert */ ?>
                 <h2 class="card-article__title">
                     <?php the_title(); ?>
                 </h2>

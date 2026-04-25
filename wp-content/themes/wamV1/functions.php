@@ -107,7 +107,7 @@ function wamv1_register_text_styles()
     register_block_style('core/paragraph', ['name' => 'title-norm-md', 'label' => 'Title Norm MD']);
     register_block_style('core/paragraph', ['name' => 'title-norm-sm', 'label' => 'Title Norm SM']);
 
-    // Title Cool — Cholo Rhita
+    // Title Cool — WAM Font
     register_block_style('core/paragraph', ['name' => 'title-cool-lg', 'label' => 'Title Cool LG']);
     register_block_style('core/paragraph', ['name' => 'title-cool-md', 'label' => 'Title Cool MD']);
 

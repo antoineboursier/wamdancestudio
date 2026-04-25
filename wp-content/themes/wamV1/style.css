@@ -23,7 +23,7 @@ body {
    Ne pas recréer ces propriétés inline, utiliser les classes.
    ===================================================== */
 
-/* --- Titres "Cool" (Cholo Rhita) --- */
+/* --- Titres "Cool" (WAM Font) --- */
 .title-cool-md {
     font-family: var(--wam-font-graphical-2);
     font-size: var(--wam-font-size-display-md);

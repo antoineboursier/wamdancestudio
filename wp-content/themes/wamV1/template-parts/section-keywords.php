@@ -2,7 +2,7 @@
 /**
  * Template Part : Section Keywords animée — Variante "Cursive Live"
  * Boucle infinie sur les mots (les mots se répètent en cycle sans fin).
- * Polices exactes Figma : .kw-mallia = Mallia 46px / .kw-cholo = Cholo Rhita 68px / .kw-outfit = Outfit 59px
+ * Polices exactes Figma : .kw-mallia = Mallia 46px / .kw-wam = WAM Font 68px / .kw-outfit = Outfit 59px
  *
  * @package wamv1
  */

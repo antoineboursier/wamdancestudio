@@ -40,7 +40,7 @@
 .woocommerce ul.products li.product .woocommerce-loop-product__title {
     font-family: var(--wam-font-body);
     font-size: 1.25rem;
-    font-weight: 700;
+    font-weight: bold;
     padding: var(--wam-spacing-md) var(--wam-spacing-md) 0;
     color: var(--wam-color-text);
 }
@@ -60,7 +60,7 @@
     background-color: var(--wam-color-yellow);
     color: var(--wam-color-on-light-text);
     font-family: var(--wam-font-body);
-    font-weight: 700;
+    font-weight: bold;
     border-radius: var(--wam-radius-pill);
     padding: 12px 24px;
     border: none;
@@ -73,6 +73,40 @@
 .woocommerce input.button:hover {
     background-color: var(--wam-color-text);
     color: var(--wam-color-page-bg);
+}
+
+/* -------------------------------------------------------
+   Multi-Tarifs Stages
+   ------------------------------------------------------- */
+.stage-tarifs-buttons {
+    display: flex;
+    flex-direction: column;
+    gap: var(--wam-spacing-sm);
+    margin-top: var(--wam-spacing-md);
+}
+
+.btn-stage-item {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--wam-spacing-sm);
+    transition: all var(--wam-transition);
+}
+
+/* Hover géré par .btn-primary */
+
+.btn-stage-item .btn-label strong {
+    display: block;
+    color: var(--wam-color-yellow);
+    font-size: 1.1rem;
+}
+
+.btn-inscription.is-complet {
+    opacity: 0.5;
+    cursor: not-allowed;
+    background: var(--wam-color-input-bg) !important;
+    color: var(--wam-color-subtext) !important;
+    border: 1px dashed var(--wam-color-subtext) !important;
+    justify-content: center;
 }
 
 /* Notifications "Toast" 🚀 */
@@ -121,6 +155,237 @@
     box-shadow: 0 10px 40px rgba(0, 0, 0, 0.4) !important;
     animation: toast-slide-in 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards,
         toast-fade-out 0.5s 15s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+/* -------------------------------------------------------
+   Modal de Réservation Stages
+   ------------------------------------------------------- */
+.wam-modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 10000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+    visibility: hidden;
+    transition: all 0.3s ease;
+}
+
+.wam-modal.is-open {
+    opacity: 1;
+    visibility: visible;
+}
+
+.wam-modal__overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.8);
+    backdrop-filter: blur(4px);
+}
+
+.wam-modal__container {
+    position: relative;
+    width: 90%;
+    max-width: 600px;
+    background: var(--wam-color-card-bg);
+    border: 1px solid var(--wam-color-input-bg);
+    border-radius: var(--wam-radius-xl);
+    padding: var(--wam-spacing-xl);
+    box-shadow: var(--wam-shadow-lg);
+    transform: translateY(20px);
+    transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+    overflow: hidden;
+    z-index: 10;
+    display: flex;
+    flex-direction: column;
+    max-height: 90vh;
+    box-sizing: border-box;
+}
+
+@media (max-width: 640px) {
+    .wam-modal {
+        align-items: flex-end;
+    }
+
+    .wam-modal__container {
+        width: 100%;
+        max-width: 100%;
+        border-radius: var(--wam-radius-xl) var(--wam-radius-xl) 0 0;
+        transform: translateY(100%);
+        padding: var(--wam-spacing-xl) var(--wam-spacing-lg);
+    }
+
+    .wam-modal.is-open .wam-modal__container {
+        transform: translateY(0);
+    }
+}
+
+.wam-modal__handle {
+    display: none;
+}
+
+@media (max-width: 640px) {
+    .wam-modal__handle {
+        display: block;
+        width: 40px;
+        height: 4px;
+        background: var(--wam-color-input-bg);
+        border-radius: var(--wam-radius-pill);
+        margin: 0 auto var(--wam-spacing-md);
+        flex-shrink: 0;
+    }
+}
+
+.wam-modal__particles {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    overflow: hidden;
+    z-index: 1;
+}
+
+.wam-modal__content {
+    position: relative;
+    z-index: 1;
+    overflow-y: auto;
+    flex: 1;
+    /* Pour permettre le scroll si le contenu dépasse */
+    padding-right: var(--wam-spacing-xs);
+    /* Petit padding pour ne pas coller à la scrollbar */
+}
+
+/* Personnalisation de la scrollbar pour la modal */
+.wam-modal__content::-webkit-scrollbar {
+    width: 4px;
+}
+
+.wam-modal__content::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+.wam-modal__content::-webkit-scrollbar-thumb {
+    background: var(--wam-color-input-bg);
+    border-radius: var(--wam-radius-pill);
+}
+
+.wam-modal.is-open .wam-modal__container {
+    transform: translateY(0);
+}
+
+.wam-modal__close {
+    position: absolute;
+    top: var(--wam-spacing-md);
+    right: var(--wam-spacing-md);
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    color: var(--wam-color-text);
+    z-index: 10;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: var(--wam-spacing-xs);
+}
+
+.wam-modal__close .btn-icon {
+    width: 16px;
+    height: 16px;
+}
+
+.wam-modal__title {
+    position: relative;
+    z-index: 1;
+    margin-top: 0;
+    margin-bottom: var(--wam-spacing-lg);
+    font-family: var(--wam-font-graphical-1);
+    color: var(--wam-color-yellow);
+    font-weight: normal;
+}
+
+.wam-modal__footer {
+    position: relative;
+    z-index: 1;
+}
+
+/* Items de tarifs dans la modal */
+.wam-tarif-selector-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: var(--wam-spacing-md) 0;
+    border-bottom: 1px solid var(--wam-color-input-bg);
+    flex-wrap: wrap;
+    gap: var(--wam-spacing-sm);
+}
+
+.wam-tarif-selector-item:last-child {
+    border-bottom: none;
+    margin-bottom: var(--wam-spacing-lg);
+}
+
+.wam-tarif-info strong {
+    display: block;
+}
+
+/* Sélecteur de quantité +/- */
+.wam-qty-selector {
+    display: flex;
+    align-items: center;
+    gap: var(--wam-spacing-xs);
+    background: var(--wam-color-input-bg);
+    border-radius: var(--wam-radius-pill);
+    padding: 4px;
+}
+
+.wam-qty-btn-circle {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    border: 1px solid rgba(249, 244, 236, 0.1);
+    background: var(--wam-color-card-bg);
+    color: var(--wam-color-text);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    font-weight: bold;
+    transition: all 0.2s ease;
+}
+
+.wam-qty-btn-circle:hover:not(:disabled) {
+    background: var(--wam-color-yellow);
+    color: var(--wam-color-on-light-text);
+    border-color: var(--wam-color-yellow);
+}
+
+.wam-qty-btn-circle:disabled {
+    opacity: 0.3;
+    cursor: not-allowed;
+}
+
+.wam-qty-value {
+    width: 30px;
+    text-align: center;
+    font-weight: bold;
+    font-size: 1.1rem;
+}
+
+.wam-modal__footer {
+    display: flex;
+    flex-direction: column;
+    gap: var(--wam-spacing-md);
+}
+
+.btn-confirm-booking {
+    width: 100%;
+    justify-content: center;
 }
 
 /* Bouton de fermeture du Toast */
@@ -403,6 +668,7 @@
 .wam-cart-card__type-subtitle {
     margin-top: 4px;
     display: flex;
+    flex-direction: column;
 }
 
 .wam-cart-card__subtitle {
@@ -612,7 +878,7 @@
 .wam-cart-summary .order-total {
     border-bottom: none;
     font-size: 18px;
-    font-weight: 700;
+    font-weight: bold;
     padding-top: var(--wam-spacing-md);
 }
 
@@ -634,7 +900,7 @@
     background-color: var(--wam-color-yellow);
     color: var(--wam-color-on-light-text) !important;
     font-family: var(--wam-font-body);
-    font-weight: 700;
+    font-weight: bold;
     font-size: var(--wam-font-size-sm);
     border-radius: var(--wam-radius-pill);
     padding: 14px 28px;
@@ -777,7 +1043,7 @@ input#coupon_code {
 }
 
 .woocommerce-checkout .woocommerce-checkout-review-order-table .order-total td {
-    font-weight: 700;
+    font-weight: bold;
     color: var(--wam-color-yellow);
     border-bottom: none;
 }
@@ -791,6 +1057,14 @@ input#coupon_code {
     color: var(--wam-color-text);
     font-weight: 600;
     cursor: pointer;
+    padding-left: 0;
+}
+
+.woocommerce-checkout #payment .payment_methods li label input {
+    margin: 0;
+    width: 16px;
+    height: 16px;
+    margin-right: 8px !important;
 }
 
 /* Bouton "Commander" (tous gateways : Hello Asso, etc.) — pleine largeur */
@@ -1365,7 +1639,7 @@ button.show-password-input.display-password::after {
     border-radius: var(--wam-radius-lg);
     color: var(--wp--preset--color--background-500) !important;
     font-family: var(--wam-font-body);
-    font-weight: 700;
+    font-weight: bold;
     font-size: 1.25rem;
     /* même que btn-primary */
     text-decoration: none;
@@ -1483,8 +1757,7 @@ button.show-password-input.display-password::after {
 }
 
 .wam-cart-empty__icon {
-    width: 80px;
-    height: 80px;
+    margin-bottom: 24px;
 }
 
 .wam-cart-empty__message {
@@ -1670,7 +1943,7 @@ p:has(label[for="mailpoet_woocommerce_checkout_optin"]) {
 .wam-emergency-block__title {
     color: var(--wam-color-pink) !important;
     font-size: var(--wam-font-size-xs);
-    font-weight: 700;
+    font-weight: bold;
     margin-bottom: var(--wam-spacing-sm);
     display: flex;
     align-items: center;
@@ -1747,4 +2020,164 @@ p:has(label[for="mailpoet_woocommerce_checkout_optin"]) {
 
 .woocommerce-privacy-policy-text {
     padding: var(--wam-spacing-md) 0;
+    color: var(--wam-color-subtext);
+    font-size: var(--wam-font-size-sm);
+}
+
+/* =====================================================
+   TUNNEL DE COMPTE (.wam-account-login)
+   ===================================================== */
+.wam-account-login {
+    max-width: 1000px;
+    margin: 0 auto;
+    padding: var(--wam-spacing-xl) 0;
+}
+
+.wam-account-login--tunnel {
+    display: grid;
+    grid-template-columns: 1fr 340px;
+    gap: var(--wam-spacing-3xl);
+    align-items: start;
+}
+
+@media (max-width: 1024px) {
+    .wam-account-login--tunnel {
+        grid-template-columns: 1fr;
+    }
+}
+
+/* Bandeau tunnel */
+.wam-tunnel-banner {
+    grid-column: 1 / -1;
+    background: var(--wam-color-glass-green);
+    border: 1px solid var(--wam-color-green);
+    border-radius: var(--wam-radius-xl);
+    padding: var(--wam-spacing-xl);
+    margin-bottom: var(--wam-spacing-xl);
+}
+
+/* Récapitulatif panier tunnel */
+.wam-tunnel-cart {
+    background: var(--wam-color-card-bg);
+    border: 1px solid var(--wam-color-input-bg);
+    border-radius: var(--wam-radius-xl);
+    padding: var(--wam-spacing-xl);
+    position: sticky;
+    top: calc(var(--wam-nav-height) + var(--wam-spacing-xl));
+}
+
+.wam-tunnel-cart__list {
+    list-style: none;
+    padding: 0;
+    margin: 0 0 var(--wam-spacing-xl) 0;
+    display: flex;
+    flex-direction: column;
+    gap: var(--wam-spacing-md);
+}
+
+.wam-tunnel-cart__item {
+    display: flex;
+    justify-content: space-between;
+    gap: var(--wam-spacing-sm);
+    padding-bottom: var(--wam-spacing-sm);
+    border-bottom: 1px solid var(--wam-color-input-bg);
+}
+
+.wam-tunnel-cart__meta {
+    display: flex;
+    flex-direction: column;
+}
+
+.wam-tunnel-cart__total {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    padding-top: var(--wam-spacing-md);
+    border-top: 2px solid var(--wam-color-input-bg);
+}
+
+/* Colonnes Login/Register */
+.wam-account-login__columns {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: var(--wam-spacing-3xl);
+}
+
+@media (max-width: 768px) {
+    .wam-account-login__columns {
+        grid-template-columns: 1fr;
+        gap: var(--wam-spacing-xl);
+    }
+}
+
+.wam-account-login__col {
+    background: var(--wam-color-card-bg);
+    border: 1px solid var(--wam-color-input-bg);
+    border-radius: var(--wam-radius-xl);
+    padding: var(--wam-spacing-xl);
+}
+
+.wam-account-login__col h2 {
+    margin-top: 0;
+}
+
+.woocommerce-form-login__rememberme {
+    display: block;
+    margin-bottom: var(--wam-spacing-md) !important;
+}
+
+.woocommerce-form-login__submit,
+.woocommerce-form-register__submit {
+    width: fit-content;
+    margin: var(--wam-spacing-md) auto 0;
+    display: flex;
+}
+
+.lost_password {
+    margin-top: var(--wam-spacing-md);
+    text-align: center;
+}
+
+/* Styles récap panier tunnel */
+.wam-tunnel-cart__list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.wam-tunnel-cart__item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: var(--wam-spacing-md);
+    padding: var(--wam-spacing-md) 0;
+    border-bottom: 1px solid var(--wam-color-input-bg);
+}
+
+.wam-tunnel-cart__item:last-child {
+    border-bottom: none;
+}
+
+.wam-tunnel-cart__item-info {
+    flex: 1;
+}
+
+.wam-tunnel-cart__total {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+/* Champs d'inscription personnalisés */
+.wam-registration-fields {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: var(--wam-spacing-md);
+    margin-bottom: var(--wam-spacing-md);
+}
+
+@media (max-width: 600px) {
+    .wam-registration-fields {
+        grid-template-columns: 1fr;
+    }
 }

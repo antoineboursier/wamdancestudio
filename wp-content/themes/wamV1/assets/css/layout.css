@@ -18,6 +18,7 @@
     flex-direction: column;
     align-items: center;
     padding-bottom: var(--wam-spacing-2xl);
+    overflow-x: hidden;
 }
 
 /* Pages article/page : padding bas supplémentaire (single.php uniquement) */

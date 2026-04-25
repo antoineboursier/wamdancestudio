@@ -78,7 +78,13 @@ defined( 'ABSPATH' ) || exit;
 					<div class="wam-order-item__titles">
 						<h3 class="wam-order-item__title text-sm fw-bold"><?php echo esc_html( $display_title ); ?></h3>
 						<?php if ( $course_subtitle ) : ?>
-							<span class="wam-order-item__subtitle text-xs color-subtext"><?php echo esc_html( $course_subtitle ); ?></span>
+							<span class="wam-order-item__subtitle text-xs color-subtext d-block"><?php echo esc_html( $course_subtitle ); ?></span>
+						<?php endif; ?>
+						<?php 
+						$wam_tarif_label = $cart_item['wam_tarif_label'] ?? null;
+						$is_stage = $course_id && get_post_type( $course_id ) === 'stages';
+						if ( $wam_tarif_label && $is_stage ) : ?>
+							<span class="wam-order-item__tarif text-md color-text d-block mt-2"><?php echo esc_html( $wam_tarif_label ); ?></span>
 						<?php endif; ?>
 					</div>
 					<span class="wam-order-item__qty text-sm color-text">× <?php echo esc_html( $cart_item['quantity'] ); ?></span>

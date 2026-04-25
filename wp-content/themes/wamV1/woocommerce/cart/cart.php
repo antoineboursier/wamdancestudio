@@ -116,7 +116,13 @@ do_action('woocommerce_before_cart');
                                     <div class="wam-cart-card__type-subtitle">
                                         <?php if ($course_subtitle): ?>
                                             <span
-                                                class="wam-cart-card__subtitle text-md fw-bold"><?php echo esc_html($course_subtitle); ?></span>
+                                                class="wam-cart-card__subtitle text-md fw-bold d-block"><?php echo esc_html($course_subtitle); ?></span>
+                                        <?php endif; ?>
+                                        <?php 
+                                        $wam_tarif_label = $cart_item['wam_tarif_label'] ?? null;
+                                        $is_stage = $course_id && get_post_type($course_id) === 'stages';
+                                        if ($wam_tarif_label && $is_stage): ?>
+                                            <span class="wam-cart-card__tarif text-md color-text d-block mt-2"><?php echo esc_html($wam_tarif_label); ?></span>
                                         <?php endif; ?>
                                     </div>
                                 </div>
@@ -129,6 +135,13 @@ do_action('woocommerce_before_cart');
                                                 style="--icon-url: url('<?php echo esc_url(get_template_directory_uri() . '/assets/images/calendar.svg'); ?>'); --icon-size: 16px; color: currentcolor;"></span>
                                             <span class="color-subtext text-sm">
                                                 <?php
+                                                $wam_date = $cart_item['wam_date'] ?? null;
+                                                $is_stage = $course_id && get_post_type($course_id) === 'stages';
+                                                
+                                                if ($is_stage && $wam_date) {
+                                                    echo esc_html($wam_date) . ' — ';
+                                                }
+
                                                 if ($wam_jour && $wam_heure) {
                                                     echo esc_html($wam_jour . ' — ' . $wam_heure);
                                                 } else {
@@ -151,7 +164,7 @@ do_action('woocommerce_before_cart');
                                 <!-- Ligne bas de carte : quantité + actions -->
                                 <div class="wam-cart-card__footer">
                                     <div class="wam-cart-card__qty product-quantity">
-                                        <button type="button" class="wam-qty-btn minus" aria-label="Moins">-</button>
+                                        <button type="button" class="wam-qty-btn minus" aria-label="<?php echo esc_attr( sprintf( __( 'Diminuer la quantité pour %s', 'wamv1' ), $course_title ?: $product_name ) ); ?>">-</button>
                                         <?php
                                         if ($_product->is_sold_individually()) {
                                             $min_quantity = 1;
@@ -175,7 +188,7 @@ do_action('woocommerce_before_cart');
 
                                         echo apply_filters('woocommerce_cart_item_quantity', $product_quantity, $cart_item_key, $cart_item);
                                         ?>
-                                        <button type="button" class="wam-qty-btn plus" aria-label="Plus">+</button>
+                                        <button type="button" class="wam-qty-btn plus" aria-label="<?php echo esc_attr( sprintf( __( 'Augmenter la quantité pour %s', 'wamv1' ), $course_title ?: $product_name ) ); ?>">+</button>
                                     </div>
                                     <div class="wam-cart-card__price">
                                         <span class="wam-cart-card__price-label title-norm-sm color-yellow">
@@ -190,7 +203,7 @@ do_action('woocommerce_before_cart');
 
                     <?php do_action('woocommerce_cart_contents'); ?>
 
-                    <div class="wam-cart-update-actions" style="display: none;">
+                    <div class="wam-cart-update-actions d-none">
                         <button type="submit" class="button btn-secondary wam-cart-update-btn" name="update_cart"
                             value="<?php esc_attr_e('Mettre à jour le panier', 'woocommerce'); ?>"><?php esc_html_e('Mettre à jour le panier', 'woocommerce'); ?></button>
                     </div>

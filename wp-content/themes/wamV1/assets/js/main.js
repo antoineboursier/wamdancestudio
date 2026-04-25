@@ -26,7 +26,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const footer = document.querySelector('.wam-footer');
             if (footer) footer.setAttribute('inert', '');
 
-            createNavParticles();
+            window.wamCreateParticles(menuOverlay);
 
             // Prepare staggered entrance animations
             const animItems = menuOverlay.querySelectorAll('.wam-nav__header, .wam-nav__list > li, .wam-nav__socials');
@@ -51,7 +51,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const footer = document.querySelector('.wam-footer');
             if (footer) footer.removeAttribute('inert');
 
-            closeNavParticles(); // Wave right→left then clean up
+            window.wamCloseParticles(menuOverlay);
 
             menuToggle.focus();
         };
@@ -124,16 +124,13 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     /* =====================================================
-       3. NAV PARTICLES — Wave effect
-       Open  : wave left → right  (matches panel slide-in)
-       Close : wave right → left  (matches panel slide-out)
+       3. PARTICLES — Wave effect
        ===================================================== */
-    function createNavParticles() {
-        const container = document.querySelector('.js-nav-particles');
+    window.wamCreateParticles = function(container) {
         if (!container) return;
 
         const particleCount = 44;
-        const waveDuration = 500; // ms for the sweep to cross the screen
+        const waveDuration = 500; 
         const colors = [
             'var(--wam-color-green)',
             'var(--wam-color-yellow)',
@@ -157,37 +154,30 @@ document.addEventListener('DOMContentLoaded', () => {
             p.style.backgroundColor = color;
             p.style.boxShadow = `0 0 10px ${color}`;
 
-            // Negative delay = start mid-cycle so particles appear quickly after insertion
             p.style.setProperty('--dur', `${dur}s`);
             p.style.setProperty('--delay', `${-Math.random() * dur * 0.4}s`);
             p.style.setProperty('--drift', `${(Math.random() - 0.5) * 100}px`);
 
-            // Wave effect: inject each particle into DOM staggered by X position
-            // Left particles are added first, right particles later
             setTimeout(() => container.appendChild(p), xFraction * waveDuration);
         }
-    }
+    };
 
-    function closeNavParticles() {
-        const container = document.querySelector('.js-nav-particles');
+    window.wamCloseParticles = function(container) {
         if (!container) return;
 
-        const waveDuration = 0.4; // seconds for the close sweep
-        const fadeDuration = 300; // ms each particle takes to fade out
+        const waveDuration = 0.4; 
+        const fadeDuration = 300; 
 
-        // Trigger right→left fade-out on each particle
         container.querySelectorAll('.keywords-particle').forEach(p => {
             const x = parseFloat(p.dataset.x ?? Math.random());
-            // Right-side particles start fading first
             p.style.setProperty('--close-delay', `${(1 - x) * waveDuration}s`);
             p.classList.add('keywords-particle--closing');
         });
 
-        // Remove DOM after the full wave has played out
         setTimeout(() => {
             container.innerHTML = '';
         }, (waveDuration * 1000) + fadeDuration);
-    }
+    };
 
     /* =====================================================
        4. FOOTER ACCORDION (mobile only)

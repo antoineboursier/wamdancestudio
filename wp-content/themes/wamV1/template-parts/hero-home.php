@@ -10,7 +10,7 @@ $logo_url = get_template_directory_uri() . '/assets/images/wam_logo_hero.svg';
 
     <div class="section-hero__logo">
         <img src="<?php echo esc_url($logo_url); ?>" alt="WAM Dance Studio" width="400" height="181"
-            class="section-hero__logo-img" loading="eager">
+            class="section-hero__logo-img" loading="eager" fetchpriority="high">
     </div>
 
     <?php if (function_exists('wam_adresse_visible') && wam_adresse_visible()): ?>

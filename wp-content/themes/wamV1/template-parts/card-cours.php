@@ -127,7 +127,7 @@ if ($complet)   $card_classes[] = 'card-cours--complet';
                class="card-cours__cta <?php echo $complet ? 'card-cours__cta--disabled' : ''; ?>"
                aria-label="<?php echo esc_attr('Voir le cours : ' . get_the_title()); ?>"
                <?php echo $complet ? 'tabindex="-1"' : ''; ?>>
-                <span class="btn-icon btn-icon--sm color-subtext"
+                <span class="btn-icon btn-icon--sm"
                       style="--icon-url: url('<?php echo $icons_path; ?>chevron-right.svg');"></span>
             </a>
 

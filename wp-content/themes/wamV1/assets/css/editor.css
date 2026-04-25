@@ -134,21 +134,21 @@
 .editor-styles-wrapper .is-style-title-norm-lg {
     font-family: var(--wp--preset--font-family--outfit);
     font-size: 32px;
-    font-weight: 700;
+    font-weight: bold;
     line-height: 1.1;
 }
 
 .editor-styles-wrapper .is-style-title-norm-md {
     font-family: var(--wp--preset--font-family--outfit);
     font-size: 28px;
-    font-weight: 700;
+    font-weight: bold;
     line-height: 1.1;
 }
 
 .editor-styles-wrapper .is-style-title-norm-sm {
     font-family: var(--wp--preset--font-family--outfit);
     font-size: 22px;
-    font-weight: 700;
+    font-weight: bold;
     line-height: 1.1;
 }
 
@@ -209,7 +209,7 @@
     left: 50%;
     transform: translate(-50%, -50%);
     font-size: 10px;
-    font-weight: 700;
+    font-weight: bold;
     letter-spacing: 0.1em;
     color: var(--wp--preset--color--background-500);
     opacity: 0.5;
@@ -253,7 +253,7 @@
     border: 3px solid transparent !important;
     border-radius: var(--wam-radius-lg) !important;
     padding: var(--wam-spacing-sm) var(--wam-spacing-xl) !important;
-    font-weight: 700 !important;
+    font-weight: bold !important;
     font-size: 1.25rem !important;
 }
 
@@ -287,7 +287,7 @@
     border: 2px solid var(--wp--preset--color--accent-yellow) !important;
     border-radius: var(--wam-radius-lg) !important;
     padding: var(--wam-spacing-sm) var(--wam-spacing-xl) !important;
-    font-weight: 700 !important;
+    font-weight: bold !important;
     font-size: 1.25rem !important;
     transition: background var(--wam-transition) !important;
 }

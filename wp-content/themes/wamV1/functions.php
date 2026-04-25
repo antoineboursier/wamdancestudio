@@ -21,6 +21,9 @@ require_once get_template_directory() . '/inc/nav-walker.php';
 require_once get_template_directory() . '/inc/cleanup.php';
 require_once get_template_directory() . '/inc/smtp-config.php';
 require_once get_template_directory() . '/inc/contact-form-handler.php';
+require_once get_template_directory() . '/inc/performance.php';
+require_once get_template_directory() . '/inc/google-business.php';
+require_once get_template_directory() . '/inc/llms-txt.php';
 
 // -------------------------------------------------------
 // Setup
@@ -34,7 +37,7 @@ if (!function_exists('wamv1_setup')):
         /* Largeur maximale du contenu (oEmbeds, images) */
         global $content_width;
         if (!isset($content_width)) {
-            $content_width = 1200; // Aligné sur max-width éditorial dans Tokens CSS
+            $content_width = 1536; // Aligné sur var(--wam-max-screen) dans Tokens CSS
         }
 
         add_theme_support('title-tag');
@@ -71,9 +74,7 @@ if (!function_exists('wamv1_setup')):
         add_theme_support('wc-product-gallery-slider');
 
         // Editor styles — back office fidèle au front
-        // Google Fonts doit être passé en premier pour que les polices soient dispo
         add_editor_style(array(
-            'https://fonts.googleapis.com/css2?family=Outfit:wght@100..900&display=swap',
             'assets/css/tokens.css',
             'assets/css/base.css',
             'assets/css/prose-shared.css',
@@ -127,8 +128,16 @@ add_action('init', 'wamv1_register_text_styles');
 // -------------------------------------------------------
 function wamv1_scripts()
 {
-    // On utilise filemtime pour forcer le rafraîchissement du cache (cache-busting)
-    $ver = filemtime(get_template_directory() . '/style.css');
+    /**
+     * Utilitaire interne pour récupérer la version d'un asset (filemtime)
+     * Évite le cache stale quand un fichier individuel change.
+     */
+    $get_ver = function($relative_path) {
+        $full_path = get_template_directory() . '/' . ltrim($relative_path, '/');
+        return file_exists($full_path) ? filemtime($full_path) : '1.0.0';
+    };
+
+    $ver = $get_ver('style.css');
     $css = get_template_directory_uri() . '/assets/css/';
     $js = get_template_directory_uri() . '/assets/js/';
 
@@ -143,7 +152,7 @@ function wamv1_scripts()
     //    les CSS vars directement (bg-pattern, border, etc.)
     //    TOUTES LES PAGES
     // -------------------------------------------------------
-    wp_enqueue_style('wamv1-tokens', $css . 'tokens.css', array('wamv1-style'), $ver);
+    wp_enqueue_style('wamv1-tokens', $css . 'tokens.css', array('wamv1-style'), $get_ver('assets/css/tokens.css'));
 
     // -------------------------------------------------------
     // 2b. base.css — Typographie globale, has-*, is-style-*
@@ -151,7 +160,7 @@ function wamv1_scripts()
     //     et avant main.css pour que main puisse surcharger
     //     TOUTES LES PAGES
     // -------------------------------------------------------
-    wp_enqueue_style('wamv1-base', $css . 'base.css', array('wamv1-tokens'), $ver);
+    wp_enqueue_style('wamv1-base', $css . 'base.css', array('wamv1-tokens'), $get_ver('assets/css/base.css'));
 
     // -------------------------------------------------------
     // 4. components.css — Composants réutilisables vanilla CSS
@@ -159,44 +168,44 @@ function wamv1_scripts()
     //    Chargé après base.css
     //    TOUTES LES PAGES
     // -------------------------------------------------------
-    wp_enqueue_style('wamv1-components', $css . 'components.css', array('wamv1-base'), $ver);
+    wp_enqueue_style('wamv1-components', $css . 'components.css', array('wamv1-base'), $get_ver('assets/css/components.css'));
 
     // -------------------------------------------------------
     // 5. layout.css — Structure globale vanilla CSS
     //    site-main, sections, grilles réutilisables
     //    TOUTES LES PAGES
     // -------------------------------------------------------
-    wp_enqueue_style('wamv1-layout', $css . 'layout.css', array('wamv1-components'), $ver);
+    wp_enqueue_style('wamv1-layout', $css . 'layout.css', array('wamv1-components'), $get_ver('assets/css/layout.css'));
 
     // -------------------------------------------------------
     // accessibility.css — module accessibilité global
     // TOUTES LES PAGES
     // -------------------------------------------------------
-    wp_enqueue_style('wamv1-accessibility', $css . 'accessibility.css', array('wamv1-layout'), $ver);
+    wp_enqueue_style('wamv1-accessibility', $css . 'accessibility.css', array('wamv1-layout'), $get_ver('assets/css/accessibility.css'));
 
     // -------------------------------------------------------
     // forms.css — champs formulaires (Fluent Forms, MailPoet, natifs)
     // TOUTES LES PAGES (formulaires peuvent apparaître partout)
     // -------------------------------------------------------
-    wp_enqueue_style('wamv1-forms', $css . 'forms.css', array('wamv1-accessibility'), $ver);
+    wp_enqueue_style('wamv1-forms', $css . 'forms.css', array('wamv1-accessibility'), $get_ver('assets/css/forms.css'));
 
     // -------------------------------------------------------
     // overrides-light.css — Ajustements spécifiques thème clair
     // TOUTES LES PAGES
     // -------------------------------------------------------
-    wp_enqueue_style('wamv1-overrides-light', $css . 'overrides-light.css', array('wamv1-forms'), $ver);
+    wp_enqueue_style('wamv1-overrides-light', $css . 'overrides-light.css', array('wamv1-forms'), $get_ver('assets/css/overrides-light.css'));
 
     // -------------------------------------------------------
     // prose-shared.css — Source unique des styles de contenu éditorial
     // Chargé après base.css, TOUTES LES PAGES
     // -------------------------------------------------------
-    wp_enqueue_style('wamv1-prose', $css . 'prose-shared.css', array('wamv1-base'), $ver);
+    wp_enqueue_style('wamv1-prose', $css . 'prose-shared.css', array('wamv1-base'), $get_ver('assets/css/prose-shared.css'));
 
     // -------------------------------------------------------
     // Page d'accueil uniquement
     // -------------------------------------------------------
     if (is_front_page()) {
-        wp_enqueue_style('wamv1-home', $css . 'home.css', array('wamv1-layout'), $ver);
+        wp_enqueue_style('wamv1-home', $css . 'home.css', array('wamv1-layout'), $get_ver('assets/css/home.css'));
     }
 
     // -------------------------------------------------------
@@ -212,18 +221,18 @@ function wamv1_scripts()
         is_page_template('page-prof-wam.php') ||
         is_page_template('page-planning-cours.php')
     ) {
-        wp_enqueue_style('wamv1-programme', $css . 'programme.css', array('wamv1-accessibility'), $ver);
+        wp_enqueue_style('wamv1-programme', $css . 'programme.css', array('wamv1-accessibility'), $get_ver('assets/css/programme.css'));
     }
 
     // JS filtrage — pages listing (cours collectifs + stages)
     if (is_page_template('page-cours-collectifs.php') || is_page_template('page-stages-tous.php')) {
-        wp_enqueue_script('wamv1-filter', $js . 'filter.js', array(), $ver, true);
+        wp_enqueue_script('wamv1-filter', $js . 'filter.js', array(), $get_ver('assets/js/filter.js'), true);
     }
 
     // CSS + JS planning — page planning uniquement (dépend de programme.css)
     if (is_page_template('page-planning-cours.php')) {
-        wp_enqueue_style('wamv1-planning', $css . 'planning.css', array('wamv1-programme'), $ver);
-        wp_enqueue_script('wamv1-planning', $js . 'planning.js', array(), $ver, true);
+        wp_enqueue_style('wamv1-planning', $css . 'planning.css', array('wamv1-programme'), $get_ver('assets/css/planning.css'));
+        wp_enqueue_script('wamv1-planning', $js . 'planning.js', array(), $get_ver('assets/js/planning.js'), true);
     }
 
     // -------------------------------------------------------
@@ -233,14 +242,14 @@ function wamv1_scripts()
         is_singular('evenements') ||
         is_page_template('page-events-tous.php')
     ) {
-        wp_enqueue_style('wamv1-events', $css . 'events.css', array('wamv1-programme'), $ver);
+        wp_enqueue_style('wamv1-events', $css . 'events.css', array('wamv1-programme'), $get_ver('assets/css/events.css'));
     }
 
     // -------------------------------------------------------
-    // Cours single — JS add-to-cart AJAX
+    // Cours & Stages single — JS add-to-cart AJAX (bouton simple + modale multi-tarifs)
     // -------------------------------------------------------
-    if (is_singular('cours') && class_exists('WooCommerce')) {
-        wp_enqueue_script('wamv1-enroll', $js . 'enroll.js', array(), $ver, ['in_footer' => true, 'strategy' => 'defer']);
+    if ((is_singular('cours') || is_singular('stages')) && class_exists('WooCommerce')) {
+        wp_enqueue_script('wamv1-enroll', $js . 'enroll.js', array(), $get_ver('assets/js/enroll.js'), ['in_footer' => true, 'strategy' => 'defer']);
         wp_localize_script('wamv1-enroll', 'wamEnroll', [
             'ajaxurl' => admin_url('admin-ajax.php'),
             'nonce'   => wp_create_nonce('wam_add_to_cart'),
@@ -250,21 +259,21 @@ function wamv1_scripts()
     // -------------------------------------------------------
     // WooCommerce — shop.css
     // -------------------------------------------------------
-    if (class_exists('WooCommerce') && (is_woocommerce() || is_cart() || is_checkout() || is_account_page())) {
-        wp_enqueue_style('wamv1-shop', $css . 'shop.css', array('wamv1-layout'), $ver);
+    if (class_exists('WooCommerce') && (is_woocommerce() || is_cart() || is_checkout() || is_account_page() || is_singular('stages') || is_singular('cours'))) {
+        wp_enqueue_style('wamv1-shop', $css . 'shop.css', array('wamv1-layout'), $get_ver('assets/css/shop.css'));
     }
 
     // -------------------------------------------------------
     // Scripts JS (defer pour ne pas bloquer le rendu)
     // -------------------------------------------------------
-    wp_enqueue_script('wamv1-main', $js . 'main.js', array(), $ver, ['in_footer' => true, 'strategy' => 'defer']);
+    wp_enqueue_script('wamv1-main', $js . 'main.js', array(), $get_ver('assets/js/main.js'), ['in_footer' => true, 'strategy' => 'defer']);
 
     if (is_front_page()) {
         wp_enqueue_script(
             'wamv1-home',
             $js . 'home.js',
             array(),
-            $ver,
+            $get_ver('assets/js/home.js'),
             ['in_footer' => true, 'strategy' => 'defer']
         );
     }

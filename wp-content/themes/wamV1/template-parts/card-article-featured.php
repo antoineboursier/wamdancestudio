@@ -38,7 +38,11 @@ $icon_dir = get_template_directory_uri() . '/assets/images/';
             <div class="card-article__image">
                 <a href="<?php the_permalink(); ?>" class="card-article__image-link">
                     <?php if (has_post_thumbnail()): ?>
-                        <?php the_post_thumbnail('wam-card', array('alt' => get_the_title())); ?>
+                        <?php the_post_thumbnail('wam-card', array(
+                            'alt'           => get_the_title(),
+                            'loading'       => 'eager',
+                            'fetchpriority' => 'high'
+                        )); ?>
                     <?php else: ?>
                         <div class="card-article__image-placeholder" aria-hidden="true"></div>
                     <?php endif; ?>

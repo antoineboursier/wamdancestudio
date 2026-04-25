@@ -28,8 +28,9 @@ body {
     font-family: var(--wam-font-body);
     font-size: 16px;
     line-height: 1.25;
-    -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
+    overflow-wrap: break-word;
+    word-break: break-word;
 }
 
 /* Force l'héritage de la police sur les éléments qui ne l'héritent pas par défaut */
@@ -155,7 +156,7 @@ h2 {
     font-family: var(--wam-font-body);
     /* Outfit */
     font-size: 32px;
-    font-weight: 700;
+    font-weight: bold;
     line-height: 1.1;
     color: var(--wp--preset--color--accent-yellow);
 }
@@ -168,7 +169,7 @@ h3 {
     font-family: var(--wam-font-body);
     /* Outfit */
     font-size: 28px;
-    font-weight: 700;
+    font-weight: bold;
     line-height: 1.1;
     color: var(--wp--preset--color--accent-yellow);
 }
@@ -181,7 +182,7 @@ h4 {
     font-family: var(--wam-font-body);
     /* Outfit */
     font-size: 22px;
-    font-weight: 700;
+    font-weight: bold;
     line-height: 1.1;
     color: var(--wp--preset--color--accent-yellow);
 }
@@ -206,7 +207,7 @@ h5 {
 h6 {
     font-family: var(--wam-font-body);
     font-size: 16px;
-    font-weight: 700;
+    font-weight: bold;
     line-height: 1.25;
     color: var(--wam-color-subtext);
 }
@@ -358,7 +359,7 @@ p {
     font-family: var(--wam-font-body);
     font-size: var(--wam-font-size-h1);
     /* 32px */
-    font-weight: 700;
+    font-weight: bold;
     line-height: 1.1;
 }
 
@@ -366,7 +367,7 @@ p {
 .wam-prose .is-style-title-norm-md {
     font-family: var(--wam-font-body);
     font-size: 28px;
-    font-weight: 700;
+    font-weight: bold;
     line-height: 1.1;
 }
 
@@ -374,7 +375,7 @@ p {
 .wam-prose .is-style-title-norm-sm {
     font-family: var(--wam-font-body);
     font-size: 22px;
-    font-weight: 700;
+    font-weight: bold;
     line-height: 1.1;
 }
 
@@ -450,6 +451,27 @@ p {
     border: 0;
 }
 
+/* Skip links focusables (RGAA 10.13) */
+.skip-link:focus-visible,
+.skip-link:focus {
+    position: fixed;
+    top: var(--wam-spacing-md);
+    left: var(--wam-spacing-md);
+    width: auto;
+    height: auto;
+    padding: var(--wam-spacing-sm) var(--wam-spacing-md);
+    background: var(--wp--preset--color--accent-yellow);
+    color: var(--wp--preset--color--background-800);
+    z-index: var(--wam-z-a11y);
+    clip: auto;
+    margin: 0;
+    text-decoration: none;
+    border-radius: var(--wam-radius-sm);
+    font-weight: bold;
+    outline: 2px solid var(--wp--preset--color--text-normal);
+    outline-offset: 2px;
+}
+
 /* Truncation de texte */
 .text-truncate {
     overflow: hidden;
@@ -458,8 +480,24 @@ p {
 }
 
 /* Figma Utilities */
+.text-xs {
+    font-size: var(--wam-font-size-xs) !important;
+}
+
 .text-sm {
     font-size: var(--wam-font-size-sm) !important;
+}
+
+.text-md {
+    font-size: var(--wam-font-size-md) !important;
+}
+
+.text-lg {
+    font-size: var(--wam-font-size-lg) !important;
+}
+
+.d-block {
+    display: block !important;
 }
 
 .color-subtitle {
@@ -467,11 +505,15 @@ p {
 }
 
 .fw-bold {
-    font-weight: 700 !important;
+    font-weight: bold !important;
 }
 
 .color-text {
     color: var(--wam-color-text) !important;
+}
+
+.bg-page {
+    background-color: var(--wam-color-page-bg) !important;
 }
 
 .color-subtext {
@@ -534,6 +576,16 @@ p {
 .mb-xl {
     margin-bottom: var(--wam-spacing-xl) !important;
 }
+
+/* -------------------------------------------------------
+   Utilitaires de structure (Audit Conformité TOKENS.md)
+   ------------------------------------------------------- */
+.d-block { display: block !important; }
+.d-none { display: none !important; }
+.text-center { text-align: center !important; }
+
+/* Spacing spécifique hors échelle standard */
+.mt-2 { margin-top: 2px !important; }
 
 /* Conteneur max-width centré */
 .wam-container {

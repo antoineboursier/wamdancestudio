@@ -323,8 +323,8 @@ get_header();
                         <?php if (wam_show_rentree()) : ?>
                             <div class="cours-info-card__row">
                                 <span class="btn-icon"
-                                    style="--icon-url: url('<?php echo esc_url($icon_dir); ?>icon_date.svg'); --icon-size: 24px; color: var(--wam-color-pink);"></span>
-                                <p class="cours-info-card__info text-md fw-bold" style="color: var(--wam-color-pink);">
+                                    style="--icon-url: url('<?php echo esc_url($icon_dir); ?>icon_date.svg'); --icon-size: 24px;" class="color-pink"></span>
+                                <p class="cours-info-card__info text-md fw-bold color-pink">
                                     Date de rentrée : <?php echo esc_html(wam_date_rentree()); ?>
                                 </p>
                             </div>
@@ -391,7 +391,7 @@ get_header();
 
                             <?php if ($est_complet): ?>
                                 <!-- Bouton Cours Complet -->
-                                <button type="button" class="btn-primary btn-inscription is-complet" aria-disabled="true" onclick="return false;">
+                                <button type="button" class="btn-primary btn-inscription is-complet" disabled>
                                     <?php _e('Cours complet', 'wamv1'); ?>
                                 </button>
                             <?php elseif ($config_desactive): ?>
@@ -413,16 +413,6 @@ get_header();
                                               style="--icon-url: url('<?php echo esc_url($icon_dir_cta . 'chevron-right.svg'); ?>');"
                                               aria-hidden="true"></span>
                                     </button>
-                                <?php else: ?>
-                                    <!-- Fallback si aucun produit WC n'est lié -->
-                                    <a href="<?php echo esc_url(function_exists('wam_btn_inscription_url') ? wam_btn_inscription_url() : '#inscription'); ?>"
-                                       class="btn-primary btn-inscription"
-                                       id="btn-inscription-cours">
-                                        <?php echo esc_html(function_exists('wam_btn_inscription_texte') ? wam_btn_inscription_texte() : 'S\'inscrire'); ?>
-                                        <span class="btn-icon btn-icon--sm"
-                                              style="--icon-url: url('<?php echo esc_url($icon_dir_cta . 'chevron-right.svg'); ?>');"
-                                              aria-hidden="true"></span>
-                                    </a>
                                 <?php endif; ?>
                             <?php endif; ?>
 

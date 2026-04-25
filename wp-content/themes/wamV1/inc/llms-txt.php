@@ -83,12 +83,11 @@ function wam_generate_llms_txt(): string
     // --- En-tête obligatoire (spec llmstxt.org) ---
     $lines[] = "# {$site_name}";
     $lines[] = '';
-    $lines[] = '> WAM est une école de danse associative (loi 1901) basée à Villeneuve d\'Ascq,';
-    $lines[] = '> dans la métropole lilloise (Nord, 59, France). Fondée par Charlotte Boursier Maczenko,';
-    $lines[] = '> elle propose des cours collectifs, stages, workshops, évènements dansants,';
-    $lines[] = '> ateliers et prestations événementielles (mariage, chorégraphie d\'ouverte de bal, EVJF, team building)';
-    $lines[] = '> pour enfants et adultes depuis 2006. Zones d\'intervention : Villeneuve d\'Ascq,';
-    $lines[] = '> Roubaix, Wasquehal, Croix, Lille et environs.';
+    $lines[] = '> WAM est une école de danse associative (loi 1901) basée à Villeneuve d\'Ascq (59650),';
+    $lines[] = '> au cœur de la métropole lilloise et à proximité immédiate de Croix, Wasquehal et Roubaix.';
+    $lines[] = '> Fondée par Charlotte Boursier Maczenko, elle propose des cours collectifs, stages,';
+    $lines[] = '> workshops et prestations événementielles (mariage, chorégraphie, EVJF, team building)';
+    $lines[] = '> pour enfants et adultes depuis 2006.';
     $lines[] = '';
 
     // ---------------------------------------------------------------
@@ -340,11 +339,13 @@ function wam_generate_llms_txt(): string
     }
 
     // ---------------------------------------------------------------
-    // SECTION : Infos pratiques (optionnel)
+    // SECTION : Infos pratiques
     // ---------------------------------------------------------------
     $lines[] = '## Informations pratiques';
-    $lines[] = '- Localisation : Villeneuve d\'Ascq (59491), métropole lilloise, Nord, France';
-    $lines[] = '- Zone d\'intervention : Villeneuve d\'Ascq, Roubaix, Wasquehal, Croix, Hem, Tourcoing, Lille';
+    $lines[] = '- Établissement : WAM Dance Studio';
+    $lines[] = '- Siège & Studio : 7 rue de l\'Hôtellerie, 59650 Villeneuve d\'Ascq, Nord, France';
+    $lines[] = '- Zones d\'intervention & Proximité : Villeneuve d\'Ascq, Croix, Wasquehal, Roubaix, Hem, Lille';
+    $lines[] = '- Horaires d\'ouverture : Lun-Sam (09:00 - 22:00), Dim (13:00 - 22:00)';
     $lines[] = '- Statut : Association loi 1901';
     $lines[] = '- Disciplines : danse moderne, danse de salon, heels, West coast swing, swing, street jazz, danse orientale, latino, éveil danse enfants';
     $lines[] = '- Prestations événementielles : chorégraphie mariage, EVJF/EVG, danse en entreprise, team building danse, TAP/NAP périscolaire';
@@ -387,4 +388,13 @@ function wam_truncate(string $text, int $max): string
 add_action('after_switch_theme', function () {
     wam_register_llms_txt_rewrite();
     flush_rewrite_rules();
+});
+/**
+ * Mentionne /llms.txt dans le robots.txt généré par WordPress.
+ */
+add_filter('robots_txt', function (string $output) {
+    $llms_url = home_url('/llms.txt');
+    $output .= "\n# Fichier de contexte pour les LLMs (standard llmstxt.org)\n";
+    $output .= "LLM-Context: {$llms_url}\n";
+    return $output;
 });

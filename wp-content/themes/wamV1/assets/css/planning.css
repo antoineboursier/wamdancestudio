@@ -63,7 +63,7 @@
     background: var(--wp--preset--color--background-600);
     border-color: var(--wp--preset--color--background-500);
     color: var(--wp--preset--color--text-normal);
-    font-weight: 700;
+    font-weight: bold;
 }
 
 /* État barré — filtres non sélectionnés quand un filtre est actif */
@@ -177,7 +177,7 @@
     padding-inline: var(--wam-spacing-xs);
     font-family: var(--wam-font-body);
     font-size: var(--wam-font-size-sm);
-    font-weight: 700;
+    font-weight: bold;
     color: var(--wp--preset--color--text-normal);
     background: var(--wp--preset--color--background-800);
     border-bottom: 1px solid var(--wp--preset--color--background-500);
@@ -322,7 +322,7 @@
 .planning-card__time {
     font-family: var(--wam-font-body);
     font-size: 12px;
-    font-weight: 700;
+    font-weight: bold;
     /*
      * La couleur du temps reprend --card-accent via color-mix :
      * légèrement éclairci pour être lisible sur le fond teinté.
@@ -339,7 +339,7 @@
     right: 4px;
     font-family: var(--wam-font-body);
     font-size: 10px;
-    font-weight: 700;
+    font-weight: bold;
     color: var(--wp--preset--color--background-800);
     background: var(--wam-color-orange);
     padding: 2px 5px;
@@ -666,7 +666,7 @@
 
     .planning-mobile__badge {
         font-size: 10px;
-        font-weight: 700;
+        font-weight: bold;
         color: var(--wp--preset--color--background-800);
         background: var(--wam-color-orange);
         padding: 2px 6px;

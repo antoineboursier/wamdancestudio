@@ -81,6 +81,9 @@ $icon_dir = get_template_directory_uri() . '/assets/images/';
         <?php endif; ?>
 
         <?php
+        // Section Avis Clients
+        get_template_part('template-parts/section-reviews');
+
         // Section professeur·es
         get_template_part('template-parts/section-teachers');
 

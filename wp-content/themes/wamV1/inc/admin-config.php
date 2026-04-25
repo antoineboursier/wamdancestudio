@@ -349,7 +349,7 @@ function wam_field_inscriptions_actives(): void
 function wam_field_btn_texte(): void
 {
     $opts = get_option('wam_config', []);
-    $val  = esc_attr($opts['btn_inscription_texte'] ?? 'Inscription 2024/25');
+    $val  = esc_attr($opts['btn_inscription_texte'] ?? 'Ajouter ce cours au panier');
     echo '<span id="wam-row-btn-texte">';
     echo '<input type="text" name="wam_config[btn_inscription_texte]" value="' . $val . '" class="regular-text">';
     echo '<p class="description">Texte affiché sur le bouton quand les inscriptions sont actives.</p>';
@@ -668,6 +668,7 @@ function wam_config_page_html(): void
             checkboxDesact.addEventListener('change', updateAll);
         }
 
+
         // --- Boutons "Effacer" pour les champs datetime ---
         document.querySelectorAll('.wam-clear-datetime').forEach(function (btn) {
             btn.addEventListener('click', function () {
@@ -828,7 +829,7 @@ if (!function_exists('wam_btn_inscription_texte')):
     function wam_btn_inscription_texte(): string
     {
         $opts = get_option('wam_config', []);
-        return sanitize_text_field($opts['btn_inscription_texte'] ?? 'Inscription 2024/25');
+        return sanitize_text_field($opts['btn_inscription_texte'] ?? 'Ajouter ce cours au panier');
     }
 endif;
 

@@ -188,7 +188,7 @@
     padding: var(--wam-spacing-2xs) var(--wam-spacing-xs);
     border-radius: var(--wam-radius-pill);
     font-size: var(--wam-font-size-sm);
-    font-weight: 700;
+    font-weight: bold;
 }
 
 

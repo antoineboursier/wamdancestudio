@@ -30,75 +30,83 @@ get_header();
     <div class="page-layout__inner">
 
         <?php
-        while (have_posts()) :
+        while (have_posts()):
             the_post();
 
             /* ---- Variante enfant ---- */
             $is_enfant = wamv1_is_enfant_variant();
 
             /* ---- Badge type ---- */
-            $has_acf         = function_exists('get_field');
+            $has_acf = function_exists('get_field');
             $type_format_val = $has_acf ? get_field('type_format') : 'type_stage';
             $type_map = [
-                'type_stage' => ['label' => 'Stage',    'color_class' => 'color-yellow'],
-                'type_atel'  => ['label' => 'Atelier',  'color_class' => 'color-green'],
+                'type_stage' => ['label' => 'Stage', 'color_class' => 'color-yellow'],
+                'type_atel' => ['label' => 'Atelier', 'color_class' => 'color-green'],
                 'type_wshop' => ['label' => 'Workshop', 'color_class' => 'color-pink'],
             ];
             $current_type = $type_map[$type_format_val] ?? $type_map['type_stage'];
-            $badge_label  = $current_type['label'];
-            $badge_color  = $current_type['color_class'];
+            $badge_label = $current_type['label'];
+            $badge_color = $current_type['color_class'];
 
             /* ---- URL listing stages ---- */
             $stages_listing_url = get_permalink(get_page_by_path('stages-workshop-ateliers')) ?: home_url('/');
 
-            $current_id  = get_the_ID();
+            $current_id = get_the_ID();
 
             /* ---- Champs ACF ---- */
-            $sous_titre   = $has_acf ? get_field('sous_titre')         : '';
-            $stage_groupe = $has_acf ? get_field('stage_groupe')       : '';
-            $other_dates  = [];
+            $sous_titre = $has_acf ? get_field('sous_titre') : '';
+            $stage_groupe = $has_acf ? get_field('stage_groupe') : '';
+            $other_dates = [];
             if ($stage_groupe) {
                 $other_posts = get_posts([
-                    'post_type'      => 'stages',
+                    'post_type' => 'stages',
                     'posts_per_page' => -1,
-                    'post__not_in'   => [$current_id],
-                    'meta_query'     => [['key' => 'stage_groupe', 'value' => $stage_groupe]],
-                    'orderby'        => 'meta_value',
-                    'meta_key'       => 'date_stage',
-                    'order'          => 'ASC',
+                    'post__not_in' => [$current_id],
+                    'meta_query' => [['key' => 'stage_groupe', 'value' => $stage_groupe]],
+                    'orderby' => 'meta_value',
+                    'meta_key' => 'date_stage',
+                    'order' => 'ASC',
                 ]);
                 $other_dates = $other_posts ?: [];
             }
             $is_multi = !empty($other_dates);
-            $date_princ  = $has_acf ? get_field('date_stage')          : '';
-            $complet     = $has_acf ? get_field('complete_cours')      : false;
-            $description = $has_acf ? get_field('description')         : get_the_content();
-            $tarifs_grp  = $has_acf ? get_field('tarifs')              : null;
-            $info_comp   = $has_acf ? get_field('info_complementaire') : '';
-            $heure_debut = $has_acf ? get_field('heure_debut')         : '';
-            $heure_fin   = $has_acf ? get_field('heure_de_fin')        : '';
+            $date_princ = $has_acf ? get_field('date_stage') : '';
+            $complet = $has_acf ? get_field('complete_cours') : false;
+            $description = $has_acf ? get_field('description') : get_the_content();
+            $tarifs_grp = $has_acf ? get_field('tarifs') : null;
+            $info_comp = $has_acf ? get_field('info_complementaire') : '';
+            $heure_debut = $has_acf ? get_field('heure_debut') : '';
+            $heure_fin = $has_acf ? get_field('heure_de_fin') : '';
 
-            /* ---- Tarifs ---- */
+            /* ---- Tarifs (info-card : icône tirelire) ---- */
             $tarif_labels = [];
-            if ($tarifs_grp) {
-                foreach (['tarif_1', 'tarif_2', 'tarif_3'] as $key) {
-                    if (!empty($tarifs_grp[$key])) $tarif_labels[] = $tarifs_grp[$key];
+            if (is_array($tarifs_grp)) {
+                foreach ([1, 2, 3] as $i) {
+                    $nom = $tarifs_grp['nom_tarif_' . $i] ?? '';
+                    $prix = $tarifs_grp['prix_tarif_' . $i] ?? '';
+                    if ($nom !== '') {
+                        $prix_form = str_replace('.', ',', (string) $prix);
+                        $tarif_labels[] = [
+                            'nom' => $nom,
+                            'prix' => $prix !== '' ? $prix_form . '€' : ''
+                        ];
+                    }
                 }
             }
 
             /* ---- Intervenants avec lien vers profil wam_membre ---- */
-            $prof_html_links   = [];
+            $prof_html_links = [];
             $intervenant_group = $has_acf ? get_field('intervenant·e') : null;
             if ($intervenant_group) {
                 $in_out = $intervenant_group['stage_intervenant_inout'] ?? 'false';
                 if ($in_out === 'true') {
-                    $u      = $intervenant_group['stage_intervenant'] ?? null;
-                    $u_id   = is_array($u) ? ($u['ID'] ?? null) : (is_object($u) ? $u->ID : null);
+                    $u = $intervenant_group['stage_intervenant'] ?? null;
+                    $u_id = is_array($u) ? ($u['ID'] ?? null) : (is_object($u) ? $u->ID : null);
                     $u_name = is_array($u) ? ($u['display_name'] ?? '') : (is_object($u) ? $u->display_name : '');
                     if ($u_id) {
                         $member_posts = get_posts([
-                            'post_type'      => 'wam_membre',
-                            'meta_query'     => [['key' => 'user_prof', 'value' => $u_id]],
+                            'post_type' => 'wam_membre',
+                            'meta_query' => [['key' => 'user_prof', 'value' => $u_id]],
                             'posts_per_page' => 1,
                         ]);
                         $prof_html_links[] = $member_posts
@@ -107,7 +115,8 @@ get_header();
                     }
                 } else {
                     $u_name = $intervenant_group['stage_intervenant_out'] ?? '';
-                    if ($u_name) $prof_html_links[] = esc_html($u_name);
+                    if ($u_name)
+                        $prof_html_links[] = esc_html($u_name);
                 }
             }
 
@@ -116,223 +125,304 @@ get_header();
 
             /* ---- Couleurs icônes info-card ---- */
             $ic = $is_enfant ? [
-                'calendar'  => 'var(--wam-color-green)',
-                'map'       => 'var(--wam-color-orange)',
+                'calendar' => 'var(--wam-color-green)',
+                'map' => 'var(--wam-color-orange)',
                 'piggybank' => 'var(--wam-color-pink)',
-                'thumbs'    => 'var(--wam-color-yellow)',
+                'thumbs' => 'var(--wam-color-yellow)',
             ] : [
-                'calendar'  => 'var(--wam-color-icon-light)',
-                'map'       => 'var(--wam-color-icon-light)',
+                'calendar' => 'var(--wam-color-icon-light)',
+                'map' => 'var(--wam-color-icon-light)',
                 'piggybank' => 'var(--wam-color-icon-light)',
-                'thumbs'    => 'var(--wam-color-icon-light)',
+                'thumbs' => 'var(--wam-color-icon-light)',
             ];
 
-            $icon_dir   = get_template_directory_uri() . '/assets/images/';
-            $has_photo  = has_post_thumbnail();
+            $icon_dir = get_template_directory_uri() . '/assets/images/';
+            $has_photo = has_post_thumbnail();
             $has_sidebar = ($has_photo || $complet);
 
             /* ---- Vidéos ---- */
             $videos = [];
             for ($i = 1; $i <= 3; $i++) {
                 $v = $has_acf ? get_field("video_$i") : '';
-                if ($v) $videos[] = $v;
+                if ($v)
+                    $videos[] = $v;
             }
-        ?>
+            ?>
 
-        <!-- Breadcrumb : Accueil > Stages > [Titre du stage] -->
-        <?php get_template_part('template-parts/breadcrumb', null, [
-            'id'   => 'breadcrumb-stage',
-            'full' => true,
-        ]); ?>
+            <!-- Breadcrumb : Accueil > Stages > [Titre du stage] -->
+            <?php get_template_part('template-parts/breadcrumb', null, [
+                'id' => 'breadcrumb-stage',
+                'full' => true,
+            ]); ?>
 
-        <!-- ============ HERO : Infos + Image ============ -->
-        <div class="page-hero <?php echo !$has_sidebar ? 'page-hero--no-image' : ''; ?>">
+            <!-- ============ HERO : Infos + Image ============ -->
+            <div class="page-hero <?php echo !$has_sidebar ? 'page-hero--no-image' : ''; ?>">
 
-            <!-- Colonne gauche : badge, titre, infos, description, CTA -->
-            <div class="page-hero__content">
+                <!-- Colonne gauche : badge, titre, infos, description, CTA -->
+                <div class="page-hero__content">
 
-                <div class="page-hero__heading">
+                    <div class="page-hero__heading">
 
-                    <!-- Badge type (STAGE / ATELIER / WORKSHOP) -->
-                    <span class="stage-badge-type text-xs fw-bold <?php echo $badge_color; ?>"><?php echo esc_html($badge_label); ?></span>
+                        <!-- Badge type (STAGE / ATELIER / WORKSHOP) -->
+                        <span
+                            class="stage-badge-type text-xs fw-bold <?php echo $badge_color; ?>"><?php echo esc_html($badge_label); ?></span>
 
-                    <!-- Titre — variante enfant = Cholo Rhita, adulte = Mallia -->
-                    <h1 class="page-hero__title has-accent-yellow-color <?php echo $is_enfant ? 'title-cool-lg page-hero__title--enfant' : 'title-sign-lg'; ?>">
-                        <?php the_title(); ?>
-                    </h1>
+                        <!-- Titre — variante enfant = Cholo Rhita, adulte = Mallia -->
+                        <h1
+                            class="page-hero__title has-accent-yellow-color <?php echo $is_enfant ? 'title-cool-lg page-hero__title--enfant' : 'title-sign-lg'; ?>">
+                            <?php the_title(); ?>
+                        </h1>
 
-                    <?php if ($sous_titre) : ?>
-                        <p class="page-hero__subtitle text-lg"><?php echo esc_html($sous_titre); ?></p>
+                        <?php if ($sous_titre): ?>
+                            <p class="page-hero__subtitle text-lg"><?php echo esc_html($sous_titre); ?></p>
+                        <?php endif; ?>
+                    </div>
+
+                    <?php if ($prof_html_links): ?>
+                        <p class="page-hero__profs text-sm">
+                            avec <?php echo implode(' et ', $prof_html_links); ?>
+                        </p>
                     <?php endif; ?>
-                </div>
 
-                <?php if ($prof_html_links) : ?>
-                    <p class="page-hero__profs text-sm">
-                        avec <?php echo implode(' et ', $prof_html_links); ?>
-                    </p>
-                <?php endif; ?>
+                    <!-- Info card -->
+                    <div class="cours-info-card">
 
-                <!-- Info card -->
-                <div class="cours-info-card">
-
-                    <!-- Date + Horaire -->
-                    <?php if ($p_obj) : ?>
-                        <div class="cours-info-card__row cours-info-card__row--top">
-                            <span class="btn-icon" style="--icon-url: url('<?php echo $icon_dir; ?>calendar.svg'); --icon-size: 24px; color: <?php echo $ic['calendar']; ?>;"></span>
-                            <div class="cours-info-card__cell">
-                                <div class="stage-date-display">
-                                    <div class="stage-date-square <?php echo $is_enfant ? 'stage-date-square--enfant' : ''; ?>">
-                                        <span class="date-name text-xs color-subtext"><?php echo date_i18n('l', $p_obj->getTimestamp()); ?></span>
-                                        <span class="date-number title-norm-lg <?php echo $is_enfant ? 'color-green' : 'color-yellow'; ?>"><?php echo $p_obj->format('d'); ?></span>
-                                        <span class="date-month text-md <?php echo $is_enfant ? 'color-green' : 'color-yellow'; ?>"><?php echo date_i18n('F', $p_obj->getTimestamp()); ?></span>
-                                        <span class="date-year text-xs color-subtext mt-3xs"><?php echo $p_obj->format('Y'); ?></span>
+                        <!-- Date + Horaire -->
+                        <?php if ($p_obj): ?>
+                            <div class="cours-info-card__row cours-info-card__row--top">
+                                <span class="btn-icon"
+                                    style="--icon-url: url('<?php echo $icon_dir; ?>calendar.svg'); --icon-size: 24px; color: <?php echo $ic['calendar']; ?>;"></span>
+                                <div class="cours-info-card__cell">
+                                    <div class="stage-date-display">
+                                        <div
+                                            class="stage-date-square <?php echo $is_enfant ? 'stage-date-square--enfant' : ''; ?>">
+                                            <span
+                                                class="date-name text-xs color-subtext"><?php echo date_i18n('l', $p_obj->getTimestamp()); ?></span>
+                                            <span
+                                                class="date-number title-norm-lg <?php echo $is_enfant ? 'color-green' : 'color-yellow'; ?>"><?php echo $p_obj->format('d'); ?></span>
+                                            <span
+                                                class="date-month text-md <?php echo $is_enfant ? 'color-green' : 'color-yellow'; ?>"><?php echo date_i18n('F', $p_obj->getTimestamp()); ?></span>
+                                            <span
+                                                class="date-year text-xs color-subtext mt-3xs"><?php echo $p_obj->format('Y'); ?></span>
+                                        </div>
+                                        <?php if ($heure_debut): ?>
+                                            <p class="stage-time-display text-lg fw-bold">
+                                                <?php echo esc_html($heure_debut . ($heure_fin ? ' – ' . $heure_fin : '')); ?>
+                                            </p>
+                                        <?php endif; ?>
                                     </div>
-                                    <?php if ($heure_debut) : ?>
-                                        <p class="stage-time-display text-lg fw-bold">
-                                            <?php echo esc_html($heure_debut . ($heure_fin ? ' – ' . $heure_fin : '')); ?>
-                                        </p>
-                                    <?php endif; ?>
                                 </div>
                             </div>
-                        </div>
-                    <?php endif; ?>
+                        <?php endif; ?>
 
-                    <!-- Multi-dates toggle -->
-                    <?php if ($is_multi && !empty($other_dates)) : ?>
-                        <div class="stage-dates-toggle-wrap">
-                            <button type="button" class="btn-toggle-dates" id="toggle-dates-list" aria-expanded="false">
-                                <span class="btn-label"></span>
-                                <span class="btn-icon btn-icon--xs" style="--icon-url: url('<?php echo $icon_dir; ?>chevron_down.svg');"></span>
-                            </button>
-                        </div>
-                        <div class="stage-dates-dropdown" id="dates-list" hidden>
-                            <?php
-                            /* Tri : dates disponibles d'abord, complètes en dernier */
-                            usort($other_dates, function ($a, $b) {
-                                $a_c = (bool) get_field('complete_cours', is_object($a) ? $a->ID : $a);
-                                $b_c = (bool) get_field('complete_cours', is_object($b) ? $b->ID : $b);
-                                return ($a_c ? 1 : 0) - ($b_c ? 1 : 0);
-                            });
-                            ?>
-                            <div class="stage-dates-grid <?php echo $is_enfant ? 'stage-dates-grid--enfant' : ''; ?>">
-                                <?php foreach ($other_dates as $linked_post) :
-                                    $l_id      = is_object($linked_post) ? $linked_post->ID : $linked_post;
-                                    $l_date    = get_field('date_stage', $l_id);
-                                    $l_h_deb   = get_field('heure_debut', $l_id);
-                                    $l_h_fin   = get_field('heure_de_fin', $l_id);
-                                    $l_complet = get_field('complete_cours', $l_id);
-                                    $l_obj     = $l_date ? DateTime::createFromFormat('d/m/Y', $l_date) : null;
-                                    if (!$l_obj) continue;
+                        <!-- Multi-dates toggle -->
+                        <?php if ($is_multi && !empty($other_dates)): ?>
+                            <div class="stage-dates-toggle-wrap">
+                                <button type="button" class="btn-toggle-dates" id="toggle-dates-list" aria-expanded="false">
+                                    <span class="btn-label"></span>
+                                    <span class="btn-icon btn-icon--xs"
+                                        style="--icon-url: url('<?php echo $icon_dir; ?>chevron_down.svg');"></span>
+                                </button>
+                            </div>
+                            <div class="stage-dates-dropdown" id="dates-list" hidden>
+                                <?php
+                                /* Tri : dates disponibles d'abord, complètes en dernier */
+                                usort($other_dates, function ($a, $b) {
+                                    $a_c = (bool) get_field('complete_cours', is_object($a) ? $a->ID : $a);
+                                    $b_c = (bool) get_field('complete_cours', is_object($b) ? $b->ID : $b);
+                                    return ($a_c ? 1 : 0) - ($b_c ? 1 : 0);
+                                });
                                 ?>
-                                    <a href="<?php echo get_permalink($l_id); ?>"
-                                       class="stage-mini-date-card <?php echo $is_enfant ? 'stage-mini-date-card--enfant' : ''; ?> <?php echo $l_complet ? 'is-complet' : ''; ?>">
-                                        <p class="date-name text-xs color-subtext fw-bold"><?php echo date_i18n('l', $l_obj->getTimestamp()); ?></p>
-                                        <p class="mini-date-num title-norm-md <?php echo $is_enfant ? 'color-green' : 'color-yellow'; ?>"><?php echo $l_obj->format('d'); ?></p>
-                                        <p class="mini-date-month text-md <?php echo $is_enfant ? 'color-green' : 'color-yellow'; ?>"><?php echo date_i18n('F', $l_obj->getTimestamp()); ?></p>
-                                        <p class="text-xs color-subtext mt-3xs"><?php echo $l_obj->format('Y'); ?></p>
-                                        <?php if ($l_complet) : ?>
-                                            <span class="mini-badge text-md color-orange mt-2xs">Complet</span>
-                                        <?php else : ?>
-                                            <p class="mini-date-time text-md fw-bold color-text"><?php echo esc_html($l_h_deb . ($l_h_fin ? '–' . $l_h_fin : '')); ?></p>
-                                        <?php endif; ?>
-                                    </a>
-                                <?php endforeach; ?>
+                                <div class="stage-dates-grid <?php echo $is_enfant ? 'stage-dates-grid--enfant' : ''; ?>">
+                                    <?php foreach ($other_dates as $linked_post):
+                                        $l_id = is_object($linked_post) ? $linked_post->ID : $linked_post;
+                                        $l_date = get_field('date_stage', $l_id);
+                                        $l_h_deb = get_field('heure_debut', $l_id);
+                                        $l_h_fin = get_field('heure_de_fin', $l_id);
+                                        $l_complet = get_field('complete_cours', $l_id);
+                                        $l_obj = $l_date ? DateTime::createFromFormat('d/m/Y', $l_date) : null;
+                                        if (!$l_obj)
+                                            continue;
+                                        ?>
+                                        <a href="<?php echo get_permalink($l_id); ?>"
+                                            class="stage-mini-date-card <?php echo $is_enfant ? 'stage-mini-date-card--enfant' : ''; ?> <?php echo $l_complet ? 'is-complet' : ''; ?>">
+                                            <p class="date-name text-xs color-subtext fw-bold">
+                                                <?php echo date_i18n('l', $l_obj->getTimestamp()); ?></p>
+                                            <p
+                                                class="mini-date-num title-norm-md <?php echo $is_enfant ? 'color-green' : 'color-yellow'; ?>">
+                                                <?php echo $l_obj->format('d'); ?></p>
+                                            <p
+                                                class="mini-date-month text-md <?php echo $is_enfant ? 'color-green' : 'color-yellow'; ?>">
+                                                <?php echo date_i18n('F', $l_obj->getTimestamp()); ?></p>
+                                            <p class="text-xs color-subtext mt-3xs"><?php echo $l_obj->format('Y'); ?></p>
+                                            <?php if ($l_complet): ?>
+                                                <span class="mini-badge text-md color-orange mt-2xs">Complet</span>
+                                            <?php else: ?>
+                                                <p class="mini-date-time text-md fw-bold color-text">
+                                                    <?php echo esc_html($l_h_deb . ($l_h_fin ? '–' . $l_h_fin : '')); ?></p>
+                                            <?php endif; ?>
+                                        </a>
+                                    <?php endforeach; ?>
+                                </div>
                             </div>
-                        </div>
-                    <?php endif; ?>
+                        <?php endif; ?>
 
-                    <!-- Lieu -->
-                    <?php if (wam_adresse_visible()): ?>
-                        <div class="cours-info-card__row wam-adresse-globale">
-                            <span class="btn-icon" style="--icon-url: url('<?php echo $icon_dir; ?>map.svg'); --icon-size: 24px; color: <?php echo $ic['map']; ?>;"></span>
-                            <div class="cours-info-card__cell">
-                                <p class="cours-info-card__lieu text-md"><?php echo esc_html(wam_nom_lieu()); ?></p>
-                                <p class="cours-info-card__adresse text-sm"><?php echo nl2br(esc_html(wam_adresse_lieu())); ?></p>
+                        <!-- Lieu -->
+                        <?php if (wam_adresse_visible()): ?>
+                            <div class="cours-info-card__row wam-adresse-globale">
+                                <span class="btn-icon"
+                                    style="--icon-url: url('<?php echo $icon_dir; ?>map.svg'); --icon-size: 24px; color: <?php echo $ic['map']; ?>;"></span>
+                                <div class="cours-info-card__cell">
+                                    <p class="cours-info-card__lieu text-md"><?php echo esc_html(wam_nom_lieu()); ?></p>
+                                    <p class="cours-info-card__adresse text-sm">
+                                        <?php echo nl2br(esc_html(wam_adresse_lieu())); ?></p>
+                                </div>
                             </div>
-                        </div>
-                    <?php endif; ?>
+                        <?php endif; ?>
 
-                    <!-- Tarifs -->
-                    <?php if ($tarif_labels) : ?>
+                        <!-- Tarifs -->
+                        <?php if ($tarif_labels): ?>
+                            <div class="cours-info-card__row">
+                                <span class="btn-icon"
+                                    style="--icon-url: url('<?php echo $icon_dir; ?>piggy-bank.svg'); --icon-size: 24px; color: <?php echo $ic['piggybank']; ?>;"></span>
+                                <div class="cours-info-card__cell">
+                                    <?php foreach ($tarif_labels as $t): ?>
+                                        <p class="cours-info-card__tarif text-md">
+                                            <?php echo esc_html($t['nom']); ?>
+                                            <?php if ($t['prix']): ?>
+                                                - <span
+                                                    class="fw-bold <?php echo $is_enfant ? 'has-accent-pink-color' : ''; ?>"><?php echo esc_html($t['prix']); ?></span>
+                                            <?php endif; ?>
+                                        </p>
+                                    <?php endforeach; ?>
+                                </div>
+                            </div>
+                        <?php endif; ?>
+
+                        <!-- Info complémentaire (Tenue par défaut) -->
                         <div class="cours-info-card__row">
-                            <span class="btn-icon" style="--icon-url: url('<?php echo $icon_dir; ?>piggy-bank.svg'); --icon-size: 24px; color: <?php echo $ic['piggybank']; ?>;"></span>
-                            <div class="cours-info-card__cell">
-                                <?php foreach ($tarif_labels as $label) : ?>
-                                    <p class="cours-info-card__tarif text-md fw-bold"><?php echo esc_html($label); ?></p>
-                                <?php endforeach; ?>
-                            </div>
+                            <span class="btn-icon"
+                                style="--icon-url: url('<?php echo $icon_dir; ?>thumbs-up.svg'); --icon-size: 24px; color: <?php echo $ic['thumbs']; ?>;"></span>
+                            <p class="cours-info-card__info text-md">
+                                <?php echo $info_comp ?: 'Prévoir une tenue et chaussures adaptées au cours'; ?></p>
                         </div>
-                    <?php endif; ?>
 
-                    <!-- Info complémentaire -->
-                    <?php if ($info_comp) : ?>
-                        <div class="cours-info-card__row">
-                            <span class="btn-icon" style="--icon-url: url('<?php echo $icon_dir; ?>thumbs-up.svg'); --icon-size: 24px; color: <?php echo $ic['thumbs']; ?>;"></span>
-                            <p class="cours-info-card__info text-md"><?php echo esc_html($info_comp); ?></p>
-                        </div>
-                    <?php endif; ?>
+                    </div><!-- /cours-info-card -->
 
-                </div><!-- /cours-info-card -->
+                    <!-- CTA réservation multi-tarifs -->
+                    <div class="cours-ctas">
+                        <?php
+                        $wc_pid = wamv1_get_wc_product_id(get_the_ID());
+                        if ($wc_pid):
+                            // Les tarifs sont des sous-champs du group field ACF "tarifs".
+                            $grp = function_exists('wamv1_stage_tarifs') ? wamv1_stage_tarifs(get_the_ID()) : (get_field('tarifs') ?: []);
+                            $tarifs_data = [];
 
-                <!-- Description courte (tronquée à 60 mots) -->
-                <?php if ($description) : ?>
-                    <div class="cours-description wam-prose">
-                        <?php echo wp_kses_post(wpautop(wp_trim_words($description, 60))); ?>
+                            if (!empty($grp['nom_tarif_1'])) {
+                                $tarifs_data[] = [
+                                    'index' => 1,
+                                    'nom' => $grp['nom_tarif_1'],
+                                    'prix' => $grp['prix_tarif_1'] ?? '',
+                                    'total' => (int) ($grp['quota_tarif_1'] ?? 0),
+                                    'reserve' => (int) ($grp['quota_reserve_1'] ?? 0),
+                                ];
+                            }
+
+                            if (!empty($grp['nom_tarif_2'])) {
+                                $tarifs_data[] = [
+                                    'index' => 2,
+                                    'nom' => $grp['nom_tarif_2'],
+                                    'prix' => $grp['prix_tarif_2'] ?? '',
+                                    'total' => (int) ($grp['quota_tarif_2'] ?? 0),
+                                    'reserve' => (int) ($grp['quota_reserve_2'] ?? 0),
+                                ];
+                            }
+
+                            if (!empty($grp['nom_tarif_3'])) {
+                                $tarifs_data[] = [
+                                    'index' => 3,
+                                    'nom' => $grp['nom_tarif_3'],
+                                    'prix' => $grp['prix_tarif_3'] ?? '',
+                                    'total' => (int) ($grp['quota_tarif_3'] ?? 0),
+                                    'reserve' => (int) ($grp['quota_reserve_3'] ?? 0),
+                                ];
+                            }
+
+                            $nb_tarifs = count($tarifs_data);
+
+                            if ($nb_tarifs === 1):
+                                $t = $tarifs_data[0];
+                                $est_complet = ($t['total'] > 0 && $t['reserve'] >= $t['total']);
+                                if ($est_complet): ?>
+                                    <button type="button" class="btn-primary btn-inscription is-complet" disabled>Stage complet</button>
+                                <?php else: ?>
+                                    <button type="button" class="btn-primary btn-inscription btn-stage-item"
+                                        data-product-id="<?php echo esc_attr($wc_pid); ?>"
+                                        data-stage-id="<?php echo esc_attr(get_the_ID()); ?>"
+                                        data-tarif-index="<?php echo esc_attr($t['index']); ?>">
+                                        Réserver ma place
+                                        <span class="btn-icon"
+                                            style="--icon-url: url('<?php echo $icon_dir; ?>chevron-right.svg');"></span>
+                                    </button>
+                                <?php endif; ?>
+                            <?php elseif ($nb_tarifs > 1): ?>
+                                <button type="button" class="btn-primary btn-inscription btn-stage-item btn-open-stage-modal"
+                                    data-modal="modal-booking-stage">
+                                    Réserver mes places
+                                    <span class="btn-icon"
+                                        style="--icon-url: url('<?php echo $icon_dir; ?>chevron-right.svg');"></span>
+                                </button>
+                            <?php else: ?>
+                                <button type="button" class="btn-primary btn-inscription" disabled>Tarifs non configurés</button>
+                            <?php endif; ?>
+                        <?php endif; ?>
                     </div>
+
+                    <!-- Description courte (tronquée à 60 mots) -->
+                    <?php if ($description): ?>
+                        <div class="cours-description wam-prose mt-lg">
+                            <?php echo wp_kses_post(wpautop(wp_trim_words($description, 60))); ?>
+                        </div>
+                    <?php endif; ?>
+
+                </div><!-- /page-hero__content -->
+
+                <!-- Colonne droite : image à la une + badge complet -->
+                <?php if ($has_sidebar): ?>
+                    <div class="page-hero__image">
+
+                        <?php if ($has_photo): ?>
+                            <?php the_post_thumbnail('wam-stage-portrait', [
+                                'class' => 'page-hero__image-img',
+                                'data-no-overlay' => 'true',
+                            ]); ?>
+                            <div class="page-hero__image-overlay"></div>
+                        <?php else: ?>
+                            <div class="stage-placeholder-img" aria-hidden="true"></div>
+                        <?php endif; ?>
+
+                        <?php if ($complet): ?>
+                            <!-- Badge cours complet — réutilise le même composant que single-cours.php -->
+                            <div class="cours-complet">
+                                <img src="<?php echo $icon_dir; ?>sad-emoji.svg" width="40" height="40" alt="" aria-hidden="true">
+                                <div class="cours-complet__body">
+                                    <p class="cours-complet__title">Stage complet</p>
+                                    <p class="cours-complet__text">Malheureusement, ce stage est déjà rempli.</p>
+                                    <a href="<?php echo esc_url($stages_listing_url); ?>" class="cours-complet__link">
+                                        <span>Voir tous les stages</span>
+                                        <svg width="12" height="12" viewBox="0 0 12 12" fill="none" aria-hidden="true">
+                                            <path d="M2 4l4 4 4-4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"
+                                                stroke-linejoin="round" />
+                                        </svg>
+                                    </a>
+                                </div>
+                            </div>
+                        <?php endif; ?>
+
+                    </div><!-- /page-hero__image -->
                 <?php endif; ?>
 
-                <!-- CTA réservation -->
-                <div class="cours-ctas">
-                    <?php if ($complet) : ?>
-                        <div class="btn-primary btn-inscription btn-inscription--disabled">
-                            <span class="btn-inscription__label">Stage complet</span>
-                        </div>
-                    <?php else : ?>
-                        <a href="#resa" class="btn-primary btn-inscription" id="btn-resa">
-                            <span class="btn-inscription__label">Réserver ce stage !</span>
-                            <span class="btn-icon btn-icon--sm" style="--icon-url: url('<?php echo $icon_dir; ?>chevron-right.svg');"></span>
-                        </a>
-                    <?php endif; ?>
-                </div>
-
-            </div><!-- /page-hero__content -->
-
-            <!-- Colonne droite : image à la une + badge complet -->
-            <?php if ($has_sidebar) : ?>
-                <div class="page-hero__image">
-
-                    <?php if ($has_photo) : ?>
-                        <?php the_post_thumbnail('wam-stage-portrait', [
-                            'class'          => 'page-hero__image-img',
-                            'data-no-overlay' => 'true',
-                        ]); ?>
-                        <div class="page-hero__image-overlay"></div>
-                    <?php else : ?>
-                        <div class="stage-placeholder-img" aria-hidden="true"></div>
-                    <?php endif; ?>
-
-                    <?php if ($complet) : ?>
-                        <!-- Badge cours complet — réutilise le même composant que single-cours.php -->
-                        <div class="cours-complet">
-                            <img src="<?php echo $icon_dir; ?>sad-emoji.svg" 
-                                 width="40" height="40" alt="" aria-hidden="true">
-                            <div class="cours-complet__body">
-                                <p class="cours-complet__title">Stage complet</p>
-                                <p class="cours-complet__text">Malheureusement, ce stage est déjà rempli.</p>
-                                <a href="<?php echo esc_url($stages_listing_url); ?>" class="cours-complet__link">
-                                    <span>Voir tous les stages</span>
-                                    <svg width="12" height="12" viewBox="0 0 12 12" fill="none" aria-hidden="true">
-                                        <path d="M2 4l4 4 4-4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
-                                    </svg>
-                                </a>
-                            </div>
-                        </div>
-                    <?php endif; ?>
-
-                </div><!-- /page-hero__image -->
-            <?php endif; ?>
-
-        </div><!-- /page-hero -->
+            </div><!-- /page-hero -->
 
         <?php endwhile; ?>
 
@@ -340,7 +430,7 @@ get_header();
         <?php get_template_part('template-parts/separator'); ?>
 
         <!-- Description complète si > 60 mots -->
-        <?php if (!empty($description) && str_word_count(strip_tags($description)) > 60) : ?>
+        <?php if (!empty($description) && str_word_count(strip_tags($description)) > 60): ?>
             <div class="stage-full-desc-section">
                 <div class="wam-prose">
                     <?php echo wp_kses_post(wpautop($description)); ?>
@@ -350,11 +440,11 @@ get_header();
         <?php endif; ?>
 
         <!-- Vidéos -->
-        <?php if (!empty($videos)) : ?>
+        <?php if (!empty($videos)): ?>
             <div id="section-videos" class="cours-videos">
-                <?php foreach ($videos as $video_url) :
+                <?php foreach ($videos as $video_url):
                     $embed = wp_oembed_get(esc_url($video_url), ['width' => 1200]);
-                    if ($embed) : ?>
+                    if ($embed): ?>
                         <div class="cours-video"><?php echo $embed; ?></div>
                     <?php endif;
                 endforeach; ?>
@@ -364,6 +454,62 @@ get_header();
         <?php get_template_part('template-parts/related-content'); ?>
 
     </div>
+ 
+    <!-- Modal de réservation (placée en fin de DOM pour éviter les conflits de layout) -->
+    <?php if (!empty($tarifs_data) && count($tarifs_data) > 1): ?>
+        <?php
+        // Capture du contenu de la modal
+        ob_start();
+        ?>
+        <p class="text-xs color-subtext mb-md">Sélectionnez vos tarifs pour le stage :
+            <strong><?php the_title(); ?></strong></p>
+ 
+        <div class="wam-tarif-selector-list">
+            <?php
+            foreach ($tarifs_data as $index => $t):
+                $est_complet = ($t['total'] > 0 && $t['reserve'] >= $t['total']);
+                ?>
+                <div class="wam-tarif-selector-item <?php echo $est_complet ? 'is-disabled' : ''; ?>">
+                    <div class="wam-tarif-info">
+                        <span class="text-sm d-block color-text"><?php echo esc_html($t['nom']); ?></span>
+                        <span
+                            class="text-md color-pink fw-bold"><?php echo esc_html(str_replace('.', ',', (string) $t['prix'])); ?>€</span>
+                        <?php if ($est_complet): ?>
+                            <small class="color-pink d-block">Complet</small>
+                        <?php endif; ?>
+                    </div>
+ 
+                    <div class="wam-qty-selector">
+                        <button type="button" class="wam-qty-btn-circle" data-qty-minus aria-label="<?php echo esc_attr( sprintf( __( 'Diminuer la quantité pour %s', 'wamv1' ), $t['nom'] ) ); ?>">–</button>
+                        <span class="wam-qty-value" data-tarif-index="<?php echo $t['index']; ?>">0</span>
+                        <button type="button" class="wam-qty-btn-circle" data-qty-plus aria-label="<?php echo esc_attr( sprintf( __( 'Augmenter la quantité pour %s', 'wamv1' ), $t['nom'] ) ); ?>" <?php echo $est_complet ? 'disabled' : ''; ?>>+</button>
+                    </div>
+                </div>
+            <?php endforeach; ?>
+        </div>
+        <?php
+        $modal_content = ob_get_clean();
+ 
+        // Capture du footer de la modal
+        ob_start();
+        ?>
+        <button type="button" class="btn-primary btn-confirm-booking" disabled
+            data-product-id="<?php echo esc_attr($wc_pid); ?>" data-stage-id="<?php echo get_the_ID(); ?>">
+            Ajouter au panier
+            <span class="btn-icon" style="--icon-url: url('<?php echo $icon_dir; ?>panier.svg');"></span>
+        </button>
+        <?php
+        $modal_footer = ob_get_clean();
+ 
+        // Appel du template réutilisable
+        get_template_part('template-parts/modal', null, [
+            'id' => 'modal-booking-stage',
+            'title' => 'Réserver mes places',
+            'content_html' => $modal_content,
+            'footer_html' => $modal_footer
+        ]);
+        ?>
+    <?php endif; ?>
 </main>
 
 <?php get_footer(); ?>

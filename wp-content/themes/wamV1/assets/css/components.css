@@ -90,7 +90,7 @@
     border-radius: var(--wam-radius-lg);
     color: var(--wp--preset--color--background-500);
     font-family: var(--wam-font-body);
-    font-weight: 700;
+    font-weight: bold;
     font-size: 1.25rem;
     /* 20px */
     text-decoration: none;
@@ -160,7 +160,7 @@
     border-radius: var(--wam-radius-lg) !important;
     padding: var(--wam-spacing-sm) var(--wam-spacing-xl) !important;
     font-family: var(--wam-font-body) !important;
-    font-weight: 700 !important;
+    font-weight: bold !important;
     font-size: 1.25rem !important;
     width: fit-content !important;
 }
@@ -243,7 +243,7 @@
     border-radius: var(--wam-radius-lg);
     color: var(--wam-color-yellow);
     font-family: var(--wam-font-body);
-    font-weight: 700;
+    font-weight: bold;
     font-size: 1.25rem;
     /* 20px */
     text-decoration: none;
@@ -1593,7 +1593,7 @@ html.wam-reduce-motion .card-article__notif::after {
 
 .wam-nav__list li.current-menu-item>.wam-nav-item-wrap>a,
 .wam-nav__list li.current-menu-item>a {
-    font-weight: 700;
+    font-weight: bold;
 }
 
 .wam-nav__list li.current-menu-item>.wam-nav-item-wrap>a::after {
@@ -1908,7 +1908,7 @@ html.wam-reduce-motion .card-article__notif::after {
     font-family: var(--wam-font-body);
     font-size: 1.25rem;
     /* wam-md */
-    font-weight: 700;
+    font-weight: bold;
     color: var(--wam-color-text);
     margin: 0;
 }
@@ -2016,7 +2016,7 @@ html.wam-reduce-motion .card-article__notif::after {
 .wam-footer__category-title-li {
     font-family: var(--wam-font-body);
     font-size: 1.125rem;
-    font-weight: 700;
+    font-weight: bold;
     color: var(--wam-color-text);
     margin-top: var(--wam-spacing-md);
     margin-bottom: var(--wam-spacing-2xs);
@@ -2179,7 +2179,7 @@ html.wam-reduce-motion .card-article__notif::after {
         width: 100%;
         font-family: var(--wam-font-body);
         font-size: 1.125rem;
-        font-weight: 700;
+        font-weight: bold;
         text-transform: uppercase;
         letter-spacing: 0.05em;
         color: var(--wam-color-text);
@@ -2347,7 +2347,7 @@ html.wam-no-graphical-fonts .title-sign-sm {
 
 /* Sous-titre cours (Outfit Bold jaune) */
 .card-similaire__subtitle {
-    font-weight: 700;
+    font-weight: bold;
     line-height: 1.25;
     color: var(--wam-color-text);
     margin: 0;
@@ -2490,6 +2490,7 @@ html.wam-no-graphical-fonts .title-sign-sm {
     display: flex;
     align-items: center;
     gap: var(--wam-spacing-2xs);
+    flex-wrap: wrap;
     font-size: var(--wam-font-size-xs);
     color: var(--wam-color-disabled);
 }
@@ -2533,7 +2534,7 @@ html.wam-no-graphical-fonts .title-sign-sm {
     color: var(--wam-color-page-bg) !important;
     text-decoration: none !important;
     border-radius: var(--wam-radius-full);
-    font-weight: 700;
+    font-weight: bold;
     font-size: var(--wam-font-size-sm);
     box-shadow: 0 4px 16px rgba(19, 22, 32, 0.4);
     transition: transform var(--wam-transition), background-color var(--wam-transition);

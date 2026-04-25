@@ -50,7 +50,7 @@
 }
 
 .a11y-group__legend {
-    font-weight: 700;
+    font-weight: bold;
     font-size: var(--wam-font-size-sm);
     color: var(--wp--preset--color--text-normal);
     padding: 0;

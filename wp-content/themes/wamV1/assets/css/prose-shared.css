@@ -131,7 +131,7 @@
     list-style: none;
     padding: var(--wam-spacing-md) var(--wam-spacing-lg);
     font-size: var(--wam-font-size-md);
-    font-weight: 700;
+    font-weight: bold;
     display: flex;
     align-items: center;
     justify-content: space-between;
@@ -324,7 +324,7 @@
 .wam-prose .wp-block-table th,
 .editor-styles-wrapper .wp-block-table th {
     background-color: var(--wam-color-card-bg);
-    font-weight: 700;
+    font-weight: bold;
     color: var(--wam-color-yellow);
 }
 

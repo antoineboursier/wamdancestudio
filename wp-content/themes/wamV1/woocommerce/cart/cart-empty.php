@@ -15,12 +15,13 @@ $sad_emoji_url = get_template_directory_uri() . '/assets/images/sad-emoji.svg';
 ?>
 
 <div class="wam-cart-empty">
-    <img src="<?php echo esc_url($sad_emoji_url); ?>" alt="" aria-hidden="true" class="wam-cart-empty__icon">
+    <span class="wam-cart-empty__icon btn-icon" 
+          style="--icon-url: url('<?php echo esc_url($sad_emoji_url); ?>'); --icon-size: 80px; color: var(--wam-color-yellow);"></span>
     <p class="wam-cart-empty__message">Aucun article dans le panier.</p>
 </div>
 
 <?php if (wc_get_page_id('shop') > 0) : ?>
-    <div class="return-to-shop mt-lg" style="text-align: center;">
+    <div class="return-to-shop mt-lg text-center">
         <a class="button btn-primary wc-backward" href="<?php echo esc_url(home_url('/cours-collectifs/')); ?>">
             <?php esc_html_e('Retour aux cours', 'wamv1'); ?>
         </a>

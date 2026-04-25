@@ -114,8 +114,38 @@ if ( ! function_exists( 'wamv1_schema_place_wam' ) ) {
             'address' => [
                 '@type'           => 'PostalAddress',
                 'streetAddress'   => $adresse,
+                'addressLocality' => 'Villeneuve-d\'Ascq',
+                'postalCode'      => '59650',
+                'addressRegion'   => 'Nord',
                 'addressCountry'  => 'FR',
             ],
+            'geo' => [
+                '@type'     => 'GeoCoordinates',
+                'latitude'  => 50.665313,
+                'longitude' => 3.141649,
+            ],
+            'hasMap' => 'https://www.google.com/maps/search/?api=1&query=WAM+Dance+Studio+Villeneuve+d\'Ascq',
+            'openingHoursSpecification' => [
+                [
+                    '@type'     => 'OpeningHoursSpecification',
+                    'dayOfWeek' => [
+                        'https://schema.org/Monday',
+                        'https://schema.org/Tuesday',
+                        'https://schema.org/Wednesday',
+                        'https://schema.org/Thursday',
+                        'https://schema.org/Friday',
+                        'https://schema.org/Saturday'
+                    ],
+                    'opens'  => '09:00',
+                    'closes' => '22:00'
+                ],
+                [
+                    '@type'     => 'OpeningHoursSpecification',
+                    'dayOfWeek' => 'https://schema.org/Sunday',
+                    'opens'  => '13:00',
+                    'closes' => '22:00'
+                ]
+            ]
         ];
     }
 }
@@ -184,6 +214,9 @@ if ( ! function_exists( 'wamv1_schema_person_from_acf_user' ) ) {
         ];
 
         if ( $id_suffix ) {
+            $person['@id'] = home_url( '/#person-' . sanitize_title( $name ) );
+        } else {
+            // ID unique global pour cette personne afin d'unifier les graphes (SEO/GEO)
             $person['@id'] = home_url( '/#person-' . sanitize_title( $name ) );
         }
 
@@ -263,18 +296,35 @@ if ( ! function_exists( 'wamv1_schema_cours' ) ) {
             }
         }
 
-        /* ---- Offer — tarif_cours est un champ text (ex: "250€") ---- */
+        /* ---- Offer — Extraction dynamique depuis WooCommerce ---- */
         $offer = [
-            '@type'        => 'Offer',
-            'url'          => $permalink,
-            'seller'       => wamv1_schema_organization_ref(),
+            '@type'         => 'Offer',
+            'url'           => $permalink,
+            'seller'        => wamv1_schema_organization_ref(),
             'priceCurrency' => 'EUR',
-            'availability' => $complet
+            'availability'  => $complet
                 ? 'https://schema.org/SoldOut'
                 : 'https://schema.org/InStock',
         ];
-        if ( $tarif_obj && is_string( $tarif_obj ) ) {
+
+        // Tenter de récupérer le prix numérique depuis WooCommerce
+        if ( class_exists( 'WooCommerce' ) ) {
+            $product_id = get_post_meta( $post_id, '_wam_linked_product', true );
+            if ( $product_id ) {
+                $product = wc_get_product( $product_id );
+                if ( $product ) {
+                    $offer['price'] = $product->get_price();
+                }
+            }
+        }
+
+        if ( empty($offer['price']) && $tarif_obj && is_string( $tarif_obj ) ) {
             $offer['name'] = $tarif_obj;
+            // Fallback : essayer d'extraire le nombre du texte (ex: "250€")
+            preg_match('/\d+/', $tarif_obj, $matches);
+            if (!empty($matches[0])) {
+                $offer['price'] = $matches[0];
+            }
         }
         $schema['offers'] = $offer;
 
@@ -393,24 +443,54 @@ if ( ! function_exists( 'wamv1_schema_stage' ) ) {
             }
         }
 
-        /* ---- Offers — groupe tarifs {tarif_1, tarif_2, tarif_3} ----
-         * Chaque sous-champ est un texte libre ("40€ adhérent", "50€ extérieur"…).
-         * Schema.org Offer attend un prix numérique — on expose le name uniquement.
-         */
-        if ( $tarifs_grp && is_array( $tarifs_grp ) ) {
+        /* ---- Offers — Groupe tarifs ou extraction WooCommerce ---- */
+        if ( class_exists( 'WooCommerce' ) ) {
+            $product_id = get_post_meta( $post_id, '_wam_linked_product', true );
+            if ( $product_id ) {
+                $product = wc_get_product( $product_id );
+                if ( $product ) {
+                    if ( $product->is_type( 'variable' ) ) {
+                        // Fourchette de prix pour les stages à tarifs multiples
+                        $prices = $product->get_variation_prices();
+                        $schema['offers'] = [
+                            '@type'         => 'AggregateOffer',
+                            'lowPrice'      => min( $prices['price'] ),
+                            'highPrice'     => max( $prices['price'] ),
+                            'priceCurrency' => 'EUR',
+                            'offerCount'    => count( $prices['price'] ),
+                            'url'           => $permalink,
+                            'seller'        => wamv1_schema_organization_ref(),
+                        ];
+                    } else {
+                        $schema['offers'] = [
+                            '@type'         => 'Offer',
+                            'price'         => $product->get_price(),
+                            'priceCurrency' => 'EUR',
+                            'url'           => $permalink,
+                            'seller'        => wamv1_schema_organization_ref(),
+                            'availability'  => $complet ? 'https://schema.org/SoldOut' : 'https://schema.org/InStock',
+                        ];
+                    }
+                }
+            }
+        }
+
+        // Fallback sur les tarifs ACF si WooCommerce n'a rien donné
+        if ( empty( $schema['offers'] ) && $tarifs_grp && is_array( $tarifs_grp ) ) {
             $offers = [];
             foreach ( [ 'tarif_1', 'tarif_2', 'tarif_3' ] as $key ) {
                 if ( ! empty( $tarifs_grp[ $key ] ) ) {
-                    $offers[] = [
-                        '@type'        => 'Offer',
-                        'name'         => $tarifs_grp[ $key ],
-                        'url'          => $permalink,
+                    $offer = [
+                        '@type'         => 'Offer',
+                        'name'          => $tarifs_grp[ $key ],
+                        'url'           => $permalink,
                         'priceCurrency' => 'EUR',
-                        'seller'       => wamv1_schema_organization_ref(),
-                        'availability' => $complet
-                            ? 'https://schema.org/SoldOut'
-                            : 'https://schema.org/InStock',
+                        'seller'        => wamv1_schema_organization_ref(),
+                        'availability'  => $complet ? 'https://schema.org/SoldOut' : 'https://schema.org/InStock',
                     ];
+                    preg_match('/\d+/', $tarifs_grp[ $key ], $matches);
+                    if (!empty($matches[0])) { $offer['price'] = $matches[0]; }
+                    $offers[] = $offer;
                 }
             }
             if ( $offers ) {

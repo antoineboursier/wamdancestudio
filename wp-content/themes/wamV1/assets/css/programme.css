@@ -312,7 +312,7 @@
 /* Réserve l'espace du texte en bold — évite le layout shift au passage 400→700 */
 .chip::after {
     content: attr(data-label);
-    font-weight: 700;
+    font-weight: bold;
     height: 0;
     visibility: hidden;
     overflow: hidden;
@@ -328,7 +328,7 @@
 .chip--active {
     border-color: var(--wam-color-text);
     color: var(--wam-color-text);
-    font-weight: 700;
+    font-weight: bold;
 }
 
 /* Champ recherche — flex row (icône inline, comme Figma) */
@@ -617,7 +617,7 @@
     font-family: var(--wam-font-body);
     font-size: var(--wam-font-size-sm);
     /* 16px */
-    font-weight: 700;
+    font-weight: bold;
     color: var(--wp--preset--color--background-800);
     line-height: 1.25;
 }
@@ -766,7 +766,7 @@
 }
 
 .cours-complet__title {
-    font-weight: 700;
+    font-weight: bold;
     line-height: 1.1;
     font-size: var(--wam-font-size-h2);
     color: var(--wp--preset--color--background-800);
@@ -845,6 +845,7 @@
     gap: var(--wam-spacing-md);
     align-items: center;
     width: 100%;
+    flex-wrap: wrap;
 }
 
 /* Icônes SVG dans les rangées */
@@ -1257,7 +1258,7 @@
 }
 
 .cours-musiques__text strong {
-    font-weight: 700;
+    font-weight: bold;
     color: var(--wam-color-subtext);
 }
 
@@ -1315,9 +1316,9 @@
 .stage-date-display {
     display: flex;
     flex-direction: row;
-    gap: 0;
-    align-items: stretch;
     gap: var(--wam-spacing-lg);
+    align-items: stretch;
+    flex-wrap: wrap;
 }
 
 .stage-date-square {
@@ -1442,6 +1443,12 @@
     flex: 0 0 calc((100% - 2 * var(--wam-spacing-2xs)) / 3);
 }
 
+@media (max-width: 480px) {
+    .stage-mini-date-card {
+        flex: 0 0 100%;
+    }
+}
+
 /* Variante enfant : fond glass-green, bordure verte au hover */
 .stage-mini-date-card--enfant {
     background: var(--wam-color-glass-green);
@@ -1494,7 +1501,7 @@
 .mini-badge {
     display: block;
     margin-top: var(--wam-spacing-2xs);
-    font-weight: 700;
+    font-weight: bold;
 }
 
 /* Layout Spécifique Section Description */

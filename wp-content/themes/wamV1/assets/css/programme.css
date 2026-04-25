@@ -1318,7 +1318,6 @@
     flex-direction: row;
     gap: var(--wam-spacing-lg);
     align-items: stretch;
-    flex-wrap: wrap;
 }
 
 .stage-date-square {
@@ -1359,7 +1358,6 @@
 .stage-time-display {
     display: flex;
     border-left: 1px solid var(--wam-color-subtext);
-    width: 100%;
     align-items: center;
     padding-left: var(--wam-spacing-lg);
 }

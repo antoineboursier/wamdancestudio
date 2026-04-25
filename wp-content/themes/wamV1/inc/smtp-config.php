@@ -9,9 +9,7 @@ if (!defined('ABSPATH')) {
 }
 
 function wamv1_phpmailer_init(PHPMailer\PHPMailer\PHPMailer $phpmailer) {
-    $opts = get_option('wam_config', []);
-    
-    $smtp_host = $opts['smtp_host'] ?? '';
+    $smtp_host = get_option('wam_setting_smtp_host', '');
     
     // Si l'hôte n'est pas configuré, on ne force pas le SMTP WAM (fallback hébergeur par défaut).
     if (empty($smtp_host)) {
@@ -19,13 +17,13 @@ function wamv1_phpmailer_init(PHPMailer\PHPMailer\PHPMailer $phpmailer) {
     }
 
     $phpmailer->isSMTP();
-    $phpmailer->Host       = $opts['smtp_host'];
+    $phpmailer->Host       = $smtp_host;
     $phpmailer->SMTPAuth   = true;
-    $phpmailer->Port       = absint($opts['smtp_port'] ?? 465);
-    $phpmailer->Username   = sanitize_text_field($opts['smtp_user'] ?? '');
-    $phpmailer->Password   = sanitize_text_field($opts['smtp_pass'] ?? '');
+    $phpmailer->Port       = absint(get_option('wam_setting_smtp_port', 465));
+    $phpmailer->Username   = sanitize_text_field(get_option('wam_setting_smtp_user', ''));
+    $phpmailer->Password   = sanitize_text_field(get_option('wam_setting_smtp_pass', ''));
     
-    $secure = $opts['smtp_secure'] ?? 'ssl';
+    $secure = get_option('wam_setting_smtp_secure', 'ssl');
     if ($secure === 'ssl' || $secure === 'tls') {
         $phpmailer->SMTPSecure = $secure;
     } else {
@@ -38,8 +36,8 @@ function wamv1_phpmailer_init(PHPMailer\PHPMailer\PHPMailer $phpmailer) {
         );
     }
 
-    $from_email = sanitize_email($opts['smtp_from_email'] ?? get_option('admin_email'));
-    $from_name  = sanitize_text_field($opts['smtp_from_name'] ?? 'WAM Dance Studio');
+    $from_email = sanitize_email(get_option('wam_setting_smtp_from_email', get_option('admin_email')));
+    $from_name  = sanitize_text_field(get_option('wam_setting_smtp_from_name', 'WAM Dance Studio'));
     
     $phpmailer->setFrom($from_email, $from_name);
 }

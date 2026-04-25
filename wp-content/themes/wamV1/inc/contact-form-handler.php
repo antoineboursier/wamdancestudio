@@ -37,8 +37,7 @@ function wamv1_handle_contact_form() {
     }
 
     // 4. Préparation de l'e-mail
-    $opts = get_option('wam_config', []);
-    $to_emails_raw = $opts['smtp_to_emails'] ?? '';
+    $to_emails_raw = get_option('wam_setting_smtp_to_emails', '');
     
     // Déterminer les adresses d'envoi
     $to_emails = [];

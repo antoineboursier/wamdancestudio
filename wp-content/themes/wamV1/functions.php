@@ -294,7 +294,7 @@ function wamv1_preload_fonts()
 {
     $font_dir = get_template_directory_uri() . '/fonts/';
     echo '<link rel="preload" href="' . esc_url($font_dir . 'Outfit-VariableFont_wght.woff2') . '" as="font" type="font/woff2" crossorigin>' . "\n";
-    echo '<link rel="preload" href="' . esc_url($font_dir . 'WAMFont-Regular.woff2') . '" as="font" type="font/woff2" crossorigin>' . "\n";
+    echo '<link rel="preload" href="' . esc_url($font_dir . 'wam-font.woff') . '" as="font" type="font/woff" crossorigin>' . "\n";
     echo '<link rel="preload" href="' . esc_url($font_dir . 'Mallia.woff2') . '" as="font" type="font/woff2" crossorigin>' . "\n";
 }
 add_action('wp_head', 'wamv1_preload_fonts', 1);

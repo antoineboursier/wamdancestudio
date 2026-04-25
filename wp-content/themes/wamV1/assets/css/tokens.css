@@ -10,201 +10,225 @@
 
 :root {
 
-    /* -------------------------------------------------------
+   /* -------------------------------------------------------
        Alias sémantiques forcés (Light on Dark vs Dark on Light)
        ------------------------------------------------------- */
-    --wam-color-on-light-bg: var(--wp--preset--color--text-normal);
-    /* #F9F4EB */
-    --wam-color-on-light-text: #1D367F;
-    /* Bleu WAM (text/normal en mode light) */
-    --wam-color-on-light-subtext: #5F6E9B;
-    /* Bleu atténué (text/subtext en mode light) */
+   --wam-color-on-light-bg: var(--wp--preset--color--text-normal);
+   /* #F9F4EB */
+   --wam-color-on-light-text: #1D367F;
+   /* Bleu WAM (text/normal en mode light) */
+   --wam-color-on-light-subtext: #5F6E9B;
+   /* Bleu atténué (text/subtext en mode light) */
 
-    /* -------------------------------------------------------
+   /* -------------------------------------------------------
        Rayon de bordure
        ------------------------------------------------------- */
-    --wam-radius-xs: 4px;
-    --wam-radius-sm: 8px;
-    --wam-radius-md: 12px;
-    --wam-radius-lg: 16px;
-    --wam-radius-xl: 20px;
-    --wam-radius-2xl: 24px;
-    --wam-radius-3xl: 32px;
-    --wam-radius-pill: 999px;
+   --wam-radius-xs: 4px;
+   --wam-radius-sm: 8px;
+   --wam-radius-md: 12px;
+   --wam-radius-lg: 16px;
+   --wam-radius-xl: 20px;
+   --wam-radius-2xl: 24px;
+   --wam-radius-3xl: 32px;
+   --wam-radius-pill: 999px;
 
-    /* -------------------------------------------------------
+   /* -------------------------------------------------------
        Ombres
        ------------------------------------------------------- */
-    --wam-shadow-sm: 0 4px 16px rgba(6, 8, 14, 0.3);
-    --wam-shadow-md: 0 8px 32px rgba(6, 8, 14, 0.45);
-    --wam-shadow-card: 0 8px 44px rgba(6, 8, 14, 0.39);
-    --wam-shadow-panel: 0 16px 64px rgba(6, 8, 14, 0.65);
+   --wam-shadow-sm: 0 4px 16px rgba(6, 8, 14, 0.3);
+   --wam-shadow-md: 0 8px 32px rgba(6, 8, 14, 0.45);
+   --wam-shadow-card: 0 8px 44px rgba(6, 8, 14, 0.39);
+   --wam-shadow-panel: 0 16px 64px rgba(6, 8, 14, 0.65);
 
-    /* -------------------------------------------------------
+   /* -------------------------------------------------------
        Transitions
        ------------------------------------------------------- */
-    --wam-transition: 0.2s ease;
-    --wam-transition-slow: 0.35s ease;
-    --wam-transition-spring: 0.4s cubic-bezier(0.34, 1.4, 0.64, 1);
+   --wam-transition: 0.2s ease;
+   --wam-transition-slow: 0.35s ease;
+   --wam-transition-spring: 0.4s cubic-bezier(0.34, 1.4, 0.64, 1);
 
-    /* -------------------------------------------------------
+   /* -------------------------------------------------------
        Z-index
        ------------------------------------------------------- */
-    --wam-z-base: 1;
-    --wam-z-header: 100;
-    --wam-z-modal: 500;
-    --wam-z-a11y: 9000;
-    --wam-z-panel: 9100;
+   --wam-z-base: 1;
+   --wam-z-header: 100;
+   --wam-z-modal: 500;
+   --wam-z-a11y: 9000;
+   --wam-z-panel: 9100;
 
-    /* -------------------------------------------------------
+   /* -------------------------------------------------------
        Gradients WAM (Base du logo)
        ------------------------------------------------------- */
-    --wam-gradient-brand: linear-gradient(90deg, #00D6B2 0%, #F1CE00 33%, #FF6207 66%, #FF74AB 100%);
+   --wam-gradient-brand: linear-gradient(90deg, #00D6B2 0%, #F1CE00 33%, #FF6207 66%, #FF74AB 100%);
 
-    /* -------------------------------------------------------
+   /* -------------------------------------------------------
        Scrollbars
        ------------------------------------------------------- */
-    --wam-scrollbar-track: rgba(29, 54, 127, 0.05);
-    --wam-scrollbar-thumb: rgba(29, 54, 127, 0.2);
-    --wam-scrollbar-thumb-hover: rgba(29, 54, 127, 0.4);
+   --wam-scrollbar-track: rgba(29, 54, 127, 0.05);
+   --wam-scrollbar-thumb: rgba(29, 54, 127, 0.2);
+   --wam-scrollbar-thumb-hover: rgba(29, 54, 127, 0.4);
 
-    /* -------------------------------------------------------
+   /* -------------------------------------------------------
        Dimensions max
        ------------------------------------------------------- */
-    --wam-max-content: 1200px;
-    /* largeur contenu éditorial */
-    --wam-max-screen: 1536px;
-    /* largeur écran max (UI/screenMW-lg Figma) */
-    --wam-page-mx: var(--wam-spacing-9xl);
-    /* 96px marge latérale (UI/section-mx Figma) */
+   --wam-max-content: 1200px;
+   /* largeur contenu éditorial */
+   --wam-max-screen: 1536px;
+   /* largeur écran max (UI/screenMW-lg Figma) */
+   --wam-page-mx: var(--wam-spacing-9xl);
+   /* 96px marge latérale (UI/section-mx Figma) */
 
-    /* -------------------------------------------------------
+   /* -------------------------------------------------------
        Couleurs sémantiques UI (raccourcis Figma UI/*)
        Les vraies valeurs viennent de --wp--preset--color--*
        Ces alias améliorent la lisibilité dans le code
        ------------------------------------------------------- */
-    --wam-color-page-bg: var(--wp--preset--color--background-800);
-    --wam-color-card-bg: var(--wp--preset--color--background-600);
-    --wam-color-input-bg: var(--wp--preset--color--background-500);
-    --wam-color-text: var(--wp--preset--color--text-normal);
-    --wam-color-subtext: var(--wp--preset--color--text-subtext);
-    --wam-color-disabled: var(--wp--preset--color--text-disabled);
-    --wam-color-green: var(--wp--preset--color--accent-green);
-    --wam-color-yellow: var(--wp--preset--color--accent-yellow);
-    --wam-color-orange: var(--wp--preset--color--accent-orange);
-    --wam-color-pink: var(--wp--preset--color--accent-pink);
-    --wam-color-accent-tertiary-bg: rgba(1, 227, 189, 0.12);
-    /* UI/accent-tertiary-bg Figma */
-    --wam-color-glass-pink: rgba(255, 186, 213, 0.12);
-    /* UI/accent-quaternary-bg Figma */
-    --wam-color-glass-orange: rgba(255, 132, 61, 0.12);
-    /* UI/accent-secondary-bg Figma */
+   --wam-color-page-bg: var(--wp--preset--color--background-800);
+   --wam-color-card-bg: var(--wp--preset--color--background-600);
+   --wam-color-input-bg: var(--wp--preset--color--background-500);
+   --wam-color-text: var(--wp--preset--color--text-normal);
+   --wam-color-subtext: var(--wp--preset--color--text-subtext);
+   --wam-color-disabled: var(--wp--preset--color--text-disabled);
+   --wam-color-green: var(--wp--preset--color--accent-green);
+   --wam-color-yellow: var(--wp--preset--color--accent-yellow);
+   --wam-color-orange: var(--wp--preset--color--accent-orange);
+   --wam-color-pink: var(--wp--preset--color--accent-pink);
+   --wam-color-accent-tertiary-bg: rgba(1, 227, 189, 0.12);
+   /* UI/accent-tertiary-bg Figma */
+   --wam-color-glass-pink: rgba(255, 186, 213, 0.12);
+   /* UI/accent-quaternary-bg Figma */
+   --wam-color-glass-orange: rgba(255, 132, 61, 0.12);
+   /* UI/accent-secondary-bg Figma */
 
-    /* Overlays de section et de cartes (par défaut Dark) */
-    --wam-color-overlay-dark: rgba(19, 22, 32, 0.8);
-    --wam-color-overlay-light: rgba(249, 246, 241, 0.9);
-    --wam-color-overlay-photo: rgba(21, 28, 50, 0.7);
-    --wam-color-overlay-photo-hover: rgba(21, 28, 50, 0.5);
+   /* Overlays de section et de cartes (par défaut Dark) */
+   --wam-color-overlay-dark: rgba(19, 22, 32, 0.8);
+   --wam-color-overlay-light: rgba(249, 246, 241, 0.9);
+   --wam-color-overlay-photo: rgba(21, 28, 50, 0.7);
+   --wam-color-overlay-photo-hover: rgba(21, 28, 50, 0.5);
 
-    /* -------------------------------------------------------
+   /* -------------------------------------------------------
        Assets de fond
        ------------------------------------------------------- */
-    --wam-pattern-url: var(--wam-pattern-dark-url);
-    --wam-pattern-dark-url: url('../images/bg_pattern_color_black.svg');
-    --wam-pattern-light-url: url('../images/bg_pattern_color_white.svg'); 
+   --wam-pattern-url: var(--wam-pattern-dark-url);
+   --wam-pattern-dark-url: url('../images/bg_pattern_color_black.svg');
+   --wam-pattern-light-url: url('../images/bg_pattern_color_white.svg');
 
-    /* -------------------------------------------------------
+   /* -------------------------------------------------------
        Classes utilitaires forcées pour le Menu Light
        ------------------------------------------------------- */
-    --wam-nav-bg: var(--wam-color-on-light-bg);
-    --wam-nav-text: var(--wam-color-on-light-text);
-    --wam-nav-subtext: var(--wam-color-on-light-subtext);
+   --wam-nav-bg: var(--wam-color-on-light-bg);
+   --wam-nav-text: var(--wam-color-on-light-text);
+   --wam-nav-subtext: var(--wam-color-on-light-subtext);
 
-    /* -------------------------------------------------------
+   /* -------------------------------------------------------
        Couleurs sémantiques UI semi-transparentes (Glassmorphism)
        ------------------------------------------------------- */
-    --wam-color-glass-white: rgba(249, 244, 236, 0.06);
-    --wam-color-icon-light: var(--wam-color-subtext);
-    /* text/subtle Figma — icônes neutres en variante standard */
-    /* UI/opacity-white-bg Figma */
-    --wam-color-glass-white-hover: rgba(249, 244, 236, 0.12);
-    --wam-color-glass-green: rgba(1, 227, 189, 0.12);
-    --wam-color-glass-yellow: rgba(253, 217, 0, 0.10);
-    /* UI/accent-secondary-bg Figma */
+   --wam-color-glass-white: rgba(249, 244, 236, 0.06);
+   --wam-color-icon-light: var(--wam-color-subtext);
+   /* text/subtle Figma — icônes neutres en variante standard */
+   /* UI/opacity-white-bg Figma */
+   --wam-color-glass-white-hover: rgba(249, 244, 236, 0.12);
+   --wam-color-glass-green: rgba(1, 227, 189, 0.12);
+   --wam-color-glass-yellow: rgba(253, 217, 0, 0.10);
+   /* UI/accent-secondary-bg Figma */
 
-    /* -------------------------------------------------------
+   /* -------------------------------------------------------
        Espacements (Presets WP déportés en tokens pour sécurité)
        ------------------------------------------------------- */
-    --wam-spacing-4xs: 0.125rem; /* 2px */
-    --wam-spacing-3xs: 0.25rem;  /* 4px */
-    --wam-spacing-2xs: 0.5rem;   /* 8px */
-    --wam-spacing-xs: 0.75rem;  /* 12px */
-    --wam-spacing-sm: 1rem;     /* 16px */
-    --wam-spacing-md: 1.25rem;  /* 20px */
-    --wam-spacing-lg: 1.5rem;  /* 24px */
-    --wam-spacing-xl: 2rem;    /* 32px */
-    --wam-spacing-2xl: 2.5rem; /* 40px */
-    --wam-spacing-3xl: 3rem;   /* 48px */
-    --wam-spacing-4xl: 3.5rem; /* 56px */
-    --wam-spacing-5xl: 4rem;   /* 64px */
-    --wam-spacing-6xl: 4.5rem; /* 72px */
-    --wam-spacing-9xl: 6rem;   /* 96px */
+   --wam-spacing-4xs: 0.125rem;
+   /* 2px */
+   --wam-spacing-3xs: 0.25rem;
+   /* 4px */
+   --wam-spacing-2xs: 0.5rem;
+   /* 8px */
+   --wam-spacing-xs: 0.75rem;
+   /* 12px */
+   --wam-spacing-sm: 1rem;
+   /* 16px */
+   --wam-spacing-md: 1.25rem;
+   /* 20px */
+   --wam-spacing-lg: 1.5rem;
+   /* 24px */
+   --wam-spacing-xl: 2rem;
+   /* 32px */
+   --wam-spacing-2xl: 2.5rem;
+   /* 40px */
+   --wam-spacing-3xl: 3rem;
+   /* 48px */
+   --wam-spacing-4xl: 3.5rem;
+   /* 56px */
+   --wam-spacing-5xl: 4rem;
+   /* 64px */
+   --wam-spacing-6xl: 4.5rem;
+   /* 72px */
+   --wam-spacing-9xl: 6rem;
+   /* 96px */
 
-    /* -------------------------------------------------------
+   /* -------------------------------------------------------
        Tailles de police (Base Outfit)
        ------------------------------------------------------- */
-    --wam-font-size-xs: 14px;
-    --wam-font-size-sm: 16px; /* Figma text-sm */
-    --wam-font-size-md: 20px; /* Figma text-md */
-    --wam-font-size-lg: 26px; /* Figma text-lg */
+   --wam-font-size-xs: 14px;
+   --wam-font-size-sm: 16px;
+   /* Figma text-sm */
+   --wam-font-size-md: 20px;
+   /* Figma text-md */
+   --wam-font-size-lg: 26px;
+   /* Figma text-lg */
 
-    /* Titres et Display */
-    --wam-font-size-h1: 46px;   /* Mallia LG */
-    --wam-font-size-h2: 32px;   /* Mallia MD / Outfit Bold */
-    --wam-font-size-h3: 24px;   /* Mallia SM */
-    --wam-font-size-display-lg: 48px; /* WAM Font LG — title-cool-lg */
-    --wam-font-size-display-md: 36px; /* WAM Font MD — title-cool-md */
+   /* Titres et Display */
+   --wam-font-size-h1: 46px;
+   /* Mallia LG */
+   --wam-font-size-h2: 32px;
+   /* Mallia MD / Outfit Bold */
+   --wam-font-size-h3: 24px;
+   /* Mallia SM */
+   --wam-font-size-display-lg: 48px;
+   /* WAM Font LG — title-cool-lg */
+   --wam-font-size-display-md: 36px;
+   /* WAM Font MD — title-cool-md */
 
-    /* -------------------------------------------------------
+   /* -------------------------------------------------------
        Polices graphiques (aliases pour a11y override)
        ------------------------------------------------------- */
-    --wam-font-graphical-1: 'Mallia', 'Georgia', serif;
-    --wam-font-graphical-2: 'WAM Font', sans-serif;
-    --wam-font-body: var(--wp--preset--font-family--outfit);
-    --wam-font-system: var(--wp--preset--font-family--outfit);
+   --wam-font-graphical-1: 'Mallia', 'Georgia', serif;
+   --wam-font-graphical-2: 'WAM Font', sans-serif;
+   --wam-font-body: var(--wp--preset--font-family--outfit);
+   --wam-font-system: var(--wp--preset--font-family--outfit);
 }
 
 /* =====================================================
    OVERRIDES THÈME CLAIR (WAM-THEME-LIGHT)
    ===================================================== */
 html.wam-theme-light {
-    /* Override des couleurs de fond et texte */
-    --wam-color-page-bg: var(--wp--preset--color--background-50); /* Fond très clair */
-    --wam-color-card-bg: var(--wp--preset--color--background-100); /* Cartes légèrement plus grisées */
-    --wam-color-input-bg: #FFFFFF;
-    
-    --wam-color-text: var(--wam-color-on-light-text);
-    --wam-color-subtext: var(--wam-color-on-light-subtext);
-    
-    /* Assets et Patterns */
-    --wam-pattern-url: var(--wam-pattern-light-url);
-    
-    /* Overlays (en mode clair, on peut vouloir des overlays plus clairs ou moins saturés) */
-    --wam-color-overlay-photo: rgba(249, 244, 236, 0.6);
-    --wam-color-overlay-photo-hover: rgba(249, 244, 236, 0.4);
-    
-    /* Glassmorphism en mode clair */
-    --wam-color-glass-white: rgba(29, 54, 127, 0.04);
-    --wam-color-glass-white-hover: rgba(29, 54, 127, 0.08);
+   /* Override des couleurs de fond et texte */
+   --wam-color-page-bg: var(--wp--preset--color--background-50);
+   /* Fond très clair */
+   --wam-color-card-bg: var(--wp--preset--color--background-100);
+   /* Cartes légèrement plus grisées */
+   --wam-color-input-bg: #FFFFFF;
 
-    /* Ombres (plus douces en mode clair) */
-    --wam-shadow-sm: 0 4px 12px rgba(29, 54, 127, 0.1);
-    --wam-shadow-md: 0 8px 24px rgba(29, 54, 127, 0.15);
-    --wam-shadow-card: 0 10px 30px rgba(29, 54, 127, 0.12);
+   --wam-color-text: var(--wam-color-on-light-text);
+   --wam-color-subtext: var(--wam-color-on-light-subtext);
+
+   /* Assets et Patterns */
+   --wam-pattern-url: var(--wam-pattern-light-url);
+
+   /* Overlays (en mode clair, on peut vouloir des overlays plus clairs ou moins saturés) */
+   --wam-color-overlay-photo: rgba(249, 244, 236, 0.6);
+   --wam-color-overlay-photo-hover: rgba(249, 244, 236, 0.4);
+
+   /* Glassmorphism en mode clair */
+   --wam-color-glass-white: rgba(29, 54, 127, 0.04);
+   --wam-color-glass-white-hover: rgba(29, 54, 127, 0.08);
+
+   /* Ombres (plus douces en mode clair) */
+   --wam-shadow-sm: 0 4px 12px rgba(29, 54, 127, 0.1);
+   --wam-shadow-md: 0 8px 24px rgba(29, 54, 127, 0.15);
+   --wam-shadow-card: 0 10px 30px rgba(29, 54, 127, 0.12);
 }
 
 @media (max-width: 640px) {
-    :root {
-        --wam-page-mx: 2rem;
-    }
+   :root {
+      --wam-page-mx: 2rem;
+   }
 }

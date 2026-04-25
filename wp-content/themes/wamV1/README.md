@@ -30,7 +30,7 @@ Stack : PHP, CSS vanilla, JS vanilla, ACF Pro, DDEV local, GitHub.
 CPT : `cours`, `stages`, `wam_membre`
 Taxonomie : `cat_cours` (ne pas ajouter `category` ou `post_tag`)
 Rôles : `professeur`, `directrice`
-Polices : Outfit (défaut), Mallia (titres signatures), Cholo Rhita (titres graphiques)
+Polices : Outfit (défaut), Mallia (titres signatures), WAM Font (titres graphiques)
 Thème : dark par défaut, light via `html.wam-theme-light`
 
 Variantes header : `home` | `default` | `center-forced`
@@ -104,7 +104,7 @@ Le MCP sort du React+Tailwind. Ne jamais utiliser tel quel. Convertir :
 Polices :
 - `font-['Outfit:Regular',...]` → `font-family: var(--wam-font-body);`
 - `font-['Mallia:Regular',...]` → `font-family: var(--wam-font-graphical-1);`
-- `font-['Cholo_Rhita:Regular',...]` → `font-family: var(--wam-font-graphical-2);`
+- `font-['WAM_Font:Regular',...]` → `font-family: var(--wam-font-graphical-2);`
 
 Couleurs : `var(--accent\/yellow,#ffdc08)` → `var(--wam-color-yellow)`
 Espacement : `gap-[var(--sm,16px)]` → `gap: var(--wam-spacing-sm)`

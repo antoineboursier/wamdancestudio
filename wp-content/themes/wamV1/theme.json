@@ -90,7 +90,7 @@
                             "fontStyle": "normal",
                             "fontDisplay": "swap",
                             "src": [
-                                "file:./fonts/WAMFont-Regular.woff2"
+                                "file:./fonts/wam-font.woff"
                             ]
                         }
                     ]

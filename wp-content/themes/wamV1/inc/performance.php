@@ -69,3 +69,25 @@ function wamv1_youtube_facade($html, $url, $attr) {
 add_action('wp_footer', function() {
     wp_deregister_script('wp-embed');
 });
+
+/**
+ * 3. Optimisation du Back-Office (Heartbeat & Widgets)
+ * Allège la charge CPU en limitant les requêtes automatiques du navigateur en admin.
+ */
+
+// Limiter la fréquence de Heartbeat API (60s au lieu de 15s)
+add_filter('heartbeat_settings', function($settings) {
+    $settings['interval'] = 60;
+    return $settings;
+});
+
+// Désactiver XML-RPC (sécurité et perf si non utilisé)
+add_filter('xmlrpc_enabled', '__return_false');
+
+// Nettoyer le tableau de bord (Dashboard) pour un chargement plus rapide
+add_action('wp_dashboard_setup', function() {
+    remove_meta_box('dashboard_primary', 'dashboard', 'side');   // News WP
+    remove_meta_box('dashboard_quick_press', 'dashboard', 'side'); // Brouillon rapide
+    remove_meta_box('dashboard_right_now', 'dashboard', 'normal'); // D'un coup d'oeil
+    remove_meta_box('dashboard_activity', 'dashboard', 'normal');  // Activité
+});

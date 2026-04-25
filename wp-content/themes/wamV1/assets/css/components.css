@@ -2562,3 +2562,42 @@ html.wam-no-graphical-fonts .title-sign-sm {
         display: none;
     }
 }
+
+/* =====================================================
+   WAM PRICE CARD (Shortcode [wam_price])
+   ===================================================== */
+.wam-price-card {
+    background: var(--wam-color-card-bg);
+    padding: var(--wam-spacing-xl);
+    border-radius: var(--wam-radius-lg);
+    display: flex;
+    flex-direction: column;
+    gap: var(--wam-spacing-md);
+    margin: var(--wam-spacing-lg) 0;
+    max-width: 400px;
+}
+
+.wam-price-card__content {
+    display: flex;
+    flex-direction: column;
+    gap: var(--wam-spacing-xs);
+}
+
+.wam-price-card__title {
+    margin: 0 !important;
+}
+
+.wam-price-card__price {
+    font-family: var(--wam-font-title-cool);
+    /* Cholo Rhita fallback */
+    font-weight: normal;
+    color: var(--wam-color-subtext);
+}
+
+/* Conteneur pour plusieurs tarifs */
+.wam-prices-wrapper {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--wam-spacing-md);
+    margin: var(--wam-spacing-lg) 0;
+}

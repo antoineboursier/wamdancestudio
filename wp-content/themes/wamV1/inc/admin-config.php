@@ -95,8 +95,22 @@ function wam_config_register_settings(): void
 {
     $keys = wam_get_settings_keys();
     foreach ($keys as $key => $meta) {
-        register_setting('wam_config_group', 'wam_setting_' . $key);
+        $args = [
+            'type'              => $meta['type'],
+            'default'           => $meta['default'],
+            'sanitize_callback' => null,
+        ];
+
+        // Sanitizers spécifiques
+        if ($meta['type'] === 'boolean') {
+            $args['sanitize_callback'] = 'wam_sanitize_checkbox';
+        } elseif (strpos($key, 'inscription_') === 0) {
+            $args['sanitize_callback'] = 'wam_sanitize_datetime_to_timestamp';
+        }
+
+        register_setting('wam_config_group', 'wam_setting_' . $key, $args);
     }
+
 
 
     add_settings_section(
@@ -250,8 +264,41 @@ add_action('admin_init', 'wam_config_register_settings');
 // -------------------------------------------------------
 // Sanitize callback (obsolète mais gardée pour référence ou hooks spécifiques)
 // -------------------------------------------------------
-// Note: Avec les options individuelles, WordPress gère la sauvegarde champ par champ.
-// Pour la programmation Cron, on s'accroche aux mises à jour d'options spécifiques.
+// Sanitizers individuels
+// -------------------------------------------------------
+
+/**
+ * Sanitize pour les checkbox : force la valeur à boolean.
+ */
+function wam_sanitize_checkbox($value): bool
+{
+    return (bool) $value;
+}
+
+/**
+ * Convertit une chaîne datetime-local (Y-m-dTH:i) en timestamp UTC.
+ */
+function wam_sanitize_datetime_to_timestamp($value): int
+{
+    if (empty($value)) {
+        return 0;
+    }
+
+    // Si c'est déjà un timestamp (ex: migration ou save répété), on le garde
+    if (is_numeric($value)) {
+        return (int) $value;
+    }
+
+    try {
+        $tz_paris = new DateTimeZone('Europe/Paris');
+        $tz_utc   = new DateTimeZone('UTC');
+        $dt       = new DateTime($value, $tz_paris);
+        $dt->setTimezone($tz_utc);
+        return $dt->getTimestamp();
+    } catch (Exception $e) {
+        return 0;
+    }
+}
 
 function wam_update_cron_on_setting_change($old_value, $new_value): void
 {
@@ -264,6 +311,7 @@ function wam_update_cron_on_setting_change($old_value, $new_value): void
 }
 add_action('update_option_wam_setting_inscription_ouverture', 'wam_update_cron_on_setting_change', 10, 2);
 add_action('update_option_wam_setting_inscription_fermeture', 'wam_update_cron_on_setting_change', 10, 2);
+
 
 
 // -------------------------------------------------------
@@ -338,6 +386,7 @@ function wam_field_inscriptions_actives(): void
     $checked = (bool) get_option('wam_setting_inscriptions_actives', true);
     ?>
     <label>
+        <input type="hidden" name="wam_setting_inscriptions_actives" value="0">
         <input type="checkbox"
                id="wam-inscriptions-actives"
                name="wam_setting_inscriptions_actives"
@@ -363,6 +412,7 @@ function wam_field_btn_cours_desactive(): void
     $checked = (bool) get_option('wam_setting_btn_cours_desactive', false);
     ?>
     <label>
+        <input type="hidden" name="wam_setting_btn_cours_desactive" value="0">
         <input type="checkbox"
                id="wam-btn-cours-desactive"
                name="wam_setting_btn_cours_desactive"
@@ -442,6 +492,7 @@ function wam_field_show_rentree(): void
     $checked = (bool) get_option('wam_setting_show_rentree', false);
     ?>
     <label>
+        <input type="hidden" name="wam_setting_show_rentree" value="0">
         <input type="checkbox"
                id="wam-show-rentree"
                name="wam_setting_show_rentree"
@@ -466,6 +517,7 @@ function wam_field_adresse_visible(): void
     $checked = (bool) get_option('wam_setting_adresse_visible', true);
     ?>
     <label>
+        <input type="hidden" name="wam_setting_adresse_visible" value="0">
         <input type="checkbox"
                id="wam-adresse-visible"
                name="wam_setting_adresse_visible"

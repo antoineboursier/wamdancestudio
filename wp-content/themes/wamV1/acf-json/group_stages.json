@@ -1,0 +1,971 @@
+{
+    "key": "group_stages",
+    "title": "Métadonnées Stages",
+    "fields": [
+        {
+            "key": "field_stage_sous_titre",
+            "label": "➡️ Sous-titre",
+            "name": "sous_titre",
+            "aria-label": "",
+            "type": "text",
+            "instructions": "",
+            "required": 0,
+            "conditional_logic": 0,
+            "wrapper": {
+                "width": "",
+                "class": "",
+                "id": ""
+            },
+            "default_value": "",
+            "maxlength": "",
+            "allow_in_bindings": 1,
+            "placeholder": "",
+            "prepend": "",
+            "append": ""
+        },
+        {
+            "key": "field_69c0ee02025e8",
+            "label": "Type de format",
+            "name": "type_format",
+            "aria-label": "",
+            "type": "select",
+            "instructions": "Stage - Immersion et progression technique\r\nWorkshop - Apprentissage d'un style ou d'une chorée précise\r\nAtelier - Exploration, recherche et création",
+            "required": 0,
+            "conditional_logic": 0,
+            "wrapper": {
+                "width": "40",
+                "class": "",
+                "id": ""
+            },
+            "choices": {
+                "type_stage": "Stage",
+                "type_wshop": "Workshop",
+                "type_atel": "Atelier"
+            },
+            "default_value": "type_stage",
+            "return_format": "value",
+            "multiple": 0,
+            "allow_null": 0,
+            "allow_in_bindings": 0,
+            "ui": 0,
+            "ajax": 0,
+            "placeholder": "",
+            "create_options": 0,
+            "save_options": 0
+        },
+        {
+            "key": "field_stage_complet",
+            "label": "🚫 Stage complet",
+            "name": "complete_cours",
+            "aria-label": "",
+            "type": "true_false",
+            "instructions": "",
+            "required": 0,
+            "conditional_logic": 0,
+            "wrapper": {
+                "width": "40",
+                "class": "",
+                "id": ""
+            },
+            "message": "",
+            "default_value": 0,
+            "allow_in_bindings": 1,
+            "ui_on_text": "",
+            "ui_off_text": "",
+            "ui": 1
+        },
+        {
+            "key": "field_69bd0adc010a8",
+            "label": "Informations principales",
+            "name": "",
+            "aria-label": "",
+            "type": "tab",
+            "instructions": "",
+            "required": 0,
+            "conditional_logic": 0,
+            "wrapper": {
+                "width": "",
+                "class": "",
+                "id": ""
+            },
+            "placement": "top",
+            "endpoint": 0,
+            "selected": 0
+        },
+        {
+            "key": "field_stage_date",
+            "label": "📅  Date du stage",
+            "name": "date_stage",
+            "aria-label": "",
+            "type": "date_picker",
+            "instructions": "Sélectionner une date.",
+            "required": 0,
+            "conditional_logic": 0,
+            "wrapper": {
+                "width": "32",
+                "class": "",
+                "id": ""
+            },
+            "display_format": "d\/m\/Y",
+            "return_format": "d\/m\/Y",
+            "first_day": 1,
+            "default_to_current_date": 0,
+            "allow_in_bindings": 1
+        },
+        {
+            "key": "field_stage_heure_debut",
+            "label": "🕐 Heure de début",
+            "name": "heure_debut",
+            "aria-label": "",
+            "type": "text",
+            "instructions": "Format HH:MM",
+            "required": 0,
+            "conditional_logic": 0,
+            "wrapper": {
+                "width": "32",
+                "class": "",
+                "id": ""
+            },
+            "default_value": "",
+            "maxlength": "",
+            "allow_in_bindings": 0,
+            "placeholder": "",
+            "prepend": "",
+            "append": ""
+        },
+        {
+            "key": "field_stage_heure_fin",
+            "label": "🕓 Heure de fin",
+            "name": "heure_de_fin",
+            "aria-label": "",
+            "type": "text",
+            "instructions": "Format HH:MM",
+            "required": 0,
+            "conditional_logic": 0,
+            "wrapper": {
+                "width": "32",
+                "class": "",
+                "id": ""
+            },
+            "default_value": "",
+            "maxlength": "",
+            "allow_in_bindings": 0,
+            "placeholder": "",
+            "prepend": "",
+            "append": ""
+        },
+        {
+            "key": "field_69c469b7a9bac",
+            "label": "Separator",
+            "name": "",
+            "aria-label": "",
+            "type": "message",
+            "instructions": "",
+            "required": 0,
+            "conditional_logic": 0,
+            "wrapper": {
+                "width": "",
+                "class": "",
+                "id": ""
+            },
+            "message": "",
+            "new_lines": "",
+            "esc_html": 1
+        },
+        {
+            "key": "field_69bd0f74437bc",
+            "label": "Multi sessions",
+            "name": "mult_date_stage",
+            "aria-label": "",
+            "type": "radio",
+            "instructions": "",
+            "required": 0,
+            "conditional_logic": 0,
+            "wrapper": {
+                "width": "30",
+                "class": "",
+                "id": ""
+            },
+            "choices": {
+                "uniquedate": "Une seule date",
+                "multidate": "Plusieurs dates proposées"
+            },
+            "default_value": "uniquedate",
+            "return_format": "value",
+            "allow_null": 0,
+            "other_choice": 0,
+            "allow_in_bindings": 0,
+            "layout": "vertical",
+            "save_other_choice": 0
+        },
+        {
+            "key": "field_69c43f6639593",
+            "label": "✍️ Identifiant",
+            "name": "stage_groupe",
+            "aria-label": "",
+            "type": "text",
+            "instructions": "Utiliser un identifiant sur toutes les sessions d'un même stage (ex : danse-phoenix-2026).",
+            "required": 0,
+            "conditional_logic": [
+                [
+                    {
+                        "field": "field_69bd0f74437bc",
+                        "operator": "==",
+                        "value": "multidate"
+                    }
+                ]
+            ],
+            "wrapper": {
+                "width": "60",
+                "class": "",
+                "id": ""
+            },
+            "default_value": "",
+            "maxlength": "",
+            "allow_in_bindings": 0,
+            "placeholder": "",
+            "prepend": "",
+            "append": ""
+        },
+        {
+            "key": "field_69c46e32c7c0a",
+            "label": "Separator",
+            "name": "",
+            "aria-label": "",
+            "type": "message",
+            "instructions": "",
+            "required": 0,
+            "conditional_logic": 0,
+            "wrapper": {
+                "width": "",
+                "class": "",
+                "id": ""
+            },
+            "message": "",
+            "new_lines": "",
+            "esc_html": 1
+        },
+        {
+            "key": "field_69bd0b0f010a9",
+            "label": "Description du stage",
+            "name": "",
+            "aria-label": "",
+            "type": "tab",
+            "instructions": "",
+            "required": 0,
+            "conditional_logic": 0,
+            "wrapper": {
+                "width": "",
+                "class": "",
+                "id": ""
+            },
+            "placement": "top",
+            "endpoint": 0,
+            "selected": 0
+        },
+        {
+            "key": "field_stage_description",
+            "label": "📝 Description",
+            "name": "description",
+            "aria-label": "",
+            "type": "wysiwyg",
+            "instructions": "",
+            "required": 0,
+            "conditional_logic": 0,
+            "wrapper": {
+                "width": "",
+                "class": "",
+                "id": ""
+            },
+            "default_value": "",
+            "allow_in_bindings": 1,
+            "tabs": "all",
+            "toolbar": "full",
+            "media_upload": 0,
+            "delay": 0
+        },
+        {
+            "key": "field_69bd0d0a965da",
+            "label": "Intervenant·e",
+            "name": "intervenant·e",
+            "aria-label": "",
+            "type": "group",
+            "instructions": "",
+            "required": 0,
+            "conditional_logic": 0,
+            "wrapper": {
+                "width": "",
+                "class": "",
+                "id": ""
+            },
+            "layout": "block",
+            "sub_fields": [
+                {
+                    "key": "field_69ab06645fa7c",
+                    "label": "👩‍🏫 Intervenant·e déjà dans l'école ?",
+                    "name": "stage_intervenant_inout",
+                    "aria-label": "",
+                    "type": "radio",
+                    "instructions": "",
+                    "required": 0,
+                    "conditional_logic": 0,
+                    "wrapper": {
+                        "width": "50",
+                        "class": "",
+                        "id": ""
+                    },
+                    "choices": {
+                        "true": "Oui, on a compte de prof sur le site",
+                        "false": "Non, prof externe"
+                    },
+                    "default_value": "",
+                    "return_format": "value",
+                    "allow_null": 0,
+                    "other_choice": 0,
+                    "allow_in_bindings": 0,
+                    "layout": "vertical",
+                    "save_other_choice": 0
+                },
+                {
+                    "key": "field_stage_prof_user",
+                    "label": "👩‍🏫 Intervenant (avec compte site)",
+                    "name": "stage_intervenant",
+                    "aria-label": "",
+                    "type": "user",
+                    "instructions": "",
+                    "required": 0,
+                    "conditional_logic": [
+                        [
+                            {
+                                "field": "field_69ab06645fa7c",
+                                "operator": "==",
+                                "value": "true"
+                            }
+                        ]
+                    ],
+                    "wrapper": {
+                        "width": "48",
+                        "class": "",
+                        "id": ""
+                    },
+                    "role": [
+                        "professeur",
+                        "directrice"
+                    ],
+                    "return_format": "array",
+                    "multiple": 0,
+                    "allow_null": 0,
+                    "allow_in_bindings": 1,
+                    "bidirectional": 0,
+                    "bidirectional_target": []
+                },
+                {
+                    "key": "field_69ab06f0bd957",
+                    "label": "👩‍🏫 Nom, prénom, pseudo de l'intervenante (sans compte site)",
+                    "name": "stage_intervenant_out",
+                    "aria-label": "",
+                    "type": "text",
+                    "instructions": "",
+                    "required": 0,
+                    "conditional_logic": [
+                        [
+                            {
+                                "field": "field_69ab06645fa7c",
+                                "operator": "==",
+                                "value": "false"
+                            }
+                        ]
+                    ],
+                    "wrapper": {
+                        "width": "48",
+                        "class": "",
+                        "id": ""
+                    },
+                    "default_value": "",
+                    "maxlength": "",
+                    "allow_in_bindings": 0,
+                    "placeholder": "",
+                    "prepend": "",
+                    "append": ""
+                }
+            ]
+        },
+        {
+            "key": "field_stage_videos_tab",
+            "label": "Vidéos",
+            "name": "",
+            "aria-label": "",
+            "type": "group",
+            "instructions": "",
+            "required": 0,
+            "conditional_logic": 0,
+            "wrapper": {
+                "width": "",
+                "class": "",
+                "id": ""
+            },
+            "layout": "block",
+            "sub_fields": [
+                {
+                    "key": "field_stage_video_1",
+                    "label": "🎥  Vidéo 1 (URL)",
+                    "name": "video_1",
+                    "aria-label": "",
+                    "type": "url",
+                    "instructions": "",
+                    "required": 0,
+                    "conditional_logic": 0,
+                    "wrapper": {
+                        "width": "29",
+                        "class": "",
+                        "id": ""
+                    },
+                    "default_value": "",
+                    "allow_in_bindings": 1,
+                    "placeholder": ""
+                },
+                {
+                    "key": "field_stage_video_2",
+                    "label": "🎥  Vidéo 2 (URL)",
+                    "name": "video_2",
+                    "aria-label": "",
+                    "type": "url",
+                    "instructions": "",
+                    "required": 0,
+                    "conditional_logic": 0,
+                    "wrapper": {
+                        "width": "32",
+                        "class": "",
+                        "id": ""
+                    },
+                    "default_value": "",
+                    "allow_in_bindings": 1,
+                    "placeholder": ""
+                },
+                {
+                    "key": "field_stage_video_3",
+                    "label": "🎥  Vidéo 3 (URL)",
+                    "name": "video_3",
+                    "aria-label": "",
+                    "type": "url",
+                    "instructions": "",
+                    "required": 0,
+                    "conditional_logic": 0,
+                    "wrapper": {
+                        "width": "32",
+                        "class": "",
+                        "id": ""
+                    },
+                    "default_value": "",
+                    "allow_in_bindings": 1,
+                    "placeholder": ""
+                }
+            ]
+        },
+        {
+            "key": "field_69e8e0cde7ee3",
+            "label": "Woocommerce",
+            "name": "",
+            "aria-label": "",
+            "type": "tab",
+            "instructions": "",
+            "required": 0,
+            "conditional_logic": 0,
+            "wrapper": {
+                "width": "",
+                "class": "",
+                "id": ""
+            },
+            "placement": "top",
+            "endpoint": 0,
+            "selected": 0
+        },
+        {
+            "key": "field_69c55fdb5f4a3",
+            "label": "Lien produit WooCommerce",
+            "name": "wc_product_id",
+            "aria-label": "",
+            "type": "relationship",
+            "instructions": "",
+            "required": 0,
+            "conditional_logic": 0,
+            "wrapper": {
+                "width": "",
+                "class": "",
+                "id": ""
+            },
+            "post_type": [
+                "product"
+            ],
+            "post_status": "",
+            "taxonomy": "",
+            "filters": "",
+            "return_format": "object",
+            "min": "",
+            "max": "",
+            "allow_in_bindings": 0,
+            "elements": "",
+            "bidirectional": 0,
+            "bidirectional_target": []
+        },
+        {
+            "key": "field_69bd0b7c010ae",
+            "label": "Tarifs",
+            "name": "tarifs",
+            "aria-label": "",
+            "type": "group",
+            "instructions": "",
+            "required": 0,
+            "conditional_logic": 0,
+            "wrapper": {
+                "width": "",
+                "class": "",
+                "id": ""
+            },
+            "layout": "block",
+            "sub_fields": [
+                {
+                    "key": "field_stage_tarif_1",
+                    "label": "📝 Libellé du tarif 1",
+                    "name": "nom_tarif_1",
+                    "aria-label": "",
+                    "type": "text",
+                    "instructions": "Ex. \"Tarif enfant\"",
+                    "required": 0,
+                    "conditional_logic": 0,
+                    "wrapper": {
+                        "width": "25",
+                        "class": "",
+                        "id": ""
+                    },
+                    "default_value": "",
+                    "maxlength": "",
+                    "allow_in_bindings": 1,
+                    "placeholder": "",
+                    "prepend": "",
+                    "append": ""
+                },
+                {
+                    "key": "field_69e8e187fdf98",
+                    "label": "💵 Prix tarif 1",
+                    "name": "prix_tarif_1",
+                    "aria-label": "",
+                    "type": "number",
+                    "instructions": "Ex : \"20\" (pour 20€)",
+                    "required": 0,
+                    "conditional_logic": 0,
+                    "wrapper": {
+                        "width": "15",
+                        "class": "",
+                        "id": ""
+                    },
+                    "default_value": "",
+                    "min": "",
+                    "max": "",
+                    "allow_in_bindings": 0,
+                    "placeholder": "",
+                    "step": "",
+                    "prepend": "",
+                    "append": ""
+                },
+                {
+                    "key": "field_69e8e1b6fdf99",
+                    "label": "🎟️ Quota total",
+                    "name": "quota_tarif_1",
+                    "aria-label": "",
+                    "type": "number",
+                    "instructions": "Ex : 12 (pour X places disponibles)",
+                    "required": 0,
+                    "conditional_logic": 0,
+                    "wrapper": {
+                        "width": "15",
+                        "class": "",
+                        "id": ""
+                    },
+                    "default_value": "",
+                    "min": "",
+                    "max": "",
+                    "allow_in_bindings": 0,
+                    "placeholder": "",
+                    "step": "",
+                    "prepend": "",
+                    "append": ""
+                },
+                {
+                    "key": "field_69e8e1dcfdf9a",
+                    "label": "🚫 Quota réservé",
+                    "name": "quota_reserve_1",
+                    "aria-label": "",
+                    "type": "number",
+                    "instructions": "Ex : places déjà réservées (ne pas modifier)",
+                    "required": 0,
+                    "conditional_logic": 0,
+                    "wrapper": {
+                        "width": "15",
+                        "class": "",
+                        "id": ""
+                    },
+                    "default_value": 0,
+                    "min": "",
+                    "max": "",
+                    "allow_in_bindings": 0,
+                    "placeholder": "",
+                    "step": "",
+                    "prepend": "",
+                    "append": ""
+                },
+                {
+                    "key": "field_69e8ec9b72da0",
+                    "label": "Tarif 2",
+                    "name": "tarif_2",
+                    "aria-label": "",
+                    "type": "true_false",
+                    "instructions": "",
+                    "required": 0,
+                    "conditional_logic": 0,
+                    "wrapper": {
+                        "width": "",
+                        "class": "",
+                        "id": ""
+                    },
+                    "message": "Activer tarif 2",
+                    "default_value": 0,
+                    "allow_in_bindings": 0,
+                    "ui": 0,
+                    "ui_on_text": "",
+                    "ui_off_text": ""
+                },
+                {
+                    "key": "field_69e8ee330ef92",
+                    "label": "📝 Libellé du tarif 2",
+                    "name": "nom_tarif_2",
+                    "aria-label": "",
+                    "type": "text",
+                    "instructions": "Ex. \"Tarif enfant\"",
+                    "required": 0,
+                    "conditional_logic": [
+                        [
+                            {
+                                "field": "field_69e8ec9b72da0",
+                                "operator": "==",
+                                "value": "1"
+                            }
+                        ]
+                    ],
+                    "wrapper": {
+                        "width": "25",
+                        "class": "",
+                        "id": ""
+                    },
+                    "default_value": "",
+                    "maxlength": "",
+                    "allow_in_bindings": 1,
+                    "placeholder": "",
+                    "prepend": "",
+                    "append": ""
+                },
+                {
+                    "key": "field_69e8ee3a0ef93",
+                    "label": "💵 Prix tarif 2",
+                    "name": "prix_tarif_2",
+                    "aria-label": "",
+                    "type": "number",
+                    "instructions": "Ex : \"20\" (pour 20€)",
+                    "required": 0,
+                    "conditional_logic": [
+                        [
+                            {
+                                "field": "field_69e8ec9b72da0",
+                                "operator": "==",
+                                "value": "1"
+                            }
+                        ]
+                    ],
+                    "wrapper": {
+                        "width": "15",
+                        "class": "",
+                        "id": ""
+                    },
+                    "default_value": "",
+                    "min": "",
+                    "max": "",
+                    "allow_in_bindings": 0,
+                    "placeholder": "",
+                    "step": "",
+                    "prepend": "",
+                    "append": ""
+                },
+                {
+                    "key": "field_69e8ef87c6572",
+                    "label": "🎟️ Quota total",
+                    "name": "quota_tarif_2",
+                    "aria-label": "",
+                    "type": "number",
+                    "instructions": "Ex : 12 (pour X places disponibles)",
+                    "required": 0,
+                    "conditional_logic": [
+                        [
+                            {
+                                "field": "field_69e8ec9b72da0",
+                                "operator": "==",
+                                "value": "1"
+                            }
+                        ]
+                    ],
+                    "wrapper": {
+                        "width": "15",
+                        "class": "",
+                        "id": ""
+                    },
+                    "default_value": "",
+                    "min": "",
+                    "max": "",
+                    "allow_in_bindings": 0,
+                    "placeholder": "",
+                    "step": "",
+                    "prepend": "",
+                    "append": ""
+                },
+                {
+                    "key": "field_69e8ee4e0ef95",
+                    "label": "🚫 Quota réservé",
+                    "name": "quota_reserve_2",
+                    "aria-label": "",
+                    "type": "number",
+                    "instructions": "Ex : places déjà réservées (ne pas modifier)",
+                    "required": 0,
+                    "conditional_logic": [
+                        [
+                            {
+                                "field": "field_69e8ec9b72da0",
+                                "operator": "==",
+                                "value": "1"
+                            }
+                        ]
+                    ],
+                    "wrapper": {
+                        "width": "15",
+                        "class": "",
+                        "id": ""
+                    },
+                    "default_value": 0,
+                    "min": "",
+                    "max": "",
+                    "allow_in_bindings": 0,
+                    "placeholder": "",
+                    "step": "",
+                    "prepend": "",
+                    "append": ""
+                },
+                {
+                    "key": "field_69e8ef64c656f",
+                    "label": "Tarif 3",
+                    "name": "tarif_3",
+                    "aria-label": "",
+                    "type": "true_false",
+                    "instructions": "",
+                    "required": 0,
+                    "conditional_logic": 0,
+                    "wrapper": {
+                        "width": "",
+                        "class": "",
+                        "id": ""
+                    },
+                    "message": "Activer tarif 3",
+                    "default_value": 0,
+                    "allow_in_bindings": 0,
+                    "ui": 0,
+                    "ui_on_text": "",
+                    "ui_off_text": ""
+                },
+                {
+                    "key": "field_69e8ef77c6570",
+                    "label": "📝 Libellé du tarif 3",
+                    "name": "nom_tarif_3",
+                    "aria-label": "",
+                    "type": "text",
+                    "instructions": "Ex. \"Tarif enfant\"",
+                    "required": 0,
+                    "conditional_logic": [
+                        [
+                            {
+                                "field": "field_69e8ef64c656f",
+                                "operator": "==",
+                                "value": "1"
+                            }
+                        ]
+                    ],
+                    "wrapper": {
+                        "width": "25",
+                        "class": "",
+                        "id": ""
+                    },
+                    "default_value": "",
+                    "maxlength": "",
+                    "allow_in_bindings": 1,
+                    "placeholder": "",
+                    "prepend": "",
+                    "append": ""
+                },
+                {
+                    "key": "field_69e8ef81c6571",
+                    "label": "💵 Prix tarif 3",
+                    "name": "prix_tarif_3",
+                    "aria-label": "",
+                    "type": "number",
+                    "instructions": "Ex : \"20\" (pour 20€)",
+                    "required": 0,
+                    "conditional_logic": [
+                        [
+                            {
+                                "field": "field_69e8ef64c656f",
+                                "operator": "==",
+                                "value": "1"
+                            }
+                        ]
+                    ],
+                    "wrapper": {
+                        "width": "15",
+                        "class": "",
+                        "id": ""
+                    },
+                    "default_value": "",
+                    "min": "",
+                    "max": "",
+                    "allow_in_bindings": 0,
+                    "placeholder": "",
+                    "step": "",
+                    "prepend": "",
+                    "append": ""
+                },
+                {
+                    "key": "field_69e8ee3f0ef94",
+                    "label": "🎟️ Quota total",
+                    "name": "quota_tarif_3",
+                    "aria-label": "",
+                    "type": "number",
+                    "instructions": "Ex : 12 (pour X places disponibles)",
+                    "required": 0,
+                    "conditional_logic": [
+                        [
+                            {
+                                "field": "field_69e8ef64c656f",
+                                "operator": "==",
+                                "value": "1"
+                            }
+                        ]
+                    ],
+                    "wrapper": {
+                        "width": "15",
+                        "class": "",
+                        "id": ""
+                    },
+                    "default_value": "",
+                    "min": "",
+                    "max": "",
+                    "allow_in_bindings": 0,
+                    "placeholder": "",
+                    "step": "",
+                    "prepend": "",
+                    "append": ""
+                },
+                {
+                    "key": "field_69e8ef8ec6573",
+                    "label": "🚫 Quota réservé",
+                    "name": "quota_reserve_3",
+                    "aria-label": "",
+                    "type": "number",
+                    "instructions": "Ex : places déjà réservées (ne pas modifier)",
+                    "required": 0,
+                    "conditional_logic": [
+                        [
+                            {
+                                "field": "field_69e8ef64c656f",
+                                "operator": "==",
+                                "value": "1"
+                            }
+                        ]
+                    ],
+                    "wrapper": {
+                        "width": "15",
+                        "class": "",
+                        "id": ""
+                    },
+                    "default_value": 0,
+                    "min": "",
+                    "max": "",
+                    "allow_in_bindings": 0,
+                    "placeholder": "",
+                    "step": "",
+                    "prepend": "",
+                    "append": ""
+                },
+                {
+                    "key": "field_69e91e7edc064",
+                    "label": "🚫 Quota réservé",
+                    "name": "quota_reserve_4",
+                    "aria-label": "",
+                    "type": "number",
+                    "instructions": "Ex : places déjà réservées (ne pas modifier)",
+                    "required": 0,
+                    "conditional_logic": [
+                        [
+                            {
+                                "field": "field_69e8ef64c656f",
+                                "operator": "==",
+                                "value": "1"
+                            }
+                        ]
+                    ],
+                    "wrapper": {
+                        "width": "15",
+                        "class": "",
+                        "id": ""
+                    },
+                    "default_value": 0,
+                    "min": "",
+                    "max": "",
+                    "allow_in_bindings": 0,
+                    "placeholder": "",
+                    "step": "",
+                    "prepend": "",
+                    "append": ""
+                }
+            ]
+        }
+    ],
+    "location": [
+        [
+            {
+                "param": "post_type",
+                "operator": "==",
+                "value": "stages"
+            }
+        ]
+    ],
+    "menu_order": 0,
+    "position": "acf_after_title",
+    "style": "seamless",
+    "label_placement": "top",
+    "instruction_placement": "label",
+    "hide_on_screen": [
+        "permalink",
+        "the_content",
+        "excerpt",
+        "discussion",
+        "comments",
+        "revisions",
+        "slug",
+        "author",
+        "format",
+        "page_attributes",
+        "categories",
+        "tags",
+        "send-trackbacks"
+    ],
+    "active": true,
+    "description": "",
+    "show_in_rest": 1,
+    "display_title": "",
+    "modified": 1777126155
+}

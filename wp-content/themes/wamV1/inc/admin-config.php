@@ -46,11 +46,11 @@ function wam_get_settings_keys(): array
         'nom_lieu'                     => ['type' => 'string',  'default' => 'WAM Dance Studio'],
         'adresse_lieu'                 => ['type' => 'string',  'default' => "202 rue Jean Jaurès\nVilleneuve d'Ascq"],
         'show_rentree'                 => ['type' => 'boolean', 'default' => false],
-        'date_rentree'                 => ['type' => 'string',  'default' => '19/04/2025'],
-        'url_instagram'                => ['type' => 'string',  'default' => 'https://www.instagram.com/wam_dance_studio/'],
-        'url_facebook'                 => ['type' => 'string',  'default' => 'https://www.facebook.com/WAMDanceStudio/'],
-        'url_tiktok'                   => ['type' => 'string',  'default' => 'https://www.tiktok.com/@wamdancestudio'],
-        'url_linkedin'                 => ['type' => 'string',  'default' => 'https://www.linkedin.com/company/wam-dance-studio'],
+        'date_rentree'                 => ['type' => 'string',  'default' => ''],
+        'url_instagram'                => ['type' => 'string',  'default' => ''],
+        'url_facebook'                 => ['type' => 'string',  'default' => ''],
+        'url_tiktok'                   => ['type' => 'string',  'default' => ''],
+        'url_linkedin'                 => ['type' => 'string',  'default' => ''],
         'url_youtube'                  => ['type' => 'string',  'default' => ''],
         'smtp_host'                    => ['type' => 'string',  'default' => ''],
         'smtp_port'                    => ['type' => 'integer', 'default' => 465],
@@ -68,23 +68,31 @@ function wam_get_settings_keys(): array
 // -------------------------------------------------------
 function wam_migrate_config_to_individual_options(): void
 {
+    // Si la migration a déjà eu lieu, on ne fait plus rien
+    if (get_option('wam_setting_migrated') === '1') {
+        return;
+    }
+
     $old_config = get_option('wam_config');
     if (!$old_config || !is_array($old_config)) {
+        // Même si pas d'ancienne config, on marque comme migré pour ne plus checker
+        update_option('wam_setting_migrated', '1');
         return;
     }
 
     $keys = wam_get_settings_keys();
     foreach ($keys as $key => $meta) {
         $option_name = 'wam_setting_' . $key;
-        // On ne migre que si l'option individuelle n'existe pas encore
+        
+        // On ne migre que si l'option individuelle n'existe absolument pas en BDD
         if (get_option($option_name) === false) {
             $val = $old_config[$key] ?? $meta['default'];
             update_option($option_name, $val);
         }
     }
 
-    // On garde l'ancienne option pour l'instant par sécurité, 
-    // mais on pourrait la supprimer plus tard.
+    // On marque la migration comme terminée
+    update_option('wam_setting_migrated', '1');
 }
 add_action('admin_init', 'wam_migrate_config_to_individual_options');
 
@@ -318,19 +326,19 @@ add_action('update_option_wam_setting_inscription_fermeture', 'wam_update_cron_o
 // Callbacks des champs
 // -------------------------------------------------------
 function wam_field_url_instagram(): void {
-    $val = esc_attr(get_option('wam_setting_url_instagram', 'https://www.instagram.com/wam_dance_studio/'));
+    $val = esc_attr(get_option('wam_setting_url_instagram', ''));
     echo '<input type="url" name="wam_setting_url_instagram" value="' . $val . '" class="regular-text">';
 }
 function wam_field_url_facebook(): void {
-    $val = esc_attr(get_option('wam_setting_url_facebook', 'https://www.facebook.com/WAMDanceStudio/'));
+    $val = esc_attr(get_option('wam_setting_url_facebook', ''));
     echo '<input type="url" name="wam_setting_url_facebook" value="' . $val . '" class="regular-text">';
 }
 function wam_field_url_tiktok(): void {
-    $val = esc_attr(get_option('wam_setting_url_tiktok', 'https://www.tiktok.com/@wamdancestudio'));
+    $val = esc_attr(get_option('wam_setting_url_tiktok', ''));
     echo '<input type="url" name="wam_setting_url_tiktok" value="' . $val . '" class="regular-text">';
 }
 function wam_field_url_linkedin(): void {
-    $val = esc_attr(get_option('wam_setting_url_linkedin', 'https://www.linkedin.com/company/wam-dance-studio'));
+    $val = esc_attr(get_option('wam_setting_url_linkedin', ''));
     echo '<input type="url" name="wam_setting_url_linkedin" value="' . $val . '" class="regular-text">';
 }
 function wam_field_url_youtube(): void {
@@ -505,7 +513,7 @@ function wam_field_show_rentree(): void
 
 function wam_field_date_rentree(): void
 {
-    $val = esc_attr(get_option('wam_setting_date_rentree', '19/04/2025'));
+    $val = esc_attr(get_option('wam_setting_date_rentree', ''));
     echo '<span id="wam-row-date-rentree">';
     echo '<input type="text" name="wam_setting_date_rentree" value="' . $val . '" class="regular-text" placeholder="ex: 19/04/2025">';
     echo '<p class="description">Le texte qui sera affiché après "Date de rentrée : ".</p>';
@@ -956,7 +964,7 @@ endif;
 if (!function_exists('wam_date_rentree')):
     function wam_date_rentree(): string
     {
-        return sanitize_text_field(get_option('wam_setting_date_rentree', '19/04/2025'));
+        return sanitize_text_field(get_option('wam_setting_date_rentree', ''));
     }
 endif;
 

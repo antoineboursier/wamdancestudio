@@ -3,6 +3,7 @@
  * Handles menu toggle, navigation particles, and global interactions.
  */
 document.addEventListener('DOMContentLoaded', () => {
+    if (document.body.classList.contains('wp-admin')) return;
 
     /* =====================================================
        1. NAV MENU TOGGLE

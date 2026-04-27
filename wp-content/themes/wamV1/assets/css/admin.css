@@ -14,3 +14,26 @@
 .acf-field[data-name="separator"] .acf-label {
     display: none !important;
 }
+
+/* Nettoyage UI pour Directrice/Professeur (classes injectées sur le body par WP) */
+/* Nettoyage UI spécifique au PROFESSEUR (Boutons Ajouter / Menus side) */
+.wam-role-professeur.post-type-wam_membre .page-title-action,
+.wam-role-professeur.post-type-cours .page-title-action,
+.wam-role-professeur.post-type-stages .page-title-action,
+.wam-role-professeur #menu-posts-wam_membre .wp-first-item + li,
+.wam-role-professeur #menu-posts-cours .wp-first-item + li,
+.wam-role-professeur #menu-posts-stages .wp-first-item + li {
+    display: none !important;
+}
+
+/* Yoast & LiteSpeed - Masquage pour rôles restreints */
+.wam-restricted-ui #wpseo_meta,
+.wam-restricted-ui #yoast-seo-document-panel,
+.wam-restricted-ui .yoast-seo-sidebar-panel,
+.wam-restricted-ui #wpseo-sidebar-panel-document,
+.wam-restricted-ui [id^="wpseo"],
+.wam-restricted-ui #litespeed-metabox,
+.wam-restricted-ui #litespeed_optimizer,
+.wam-restricted-ui [id^="litespeed"] {
+    display: none !important;
+}

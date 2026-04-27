@@ -9,6 +9,8 @@
     'use strict';
 
     function init() {
+        if (document.body.classList.contains('wp-admin')) return;
+
         // 1. Boutons d'ajout direct (Single Tarif ou Cours)
         var directBtns = document.querySelectorAll('#btn-inscription-cours, .btn-stage-item');
         directBtns.forEach(function (btn) {
@@ -115,7 +117,10 @@
                 }
             }
 
-            modalOpenBtn.addEventListener('click', openModal);
+            modalOpenBtn.addEventListener('click', function(e) {
+                e.preventDefault();
+                openModal();
+            });
 
             // Fermeture
             modal.querySelectorAll('[data-close-modal]').forEach(function(el) {

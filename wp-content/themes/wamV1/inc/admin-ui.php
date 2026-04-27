@@ -67,20 +67,26 @@ function wamv1_clean_admin_menu() {
         remove_submenu_page('wpseo_dashboard', 'wpseo_redirects');
         remove_submenu_page('wpseo_dashboard', 'wpseo_licenses');
 
-        echo '<style>
-            .wp-admin.post-type-wam_membre .page-title-action,
-            .wp-admin.post-type-cours .page-title-action,
-            .wp-admin.post-type-stages .page-title-action,
-            #menu-posts-wam_membre .wp-first-item + li,
-            #menu-posts-cours .wp-first-item + li,
-            #menu-posts-stages .wp-first-item + li {
-                display: none !important;
-            }
-        </style>';
     }
-
 }
 add_action('admin_menu', 'wamv1_clean_admin_menu', 999);
+
+/**
+ * 1b. Ajoute des classes au body admin selon le rôle pour le styling CSS
+ */
+function wamv1_admin_body_class($classes) {
+    $user = wp_get_current_user();
+    if (!$user) return $classes;
+
+    if (in_array('professeur', (array) $user->roles)) {
+        $classes .= ' wam-restricted-ui wam-role-professeur';
+    }
+    if (in_array('directrice', (array) $user->roles)) {
+        $classes .= ' wam-restricted-ui wam-role-directrice';
+    }
+    return $classes;
+}
+add_filter('admin_body_class', 'wamv1_admin_body_class');
 
 /**
  * 1b. Bloque l'accès direct aux pages sensibles pour l'Admin technique
@@ -110,22 +116,9 @@ function wamv1_hide_plugin_metaboxes() {
         remove_meta_box('wpseo_meta', $pt, 'side');
     }
 
-    // CSS de secours : masque les panneaux résiduels Yoast et LiteSpeed
-    echo '<style>
-        /* Yoast */
-        #wpseo_meta,
-        #yoast-seo-document-panel,
-        .yoast-seo-sidebar-panel,
-        #wpseo-sidebar-panel-document,
-        [id^="wpseo"] { display: none !important; }
-
-        /* LiteSpeed Cache */
-        #litespeed-metabox,
-        #litespeed_optimizer,
-        [id^="litespeed"] { display: none !important; }
-    </style>';
+    // Note: Les styles de masquage sont maintenant dans assets/css/admin.css
+    // activés via la classe .wam-restricted-ui sur le body.
 }
-add_action('admin_head', 'wamv1_hide_plugin_metaboxes');
 add_action('add_meta_boxes', 'wamv1_hide_plugin_metaboxes', 999);
 
 /**

@@ -63,7 +63,7 @@ function wamv1_shortcode_price($atts)
     ?>
     <div class="wam-prices-wrapper">
         <?php foreach ($ids as $id) : 
-            $product = wc_get_product($id);
+            $product = function_exists('wc_get_product') ? wc_get_product($id) : null;
             if (!$product) continue;
 
             $title = $product->get_name();

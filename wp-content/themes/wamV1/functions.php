@@ -129,6 +129,7 @@ add_action('init', 'wamv1_register_text_styles');
 // -------------------------------------------------------
 function wamv1_scripts()
 {
+    if (is_admin()) return;
     /**
      * Utilitaire interne pour récupérer la version d'un asset (filemtime)
      * Évite le cache stale quand un fichier individuel change.
@@ -755,16 +756,38 @@ add_filter('show_admin_bar', function ($show) {
 });
 
 // =============================================================================
-// GENERATION LLM.TXT
+// WOOCOMMERCE — Helpers & Intégration sécurisée
 // =============================================================================
 
-require_once get_template_directory() . '/inc/llms-txt.php';
+/**
+ * Récupère l'ID du produit WooCommerce lié à un cours ou stage via ACF.
+ * (Déplacé ici pour être accessible même si WooCommerce est désactivé)
+ */
+function wamv1_get_wc_product_id(int $post_id): int
+{
+    if (!function_exists('get_field')) {
+        return 0;
+    }
 
-// =============================================================================
-// WOOCOMMERCE — Hooks et intégration
-// =============================================================================
+    $products = get_field('wc_product_id', $post_id);
 
-require_once get_template_directory() . '/inc/woocommerce.php';
+    if (empty($products)) {
+        return 0;
+    }
+
+    // Cas 1 : Tableau (Relationship field)
+    if (is_array($products)) {
+        $first = $products[0];
+        return is_object($first) ? (int) $first->ID : (int) $first;
+    }
+
+    // Cas 2 : Valeur unique
+    return (int) $products;
+}
+
+if (class_exists('WooCommerce')) {
+    require_once get_template_directory() . '/inc/woocommerce.php';
+}
 
 // =============================================================================
 // YOAST SEO : CORRECTION DU FIL D'ARIANE DES CPTs

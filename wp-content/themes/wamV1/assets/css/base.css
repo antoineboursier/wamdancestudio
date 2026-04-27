@@ -75,13 +75,20 @@ blockquote {
     padding: 0;
 }
 
-form {
+/* Formulaires WAM — Sécurisé pour ne pas impacter l'admin */
+form:not(.wp-admin form),
+.wam-checkout,
+.wam-cart-form,
+.wam-contact-form,
+.woocommerce-form-login,
+.woocommerce-form-register,
+.woocommerce-EditAccountForm {
     display: flex;
     flex-direction: column;
     gap: var(--wam-spacing-sm);
 }
 
-/* Listes sans style de base */
+/* Listes de base */
 ul,
 ol {
     padding: var(--wam-spacing-md) 0 var(--wam-spacing-md) var(--wam-spacing-2xl);
@@ -89,6 +96,12 @@ ol {
 
 ul li+li {
     margin-top: var(--wam-spacing-2xs);
+}
+
+.wam-nav__list li {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
 }
 
 /* Liens par défaut */

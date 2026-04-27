@@ -308,7 +308,7 @@ if ( ! function_exists( 'wamv1_schema_cours' ) ) {
         ];
 
         // Tenter de récupérer le prix numérique depuis WooCommerce
-        if ( class_exists( 'WooCommerce' ) ) {
+        if ( class_exists( 'WooCommerce' ) && function_exists('wc_get_product') ) {
             $product_id = get_post_meta( $post_id, '_wam_linked_product', true );
             if ( $product_id ) {
                 $product = wc_get_product( $product_id );
@@ -444,7 +444,7 @@ if ( ! function_exists( 'wamv1_schema_stage' ) ) {
         }
 
         /* ---- Offers — Groupe tarifs ou extraction WooCommerce ---- */
-        if ( class_exists( 'WooCommerce' ) ) {
+        if ( class_exists( 'WooCommerce' ) && function_exists('wc_get_product') ) {
             $product_id = get_post_meta( $post_id, '_wam_linked_product', true );
             if ( $product_id ) {
                 $product = wc_get_product( $product_id );

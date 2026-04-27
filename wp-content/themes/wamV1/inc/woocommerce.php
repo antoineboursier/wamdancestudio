@@ -92,35 +92,8 @@ function wamv1_redirect_boutique(): void
 
 // ============================================================================
 // D. Helper — récupérer l'ID du produit WC lié à un cours ou stage
-//    Le champ ACF wc_product_id est de type "relationship" (retourne array de WP_Post)
+//    (Fonction déplacée dans functions.php pour compatibilité)
 // ============================================================================
-
-function wamv1_get_wc_product_id(int $post_id): int
-{
-    if (!function_exists('get_field')) {
-        return 0;
-    }
-
-    $products = get_field('wc_product_id', $post_id);
-
-    if (empty($products)) {
-        return 0;
-    }
-
-    // Cas 1 : Tableau (Relationship field)
-    if (is_array($products)) {
-        $first = $products[0];
-        return is_object($first) ? (int) $first->ID : (int) $first;
-    }
-
-    // Cas 2 : Objet (Post Object field)
-    if (is_object($products)) {
-        return (int) $products->ID;
-    }
-
-    // Cas 3 : ID direct
-    return (int) $products;
-}
 
 /**
  * Retourne le tableau des sous-champs du group field ACF "tarifs" sur un stage.

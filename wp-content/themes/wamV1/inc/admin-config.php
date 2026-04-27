@@ -673,20 +673,27 @@ function wam_config_page_html(): void
             $.ajax({
                 url: ajaxurl,
                 type: 'POST',
+                timeout: 30000, // 30 secondes max
                 data: {
                     action: 'wam_test_smtp',
                     nonce: '<?php echo wp_create_nonce("wam_test_smtp_nonce"); ?>'
                 },
                 success: function(response) {
                     if (response.success) {
-                        $result.html('<span style="color:green;">✅ ' + response.data + '</span>');
+                        $result.html('<div style="color:#2271b1; background:#fff; border-left:4px solid #72aee6; padding:10px; margin-top:10px;">✅ ' + response.data + '</div>');
                     } else {
-                        $result.html('<span style="color:red;">❌ ' + response.data + '</span>');
+                        var errorMsg = response.data;
+                        if (response.debug) {
+                            errorMsg += '<br><details style="margin-top:5px; font-size:11px;"><summary>Détails techniques (Debug Log)</summary><pre style="background:#f6f7f7; padding:5px; overflow:auto; max-height:200px;">' + response.debug + '</pre></details>';
+                        }
+                        $result.html('<div style="color:#d63638; background:#fff; border-left:4px solid #d63638; padding:10px; margin-top:10px;">❌ ' + errorMsg + '</div>');
                     }
                     $btn.prop('disabled', false).text('Envoyer un e-mail de test');
                 },
-                error: function() {
-                    $result.html('<span style="color:red;">❌ Erreur lors de l\'appel AJAX.</span>');
+                error: function(xhr, status, error) {
+                    var msg = 'Erreur lors de l\'appel AJAX.';
+                    if (status === 'timeout') msg = 'Le serveur a mis trop de temps à répondre (Timeout). Vérifiez vos paramètres d\'hôte et de port.';
+                    $result.html('<div style="color:#d63638; background:#fff; border-left:4px solid #d63638; padding:10px; margin-top:10px;">❌ ' + msg + '</div>');
                     $btn.prop('disabled', false).text('Envoyer un e-mail de test');
                 }
             });
@@ -1085,18 +1092,31 @@ function wam_ajax_test_smtp(): void
     // On force l'utilisation des réglages SMTP pour ce test
     // WordPress utilisera le hook phpmailer_init (dans smtp-config.php) automatiquement
     
+    // Capturer les logs SMTP
+    add_action('phpmailer_init', function($phpmailer) {
+        $phpmailer->SMTPDebug = 3;
+        $phpmailer->Debugoutput = function($str, $level) {
+            $GLOBALS['wam_smtp_debug'] = ($GLOBALS['wam_smtp_debug'] ?? '') . $str . "\n";
+        };
+    }, 20);
+
     $sent = wp_mail($to, $subject, $message);
+    $debug_log = $GLOBALS['wam_smtp_debug'] ?? '';
 
     if ($sent) {
         wp_send_json_success('E-mail de test envoyé avec succès à ' . $to);
     } else {
-        // Tentative de récupération de l'erreur PHPMailer via une globale ou autre
         global $phpmailer;
         $error = 'L\'envoi a échoué.';
         if (isset($phpmailer) && !empty($phpmailer->ErrorInfo)) {
             $error .= ' Erreur : ' . $phpmailer->ErrorInfo;
         }
-        wp_send_json_error($error);
+        
+        wp_send_json([
+            'success' => false,
+            'data'    => $error,
+            'debug'   => esc_html($debug_log)
+        ]);
     }
 }
 add_action('wp_ajax_wam_test_smtp', 'wam_ajax_test_smtp');

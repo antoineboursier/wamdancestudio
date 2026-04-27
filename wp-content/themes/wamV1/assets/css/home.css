@@ -147,6 +147,11 @@
 }
 
 @media (max-width: 768px) {
+    .section-keywords {
+        min-height: 0;
+        padding: var(--wam-spacing-xl) 0;
+    }
+
     .keyword-word.is-style-title-sign-lg {
         font-size: 32px !important;
     }
@@ -487,7 +492,7 @@
     padding-top: var(--wam-spacing-4xl);
     display: flex;
     flex-direction: column;
-    gap: var(--wam-spacing-2xl);
+    gap: var(--wam-spacing-lg);
     overflow: hidden;
 }
 
@@ -544,13 +549,13 @@
 .section-reviews__footer {
     display: flex;
     justify-content: center;
-    margin-top: var(--wam-spacing-md);
 }
 
 .section-reviews__link {
     color: var(--wam-color-text);
     text-decoration: none;
     transition: opacity 0.3s ease;
+    text-decoration: underline;
 }
 
 .section-reviews__link:hover {

@@ -30,7 +30,7 @@
     width: 100%;
     align-items: stretch;
     /* on laisse les wam-container prendre la largeur max possible */
-    gap: var(--wam-spacing-4xl);
+    gap: var(--wam-spacing-xl);
     padding-bottom: var(--wam-spacing-4xl);
 }
 
@@ -290,6 +290,13 @@
     flex-shrink: 0;
 }
 
+@media (max-width: 768px) {
+    .cours-filter {
+        padding: var(--wam-spacing-lg) var(--wam-spacing-lg);
+        margin-top: calc(-1 * var(--wam-spacing-lg));
+    }
+}
+
 /* Chip */
 .chip {
     display: inline-flex;
@@ -478,7 +485,7 @@
 .cours-categorie__grid {
     display: flex;
     flex-wrap: wrap;
-    gap: var(--wam-spacing-2xl);
+    gap: var(--wam-spacing-lg);
     /* 40px */
 }
 
@@ -1522,7 +1529,7 @@
 .page-stages__grid {
     display: flex;
     flex-wrap: wrap;
-    gap: var(--wam-spacing-2xl);
+    gap: var(--wam-spacing-lg);
     align-items: stretch;
 }
 

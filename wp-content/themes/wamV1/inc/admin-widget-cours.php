@@ -374,12 +374,6 @@ add_action('admin_enqueue_scripts', function ($hook) {
         [],
         $ver
     );
-    wp_enqueue_style(
-        'wamv1-widget-cpt-font',
-        'https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500&display=swap',
-        [],
-        null
-    );
 });
 
 // ---------------------------------------------------------------

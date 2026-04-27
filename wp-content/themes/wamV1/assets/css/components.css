@@ -1169,6 +1169,7 @@ html.wam-theme-light .wam-header--home {
     flex-direction: column;
     align-items: center;
     gap: var(--wam-spacing-3xs);
+    max-width: 90%;
 }
 
 .section-teachers__cta {
@@ -1184,13 +1185,18 @@ html.wam-theme-light .wam-header--home {
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    gap: var(--wam-spacing-2xl);
+    gap: var(--wam-spacing-lg);
     padding: var(--wam-spacing-sm);
     background: var(--wam-color-card-bg);
     border-radius: var(--wam-radius-lg);
     width: 240px;
     text-decoration: none;
     transition: transform var(--wam-transition-slow), background var(--wam-transition);
+}
+
+/* Ajustement si pas de photo (classe ajoutée dans section-teachers.php) */
+.teacher-card--no-photo {
+    padding: var(--wam-spacing-xl) var(--wam-spacing-sm) var(--wam-spacing-sm);
 }
 
 .teacher-card:hover {
@@ -1200,10 +1206,11 @@ html.wam-theme-light .wam-header--home {
 
 .teacher-card__photo {
     width: 100%;
-    height: 160px;
+    height: auto;
     border-radius: var(--wam-radius-md);
     overflow: hidden;
     background: var(--wam-color-input-bg);
+    aspect-ratio: 2 / 3;
 }
 
 .teacher-card__photo img {
@@ -1229,7 +1236,7 @@ html.wam-theme-light .wam-header--home {
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: var(--wam-spacing-xs);
+    gap: var(--wam-spacing-sm);
     width: 100%;
     text-align: center;
 }
@@ -1385,6 +1392,7 @@ html.wam-reduce-motion .card-article__notif::after {
     border-bottom-right-radius: 40px;
     scrollbar-width: thin;
     scrollbar-color: var(--wam-scrollbar-thumb) var(--wam-scrollbar-track);
+    z-index: 10;
 }
 
 .wam-nav-panel::-webkit-scrollbar {
@@ -1445,14 +1453,15 @@ html.wam-reduce-motion .card-article__notif::after {
     inset: 0;
     pointer-events: none;
     overflow: hidden;
-    z-index: 0;
+    z-index: 1;
     /* Desktop : derrière le panel, visibles à droite */
 }
 
 /* Mobile : au-dessus du panel mais limitées au bandeau supérieur */
 @media (max-width: 640px) {
     .wam-nav__particles {
-        z-index: 10;
+        z-index: 15;
+        /* Devant le panel (10) mais derrière le bouton close (50) */
         bottom: auto;
         height: 180px;
     }

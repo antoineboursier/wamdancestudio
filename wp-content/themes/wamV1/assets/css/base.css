@@ -4,6 +4,15 @@
    Chargé sur TOUTES les pages après tokens.css.
    ===================================================== */
 
+@font-face {
+    font-family: 'Outfit';
+    src: url('../fonts/Outfit-VariableFont_wght.woff2') format('woff2-variations');
+    font-weight: 100 900;
+    font-style: normal;
+    font-display: swap;
+}
+
+
 /* -------------------------------------------------------
    Reset & Box model
    ------------------------------------------------------- */
@@ -563,6 +572,10 @@ p {
 
 .mt-2xl {
     margin-top: var(--wam-spacing-2xl) !important;
+}
+
+.mt-9xl {
+    margin-top: var(--wam-spacing-9xl) !important;
 }
 
 .mb-sm {

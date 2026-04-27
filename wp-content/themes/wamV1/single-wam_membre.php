@@ -135,32 +135,34 @@ get_header();
                             </div><!-- /prof-header__socials -->
                         <?php endif; ?>
 
+                        <!-- ============ 3. BIO / DESCRIPTION (intégrée au hero) ============ -->
+                        <!--
+                            Affichée à la suite des socials, dans la colonne de contenu du hero.
+                            Priorité : champ ACF description_prof (wysiwyg). Fallback : the_content.
+                        -->
+                        <div id="section-prof-content" class="prof-content wam-prose mt-xl">
+                            <?php if ($full_desc): ?>
+                                <?php echo wp_kses_post($full_desc); ?>
+                            <?php else: ?>
+                                <?php the_content(); ?>
+                            <?php endif; ?>
+                        </div>
+
                     </div><!-- /page-hero__content -->
 
                     <!-- Photo de profil (optionnelle — taille wam-portrait définie dans functions.php) -->
                     <?php if (has_post_thumbnail()): ?>
                         <div class="page-hero__image page-hero__image--lg">
-                            <?php the_post_thumbnail('wam-portrait', ['class' => 'page-hero__image-img']); ?>
+                            <?php the_post_thumbnail('wam-portrait', [
+                                'class' => 'page-hero__image-img',
+                                'fetchpriority' => 'high',
+                                'loading' => 'eager'
+                            ]); ?>
                             <div class="page-hero__image-overlay"></div>
                         </div>
                     <?php endif; ?>
 
                 </div><!-- /section-prof-header -->
-
-                <!-- ============ 3. BIO / DESCRIPTION ============ -->
-                <!--
-                    Priorité : champ ACF description_prof (wysiwyg — requis dans ACF).
-                    Fallback  : contenu Gutenberg standard si description_prof vide.
-                -->
-                <div id="section-prof-content" class="page-content prof-content mt-2xl">
-                    <div class="page-content__inner wam-prose">
-                        <?php if ($full_desc): ?>
-                            <?php echo wp_kses_post($full_desc); ?>
-                        <?php else: ?>
-                            <?php the_content(); ?>
-                        <?php endif; ?>
-                    </div>
-                </div>
 
                 <!-- ============ 4. COURS ET STAGES LIÉS ============ -->
                 <!--
@@ -265,7 +267,7 @@ get_header();
                                         <?php endif; ?>
                                         <div class="prof-related-card__content">
                                             <h3 class="text-md fw-bold color-yellow"><?php the_title(); ?></h3>
-                                            <?php 
+                                            <?php
                                             // Format : Titre + subtitle + " - " + date (30/09/27)
                                             $date_obj = DateTime::createFromFormat('Ymd', $date_s);
                                             $date_formatted = $date_obj ? $date_obj->format('d/m/y') : $date_s;

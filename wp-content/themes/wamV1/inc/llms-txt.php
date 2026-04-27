@@ -389,12 +389,6 @@ add_action('after_switch_theme', function () {
     wam_register_llms_txt_rewrite();
     flush_rewrite_rules();
 });
-/**
- * Mentionne /llms.txt dans le robots.txt généré par WordPress.
- */
-add_filter('robots_txt', function (string $output) {
-    $llms_url = home_url('/llms.txt');
-    $output .= "\n# Fichier de contexte pour les LLMs (standard llmstxt.org)\n";
-    $output .= "LLM-Context: {$llms_url}\n";
-    return $output;
-});
+
+// On ne branche plus le llms.txt dans le robots.txt pour éviter les erreurs de syntaxe non standard.
+// Le fichier reste accessible directement via /llms.txt.

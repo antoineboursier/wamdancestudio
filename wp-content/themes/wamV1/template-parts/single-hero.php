@@ -77,7 +77,11 @@ $reading_time = ($show_reading_time && function_exists('wamv1_get_reading_time')
 
     <?php if (has_post_thumbnail()) : ?>
         <div class="<?php echo esc_attr($image_class); ?>">
-            <?php the_post_thumbnail($image_size, ['class' => 'page-hero__image-img']); ?>
+            <?php the_post_thumbnail($image_size, [
+                'class' => 'page-hero__image-img',
+                'fetchpriority' => 'high',
+                'loading' => 'eager'
+            ]); ?>
             <div class="page-hero__image-overlay"></div>
         </div>
     <?php endif; ?>

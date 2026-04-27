@@ -81,6 +81,7 @@ $sub_src = esc_url($icon_dir . 'dancestudio_header.svg');
 
     <div class="wam-nav-panel">
         <button class="wam-nav__close js-menu-close btn-pause"
+            tabindex="-1"
             aria-label="<?php esc_attr_e('Fermer le menu', 'wamv1'); ?>">
             <span class="btn-icon btn-icon--md"
                 style="--icon-url: url('<?php echo esc_url(get_template_directory_uri() . '/assets/images/close.svg'); ?>');"></span>
@@ -89,7 +90,7 @@ $sub_src = esc_url($icon_dir . 'dancestudio_header.svg');
         <div class="wam-nav__header">
             <div class="wam-logo-menu">
                 <?php if (!$is_home) : ?>
-                    <a href="<?php echo esc_url(home_url('/')); ?>" class="wam-logo-menu__link" aria-label="<?php esc_attr_e('Retour à l\'accueil', 'wamv1'); ?>">
+                    <a href="<?php echo esc_url(home_url('/')); ?>" class="wam-logo-menu__link" tabindex="-1" aria-label="<?php esc_attr_e('Retour à l\'accueil', 'wamv1'); ?>">
                 <?php endif; ?>
 
                 <?php
@@ -120,35 +121,35 @@ $sub_src = esc_url($icon_dir . 'dancestudio_header.svg');
         <div class="wam-nav__socials">
             <?php if (wam_url_facebook()) : ?>
             <a href="<?php echo esc_url(wam_url_facebook()); ?>" class="wam-nav__social-link" target="_blank"
-                rel="noopener noreferrer" aria-label="Facebook">
+                rel="noopener noreferrer" aria-label="Facebook" tabindex="-1">
                 <span class="btn-icon"
                     style="--icon-url: url('<?php echo esc_url(get_template_directory_uri() . '/assets/images/logo_fb.svg'); ?>');"></span>
             </a>
             <?php endif; ?>
             <?php if (wam_url_instagram()) : ?>
             <a href="<?php echo esc_url(wam_url_instagram()); ?>" class="wam-nav__social-link" target="_blank"
-                rel="noopener noreferrer" aria-label="Instagram">
+                rel="noopener noreferrer" aria-label="Instagram" tabindex="-1">
                 <span class="btn-icon"
                     style="--icon-url: url('<?php echo esc_url(get_template_directory_uri() . '/assets/images/logo_insta.svg'); ?>');"></span>
             </a>
             <?php endif; ?>
             <?php if (wam_url_tiktok()) : ?>
             <a href="<?php echo esc_url(wam_url_tiktok()); ?>" class="wam-nav__social-link" target="_blank"
-                rel="noopener noreferrer" aria-label="TikTok">
+                rel="noopener noreferrer" aria-label="TikTok" tabindex="-1">
                 <span class="btn-icon"
                     style="--icon-url: url('<?php echo esc_url(get_template_directory_uri() . '/assets/images/logo_tiktok.svg'); ?>');"></span>
             </a>
             <?php endif; ?>
             <?php if (wam_url_linkedin()) : ?>
             <a href="<?php echo esc_url(wam_url_linkedin()); ?>" class="wam-nav__social-link" target="_blank"
-                rel="noopener noreferrer" aria-label="LinkedIn">
+                rel="noopener noreferrer" aria-label="LinkedIn" tabindex="-1">
                 <span class="btn-icon"
                     style="--icon-url: url('<?php echo esc_url(get_template_directory_uri() . '/assets/images/logo_lkn.svg'); ?>');"></span>
             </a>
             <?php endif; ?>
             <?php if (wam_url_youtube()) : ?>
             <a href="<?php echo esc_url(wam_url_youtube()); ?>" class="wam-nav__social-link" target="_blank"
-                rel="noopener noreferrer" aria-label="YouTube">
+                rel="noopener noreferrer" aria-label="YouTube" tabindex="-1">
                 <span class="btn-icon"
                     style="--icon-url: url('<?php echo esc_url(get_template_directory_uri() . '/assets/images/logo_youtube.svg'); ?>');"></span>
             </a>

@@ -18,9 +18,10 @@ defined( 'ABSPATH' ) || exit;
 ?>
 <div class="wam-order-review">
 
+	<?php do_action( 'woocommerce_review_order_before_cart_contents' ); ?>
 	<ul class="wam-order-review__list">
 		<?php
-		do_action( 'woocommerce_review_order_before_cart_contents' );
+
 
 		foreach ( WC()->cart->get_cart() as $cart_item_key => $cart_item ) {
 			$_product     = apply_filters( 'woocommerce_cart_item_product', $cart_item['data'], $cart_item, $cart_item_key );
@@ -107,9 +108,8 @@ defined( 'ABSPATH' ) || exit;
 			<?php
 		}
 
-		do_action( 'woocommerce_review_order_after_cart_contents' );
-		?>
 	</ul>
+	<?php do_action( 'woocommerce_review_order_after_cart_contents' ); ?>
 
 	<div class="wam-order-review__totals">
 

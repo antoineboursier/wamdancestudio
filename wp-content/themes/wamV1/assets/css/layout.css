@@ -43,6 +43,12 @@
     width: 100%;
 }
 
+@media (max-width: 768px) {
+    .page-home__main {
+        gap: var(--wam-spacing-xl);
+    }
+}
+
 /* =====================================================
    SECTION BOUTONS DE NAVIGATION
    ===================================================== */
@@ -135,12 +141,8 @@
     gap: var(--wam-spacing-4xl);
     /* 56px entre chaque enfant */
     align-items: stretch;
-    padding-top: var(--wam-spacing-3xl);
-    /* 48px */
-    padding-bottom: var(--wam-spacing-3xl);
-    /* 48px */
-    /* Pas de padding horizontal ici — géré par les enfants directs.
-       Le séparateur (.wam-separator) est enfant direct sans padding → full-bleed naturel. */
+    padding-top: var(--wam-spacing-xl);
+    padding-bottom: var(--wam-spacing-md);
     position: relative;
     width: 100%;
 }
@@ -284,18 +286,6 @@ body.single-post #section-article-header.page-hero {
     margin: 0;
 }
 
-@media (max-width: 640px) {
-    .page-cours__address {
-        flex-direction: column !important;
-        align-items: flex-start !important;
-        gap: var(--wam-spacing-sm) !important;
-    }
-
-    .page-cours__address-icon {
-        margin-bottom: -8px !important;
-    }
-}
-
 /* Colonne image */
 .page-hero__image {
     flex: 1;
@@ -307,6 +297,7 @@ body.single-post #section-article-header.page-hero {
     background-color: var(--wp--preset--color--background-800);
     margin-top: var(--wam-spacing-xl);
     min-width: 52%;
+    margin-top: 0;
 }
 
 .single-stages .page-hero__image {
@@ -315,11 +306,7 @@ body.single-post #section-article-header.page-hero {
 }
 
 @media (min-width: 1024px) {
-    .page-hero__image {
-        margin-top: 0;
-    }
 
-    /* Variantes à hauteur fixe : s'étirent sur toute la hauteur de la ligne flex */
     .page-hero__image--sm,
     .page-hero__image--lg {
         align-self: stretch;
@@ -337,6 +324,16 @@ body.single-post #section-article-header.page-hero {
 .page-hero__image--lg {
     min-height: 400px;
     height: auto;
+}
+
+/* Profil prof : photo au format 2:3, largeur max 480px (ne s'étire plus en stretch) */
+.single-wam_membre .page-hero__image--lg {
+    max-width: 480px;
+    height: auto;
+    align-self: flex-start;
+    min-height: 0;
+    aspect-ratio: 2 / 3;
+    min-width: auto;
 }
 
 /* Le filtre WP enveloppe the_post_thumbnail() dans .photo-wrapper — forcing en containing block */
@@ -385,6 +382,7 @@ body.single-post #section-article-header.page-hero {
     .page-hero--centered {
         text-align: center;
         align-items: center;
+        flex-direction: column-reverse;
     }
 
     .page-hero--centered .page-hero__content {

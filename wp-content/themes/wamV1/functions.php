@@ -49,7 +49,8 @@ if (!function_exists('wamv1_setup')):
         add_image_size('wam-card', 1600, 1200, true); // card media & colonne hero (Retina x2)
         add_image_size('wam-stage-card', 810, 1172, true);   // x2 Retina (405x586 Figma)
         add_image_size('wam-stage-portrait', 1204, 1704, false); // A4 portrait x2 Retina pour écrans densités (602x852 @2x) - Pas de recadrage forcé
-        add_image_size('wam-portrait', 960, 1280, true); // photo profil portrait (Retina x2)
+        add_image_size('wam-portrait', 960, 1440, true); // photo profil portrait 2:3 (480x720 @2x Retina)
+        add_image_size('wam-prof-thumb', 400, 600, true); // vignette prof card 2:3 (200x300 @2x Retina)
         add_image_size('wam-thumb', 800, 600, true); // miniature vignette compacte (Retina x2)
         add_image_size('wam-event-card', 810, 486, true); // card event paysage (Retina x2 de 405×243)
         add_theme_support('editor-styles');
@@ -278,6 +279,7 @@ function wamv1_scripts()
         );
     }
 
+    // -------------------------------------------------------
     // Scripts chargés à la demande
     $contact_ver = file_exists(get_template_directory() . '/assets/js/contact.js') ? filemtime(get_template_directory() . '/assets/js/contact.js') : $ver;
     wp_register_script('wamv1-contact', $js . 'contact.js', array(), $contact_ver, ['in_footer' => true, 'strategy' => 'defer']);
@@ -286,6 +288,17 @@ function wamv1_scripts()
     ));
 }
 add_action('wp_enqueue_scripts', 'wamv1_scripts');
+
+/**
+ * Désactivation forcée de Google Fonts (bloquant LCP/FCP)
+ * Toutes les polices sont désormais auto-hébergées dans /fonts/
+ */
+add_action('wp_print_styles', function() {
+    wp_dequeue_style('wp-block-library-fonts');
+    wp_dequeue_style('open-sans');
+    wp_dequeue_style('twentytwentyone-style-fonts'); // Exemple si héritage
+}, 11);
+
 
 // -------------------------------------------------------
 // Resource Hints — preload de la police Outfit (critique FCP)

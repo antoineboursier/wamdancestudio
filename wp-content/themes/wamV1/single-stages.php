@@ -394,6 +394,8 @@ get_header();
                         <?php if ($has_photo): ?>
                             <?php the_post_thumbnail('wam-stage-portrait', [
                                 'class' => 'page-hero__image-img',
+                                'fetchpriority' => 'high',
+                                'loading' => 'eager',
                                 'data-no-overlay' => 'true',
                             ]); ?>
                             <div class="page-hero__image-overlay"></div>

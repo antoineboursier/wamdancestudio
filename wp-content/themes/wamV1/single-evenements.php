@@ -90,7 +90,11 @@ get_header();
                 <?php if (has_post_thumbnail()): ?>
                     <!-- Image à la une -->
                     <div class="page-hero__image page-hero__image--sm">
-                        <?php the_post_thumbnail('wam-page-thumbnail', ['class' => 'page-hero__image-img']); ?>
+                        <?php the_post_thumbnail('wam-page-thumbnail', [
+                            'class' => 'page-hero__image-img',
+                            'fetchpriority' => 'high',
+                            'loading' => 'eager'
+                        ]); ?>
                         <div class="page-hero__image-overlay"></div>
                     </div>
                 <?php endif; ?>

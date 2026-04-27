@@ -190,6 +190,8 @@ get_header();
                         <?php if ($photo_id): ?>
                             <?php echo wp_get_attachment_image($photo_id, 'wam-card', false, [
                                 'class' => 'page-hero__image-img',
+                                'fetchpriority' => 'high',
+                                'loading' => 'eager',
                                 'data-no-overlay' => 'true' // Désactive le wrapper automatique de functions.php
                             ]); ?>
                             <div class="page-hero__image-overlay"></div>

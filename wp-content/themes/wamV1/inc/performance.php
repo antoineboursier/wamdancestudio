@@ -91,3 +91,45 @@ add_action('wp_dashboard_setup', function() {
     remove_meta_box('dashboard_right_now', 'dashboard', 'normal'); // D'un coup d'oeil
     remove_meta_box('dashboard_activity', 'dashboard', 'normal');  // Activité
 });
+
+/**
+ * 4. Optimisation LCP (Largest Contentful Paint)
+ * Précharge l'image Hero dans le head et lui donne une priorité haute.
+ */
+
+// Injection du <link rel="preload"> dans le head
+add_action('wp_head', 'wamv1_preload_lcp', 1);
+function wamv1_preload_lcp() {
+    if (!is_singular() && !is_front_page()) {
+        return;
+    }
+
+    $image_url = '';
+    $image_size = 'wam-page-thumbnail';
+
+    if (is_front_page()) {
+        // Sur la home, le LCP est le logo hero (SVG)
+        $image_url = get_template_directory_uri() . '/assets/images/wam_logo_hero.svg';
+        echo '<link rel="preload" as="image" href="' . esc_url($image_url) . '" fetchpriority="high">';
+        return;
+    }
+
+    if (is_singular() && has_post_thumbnail()) {
+        // Déterminer la taille d'image selon le template utilisé
+        if (is_singular('cours')) {
+            $image_size = 'wam-card';
+        } elseif (is_singular('stages')) {
+            $image_size = 'wam-stage-portrait';
+        } elseif (is_singular('wam_membre')) {
+            $image_size = 'wam-portrait';
+        } elseif (is_singular('post')) {
+            $image_size = 'wamv1-page-hero';
+        }
+
+        $image_src = wp_get_attachment_image_src(get_post_thumbnail_id(), $image_size);
+        if ($image_src) {
+            $image_url = $image_src[0];
+            echo '<link rel="preload" as="image" href="' . esc_url($image_url) . '" fetchpriority="high">';
+        }
+    }
+}

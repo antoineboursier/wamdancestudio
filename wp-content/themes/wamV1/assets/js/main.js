@@ -11,8 +11,16 @@ document.addEventListener('DOMContentLoaded', () => {
     const menuClose = document.querySelector('.js-menu-close');
     const menuOverlay = document.querySelector('.js-menu-overlay');
     const body = document.body;
-
+    
     if (menuToggle && menuOverlay) {
+        const focusableElements = 'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])';
+        
+        const toggleMenuFocusable = (isOpening) => {
+            const elements = menuOverlay.querySelectorAll(focusableElements);
+            elements.forEach(el => {
+                el.setAttribute('tabindex', isOpening ? '0' : '-1');
+            });
+        };
 
         const openMenu = () => {
             menuOverlay.classList.add('wam-nav-overlay--open');
@@ -20,13 +28,17 @@ document.addEventListener('DOMContentLoaded', () => {
             menuToggle.setAttribute('aria-expanded', 'true');
             body.style.overflow = 'hidden'; // Prevent scroll
 
+            // Rendre les éléments du menu focusables
+            toggleMenuFocusable(true);
+
             // Focus trap : rendre le contenu principal inerte
             const main = document.querySelector('#primary');
             if (main) main.setAttribute('inert', '');
             const footer = document.querySelector('.wam-footer');
             if (footer) footer.setAttribute('inert', '');
 
-            window.wamCreateParticles(menuOverlay);
+            const particlesContainer = menuOverlay.querySelector('.js-nav-particles');
+            if (particlesContainer) window.wamCreateParticles(particlesContainer);
 
             // Prepare staggered entrance animations
             const animItems = menuOverlay.querySelectorAll('.wam-nav__header, .wam-nav__list > li, .wam-nav__socials');
@@ -45,16 +57,23 @@ document.addEventListener('DOMContentLoaded', () => {
             menuToggle.setAttribute('aria-expanded', 'false');
             body.style.overflow = '';
 
+            // Rendre les éléments du menu non focusables
+            toggleMenuFocusable(false);
+
             // Retirer le focus trap
             const main = document.querySelector('#primary');
             if (main) main.removeAttribute('inert');
             const footer = document.querySelector('.wam-footer');
             if (footer) footer.removeAttribute('inert');
 
-            window.wamCloseParticles(menuOverlay);
+            const particlesContainer = menuOverlay.querySelector('.js-nav-particles');
+            if (particlesContainer) window.wamCloseParticles(particlesContainer);
 
             menuToggle.focus();
         };
+
+        // État initial (sécurité si le JS charge tard)
+        toggleMenuFocusable(false);
 
         menuToggle.addEventListener('click', openMenu);
         if (menuClose) menuClose.addEventListener('click', closeMenu);

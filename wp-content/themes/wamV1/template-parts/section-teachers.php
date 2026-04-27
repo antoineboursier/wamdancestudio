@@ -52,11 +52,11 @@ $icon_dir = get_template_directory_uri() . '/assets/images/';
                 $display_name = get_the_title();
                 $has_photo    = has_post_thumbnail();
                 ?>
-                <a href="<?php echo esc_url($teacher_url); ?>" class="teacher-card">
+                <a href="<?php echo esc_url($teacher_url); ?>" class="teacher-card <?php echo !$has_photo ? 'teacher-card--no-photo' : ''; ?>">
 
                     <?php if ($has_photo) : ?>
                         <div class="teacher-card__photo">
-                            <?php echo wamv1_get_image_with_overlay(get_post_thumbnail_id(), 'medium_large', 'teacher-card__img-wrapper', array(
+                            <?php echo wamv1_get_image_with_overlay(get_post_thumbnail_id(), 'wam-prof-thumb', 'teacher-card__img-wrapper', array(
                                 'class'   => 'teacher-card__avatar',
                                 'loading' => 'lazy',
                             )); ?>

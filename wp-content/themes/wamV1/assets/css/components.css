@@ -2097,6 +2097,17 @@ html.wam-reduce-motion .card-article__notif::after {
     font-weight: 400;
 }
 
+.wam-footer__partners {
+    width: 100%;
+    margin-bottom: 1.5rem;
+}
+
+.wam-footer__partners img {
+    display: block;
+    max-width: 120px;
+    height: auto;
+}
+
 .wam-footer__legal {
     width: 100%;
     font-family: var(--wam-font-body);

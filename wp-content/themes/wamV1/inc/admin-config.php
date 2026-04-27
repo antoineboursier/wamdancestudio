@@ -30,36 +30,55 @@
 // Settings API — enregistrement
 // -------------------------------------------------------
 // -------------------------------------------------------
+// Helper interne : Récupère une option avec fallback sur l'ancienne config
+// -------------------------------------------------------
+function wam_get_setting(string $key, $default = '')
+{
+    $val = get_option('wam_setting_' . $key);
+    
+    // Si l'option individuelle n'existe pas (false), on tente le fallback
+    if ($val === false) {
+        $old_config = get_option('wam_config');
+        if (is_array($old_config) && isset($old_config[$key])) {
+            return $old_config[$key];
+        }
+        return $default;
+    }
+    
+    return $val;
+}
+
+// -------------------------------------------------------
 // Liste des réglages (clés et types)
 // -------------------------------------------------------
 function wam_get_settings_keys(): array
 {
     return [
-        'inscriptions_actives'         => ['type' => 'boolean', 'default' => true],
-        'btn_inscription_texte'        => ['type' => 'string',  'default' => 'Ajouter ce cours au panier'],
-        'btn_cours_desactive'          => ['type' => 'boolean', 'default' => false],
-        'btn_cours_desactive_texte'    => ['type' => 'string',  'default' => 'Inscriptions bientôt disponibles'],
-        'message_inscriptions_fermees' => ['type' => 'string',  'default' => 'Les inscriptions sont actuellement fermées.'],
-        'inscription_ouverture'        => ['type' => 'integer', 'default' => 0],
-        'inscription_fermeture'        => ['type' => 'integer', 'default' => 0],
-        'adresse_visible'              => ['type' => 'boolean', 'default' => true],
-        'nom_lieu'                     => ['type' => 'string',  'default' => 'WAM Dance Studio'],
-        'adresse_lieu'                 => ['type' => 'string',  'default' => "202 rue Jean Jaurès\nVilleneuve d'Ascq"],
-        'show_rentree'                 => ['type' => 'boolean', 'default' => false],
-        'date_rentree'                 => ['type' => 'string',  'default' => ''],
-        'url_instagram'                => ['type' => 'string',  'default' => ''],
-        'url_facebook'                 => ['type' => 'string',  'default' => ''],
-        'url_tiktok'                   => ['type' => 'string',  'default' => ''],
-        'url_linkedin'                 => ['type' => 'string',  'default' => ''],
-        'url_youtube'                  => ['type' => 'string',  'default' => ''],
-        'smtp_host'                    => ['type' => 'string',  'default' => ''],
-        'smtp_port'                    => ['type' => 'integer', 'default' => 465],
-        'smtp_user'                    => ['type' => 'string',  'default' => ''],
-        'smtp_pass'                    => ['type' => 'string',  'default' => ''],
-        'smtp_secure'                  => ['type' => 'string',  'default' => 'ssl'],
-        'smtp_from_email'              => ['type' => 'string',  'default' => get_option('admin_email')],
-        'smtp_from_name'               => ['type' => 'string',  'default' => 'WAM Dance Studio'],
-        'smtp_to_emails'               => ['type' => 'string',  'default' => ''],
+        'inscriptions_actives'         => ['type' => 'boolean', 'default' => true, 'group' => 'general'],
+        'btn_inscription_texte'        => ['type' => 'string',  'default' => 'Ajouter ce cours au panier', 'group' => 'general'],
+        'btn_cours_desactive'          => ['type' => 'boolean', 'default' => false, 'group' => 'general'],
+        'btn_cours_desactive_texte'    => ['type' => 'string',  'default' => 'Inscriptions bientôt disponibles', 'group' => 'general'],
+        'message_inscriptions_fermees' => ['type' => 'string',  'default' => 'Les inscriptions sont actuellement fermées.', 'group' => 'general'],
+        'inscription_ouverture'        => ['type' => 'integer', 'default' => 0, 'group' => 'general'],
+        'inscription_fermeture'        => ['type' => 'integer', 'default' => 0, 'group' => 'general'],
+        'adresse_visible'              => ['type' => 'boolean', 'default' => true, 'group' => 'general'],
+        'nom_lieu'                     => ['type' => 'string',  'default' => 'WAM Dance Studio', 'group' => 'general'],
+        'adresse_lieu'                 => ['type' => 'string',  'default' => "202 rue Jean Jaurès\nVilleneuve d'Ascq", 'group' => 'general'],
+        'show_rentree'                 => ['type' => 'boolean', 'default' => false, 'group' => 'general'],
+        'date_rentree'                 => ['type' => 'string',  'default' => '', 'group' => 'general'],
+        'url_instagram'                => ['type' => 'string',  'default' => '', 'group' => 'socials'],
+        'url_facebook'                 => ['type' => 'string',  'default' => '', 'group' => 'socials'],
+        'url_tiktok'                   => ['type' => 'string',  'default' => '', 'group' => 'socials'],
+        'url_linkedin'                 => ['type' => 'string',  'default' => '', 'group' => 'socials'],
+        'url_youtube'                  => ['type' => 'string',  'default' => '', 'group' => 'socials'],
+        'smtp_host'                    => ['type' => 'string',  'default' => '', 'group' => 'smtp'],
+        'smtp_port'                    => ['type' => 'integer', 'default' => 465, 'group' => 'smtp'],
+        'smtp_user'                    => ['type' => 'string',  'default' => '', 'group' => 'smtp'],
+        'smtp_pass'                    => ['type' => 'string',  'default' => '', 'group' => 'smtp'],
+        'smtp_secure'                  => ['type' => 'string',  'default' => 'ssl', 'group' => 'smtp'],
+        'smtp_from_email'              => ['type' => 'string',  'default' => get_option('admin_email'), 'group' => 'smtp'],
+        'smtp_from_name'               => ['type' => 'string',  'default' => 'WAM Dance Studio', 'group' => 'smtp'],
+        'smtp_to_emails'               => ['type' => 'string',  'default' => '', 'group' => 'smtp'],
     ];
 }
 
@@ -116,7 +135,7 @@ function wam_config_register_settings(): void
             $args['sanitize_callback'] = 'wam_sanitize_datetime_to_timestamp';
         }
 
-        register_setting('wam_config_group', 'wam_setting_' . $key, $args);
+        register_setting('wam_config_' . $meta['group'], 'wam_setting_' . $key, $args);
     }
 
 
@@ -574,13 +593,10 @@ function wam_config_page_html(): void
         return;
     }
 
-    $opts       = get_option('wam_config', []);
     $active_tab = isset($_GET['tab']) ? sanitize_text_field($_GET['tab']) : 'general';
-
-    // --- Calcul du statut d'inscription pour le bandeau ---
-    $ts_now        = time();
-    $ts_ouverture  = (int) ($opts['inscription_ouverture'] ?? 0);
-    $ts_fermeture  = (int) ($opts['inscription_fermeture'] ?? 0);
+    $ts_now     = time();
+    $ts_ouverture = (int) get_option('wam_setting_inscription_ouverture', 0);
+    $ts_fermeture = (int) get_option('wam_setting_inscription_fermeture', 0);
     $inscr_actives = wam_inscriptions_actives();
 
     $tz_paris = new DateTimeZone('Europe/Paris');
@@ -626,7 +642,7 @@ function wam_config_page_html(): void
 
         <form method="post" action="options.php">
             <?php
-            settings_fields('wam_config_group');
+            settings_fields('wam_config_' . $active_tab);
 
             if ($active_tab === 'general') {
                 do_settings_sections('wam-config-general');
@@ -842,8 +858,8 @@ if (!function_exists('wam_inscriptions_actives')):
     function wam_inscriptions_actives(): bool
     {
         $ts_now       = time(); // UTC
-        $ts_ouverture = (int) get_option('wam_setting_inscription_ouverture', 0);
-        $ts_fermeture = (int) get_option('wam_setting_inscription_fermeture', 0);
+        $ts_ouverture = (int) wam_get_setting('inscription_ouverture', 0);
+        $ts_fermeture = (int) wam_get_setting('inscription_fermeture', 0);
 
         $has_ouverture = $ts_ouverture > 0;
         $has_fermeture = $ts_fermeture > 0;
@@ -864,7 +880,7 @@ if (!function_exists('wam_inscriptions_actives')):
         }
 
         // Aucune programmation → toggle manuel
-        return (bool) get_option('wam_setting_inscriptions_actives', true);
+        return (bool) wam_get_setting('inscriptions_actives', true);
     }
 endif;
 
@@ -874,7 +890,7 @@ endif;
 if (!function_exists('wam_btn_inscription_texte')):
     function wam_btn_inscription_texte(): string
     {
-        return sanitize_text_field(get_option('wam_setting_btn_inscription_texte', 'Ajouter ce cours au panier'));
+        return sanitize_text_field(wam_get_setting('btn_inscription_texte', 'Ajouter ce cours au panier'));
     }
 endif;
 
@@ -894,7 +910,7 @@ endif;
 if (!function_exists('wam_btn_cours_est_desactive')):
     function wam_btn_cours_est_desactive(): bool
     {
-        return (bool) get_option('wam_setting_btn_cours_desactive', false);
+        return (bool) wam_get_setting('btn_cours_desactive', false);
     }
 endif;
 
@@ -904,7 +920,7 @@ endif;
 if (!function_exists('wam_btn_cours_desactive_texte')):
     function wam_btn_cours_desactive_texte(): string
     {
-        return sanitize_text_field(get_option('wam_setting_btn_cours_desactive_texte', 'Inscriptions bientôt disponibles'));
+        return sanitize_text_field(wam_get_setting('btn_cours_desactive_texte', 'Inscriptions bientôt disponibles'));
     }
 endif;
 
@@ -914,7 +930,7 @@ endif;
 if (!function_exists('wam_message_inscriptions_fermees')):
     function wam_message_inscriptions_fermees(): string
     {
-        return esc_html(get_option('wam_setting_message_inscriptions_fermees', 'Les inscriptions sont actuellement fermées.'));
+        return esc_html(wam_get_setting('message_inscriptions_fermees', 'Les inscriptions sont actuellement fermées.'));
     }
 endif;
 
@@ -924,7 +940,7 @@ endif;
 if (!function_exists('wam_adresse_visible')):
     function wam_adresse_visible(): bool
     {
-        return (bool) get_option('wam_setting_adresse_visible', true);
+        return (bool) wam_get_setting('adresse_visible', true);
     }
 endif;
 
@@ -934,7 +950,7 @@ endif;
 if (!function_exists('wam_nom_lieu')):
     function wam_nom_lieu(): string
     {
-        return sanitize_text_field(get_option('wam_setting_nom_lieu', 'WAM Dance Studio'));
+        return sanitize_text_field(wam_get_setting('nom_lieu', 'WAM Dance Studio'));
     }
 endif;
 
@@ -944,7 +960,7 @@ endif;
 if (!function_exists('wam_adresse_lieu')):
     function wam_adresse_lieu(): string
     {
-        return esc_html(get_option('wam_setting_adresse_lieu', "202 rue Jean Jaurès\nVilleneuve d'Ascq"));
+        return esc_html(wam_get_setting('adresse_lieu', "202 rue Jean Jaurès\nVilleneuve d'Ascq"));
     }
 endif;
 
@@ -954,7 +970,7 @@ endif;
 if (!function_exists('wam_show_rentree')):
     function wam_show_rentree(): bool
     {
-        return (bool) get_option('wam_setting_show_rentree', false);
+        return (bool) wam_get_setting('show_rentree', false);
     }
 endif;
 
@@ -973,35 +989,35 @@ endif;
 if (!function_exists('wam_url_instagram')):
     function wam_url_instagram(): string
     {
-        return esc_url(get_option('wam_setting_url_instagram', ''));
+        return esc_url(wam_get_setting('url_instagram', ''));
     }
 endif;
 
 if (!function_exists('wam_url_facebook')):
     function wam_url_facebook(): string
     {
-        return esc_url(get_option('wam_setting_url_facebook', ''));
+        return esc_url(wam_get_setting('url_facebook', ''));
     }
 endif;
 
 if (!function_exists('wam_url_tiktok')):
     function wam_url_tiktok(): string
     {
-        return esc_url(get_option('wam_setting_url_tiktok', ''));
+        return esc_url(wam_get_setting('url_tiktok', ''));
     }
 endif;
 
 if (!function_exists('wam_url_linkedin')):
     function wam_url_linkedin(): string
     {
-        return esc_url(get_option('wam_setting_url_linkedin', ''));
+        return esc_url(wam_get_setting('url_linkedin', ''));
     }
 endif;
 
 if (!function_exists('wam_url_youtube')):
     function wam_url_youtube(): string
     {
-        return esc_url(get_option('wam_setting_url_youtube', ''));
+        return esc_url(wam_get_setting('url_youtube', ''));
     }
 endif;
 

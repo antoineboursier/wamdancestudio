@@ -293,6 +293,12 @@ $icon_dir       = get_template_directory_uri() . '/assets/images/';
         </div>
 
         <?php /* ── Bas de page — mentions légales ── */ ?>
+        <div class="wam-footer__partners" style="margin-bottom: 1.5rem;">
+            <a rel='nofollow' href='https://www.mariages.net' title='Mariages.net' target="_blank">
+                <img alt='Mariages.net' src='https://www.mariages.net/images/sellos/label-partenaire--pp421197.png' style='border-width:0px; width: 120px; height: auto;' />
+            </a>
+        </div>
+
         <p id="footer-legal" class="wam-footer__legal">
             <?php 
             $legal_text = __("Conception : %s. Toutes les photographies, textes et informations sur ce site appartiennent à l'association WAM Dance Studio. Studio de danse situé à Villeneuve-d'Ascq, proche de Lille, Roubaix, Mouvaux, Wattrelos, Croix et Wasquehal (Hauts de France, Nord Pas-de-Calais)", 'wamv1');

@@ -47,9 +47,9 @@ function wamv1_handle_contact_form() {
         $to_emails = array_filter($emails_array, 'is_email');
     }
     
-    // Fallback à l'admin du site si aucune adresse valide trouvée
+    // Fallback à l'adresse WAM par défaut si aucune adresse valide trouvée
     if (empty($to_emails)) {
-        $to_emails = get_option('admin_email');
+        $to_emails = 'contact@wamdancestudio.fr';
     }
 
     $mail_subject = "{$subject} - {$first_name} {$last_name}";

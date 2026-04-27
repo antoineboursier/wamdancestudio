@@ -76,9 +76,9 @@ function wam_get_settings_keys(): array
         'smtp_user'                    => ['type' => 'string',  'default' => '', 'group' => 'smtp'],
         'smtp_pass'                    => ['type' => 'string',  'default' => '', 'group' => 'smtp'],
         'smtp_secure'                  => ['type' => 'string',  'default' => 'ssl', 'group' => 'smtp'],
-        'smtp_from_email'              => ['type' => 'string',  'default' => get_option('admin_email'), 'group' => 'smtp'],
+        'smtp_from_email'              => ['type' => 'string',  'default' => 'contact@wamdancestudio.fr', 'group' => 'smtp'],
         'smtp_from_name'               => ['type' => 'string',  'default' => 'WAM Dance Studio', 'group' => 'smtp'],
-        'smtp_to_emails'               => ['type' => 'string',  'default' => '', 'group' => 'smtp'],
+        'smtp_to_emails'               => ['type' => 'string',  'default' => 'contact@wamdancestudio.fr', 'group' => 'smtp'],
     ];
 }
 
@@ -395,7 +395,7 @@ function wam_field_smtp_secure(): void {
     </select>';
 }
 function wam_field_smtp_from_email(): void {
-    $val = esc_attr(wam_get_setting('smtp_from_email', get_option('admin_email')));
+    $val = esc_attr(wam_get_setting('smtp_from_email', 'contact@wamdancestudio.fr'));
     echo '<input type="email" name="wam_setting_smtp_from_email" value="' . $val . '" class="regular-text">';
 }
 function wam_field_smtp_from_name(): void {
@@ -405,7 +405,7 @@ function wam_field_smtp_from_name(): void {
 function wam_field_smtp_to_emails(): void {
     $val = esc_attr(wam_get_setting('smtp_to_emails', ''));
     echo '<input type="text" name="wam_setting_smtp_to_emails" value="' . $val . '" class="large-text" placeholder="ex: contact@wamdancestudio.fr, direction@wamdancestudio.fr">';
-    echo '<p class="description">Séparez les adresses e-mail par une virgule. Si ce champ est vide, l\'e-mail de l\'administrateur du site ('. get_option('admin_email') .') sera utilisé.</p>';
+    echo '<p class="description">Séparez les adresses e-mail par une virgule. Si ce champ est vide, l\'e-mail par défaut (contact@wamdancestudio.fr) sera utilisé.</p>';
 }
 
 function wam_field_inscriptions_actives(): void

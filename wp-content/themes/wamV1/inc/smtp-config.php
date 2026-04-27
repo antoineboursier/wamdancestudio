@@ -36,7 +36,7 @@ function wamv1_phpmailer_init(PHPMailer\PHPMailer\PHPMailer $phpmailer) {
         );
     }
 
-    $from_email = sanitize_email(wam_get_setting('smtp_from_email', get_option('admin_email')));
+    $from_email = sanitize_email(wam_get_setting('smtp_from_email', 'contact@wamdancestudio.fr'));
     $from_name  = sanitize_text_field(wam_get_setting('smtp_from_name', 'WAM Dance Studio'));
     
     $phpmailer->setFrom($from_email, $from_name);

@@ -345,23 +345,23 @@ add_action('update_option_wam_setting_inscription_fermeture', 'wam_update_cron_o
 // Callbacks des champs
 // -------------------------------------------------------
 function wam_field_url_instagram(): void {
-    $val = esc_attr(get_option('wam_setting_url_instagram', ''));
+    $val = esc_attr(wam_get_setting('url_instagram', ''));
     echo '<input type="url" name="wam_setting_url_instagram" value="' . $val . '" class="regular-text">';
 }
 function wam_field_url_facebook(): void {
-    $val = esc_attr(get_option('wam_setting_url_facebook', ''));
+    $val = esc_attr(wam_get_setting('url_facebook', ''));
     echo '<input type="url" name="wam_setting_url_facebook" value="' . $val . '" class="regular-text">';
 }
 function wam_field_url_tiktok(): void {
-    $val = esc_attr(get_option('wam_setting_url_tiktok', ''));
+    $val = esc_attr(wam_get_setting('url_tiktok', ''));
     echo '<input type="url" name="wam_setting_url_tiktok" value="' . $val . '" class="regular-text">';
 }
 function wam_field_url_linkedin(): void {
-    $val = esc_attr(get_option('wam_setting_url_linkedin', ''));
+    $val = esc_attr(wam_get_setting('url_linkedin', ''));
     echo '<input type="url" name="wam_setting_url_linkedin" value="' . $val . '" class="regular-text">';
 }
 function wam_field_url_youtube(): void {
-    $val = esc_attr(get_option('wam_setting_url_youtube', ''));
+    $val = esc_attr(wam_get_setting('url_youtube', ''));
     echo '<input type="url" name="wam_setting_url_youtube" value="' . $val . '" class="regular-text">';
 }
 
@@ -370,24 +370,24 @@ function wam_section_smtp_desc(): void {
     echo '<p>Configurez ici les accès à votre serveur d\'envoi email (SMTP) pour garantir la bonne réception de vos messages de contact et notifications. Laissez vide si vous souhaitez utiliser le système par défaut de votre serveur d\'hébergement (déconseillé).</p>';
 }
 function wam_field_smtp_host(): void {
-    $val = esc_attr(get_option('wam_setting_smtp_host', ''));
+    $val = esc_attr(wam_get_setting('smtp_host', ''));
     echo '<input type="text" name="wam_setting_smtp_host" value="' . $val . '" class="regular-text" placeholder="ex: smtp.gmail.com">';
 }
 function wam_field_smtp_port(): void {
-    $val = esc_attr(get_option('wam_setting_smtp_port', '465'));
+    $val = esc_attr(wam_get_setting('smtp_port', '465'));
     echo '<input type="number" name="wam_setting_smtp_port" value="' . $val . '" class="small-text">';
 }
 function wam_field_smtp_user(): void {
-    $val = esc_attr(get_option('wam_setting_smtp_user', ''));
+    $val = esc_attr(wam_get_setting('smtp_user', ''));
     echo '<input type="text" name="wam_setting_smtp_user" value="' . $val . '" class="regular-text">';
 }
 function wam_field_smtp_pass(): void {
-    $val = esc_attr(get_option('wam_setting_smtp_pass', ''));
+    $val = esc_attr(wam_get_setting('smtp_pass', ''));
     echo '<input type="password" name="wam_setting_smtp_pass" value="' . $val . '" class="regular-text" placeholder="Votre mot de passe">';
     echo '<p class="description">Le mot de passe sera enregistré en toute sécurité dans la base de données.</p>';
 }
 function wam_field_smtp_secure(): void {
-    $val = esc_attr(get_option('wam_setting_smtp_secure', 'ssl'));
+    $val = esc_attr(wam_get_setting('smtp_secure', 'ssl'));
     echo '<select name="wam_setting_smtp_secure">
         <option value="ssl" ' . selected($val, 'ssl', false) . '>SSL (recommandé port 465)</option>
         <option value="tls" ' . selected($val, 'tls', false) . '>TLS (recommandé port 587)</option>
@@ -395,22 +395,22 @@ function wam_field_smtp_secure(): void {
     </select>';
 }
 function wam_field_smtp_from_email(): void {
-    $val = esc_attr(get_option('wam_setting_smtp_from_email', get_option('admin_email')));
+    $val = esc_attr(wam_get_setting('smtp_from_email', get_option('admin_email')));
     echo '<input type="email" name="wam_setting_smtp_from_email" value="' . $val . '" class="regular-text">';
 }
 function wam_field_smtp_from_name(): void {
-    $val = esc_attr(get_option('wam_setting_smtp_from_name', 'WAM Dance Studio'));
+    $val = esc_attr(wam_get_setting('smtp_from_name', 'WAM Dance Studio'));
     echo '<input type="text" name="wam_setting_smtp_from_name" value="' . $val . '" class="regular-text">';
 }
 function wam_field_smtp_to_emails(): void {
-    $val = esc_attr(get_option('wam_setting_smtp_to_emails', ''));
+    $val = esc_attr(wam_get_setting('smtp_to_emails', ''));
     echo '<input type="text" name="wam_setting_smtp_to_emails" value="' . $val . '" class="large-text" placeholder="ex: contact@wamdancestudio.fr, direction@wamdancestudio.fr">';
     echo '<p class="description">Séparez les adresses e-mail par une virgule. Si ce champ est vide, l\'e-mail de l\'administrateur du site ('. get_option('admin_email') .') sera utilisé.</p>';
 }
 
 function wam_field_inscriptions_actives(): void
 {
-    $checked = (bool) get_option('wam_setting_inscriptions_actives', true);
+    $checked = (bool) wam_get_setting('inscriptions_actives', true);
     ?>
     <label>
         <input type="hidden" name="wam_setting_inscriptions_actives" value="0">
@@ -427,7 +427,7 @@ function wam_field_inscriptions_actives(): void
 
 function wam_field_btn_texte(): void
 {
-    $val = esc_attr(get_option('wam_setting_btn_inscription_texte', 'Ajouter ce cours au panier'));
+    $val = esc_attr(wam_get_setting('btn_inscription_texte', 'Ajouter ce cours au panier'));
     echo '<span id="wam-row-btn-texte">';
     echo '<input type="text" name="wam_setting_btn_inscription_texte" value="' . $val . '" class="regular-text">';
     echo '<p class="description">Texte affiché sur le bouton quand les inscriptions sont actives.</p>';
@@ -436,7 +436,7 @@ function wam_field_btn_texte(): void
 
 function wam_field_btn_cours_desactive(): void
 {
-    $checked = (bool) get_option('wam_setting_btn_cours_desactive', false);
+    $checked = (bool) wam_get_setting('btn_cours_desactive', false);
     ?>
     <label>
         <input type="hidden" name="wam_setting_btn_cours_desactive" value="0">
@@ -453,7 +453,7 @@ function wam_field_btn_cours_desactive(): void
 
 function wam_field_btn_cours_desactive_texte(): void
 {
-    $val = esc_attr(get_option('wam_setting_btn_cours_desactive_texte', 'Inscriptions bientôt disponibles'));
+    $val = esc_attr(wam_get_setting('btn_cours_desactive_texte', 'Inscriptions bientôt disponibles'));
     echo '<span id="wam-row-btn-desactive-texte">';
     echo '<input type="text" name="wam_setting_btn_cours_desactive_texte" value="' . $val . '" class="regular-text">';
     echo '<p class="description">Texte affiché sur le bouton désactivé (grisé, non cliquable).</p>';
@@ -462,7 +462,7 @@ function wam_field_btn_cours_desactive_texte(): void
 
 function wam_field_message_ferme(): void
 {
-    $val = esc_textarea(get_option('wam_setting_message_inscriptions_fermees', 'Les inscriptions sont actuellement fermées.'));
+    $val = esc_textarea(wam_get_setting('message_inscriptions_fermees', 'Les inscriptions sont actuellement fermées.'));
     echo '<span id="wam-row-message-ferme">';
     echo '<textarea name="wam_setting_message_inscriptions_fermees" rows="3" class="large-text">' . $val . '</textarea>';
     echo '<p class="description">Affiché à la place du bouton quand les inscriptions sont désactivées (bouton masqué).</p>';
@@ -471,7 +471,7 @@ function wam_field_message_ferme(): void
 
 function wam_field_inscription_ouverture(): void
 {
-    $val_raw = get_option('wam_setting_inscription_ouverture', '');
+    $val_raw = wam_get_setting('inscription_ouverture', '');
     
     // Si c'est déjà un timestamp (stocké par l'ancien système ou via sanitize), on le garde tel quel
     // Sinon, c'est peut-être la chaîne datetime-local directe (si on ne sanitize pas via register_setting)
@@ -495,7 +495,7 @@ function wam_field_inscription_ouverture(): void
 
 function wam_field_inscription_fermeture(): void
 {
-    $val_raw = get_option('wam_setting_inscription_fermeture', '');
+    $val_raw = wam_get_setting('inscription_fermeture', '');
     $ts = is_numeric($val_raw) ? (int)$val_raw : 0;
 
     $val = '';
@@ -516,7 +516,7 @@ function wam_field_inscription_fermeture(): void
 
 function wam_field_show_rentree(): void
 {
-    $checked = (bool) get_option('wam_setting_show_rentree', false);
+    $checked = (bool) wam_get_setting('show_rentree', false);
     ?>
     <label>
         <input type="hidden" name="wam_setting_show_rentree" value="0">
@@ -532,7 +532,7 @@ function wam_field_show_rentree(): void
 
 function wam_field_date_rentree(): void
 {
-    $val = esc_attr(get_option('wam_setting_date_rentree', ''));
+    $val = esc_attr(wam_get_setting('date_rentree', ''));
     echo '<span id="wam-row-date-rentree">';
     echo '<input type="text" name="wam_setting_date_rentree" value="' . $val . '" class="regular-text" placeholder="ex: 19/04/2025">';
     echo '<p class="description">Le texte qui sera affiché après "Date de rentrée : ".</p>';
@@ -541,7 +541,7 @@ function wam_field_date_rentree(): void
 
 function wam_field_adresse_visible(): void
 {
-    $checked = (bool) get_option('wam_setting_adresse_visible', true);
+    $checked = (bool) wam_get_setting('adresse_visible', true);
     ?>
     <label>
         <input type="hidden" name="wam_setting_adresse_visible" value="0">
@@ -557,7 +557,7 @@ function wam_field_adresse_visible(): void
 
 function wam_field_nom_lieu(): void
 {
-    $val = esc_attr(get_option('wam_setting_nom_lieu', 'WAM Dance Studio'));
+    $val = esc_attr(wam_get_setting('nom_lieu', 'WAM Dance Studio'));
     echo '<span id="wam-row-nom-lieu">';
     echo '<input type="text" name="wam_setting_nom_lieu" value="' . $val . '" class="regular-text">';
     echo '</span>';
@@ -565,7 +565,7 @@ function wam_field_nom_lieu(): void
 
 function wam_field_adresse_lieu(): void
 {
-    $val = esc_textarea(get_option('wam_setting_adresse_lieu', "202 rue Jean Jaurès\nVilleneuve d'Ascq"));
+    $val = esc_textarea(wam_get_setting('adresse_lieu', "202 rue Jean Jaurès\nVilleneuve d'Ascq"));
     echo '<span id="wam-row-adresse-lieu">';
     echo '<textarea name="wam_setting_adresse_lieu" rows="3" class="large-text">' . $val . '</textarea>';
     echo '<p class="description">Utilisez la touche Entrée pour séparer les lignes de votre adresse. Le système les affichera correctement en HTML.</p>';
@@ -595,8 +595,8 @@ function wam_config_page_html(): void
 
     $active_tab = isset($_GET['tab']) ? sanitize_text_field($_GET['tab']) : 'general';
     $ts_now     = time();
-    $ts_ouverture = (int) get_option('wam_setting_inscription_ouverture', 0);
-    $ts_fermeture = (int) get_option('wam_setting_inscription_fermeture', 0);
+    $ts_ouverture = (int) wam_get_setting('inscription_ouverture', 0);
+    $ts_fermeture = (int) wam_get_setting('inscription_fermeture', 0);
     $inscr_actives = wam_inscriptions_actives();
 
     $tz_paris = new DateTimeZone('Europe/Paris');
@@ -652,9 +652,47 @@ function wam_config_page_html(): void
                 do_settings_sections('wam-config-socials');
             }
             submit_button('Enregistrer');
+
+            if ($active_tab === 'smtp') {
+                echo '<button type="button" id="wam-test-smtp-btn" class="button button-secondary">Envoyer un e-mail de test</button>';
+                echo '<span id="wam-test-smtp-result" style="margin-left:10px;"></span>';
+            }
             ?>
         </form>
     </div>
+
+    <script>
+    jQuery(document).ready(function($) {
+        $('#wam-test-smtp-btn').on('click', function() {
+            var $btn = $(this);
+            var $result = $('#wam-test-smtp-result');
+            
+            $btn.prop('disabled', true).text('Envoi en cours...');
+            $result.text('');
+
+            $.ajax({
+                url: ajaxurl,
+                type: 'POST',
+                data: {
+                    action: 'wam_test_smtp',
+                    nonce: '<?php echo wp_create_nonce("wam_test_smtp_nonce"); ?>'
+                },
+                success: function(response) {
+                    if (response.success) {
+                        $result.html('<span style="color:green;">✅ ' + response.data + '</span>');
+                    } else {
+                        $result.html('<span style="color:red;">❌ ' + response.data + '</span>');
+                    }
+                    $btn.prop('disabled', false).text('Envoyer un e-mail de test');
+                },
+                error: function() {
+                    $result.html('<span style="color:red;">❌ Erreur lors de l\'appel AJAX.</span>');
+                    $btn.prop('disabled', false).text('Envoyer un e-mail de test');
+                }
+            });
+        });
+    });
+    </script>
 
     <style>
         /* Separateurs visuels entre les sections Settings API */
@@ -1021,3 +1059,44 @@ if (!function_exists('wam_url_youtube')):
     }
 endif;
 
+/**
+ * AJAX Handler : Test de l'envoi SMTP
+ */
+function wam_ajax_test_smtp(): void
+{
+    check_ajax_referer('wam_test_smtp_nonce', 'nonce');
+
+    if (!current_user_can('manage_options')) {
+        wp_send_json_error('Droits insuffisants.');
+    }
+
+    $to = wam_get_setting('smtp_to_emails', get_option('admin_email'));
+    // Si plusieurs emails, on prend le premier
+    $to_array = explode(',', $to);
+    $to = trim($to_array[0]);
+
+    if (empty($to)) {
+        $to = get_option('admin_email');
+    }
+
+    $subject = 'WAM V1 - Test de configuration SMTP';
+    $message = "Ceci est un e-mail de test envoyé depuis la configuration WAM de votre site.\n\nSi vous recevez ce message, cela signifie que votre serveur SMTP est correctement configuré.\n\nDate de l'envoi : " . date('d/m/Y H:i:s');
+
+    // On force l'utilisation des réglages SMTP pour ce test
+    // WordPress utilisera le hook phpmailer_init (dans smtp-config.php) automatiquement
+    
+    $sent = wp_mail($to, $subject, $message);
+
+    if ($sent) {
+        wp_send_json_success('E-mail de test envoyé avec succès à ' . $to);
+    } else {
+        // Tentative de récupération de l'erreur PHPMailer via une globale ou autre
+        global $phpmailer;
+        $error = 'L\'envoi a échoué.';
+        if (isset($phpmailer) && !empty($phpmailer->ErrorInfo)) {
+            $error .= ' Erreur : ' . $phpmailer->ErrorInfo;
+        }
+        wp_send_json_error($error);
+    }
+}
+add_action('wp_ajax_wam_test_smtp', 'wam_ajax_test_smtp');

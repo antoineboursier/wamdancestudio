@@ -1,0 +1,129 @@
+/* =====================================================
+   NEWSLETTER CSS — WAM Dance Studio
+   Forçage des styles MailPoet sur la page Newsletter.
+   Utilise les tokens du design system (tokens.css).
+   ===================================================== */
+
+.mailpoet_form {
+    max-width: 800px !important;
+    font-family: var(--wam-font-body) !important;
+}
+
+.mailpoet_form form {
+    padding: 0 !important;
+}
+
+/* On neutralise les styles inline sur les paragraphes */
+.mailpoet_form_paragraph,
+.mailpoet_paragraph {
+    color: var(--wam-color-text) !important;
+    font-family: var(--wam-font-body) !important;
+    margin-bottom: var(--wam-spacing-md) !important;
+    text-align: left !important;
+    font-size: var(--wam-font-size-md) !important;
+    gap: 0 !important;
+}
+
+/* Labels MailPoet — Forçage du style WAM */
+.mailpoet_paragraph label,
+.mailpoet_text_label {
+    display: block !important;
+    font-family: var(--wam-font-body) !important;
+    font-size: var(--wam-font-size-sm) !important;
+    font-weight: 400 !important;
+    line-height: 1.25 !important;
+    color: var(--wam-color-text) !important;
+    padding: 0 var(--wam-spacing-2xs) !important;
+    margin-bottom: var(--wam-spacing-3xs) !important;
+    text-align: left !important;
+}
+
+/* Titres MailPoet — Style Premium 'Title Cool MD' */
+.mailpoet-heading {
+    font-family: var(--wam-font-graphical-2) !important;
+    font-size: var(--wam-font-size-display-md) !important; /* 36px */
+    font-weight: 400 !important;
+    line-height: 1.1 !important;
+    color: var(--wam-color-yellow) !important;
+    margin-top: 0 !important;
+    margin-bottom: 0 !important;
+    text-align: left !important;
+}
+
+@media (max-width: 768px) {
+    .mailpoet-heading {
+        font-size: 28px !important;
+    }
+}
+
+/* Champs texte — On force nos variables contre les inline styles padding:5px etc */
+.mailpoet_text {
+    width: 100% !important;
+    max-width: 100% !important;
+    padding: var(--wam-field-py) var(--wam-field-px) !important;
+    margin: 0 0 var(--wam-spacing-md) 0 !important;
+    box-sizing: border-box !important;
+    border: var(--wam-field-border-default) !important;
+    border-radius: var(--wam-field-radius) !important;
+    background-color: transparent !important;
+    color: var(--wam-color-text) !important;
+}
+
+/* Bouton de soumission — On force le style btn-primary (jaune) */
+.mailpoet_submit {
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    font-family: var(--wam-font-body) !important;
+    width: 100% !important;
+    max-width: 400px !important; 
+    min-width: 200px !important;
+    padding: var(--wam-spacing-sm) var(--wam-spacing-xl) !important;
+    margin: var(--wam-spacing-md) 0 !important;
+    background-color: var(--wam-color-yellow) !important;
+    color: var(--wp--preset--color--background-500) !important;
+    border: 3px solid transparent !important;
+    border-radius: var(--wam-radius-lg) !important;
+    font-weight: bold !important;
+    font-size: 1.25rem !important; 
+    cursor: pointer !important;
+    transition: transform var(--wam-transition) !important;
+}
+
+.mailpoet_submit:hover {
+    transform: scale(1.02) !important;
+    opacity: 1 !important;
+}
+
+/* Liens dans le texte MailPoet */
+.mailpoet_form_paragraph a {
+    color: var(--wam-color-yellow) !important;
+    text-decoration: underline !important;
+}
+
+/* Messages de validation MailPoet */
+.mailpoet_message {
+    margin-top: var(--wam-spacing-md) !important;
+}
+
+.mailpoet_validate_success {
+    background-color: rgba(30, 166, 114, 0.1) !important;
+    color: var(--wam-color-green) !important;
+    border: 1px solid var(--wam-color-green) !important;
+    padding: var(--wam-spacing-sm) !important;
+    border-radius: var(--wam-field-radius) !important;
+    font-family: var(--wam-font-body) !important;
+    font-size: var(--wam-font-size-sm) !important;
+    text-align: center !important;
+}
+
+.mailpoet_validate_error {
+    background-color: rgba(222, 59, 83, 0.1) !important;
+    color: var(--wam-color-orange) !important;
+    border: 1px solid var(--wam-color-orange) !important;
+    padding: var(--wam-spacing-sm) !important;
+    border-radius: var(--wam-field-radius) !important;
+    font-family: var(--wam-font-body) !important;
+    font-size: var(--wam-font-size-sm) !important;
+    text-align: center !important;
+}

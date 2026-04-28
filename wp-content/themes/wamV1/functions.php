@@ -248,6 +248,13 @@ function wamv1_scripts()
     }
 
     // -------------------------------------------------------
+    // Page Newsletter uniquement (Forçage MailPoet)
+    // -------------------------------------------------------
+    if (is_page('newsletter')) {
+        wp_enqueue_style('wamv1-newsletter', $css . 'newsletter.css', array('wamv1-forms'), $get_ver('assets/css/newsletter.css'));
+    }
+
+    // -------------------------------------------------------
     // Cours & Stages single — JS add-to-cart AJAX (bouton simple + modale multi-tarifs)
     // -------------------------------------------------------
     if ((is_singular('cours') || is_singular('stages')) && class_exists('WooCommerce')) {

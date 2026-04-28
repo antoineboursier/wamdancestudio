@@ -54,7 +54,7 @@ $icon_dir = get_template_directory_uri() . '/assets/images/';
                     <?php
                     $smart_btns = [
                         ['href' => home_url('/tarifs/'),                              'label' => 'Nos tarifs'],
-                        ['href' => home_url('/notre-ecole-wam-dance-studio/'),        'label' => "L'école"],
+//                        ['href' => home_url('/notre-ecole-wam-dance-studio/'),        'label' => "L'école"],
                         ['href' => home_url('/cours-particulier-prive/'),             'label' => 'Cours particuliers'],
                         ['href' => home_url('/evjf-evg-animation-danse/'),            'label' => 'EVJF / EVG'],
                         ['href' => home_url('/choregraphie-de-mariage-ouvertures-de-bal/'), 'label' => 'Mariage'],

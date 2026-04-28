@@ -71,3 +71,14 @@ function wamv1_dequeue_dashicons() {
     }
 }
 add_action( 'wp_enqueue_scripts', 'wamv1_dequeue_dashicons' );
+
+/**
+ * Filtre MailPoet : Ajout de la classe .btn-primary (ou .btn-secondary) aux boutons d'inscription
+ * Par défaut, le bloc MailPoet génère : <input type="submit" class="mailpoet_submit" ...>
+ */
+add_filter('mailpoet_form_widget_post_process', function ($html) {
+    // Si on veut forcer le bouton en primary, on ajoute la classe btn-primary
+    // On pourrait aussi utiliser btn-secondary selon les besoins.
+    $html = str_replace('class="mailpoet_submit"', 'class="mailpoet_submit btn-primary"', $html);
+    return $html;
+});

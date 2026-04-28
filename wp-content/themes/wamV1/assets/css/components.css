@@ -1463,7 +1463,7 @@ html.wam-reduce-motion .card-article__notif::after {
         z-index: 15;
         /* Devant le panel (10) mais derrière le bouton close (50) */
         bottom: auto;
-        height: 180px;
+        height: 210px;
     }
 }
 

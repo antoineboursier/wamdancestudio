@@ -149,7 +149,10 @@ document.addEventListener('DOMContentLoaded', () => {
     window.wamCreateParticles = function(container) {
         if (!container) return;
 
-        const particleCount = 44;
+        let particleCount = 44;
+        if (window.matchMedia('(min-width: 1024px)').matches) {
+            particleCount = 132;
+        }
         const waveDuration = 500; 
         const colors = [
             'var(--wam-color-green)',

@@ -88,6 +88,19 @@
     flex-wrap: wrap;
 }
 
+
+@media (min-width: 1024px) {
+
+    .page-template-page-cours-collectifs .page-cours__address {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    .page-template-page-cours-collectifs .page-cours__address .page-cours__address-icon {
+        display: none;
+    }
+}
+
 .page-cours__address-icon {
     flex-shrink: 0;
     width: 24px;
@@ -111,6 +124,7 @@
 
 .page-cours__planning-btn {
     flex-shrink: 0;
+    width: fit-content !important;
 }
 
 /* Hero media */

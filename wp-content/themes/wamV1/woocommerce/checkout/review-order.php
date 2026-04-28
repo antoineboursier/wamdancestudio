@@ -107,6 +107,7 @@ defined( 'ABSPATH' ) || exit;
 			</li>
 			<?php
 		}
+		?>
 
 	</ul>
 	<?php do_action( 'woocommerce_review_order_after_cart_contents' ); ?>

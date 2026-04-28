@@ -89,20 +89,14 @@ $sub_src = esc_url($icon_dir . 'dancestudio_header.svg');
 
         <div class="wam-nav__header">
             <div class="wam-logo-menu">
-                <?php if (!$is_home) : ?>
-                    <a href="<?php echo esc_url(home_url('/')); ?>" class="wam-logo-menu__link" tabindex="-1" aria-label="<?php esc_attr_e('Retour à l\'accueil', 'wamv1'); ?>">
-                <?php endif; ?>
-
-                <?php
-                $logo_path = get_template_directory() . '/assets/images/logo_menu_wam.svg';
-                if (file_exists($logo_path)) {
-                    include $logo_path;
-                }
-                ?>
-
-                <?php if (!$is_home) : ?>
-                    </a>
-                <?php endif; ?>
+                <a href="<?php echo esc_url(home_url('/')); ?>" class="wam-logo-menu__link" tabindex="-1" aria-label="<?php esc_attr_e('Retour à l\'accueil', 'wamv1'); ?>">
+                    <?php
+                    $logo_path = get_template_directory() . '/assets/images/logo_menu_wam.svg';
+                    if (file_exists($logo_path)) {
+                        include $logo_path;
+                    }
+                    ?>
+                </a>
             </div>
         </div>
 

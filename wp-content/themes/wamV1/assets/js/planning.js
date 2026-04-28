@@ -59,36 +59,6 @@
             return false;
         }
 
-        function applyFilter() {
-            /* Grille desktop */
-            gridCards.forEach(function (card) {
-                card.classList.toggle('planning-card--hidden', !cardMatchesFilter(card));
-            });
-
-            /* Cards mobile jour par jour */
-            mobileCards.forEach(function (card) {
-                card.classList.toggle('planning-mobile__card--hidden', !cardMatchesFilter(card));
-            });
-
-            /* Mobile : message "aucun cours pour ce filtre" par panel */
-            document.querySelectorAll('.planning-mobile__panel').forEach(function (panel) {
-                var cards   = panel.querySelectorAll('.planning-mobile__card');
-                var noMatch = panel.querySelector('.planning-mobile__no-match');
-                if (!noMatch || cards.length === 0) return;
-
-                var allHidden = true;
-                cards.forEach(function (c) {
-                    if (!c.classList.contains('planning-mobile__card--hidden')) allHidden = false;
-                });
-                noMatch.hidden = !(allHidden && activeFilter);
-            });
-
-            /* Mobile : si le jour courant n'a aucun cours visible sous le
-               filtre actif, sauter au premier jour qui en a au moins un
-               (évite l'impression qu'il n'y a aucun cours enfant). */
-            jumpToFirstMatchingDay();
-        }
-
         /* Indique si un panel contient au moins une card visible */
         function panelHasVisibleCard(panel) {
             var cards = panel.querySelectorAll('.planning-mobile__card');
@@ -100,18 +70,66 @@
             return false;
         }
 
-        function jumpToFirstMatchingDay() {
-            if (!activeFilter || !panels || !panels.length) return;
+        /**
+         * Cherche le prochain jour contenant au moins un cours visible,
+         * en commençant par le jour spécifié.
+         */
+        function jumpToNextAvailableDay(startIndex) {
+            if (!panels || !panels.length) return;
 
-            /* Jour courant déjà rempli → rien à faire */
-            if (panels[currentDay] && panelHasVisibleCard(panels[currentDay])) return;
+            var start = startIndex !== undefined ? startIndex : currentDay;
 
-            for (var i = 0; i < panels.length; i++) {
-                if (panelHasVisibleCard(panels[i])) {
-                    goToDay(i, /* skipScroll */ true);
-                    return;
+            for (var i = 0; i < totalDays; i++) {
+                var idx = (start + i) % totalDays;
+                if (panelHasVisibleCard(panels[idx])) {
+                    if (idx !== currentDay) {
+                        goToDay(idx, true);
+                    }
+                    return true;
                 }
             }
+            return false;
+        }
+
+        function applyFilter() {
+            /* Grille desktop */
+            gridCards.forEach(function (card) {
+                card.classList.toggle('planning-card--hidden', !cardMatchesFilter(card));
+            });
+
+            /* Cards mobile jour par jour */
+            mobileCards.forEach(function (card) {
+                card.classList.toggle('planning-mobile__card--hidden', !cardMatchesFilter(card));
+            });
+
+            /* Récupération du label du filtre actif */
+            var filterLabel = '';
+            if (activeFilter) {
+                var activeBtn = document.querySelector('.planning-legend__item[data-filter="' + activeFilter + '"]');
+                filterLabel = activeBtn ? activeBtn.textContent.trim() : '';
+            }
+
+            /* Mobile : message dynamique par panel */
+            document.querySelectorAll('.planning-mobile__panel').forEach(function (panel) {
+                var cards   = panel.querySelectorAll('.planning-mobile__card');
+                var noMatch = panel.querySelector('.planning-mobile__no-match');
+                if (!noMatch || cards.length === 0) return;
+
+                var allHidden = true;
+                cards.forEach(function (c) {
+                    if (!c.classList.contains('planning-mobile__card--hidden')) allHidden = false;
+                });
+                
+                if (allHidden && activeFilter) {
+                    noMatch.textContent = 'Aucun cours "' + filterLabel + '" ce jour';
+                    noMatch.hidden = false;
+                } else {
+                    noMatch.hidden = true;
+                }
+            });
+
+            /* Mobile : si le jour courant est vide sous ce filtre, sauter au suivant */
+            jumpToNextAvailableDay(currentDay);
         }
 
         function updateButtons() {
@@ -172,11 +190,7 @@
         if (!track || !panels.length) return;
 
         var totalDays  = panels.length;
-        var currentDay = 0;
-
-        /* Jour courant : JS 0=Dim, 1=Lun…6=Sam → index 0=Lun…6=Dim */
-        var jsDay = new Date().getDay();
-        currentDay = jsDay === 0 ? 6 : jsDay - 1;
+        var currentDay = 0; // On commence toujours par le lundi (index 0)
 
         function goToDay(index, skipScroll) {
             /* Boucle infinie : après dimanche → lundi, avant lundi → dimanche.
@@ -221,7 +235,8 @@
         }
 
         /* Init */
-        goToDay(currentDay);
+        goToDay(currentDay, true);
+        applyFilter();
 
         /* Flèches */
         if (prevBtn) prevBtn.addEventListener('click', function () { goToDay(currentDay - 1); });

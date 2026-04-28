@@ -988,6 +988,11 @@ input#coupon_code {
     grid-column: 1 / -1;
 }
 
+/* Champ masqué visuellement mais conservé dans le DOM (ex: billing_country forcé à FR pour HelloAsso) */
+.woocommerce-checkout .wam-hidden-field {
+    display: none !important;
+}
+
 .woocommerce-checkout .form-row label {
     display: block;
     font-size: var(--wam-font-size-xs);

@@ -29,7 +29,7 @@ add_filter('woocommerce_account_menu_items', 'wamv1_wc_account_menu_items');
 
 function wamv1_wc_account_menu_items(array $items): array
 {
-    unset($items['edit-address']); // Adresses — inutile (pas de livraison physique)
+    // edit-address conservé : permet de pré-remplir les champs adresse/ville/code postal au checkout
     unset($items['downloads']);    // Téléchargements — pas de produits numériques
 
     // Ajouter le lien Administration pour les rôles autorisés (Directrice et Professeurs)
@@ -1106,22 +1106,43 @@ add_filter('woocommerce_checkout_fields', 'wamv1_simplify_checkout_fields');
 
 function wamv1_simplify_checkout_fields($fields)
 {
+    // Champs supprimés globalement : pas utiles pour WAM
     unset($fields['billing']['billing_company']);
     unset($fields['billing']['billing_address_2']);
     unset($fields['billing']['billing_state']);
 
-    // Si on n'a que des stages, on retire aussi l'adresse physique (Brief WAM : pas besoin du reste)
-    if (wamv1_cart_has_only_stages()) {
-        unset($fields['billing']['billing_address_1']);
-        unset($fields['billing']['billing_city']);
-        unset($fields['billing']['billing_postcode']);
-        unset($fields['billing']['billing_country']);
-    }
-    
-    // On garde le téléphone billing pour l'adhérent principal
+    // billing_country : masqué visuellement et forcé à "FR" (HelloAsso exige un code ISO valide).
+    // Les champs address_1 / city / postcode sont conservés et affichés pour tous les produits :
+    // ils sont nécessaires pour HelloAsso et modifiables dans Mon compte → Mes adresses.
+    $fields['billing']['billing_country']['class']    = ['form-row-wide', 'wam-hidden-field'];
+    $fields['billing']['billing_country']['required'] = false;
+    $fields['billing']['billing_country']['label']    = '';
+
+    // Adresse — libellé FR, pleine largeur, requis
+    $fields['billing']['billing_address_1']['label']       = 'Adresse';
+    $fields['billing']['billing_address_1']['placeholder'] = 'Ex : 12 rue des Lilas';
+    $fields['billing']['billing_address_1']['class']       = ['form-row-wide'];
+    $fields['billing']['billing_address_1']['required']    = true;
+    $fields['billing']['billing_address_1']['priority']    = 70;
+
+    // Ville — moitié gauche, requis
+    $fields['billing']['billing_city']['label']       = 'Ville';
+    $fields['billing']['billing_city']['placeholder'] = 'Ex : Bordeaux';
+    $fields['billing']['billing_city']['class']       = ['form-row-first'];
+    $fields['billing']['billing_city']['required']    = true;
+    $fields['billing']['billing_city']['priority']    = 80;
+
+    // Code postal — moitié droite, requis
+    $fields['billing']['billing_postcode']['label']       = 'Code postal';
+    $fields['billing']['billing_postcode']['placeholder'] = 'Ex : 33000';
+    $fields['billing']['billing_postcode']['class']       = ['form-row-last'];
+    $fields['billing']['billing_postcode']['required']    = true;
+    $fields['billing']['billing_postcode']['priority']    = 90;
+
+    // Téléphone et email en bas
     $fields['billing']['billing_phone']['priority'] = 100;
     $fields['billing']['billing_email']['priority'] = 110;
-    
+
     return $fields;
 }
 
@@ -1168,6 +1189,23 @@ function wamv1_add_billing_emergency_block($checkout) {
 // S'assurer que le champ Pays par defaut est la France
 add_filter('default_checkout_billing_country', function () {
     return 'FR';
+});
+
+// Garantie : forcer billing_country à "FR" lors de la soumission du checkout
+// Evite que HelloAsso reçoive une chaîne vide → erreur 400 "Country must be length ≥ 3"
+add_filter('woocommerce_checkout_posted_data', function ($data) {
+    if (empty($data['billing_country'])) {
+        $data['billing_country'] = 'FR';
+    }
+    return $data;
+});
+
+// Garantie côté base de données : si billing_country est vide à la création de commande
+add_action('woocommerce_checkout_update_order_meta', function ($order_id) {
+    $country = get_post_meta($order_id, '_billing_country', true);
+    if (empty($country)) {
+        update_post_meta($order_id, '_billing_country', 'FR');
+    }
 });
 
 // Retrait du formulaire de code promo sur la page Checkout

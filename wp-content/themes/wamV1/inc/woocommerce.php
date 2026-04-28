@@ -29,8 +29,14 @@ add_filter('woocommerce_account_menu_items', 'wamv1_wc_account_menu_items');
 
 function wamv1_wc_account_menu_items(array $items): array
 {
-    // edit-address conservé : permet de pré-remplir les champs adresse/ville/code postal au checkout
+    // On masque edit-address du menu (accessible via edit-account)
+    unset($items['edit-address']);
     unset($items['downloads']);    // Téléchargements — pas de produits numériques
+
+    // Renommage
+    if (isset($items['edit-account'])) {
+        $items['edit-account'] = 'Informations personnelles';
+    }
 
     // Ajouter le lien Administration pour les rôles autorisés (Directrice et Professeurs)
     $user = wp_get_current_user();
@@ -1146,6 +1152,16 @@ function wamv1_simplify_checkout_fields($fields)
     return $fields;
 }
 
+// Simplifier aussi les champs dans "Mon compte > Adresses"
+add_filter('woocommerce_billing_fields', 'wamv1_simplify_billing_fields');
+function wamv1_simplify_billing_fields($fields)
+{
+    unset($fields['billing_company']);
+    unset($fields['billing_address_2']);
+    unset($fields['billing_state']);
+    return $fields;
+}
+
 /**
  * Ajout manuel du bloc d'urgence pour l'adhérent principal
  * On le place en fin de formulaire de facturation (priority 5)
@@ -1344,15 +1360,7 @@ add_action('wp_footer', function() {
     }
 }, 99);
 
-/**
- * Ajouter la mention sur le droit à l'image dans le tableau de bord "Mon Compte"
- */
-add_action('woocommerce_account_dashboard', function() {
-    echo '<div class="wam-account-image-notice mt-xl p-lg" style="background: var(--wam-color-card-bg); border: 1px solid var(--wam-color-input-bg); border-radius: var(--wam-radius-xl);">';
-    echo '<h4 class="title-norm-sm mb-xs">Droit à l\'image</h4>';
-    echo '<p class="text-sm color-subtext">L\'inscription aux cours ou stages WAM implique votre consentement au droit à l\'image pour les besoins de communication du studio. Si vous souhaitez vous opposer à l\'utilisation de votre image (ou celle de votre enfant), vous pouvez nous contacter à tout moment à <a href="mailto:contact@wamdancestudio.fr" class="color-yellow">contact@wamdancestudio.fr</a>.</p>';
-    echo '</div>';
-});
+
 
 // ============================================================================
 // L. Accessibilité des Formulaires — aria-describedby pour les erreurs
@@ -1399,4 +1407,26 @@ function wamv1_clear_course_cache($post_id, $post, $update) {
         return;
     }
     delete_transient('wam_course_meta_' . $post_id);
+}
+
+// ============================================================================
+// G. Sauvegarder l'adresse de facturation depuis "Informations personnelles"
+// ============================================================================
+
+add_action('woocommerce_save_account_details', 'wamv1_save_billing_address_on_account_details');
+function wamv1_save_billing_address_on_account_details($user_id)
+{
+    $billing_fields = [
+        'billing_address_1',
+        'billing_address_2',
+        'billing_city',
+        'billing_postcode',
+        'billing_phone'
+    ];
+
+    foreach ($billing_fields as $field) {
+        if (isset($_POST[$field])) {
+            update_user_meta($user_id, $field, sanitize_text_field($_POST[$field]));
+        }
+    }
 }

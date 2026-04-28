@@ -42,7 +42,7 @@ do_action( 'woocommerce_before_edit_account_form' );
 
 	<p class="woocommerce-form-row woocommerce-form-row--wide form-row form-row-wide">
 		<label for="account_display_name"><?php esc_html_e( 'Display name', 'woocommerce' ); ?>&nbsp;<span class="required" aria-hidden="true">*</span></label>
-		<input type="text" class="woocommerce-Input woocommerce-Input--text input-text" name="account_display_name" id="account_display_name" aria-describedby="account_display_name_description" value="<?php echo esc_attr( $user->display_name ); ?>" aria-required="true" /> <span id="account_display_name_description"><em><?php esc_html_e( 'This will be how your name will be displayed in the account section and in reviews', 'woocommerce' ); ?></em></span>
+		<input type="text" class="woocommerce-Input woocommerce-Input--text input-text" name="account_display_name" id="account_display_name" aria-describedby="account_display_name_description" value="<?php echo esc_attr( $user->display_name ); ?>" aria-required="true" /> <span id="account_display_name_description"><em><?php esc_html_e( 'Indique comment votre nom apparaîtra s\'il est utilisé sur le site', 'woocommerce' ); ?></em></span>
 	</p>
 	<div class="clear"></div>
 
@@ -59,6 +59,44 @@ do_action( 'woocommerce_before_edit_account_form' );
 		 */
 		do_action( 'woocommerce_edit_account_form_fields' );
 	?>
+
+	<!-- Adresse de facturation intégrée -->
+	<div class="wam-edit-account-address" style="margin-top: var(--wam-spacing-xl); padding-top: var(--wam-spacing-lg); border-top: 1px solid var(--wam-color-disabled);">
+		<h3 class="title-norm-sm" style="margin-bottom: var(--wam-spacing-xs);">Adresse de facturation</h3>
+		<p class="text-sm color-subtext" style="margin-bottom: var(--wam-spacing-md);">Celle-ci est requise par notre plateforme de paiement.</p>
+		
+		<div class="wam-billing-fields">
+			<?php
+			$billing_fields = [
+				'billing_address_1' => [
+					'label' => 'Adresse',
+					'required' => true,
+					'class' => ['form-row-wide'],
+				],
+				'billing_postcode' => [
+					'label' => 'Code postal',
+					'required' => true,
+					'class' => ['form-row-first'],
+				],
+				'billing_city' => [
+					'label' => 'Ville',
+					'required' => true,
+					'class' => ['form-row-last'],
+				],
+				'billing_phone' => [
+					'label' => 'Téléphone',
+					'required' => true,
+					'class' => ['form-row-wide'],
+				],
+			];
+
+			foreach ( $billing_fields as $key => $field ) {
+				$value = get_user_meta( $user->ID, $key, true );
+				woocommerce_form_field( $key, $field, $value );
+			}
+			?>
+		</div>
+	</div>
 
 	<fieldset>
 		<legend><?php esc_html_e( 'Password change', 'woocommerce' ); ?></legend>

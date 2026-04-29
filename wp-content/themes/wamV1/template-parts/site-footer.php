@@ -118,7 +118,7 @@ $icon_dir       = get_template_directory_uri() . '/assets/images/';
             </p>
 
             <?php
-            $grouped_cours = get_transient('wamv1_footer_cours_grouped');
+            $grouped_cours = get_transient('wamv1_footer_cours_grouped_v2');
             if (false === $grouped_cours) {
                 $terms = get_terms(array(
                     'taxonomy' => 'cat_cours',
@@ -171,7 +171,7 @@ $icon_dir       = get_template_directory_uri() . '/assets/images/';
                     );
                 }
 
-                set_transient('wamv1_footer_cours_grouped', $grouped_cours, DAY_IN_SECONDS);
+                set_transient('wamv1_footer_cours_grouped_v2', $grouped_cours, DAY_IN_SECONDS);
             }
 
             if (!empty($grouped_cours)):
@@ -230,7 +230,7 @@ $icon_dir       = get_template_directory_uri() . '/assets/images/';
              * Même mécanique transient que pour les cours.
              * Pour invalider : delete_transient('wamv1_footer_stages_v2')
              */
-            $stages_posts = get_transient('wamv1_footer_stages_v2');
+            $stages_posts = get_transient('wamv1_footer_stages_v3');
             if (false === $stages_posts) {
                 $stages_query = new WP_Query(array(
                     'post_type' => 'stages',
@@ -241,7 +241,7 @@ $icon_dir       = get_template_directory_uri() . '/assets/images/';
                     'post_status' => 'publish',
                 ));
                 $stages_posts = $stages_query->posts;
-                set_transient('wamv1_footer_stages_v2', $stages_posts, DAY_IN_SECONDS);
+                set_transient('wamv1_footer_stages_v3', $stages_posts, DAY_IN_SECONDS);
             }
 
             if (!empty($stages_posts)):

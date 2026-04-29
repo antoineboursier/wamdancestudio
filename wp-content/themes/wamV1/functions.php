@@ -889,3 +889,37 @@ add_filter('acf/settings/load_json', function($paths) {
     $paths[] = get_template_directory() . '/acf-json';
     return $paths;
 });
+
+// =============================================================================
+// MENUS : MASQUER LES LIENS VERS LES BROUILLONS
+// =============================================================================
+
+add_filter('wp_get_nav_menu_items', 'wamv1_remove_draft_menu_items', 10, 3);
+function wamv1_remove_draft_menu_items($items, $menu, $args) {
+    // Ne pas altérer le menu dans l'administration (Apparence > Menus)
+    if (is_admin()) {
+        return $items;
+    }
+
+    $hidden_ids = array();
+
+    foreach ($items as $key => $item) {
+        // Retirer les objets (pages, articles, cours...) qui ne sont pas "publish"
+        if ($item->type === 'post_type' && !empty($item->object_id)) {
+            $status = get_post_status($item->object_id);
+            if ($status !== 'publish') {
+                $hidden_ids[] = $item->ID; // On stocke l'ID de l'élément de menu
+                unset($items[$key]);
+                continue;
+            }
+        }
+
+        // Si l'élément parent a été masqué, on masque aussi l'enfant
+        if (in_array($item->menu_item_parent, $hidden_ids)) {
+            $hidden_ids[] = $item->ID;
+            unset($items[$key]);
+        }
+    }
+
+    return $items;
+}

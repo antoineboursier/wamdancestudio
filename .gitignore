@@ -3,6 +3,8 @@
 !/.gitignore
 !/wp-content/
 !/.cpanel.yml
+!/.ddev/
+!/wp-config-ddev.php
 
 # Dans wp-content on ignore tout...
 /wp-content/*

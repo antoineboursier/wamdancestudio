@@ -5,6 +5,8 @@
 !/.cpanel.yml
 !/.ddev/
 !/wp-config-ddev.php
+!/wp-config.php
+!/export-wam.sql
 
 # Dans wp-content on ignore tout...
 /wp-content/*
@@ -14,11 +16,11 @@
 !/wp-content/themes/wamV1/
 
 # On ignore les fichiers de configuration et les dumps SQL !
-*.sql
-*.sql.gz
+# *.sql (désactivé pour inclure export-wam.sql)
+# *.sql.gz
 *.tar.gz
 *.zip
-wp-config.php
+# wp-config.php (désactivé pour suivi)
 wp-config-local.php
 
 # Fichiers système mac/windows

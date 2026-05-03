@@ -363,7 +363,8 @@ function wamv1_decrement_course_quota_on_payment(int $order_id): void
             $reserve_key = 'quota_reserve_' . $tarif_idx;
             $total_key   = 'quota_tarif_'   . $tarif_idx;
 
-            $new_reserve = (int) ($grp[$reserve_key] ?? 0) + 1;
+            // OG : changé +1 par get_quantity() pour prendre en compte le nombre réel de places réservées dans une seule commande
+            $new_reserve = (int) ($grp[$reserve_key] ?? 0) + $item->get_quantity();
             $grp[$reserve_key] = $new_reserve;
             update_field('tarifs', $grp, $course_id);
 

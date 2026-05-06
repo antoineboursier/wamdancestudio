@@ -454,9 +454,15 @@ body.single-post #section-article-header.page-hero {
     overflow: hidden;
     line-height: 0;
     display: inline-block;
-    /* Supporte les images auto-enveloppées sans casser le flux */
     width: 100%;
-    /* S'adapte au conteneur par défaut */
+    /* Petit fond subtil pendant le chargement */
+    background-color: rgba(255, 255, 255, 0.03);
+    transition: background-color var(--wam-transition-slow);
+}
+
+/* État chargé : on retire le fond de skeleton */
+.photo-wrapper.is-loaded {
+    background-color: transparent;
 }
 
 .photo-overlay {
@@ -466,6 +472,13 @@ body.single-post #section-article-header.page-hero {
     mix-blend-mode: lighten;
     pointer-events: none;
     z-index: 10;
+    /* Fondu au chargement */
+    opacity: 0;
+    transition: opacity var(--wam-transition-slow);
+}
+
+.photo-wrapper.is-loaded .photo-overlay {
+    opacity: 1;
 }
 
 .photo-wrapper img {
@@ -473,6 +486,13 @@ body.single-post #section-article-header.page-hero {
     width: 100%;
     height: 100%;
     object-fit: cover;
+    /* Fondu au chargement */
+    opacity: 0;
+    transition: opacity var(--wam-transition-slow);
+}
+
+.photo-wrapper.is-loaded img {
+    opacity: 1;
 }
 
 

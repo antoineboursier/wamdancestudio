@@ -301,4 +301,33 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
+    /* =====================================================
+       7. IMAGE FADE-IN — Smooth loading
+       ===================================================== */
+    const initImageFadeIn = () => {
+        const wrappers = document.querySelectorAll('.photo-wrapper');
+        
+        wrappers.forEach(wrapper => {
+            const img = wrapper.querySelector('img');
+            if (!img) return;
+
+            const setLoaded = () => {
+                wrapper.classList.add('is-loaded');
+            };
+
+            if (img.complete) {
+                setLoaded();
+            } else {
+                img.addEventListener('load', setLoaded);
+                // Sécurité : si l'image erreur, on l'affiche quand même (sans overlay par ex)
+                img.addEventListener('error', setLoaded);
+            }
+        });
+    };
+
+    initImageFadeIn();
+
+    // Re-run for dynamic content if necessary (ex: AJAX filter)
+    window.wamRefreshImages = initImageFadeIn;
+
 });

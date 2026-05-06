@@ -730,30 +730,49 @@
     color: var(--wam-color-yellow);
 }
 
-/* Si déjà ajouté : le vert prévaut sur le jaune du hover de carte */
-.card-cours:hover .card-cours__cta.is-added,
-.card-cours:focus-within .card-cours__cta.is-added {
+/* Si déjà ajouté : le vert prévaut sur le jaune du hover de carte 
+   SAUF si le bouton est désactivé (déjà au panier), où il doit rester gris */
+.card-cours:hover .card-cours__cta.is-added:not(.is-disabled),
+.card-cours:focus-within .card-cours__cta.is-added:not(.is-disabled) {
     border-color: var(--wam-color-green);
     color: var(--wam-color-green);
 }
 
 /* Survol spécifique du bouton ajouter au panier : passage au vert accent */
-.card-cours__cta--add:hover {
+.card-cours__cta--add:hover:not(.is-disabled) {
     border-color: var(--wam-color-green) !important;
     color: var(--wam-color-green) !important;
 }
 
-/* État 'Ajouté' : Border et icône vertes, fond transparent */
-.card-cours__cta.is-added {
+/* État 'Ajouté' : Border et icône vertes, fond transparent 
+   On exclut les boutons désactivés pour garder le style neutre subtext */
+.card-cours__cta.is-added:not(.is-disabled) {
     background-color: transparent;
     border-color: var(--wam-color-green);
     color: var(--wam-color-green);
 }
 
-/* Version spécifique Réinscription : moins de padding, icône plus grande */
 .card-cours__cta--reinscription {
     padding: var(--wam-spacing-xs);
     /* Réduit de sm à xs */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-decoration: none;
+}
+
+/* État désactivé (déjà au panier) — On s'aligne sur le style .btn-primary:disabled */
+.card-cours__cta.is-disabled {
+    background-color: var(--wam-color-card-bg);
+    color: var(--wam-color-subtext);
+    border-color: transparent;
+    cursor: not-allowed;
+    pointer-events: none;
+    opacity: 1;
+}
+
+.card-cours__cta.is-disabled .btn-icon {
+    background-color: var(--wam-color-subtext); /* Force la couleur de l'icône */
 }
 
 .card-cours__cta--reinscription .btn-icon {

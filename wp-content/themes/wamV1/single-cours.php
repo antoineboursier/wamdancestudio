@@ -403,16 +403,24 @@ get_header();
                                 </button>
                             <?php else: ?>
                                 <!-- Bouton add-to-cart AJAX -->
-                                <?php $wc_pid = wamv1_get_wc_product_id(get_the_ID()); ?>
+                                <?php 
+                                    $wc_pid = wamv1_get_wc_product_id(get_the_ID()); 
+                                    $cart_qty = wamv1_get_course_cart_qty(get_the_ID());
+                                    $is_in_cart = ($cart_qty > 0);
+                                    $cta_text = $is_in_cart ? 'Déjà au panier' : (function_exists('wam_btn_inscription_texte') ? wam_btn_inscription_texte() : 'S\'inscrire');
+                                    $btn_class = 'btn-primary btn-inscription';
+                                    if ($is_in_cart) $btn_class .= ' is-added is-disabled';
+                                ?>
                                 <?php if ($wc_pid): ?>
                                     <button type="button"
-                                            class="btn-primary btn-inscription"
+                                            class="<?php echo esc_attr($btn_class); ?>"
                                             id="btn-inscription-cours"
                                             data-product-id="<?php echo esc_attr($wc_pid); ?>"
-                                            data-course-id="<?php echo esc_attr(get_the_ID()); ?>">
-                                        <?php echo esc_html(function_exists('wam_btn_inscription_texte') ? wam_btn_inscription_texte() : 'S\'inscrire'); ?>
-                                        <span class="btn-icon btn-icon--sm"
-                                              style="--icon-url: url('<?php echo esc_url($icon_dir_cta . 'chevron-right.svg'); ?>');"
+                                            data-course-id="<?php echo esc_attr(get_the_ID()); ?>"
+                                            <?php if ($is_in_cart) echo 'disabled'; ?>>
+                                        <?php echo esc_html($cta_text); ?>
+                                        <span class="btn-icon"
+                                              style="--icon-url: url('<?php echo esc_url($icon_dir_cta . ($is_in_cart ? 'panier.svg' : 'chevron-right.svg')); ?>');"
                                               aria-hidden="true"></span>
                                     </button>
                                 <?php endif; ?>

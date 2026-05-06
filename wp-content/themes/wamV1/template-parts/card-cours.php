@@ -144,14 +144,21 @@ if ($complet)   $card_classes[] = 'card-cours--complet';
                             }
                         }
                         ?>
-                        <?php if ($wc_pid) : ?>
+                        <?php if ($wc_pid) : 
+                            $cart_qty = wamv1_get_course_cart_qty(get_the_ID());
+                            $is_in_cart = ($cart_qty > 0);
+                            $cta_class = 'card-cours__cta card-cours__cta--add card-cours__cta--reinscription btn-inscription';
+                            if ($is_in_cart) $cta_class .= ' is-added is-disabled';
+                        ?>
                             <button type="button"
-                                    class="card-cours__cta card-cours__cta--add card-cours__cta--reinscription btn-inscription"
+                                    class="<?php echo esc_attr($cta_class); ?>"
                                     data-product-id="<?php echo esc_attr($wc_pid); ?>"
                                     data-course-id="<?php echo esc_attr(get_the_ID()); ?>"
-                                    aria-label="<?php echo esc_attr('Ajouter au panier : ' . get_the_title()); ?>">
+                                    aria-label="<?php echo esc_attr(($is_in_cart ? 'Déjà au panier' : 'Ajouter au panier') . ' : ' . get_the_title()); ?>"
+                                    <?php if ($is_in_cart) echo 'disabled'; ?>>
+                                
                                 <span class="btn-icon"
-                                      style="--icon-url: url('<?php echo $icons_path; ?>ajout_panier.svg');"></span>
+                                      style="--icon-url: url('<?php echo $icons_path; ?><?php echo $is_in_cart ? 'panier.svg' : 'ajout_panier.svg'; ?>');"></span>
                                 
                                 <!-- Bulle de quantité (affichée si > 0) -->
                                 <span class="card-cours__cart-count <?php echo $cart_qty > 0 ? '' : 'is-hidden'; ?> text-xs fw-bold">

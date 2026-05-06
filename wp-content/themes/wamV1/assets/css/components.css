@@ -198,12 +198,6 @@
     display: none;
 }
 
-/* L'icône doit s'adapter à la couleur de texte (subtext) */
-.btn-primary:disabled .btn-icon,
-.btn-primary[aria-disabled="true"] .btn-icon {
-    color: var(--wam-color-subtext);
-    opacity: 0.5;
-}
 
 /* Ajout automatique du chevron sur les boutons WordPress (Gutenberg) */
 .wp-block-button__link::after {

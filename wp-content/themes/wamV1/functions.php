@@ -310,8 +310,9 @@ function wamv1_scripts()
     if ((is_singular('cours') || is_singular('stages') || is_page_template('page-reinscription.php')) && class_exists('WooCommerce')) {
         wp_enqueue_script('wamv1-enroll', $js . 'enroll.js', array(), $get_ver('assets/js/enroll.js'), ['in_footer' => true, 'strategy' => 'defer']);
         wp_localize_script('wamv1-enroll', 'wamEnroll', [
-            'ajaxurl' => admin_url('admin-ajax.php'),
-            'nonce' => wp_create_nonce('wam_add_to_cart'),
+            'ajaxurl'  => admin_url('admin-ajax.php'),
+            'nonce'    => wp_create_nonce('wam_add_to_cart'),
+            'icons_url' => get_template_directory_uri() . '/assets/images/'
         ]);
     }
 
@@ -843,6 +844,27 @@ function wamv1_get_wc_product_id(int $post_id): int
 
     // Cas 2 : Valeur unique
     return (int) $products;
+}
+
+/**
+ * Récupère la quantité d'un cours spécifique déjà présente dans le panier
+ */
+function wamv1_get_course_cart_qty($course_id) {
+    if (!class_exists('WooCommerce') || !WC()->cart) return 0;
+    
+    $product_id = wamv1_get_wc_product_id($course_id);
+    if (!$product_id) return 0;
+    
+    $qty = 0;
+    foreach (WC()->cart->get_cart() as $cart_item) {
+        if ((int)$cart_item['product_id'] === (int)$product_id) {
+            $item_course_id = $cart_item['wam_course_id'] ?? 0;
+            if ((int)$item_course_id === (int)$course_id) {
+                $qty += $cart_item['quantity'];
+            }
+        }
+    }
+    return $qty;
 }
 
 if (class_exists('WooCommerce')) {

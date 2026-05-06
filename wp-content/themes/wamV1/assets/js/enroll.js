@@ -219,17 +219,43 @@
                     
                     allButtons.forEach(function(otherBtn) {
                         var counter = otherBtn.querySelector('.card-cours__cart-count');
+                        var addedQty = 1; 
+                        if (data.selections) {
+                            addedQty = data.selections.reduce(function(acc, sel) { return acc + sel.qty; }, 0);
+                        }
+
                         if (counter) {
                             var currentQty = parseInt(counter.textContent) || 0;
-                            var addedQty = 1; 
-                            if (data.selections) {
-                                addedQty = data.selections.reduce(function(acc, sel) { return acc + sel.qty; }, 0);
-                            }
                             var newQty = currentQty + addedQty;
                             counter.textContent = newQty;
                             counter.classList.remove('is-hidden');
                         }
+
                         otherBtn.classList.add('is-added');
+                        
+                        // Si c'est un bouton "Réinscription", on le désactive pour limiter à 1
+                        if (otherBtn.classList.contains('card-cours__cta--reinscription')) {
+                            otherBtn.classList.add('is-disabled');
+                            otherBtn.disabled = true;
+                            
+                            // On change juste l'icône par un panier (on garde le format icône seule)
+                            var btnIcon = otherBtn.querySelector('.btn-icon');
+                            if (btnIcon) {
+                                btnIcon.style.setProperty('--icon-url', 'url(\'' + wamEnroll.icons_url + 'panier.svg\')');
+                            }
+                        } else {
+                            // Pour les autres boutons (ex: single cours), on peut mettre à jour le texte
+                            var btnText = otherBtn.querySelector('.btn-text');
+                            if (btnText) {
+                                btnText.textContent = 'Déjà au panier';
+                            }
+                            var btnIcon = otherBtn.querySelector('.btn-icon');
+                            if (btnIcon) {
+                                btnIcon.style.setProperty('--icon-url', 'url(\'' + wamEnroll.icons_url + 'panier.svg\')');
+                            }
+                            otherBtn.classList.add('is-disabled');
+                            otherBtn.disabled = true;
+                        }
                     });
 
                     if (res.data.fragments) {

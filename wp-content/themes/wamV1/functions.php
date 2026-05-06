@@ -98,6 +98,15 @@ add_filter('mce_body_class', function ($classes) {
 });
 
 // -------------------------------------------------------
+// Noindex pages WooCommerce non-SEO
+// -------------------------------------------------------
+add_action('wp_head', function () {
+    if (is_cart() || is_checkout() || is_account_page()) {
+        echo '<meta name="robots" content="noindex, nofollow">';
+    }
+});
+
+// -------------------------------------------------------
 // Styles de display custom (Gutenberg Block Styles)
 // régièrent les variantes typographiques WAM dans l'éditeur
 // -------------------------------------------------------
@@ -129,12 +138,13 @@ add_action('init', 'wamv1_register_text_styles');
 // -------------------------------------------------------
 function wamv1_scripts()
 {
-    if (is_admin()) return;
+    if (is_admin())
+        return;
     /**
      * Utilitaire interne pour récupérer la version d'un asset (filemtime)
      * Évite le cache stale quand un fichier individuel change.
      */
-    $get_ver = function($relative_path) {
+    $get_ver = function ($relative_path) {
         $full_path = get_template_directory() . '/' . ltrim($relative_path, '/');
         return file_exists($full_path) ? filemtime($full_path) : '1.0.0';
     };
@@ -261,7 +271,7 @@ function wamv1_scripts()
         wp_enqueue_script('wamv1-enroll', $js . 'enroll.js', array(), $get_ver('assets/js/enroll.js'), ['in_footer' => true, 'strategy' => 'defer']);
         wp_localize_script('wamv1-enroll', 'wamEnroll', [
             'ajaxurl' => admin_url('admin-ajax.php'),
-            'nonce'   => wp_create_nonce('wam_add_to_cart'),
+            'nonce' => wp_create_nonce('wam_add_to_cart'),
         ]);
     }
 
@@ -301,7 +311,7 @@ add_action('wp_enqueue_scripts', 'wamv1_scripts');
  * Désactivation forcée de Google Fonts (bloquant LCP/FCP)
  * Toutes les polices sont désormais auto-hébergées dans /fonts/
  */
-add_action('wp_print_styles', function() {
+add_action('wp_print_styles', function () {
     wp_dequeue_style('wp-block-library-fonts');
     wp_dequeue_style('open-sans');
     wp_dequeue_style('twentytwentyone-style-fonts'); // Exemple si héritage
@@ -543,9 +553,12 @@ function wamv1_register_cpt_evenements()
         'capability_type' => 'post',
         // --- Modèle de blocs par défaut ---
         'template' => array(
-            array('core/paragraph', array(
-                'placeholder' => 'Commencez à rédiger la description détaillée de l\'événement ici...',
-            )),
+            array(
+                'core/paragraph',
+                array(
+                    'placeholder' => 'Commencez à rédiger la description détaillée de l\'événement ici...',
+                )
+            ),
         ),
         // Optionnel : on peut décommenter la ligne suivante pour verrouiller l'ordre
         // 'template_lock' => 'all',
@@ -801,16 +814,17 @@ if (class_exists('WooCommerce')) {
 // =============================================================================
 
 add_filter('wpseo_breadcrumb_links', 'wamv1_corriger_fil_ariane_yoast');
-function wamv1_corriger_fil_ariane_yoast($links) {
+function wamv1_corriger_fil_ariane_yoast($links)
+{
     // Règle manuelle pour les Cours
     if (is_singular('cours')) {
-        $links[1]['url']  = home_url('/cours-collectifs/'); // Modifiez si le slug de votre page Cours est différent
+        $links[1]['url'] = home_url('/cours-collectifs/'); // Modifiez si le slug de votre page Cours est différent
         $links[1]['text'] = 'Cours collectifs';
     }
     // Règle manuelle pour les Professeurs
     elseif (is_singular('wam_membre')) {
         $breadcrumb_equipe = array(
-            'url'  => home_url('/prof-wam/'),
+            'url' => home_url('/prof-wam/'),
             'text' => 'Notre Équipe'
         );
         // Comme le CPT prof n'a pas d'archive, le titre est en position 1. 
@@ -819,12 +833,12 @@ function wamv1_corriger_fil_ariane_yoast($links) {
     }
     // Règle manuelle pour les Stages
     elseif (is_singular('stages')) {
-        $links[1]['url']  = home_url('/stages-workshop-ateliers/'); 
+        $links[1]['url'] = home_url('/stages-workshop-ateliers/');
         $links[1]['text'] = 'Les stages';
     }
     // Règle manuelle pour les Évènements
     elseif (is_singular('evenements')) {
-        $links[1]['url']  = home_url('/les-evenements-au-studio/'); 
+        $links[1]['url'] = home_url('/les-evenements-au-studio/');
         $links[1]['text'] = 'Évènements';
     }
     return $links;
@@ -841,7 +855,8 @@ function wamv1_corriger_fil_ariane_yoast($links) {
  * Gestion des Favicons via le thème (Front vs Back)
  * Outrepasse les réglages "Identité du site" de WordPress
  */
-function wamv1_custom_favicon_filter($url) {
+function wamv1_custom_favicon_filter($url)
+{
     if (is_admin() || is_network_admin() || $GLOBALS['pagenow'] === 'wp-login.php') {
         return get_template_directory_uri() . '/favicon_bo.png';
     }
@@ -850,11 +865,12 @@ function wamv1_custom_favicon_filter($url) {
 }
 add_filter('get_site_icon_url', 'wamv1_custom_favicon_filter', 99);
 
-function wamv1_custom_favicon_output() {
+function wamv1_custom_favicon_output()
+{
     $is_bo = is_admin() || is_network_admin() || $GLOBALS['pagenow'] === 'wp-login.php';
     $file = $is_bo ? '/favicon_bo.png' : '/favicon.png';
     $favicon_url = get_template_directory_uri() . $file;
-    
+
     echo '<link rel="icon" href="' . esc_url($favicon_url) . '" type="image/png" />';
     echo '<link rel="shortcut icon" href="' . esc_url($favicon_url) . '" type="image/png" />';
 }
@@ -866,13 +882,14 @@ add_action('login_head', 'wamv1_custom_favicon_output', 1);
 // =============================================================================
 // TRACKING : Microsoft Clarity
 // =============================================================================
-function wamv1_clarity_script() {
+function wamv1_clarity_script()
+{
     ?>
     <script type="text/javascript">
-        (function(c,l,a,r,i,t,y){
-            c[a]=c[a]||function(){(c[a].q=c[a].q||[]).push(arguments)};
-            t=l.createElement(r);t.async=1;t.src="https://www.clarity.ms/tag/"+i;
-            y=l.getElementsByTagName(r)[0];y.parentNode.insertBefore(t,y);
+        (function (c, l, a, r, i, t, y) {
+            c[a] = c[a] || function () { (c[a].q = c[a].q || []).push(arguments) };
+            t = l.createElement(r); t.async = 1; t.src = "https://www.clarity.ms/tag/" + i;
+            y = l.getElementsByTagName(r)[0]; y.parentNode.insertBefore(t, y);
         })(window, document, "clarity", "script", "wf22qdm90w");
     </script>
     <?php
@@ -881,10 +898,10 @@ add_action('wp_head', 'wamv1_clarity_script');
 // -------------------------------------------------------
 // ACF JSON — Synchronisation auto (Perf & Versioning)
 // -------------------------------------------------------
-add_filter('acf/settings/save_json', function($path) {
+add_filter('acf/settings/save_json', function ($path) {
     return get_template_directory() . '/acf-json';
 });
-add_filter('acf/settings/load_json', function($paths) {
+add_filter('acf/settings/load_json', function ($paths) {
     unset($paths[0]);
     $paths[] = get_template_directory() . '/acf-json';
     return $paths;
@@ -895,7 +912,8 @@ add_filter('acf/settings/load_json', function($paths) {
 // =============================================================================
 
 add_filter('wp_get_nav_menu_items', 'wamv1_remove_draft_menu_items', 10, 3);
-function wamv1_remove_draft_menu_items($items, $menu, $args) {
+function wamv1_remove_draft_menu_items($items, $menu, $args)
+{
     // Ne pas altérer le menu dans l'administration (Apparence > Menus)
     if (is_admin()) {
         return $items;

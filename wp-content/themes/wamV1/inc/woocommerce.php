@@ -20,6 +20,22 @@
 
 add_filter('woocommerce_enqueue_styles', '__return_empty_array');
 
+/**
+ * Personnaliser le titre du Hero sur la page de remerciement (Thank You)
+ */
+add_filter('the_title', 'wamv1_wc_thankyou_title', 10, 2);
+function wamv1_wc_thankyou_title($title, $id) {
+    if (!is_admin() && is_checkout() && is_wc_endpoint_url('order-received') && $id === get_the_ID() && in_the_loop() && is_main_query()) {
+        return 'Commande reçue';
+    }
+    return $title;
+}
+
+add_filter('woocommerce_cart_totals_coupon_html', 'wamv1_custom_coupon_html', 10, 2);
+function wamv1_custom_coupon_html($coupon_html, $coupon) {
+    return str_replace('[Enlever]', 'Supprimer', $coupon_html);
+}
+
 // ============================================================================
 // B. Retirer les endpoints inutiles du menu Mon compte
 //    Adresses et Téléchargements ne sont pas pertinents pour une école de danse
@@ -112,7 +128,22 @@ function wamv1_stage_tarifs(?int $post_id = null): array
     if (!function_exists('get_field')) return [];
     $post_id = $post_id ?: (int) get_the_ID();
     $grp = get_field('tarifs', $post_id);
-    return is_array($grp) ? $grp : [];
+    
+    if (!is_array($grp)) return [];
+
+    // Tarif 1 est considéré comme toujours actif si son nom est rempli
+    // Tarif 2 et 3 ont des interrupteurs (true_false) dans l'admin
+    foreach ([2, 3] as $i) {
+        $is_active = !empty($grp['tarif_' . $i]);
+        if (!$is_active) {
+            $grp['nom_tarif_' . $i] = '';
+            $grp['prix_tarif_' . $i] = '';
+            $grp['quota_tarif_' . $i] = 0;
+            $grp['quota_reserve_' . $i] = 0;
+        }
+    }
+
+    return $grp;
 }
 
 // ============================================================================
@@ -309,6 +340,60 @@ function wamv1_override_cart_item_prices($cart)
         }
     }
 }
+
+/**
+ * Valider l'intégrité du panier par rapport aux données ACF (tarifs et statut complet).
+ * Si un tarif est retiré ou qu'un stage devient complet, on nettoie le panier.
+ */
+add_action('woocommerce_check_cart_items', 'wamv1_validate_cart_integrity');
+function wamv1_validate_cart_integrity()
+{
+    if (is_admin() && !defined('DOING_AJAX')) return;
+
+    $cart = WC()->cart;
+    if (!$cart) return;
+
+    $items_removed = false;
+
+    foreach ($cart->get_cart() as $cart_item_key => $cart_item) {
+        $cpt_id = $cart_item['wam_course_id'] ?? null;
+        if (!$cpt_id) continue;
+
+        // 0. Vérifier si le cours/stage est toujours publié
+        if (get_post_status($cpt_id) !== 'publish') {
+            $cart->remove_cart_item($cart_item_key);
+            $items_removed = true;
+            continue;
+        }
+
+        // 1. Vérifier si le cours/stage est devenu complet (switch global ACF)
+        if (function_exists('get_field') && get_field('complete_cours', $cpt_id)) {
+            $cart->remove_cart_item($cart_item_key);
+            $items_removed = true;
+            continue;
+        }
+
+        // 2. Pour les stages : vérifier la validité du tarif sélectionné
+        if (get_post_type($cpt_id) === 'stages') {
+            $tarif_idx = $cart_item['wam_tarif_index'] ?? null;
+            if ($tarif_idx) {
+                $grp = function_exists('wamv1_stage_tarifs') ? wamv1_stage_tarifs((int) $cpt_id) : [];
+                $label = $grp['nom_tarif_' . $tarif_idx] ?? '';
+
+                // Si le libellé est vide, c'est que le tarif a été supprimé ou désactivé
+                if (!$label) {
+                    $cart->remove_cart_item($cart_item_key);
+                    $items_removed = true;
+                }
+            }
+        }
+    }
+
+    if ($items_removed) {
+        wc_add_notice('Certains articles de votre panier ne sont plus disponibles et ont été retirés.', 'error');
+    }
+}
+
 
 // ============================================================================
 // Quotas — Décompte automatique des places lors de la validation de commande

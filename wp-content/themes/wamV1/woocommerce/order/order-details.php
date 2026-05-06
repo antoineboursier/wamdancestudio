@@ -51,19 +51,17 @@ if ($show_downloads) {
 	);
 }
 ?>
-<section class="woocommerce-order-details wam-order-details"
-	style="background: var(--wam-color-card-bg); border-radius: var(--wam-radius-lg); margin-bottom: var(--wam-spacing-xl);">
+<section class="woocommerce-order-details wam-order-details">
 	<?php do_action('woocommerce_order_details_before_order_table', $order); ?>
 
-	<div class="wam-order-details__items"
-		style="display:flex; flex-direction:column; gap: var(--wam-spacing-md); margin-bottom: var(--wam-spacing-xl);">
+	<div class="wam-order-details__items">
 		<?php
 		do_action('woocommerce_order_details_before_order_table_items', $order);
 
 		foreach ($order_items as $item_id => $item) {
 			$product = $item->get_product();
 			$course_id = $item->get_meta('_wam_course_id');
-			$course_title = $course_id ? get_the_title($course_id) : $item->get_name();
+			$course_title = $course_id ? get_the_title($course_id) : '';
 			$course_subtitle = $course_id ? get_field('sous_titre', $course_id) : '';
 			$course_thumb = $course_id ? get_the_post_thumbnail_url($course_id, 'medium') : ($product ? wp_get_attachment_image_url($product->get_image_id(), 'medium') : '');
 
@@ -75,57 +73,43 @@ if ($show_downloads) {
 				}
 			}
 			?>
-			<div class="wam-order-item"
-				style="display: flex; gap: var(--wam-spacing-md); align-items: center; flex-direction: row; border: 1px solid var(--wp--preset--color--background-500); width: 100%; border-radius: var(--wam-field-radius, 8px); padding: var(--wam-spacing-lg);">
+			<div class="wam-order-item">
 				<?php if ($course_thumb): ?>
-					<div class="wam-order-item__thumb"
-						style="width: 200px; height: 300px; flex-shrink: 0; border-radius: var(--wam-radius-sm); overflow: hidden;">
-						<img src="<?php echo esc_url($course_thumb); ?>" alt="<?php echo esc_attr($course_title); ?>"
-							style="width: 100%; height: 100%; object-fit: cover;">
+					<div class="wam-order-item__thumb">
+						<img src="<?php echo esc_url($course_thumb); ?>" alt="<?php echo esc_attr($course_title); ?>" loading="lazy">
 					</div>
 				<?php endif; ?>
-				<div class="wam-order-item__info" style="flex-grow: 1;">
-					<span
-						class="text-xs color-green"><?php echo esc_html($product ? $product->get_name() : $item->get_name()); ?></span>
-					<h3 class="text-lg fw-bold accent-yellow" style="margin: 0;"><?php echo esc_html($course_title); ?></h3>
+				<div class="wam-order-item__info">
+					<?php $product_name = $product ? $product->get_name() : $item->get_name(); ?>
+					<span class="text-xs color-green d-block mb-2xs"><?php echo esc_html($product_name); ?></span>
+					
+					<?php 
+					// Si le titre du cours est différent du nom du produit, on l'affiche en titre
+					if ($course_title && $course_title !== $product_name) : ?>
+						<h3 class="text-lg fw-bold color-yellow m-0"><?php echo esc_html($course_title); ?></h3>
+					<?php endif; ?>
 
 					<?php if ($course_subtitle || $wam_tarif_label): ?>
-						<span class="text-md color-text" style="display:block;">
+						<span class="text-md color-text d-block">
 							<?php echo esc_html($course_subtitle); ?>
-							<?php if ($course_subtitle && $wam_tarif_label)
-								echo ' — '; ?>
+							<?php if ($course_subtitle && $wam_tarif_label) echo ' — '; ?>
 							<?php echo esc_html($wam_tarif_label); ?>
 						</span>
 					<?php endif; ?>
-
-					<?php
-					// Autres métadonnées (Participants, etc)
-					$formatted_meta = $item->get_formatted_meta_data();
-					if (!empty($formatted_meta)) {
-						echo '<div class="wam-order-item__meta" style="margin-top: var(--wam-spacing-sm); display: flex; flex-direction:column; flex-wrap: wrap; gap: var(--wam-spacing-md); row-gap: var(--wam-spacing-2xs);">';
-						foreach ($formatted_meta as $meta_id => $meta) {
-							if ($meta->key === 'Tarif' || $meta->key === 'Formule' || $meta->key === '_wam_course_id')
-								continue;
-							echo '<div class="text-xs color-subtext fw-normal">' . wp_kses_post($meta->display_key) . ' <span class="color-text text-md"  style="margin-left:var(--wam-spacing-2xs);">' . wp_strip_all_tags($meta->display_value) . '</span></div>';
-						}
-						echo '</div>';
-					}
-					?>
 				</div>
-				<div class="wam-order-item__price"
-					style="text-align: right; display: flex; flex-direction: column; justify-content: center; gap: var(--wam-spacing-xs); min-width: 140px;">
-					<span class="text-lg color-subtext fw-normal">
+				<div class="wam-order-item__price">
+					<span class="text-md color-subtext fw-normal">
 						Qté : <?php echo $item->get_quantity(); ?>
 					</span>
 
 					<div class="wam-order-item__price-details">
 						<?php if ($item->get_quantity() > 1): ?>
-							<span class="text-xs color-disabled" style="display:block; margin-bottom: 2px;">
+							<span class="text-xs color-disabled d-block mb-2xs">
 								<?php echo wc_price($order->get_item_subtotal($item, false, true)); ?> / unité
 							</span>
 						<?php endif; ?>
 
-						<span class="text-xl fw-bold color-yellow" style="display:block;">
+						<span class="text-md fw-bold color-yellow d-block">
 							<?php echo wc_price($order->get_line_total($item, true, true)); ?>
 						</span>
 					</div>
@@ -138,26 +122,23 @@ if ($show_downloads) {
 		?>
 	</div>
 
-	<div class="wam-order-totals"
-		style="background: var(--wam-color-page-bg); padding: var(--wam-spacing-md); border-radius: var(--wam-radius-sm);">
+	<div class="wam-order-totals">
 		<?php
 		foreach ($order->get_order_item_totals() as $key => $total) {
 			$is_total = ($key === 'order_total');
+			$row_class = $is_total ? 'order-total' : '';
 			?>
-			<div
-				style="display:flex; justify-content: space-between; align-items: center; margin-bottom: var(--wam-spacing-2xs); <?php echo $is_total ? 'margin-top: var(--wam-spacing-sm); padding-top: var(--wam-spacing-sm); border-top: 1px solid var(--wam-color-disabled); font-weight: bold; font-size: var(--wam-font-size-md);' : 'font-size: var(--wam-font-size-sm); color: var(--wam-color-subtext);'; ?>">
-				<span><?php echo esc_html(wp_strip_all_tags($total['label'])); ?></span>
-				<span class="color-text"><?php echo wp_kses_post($total['value']); ?></span>
+			<div class="<?php echo esc_attr($row_class); ?>">
+				<span class="<?php echo $is_total ? 'title-norm-sm' : 'text-sm color-subtext'; ?>"><?php echo esc_html(wp_strip_all_tags($total['label'])); ?></span>
+				<span class="<?php echo $is_total ? 'title-norm-sm color-yellow' : 'color-text'; ?>"><?php echo wp_kses_post($total['value']); ?></span>
 			</div>
 			<?php
 		}
 		?>
 
 		<?php if ($order->get_customer_note()): ?>
-			<div
-				style="margin-top: var(--wam-spacing-md); padding-top: var(--wam-spacing-md); border-top: 1px solid var(--wam-color-disabled);">
-				<strong class="text-sm color-text"
-					style="display:block; margin-bottom: var(--wam-spacing-2xs);"><?php esc_html_e('Note:', 'woocommerce'); ?></strong>
+			<div class="wam-order-customer-note mt-md pt-md border-top">
+				<strong class="text-sm color-text d-block mb-2xs"><?php esc_html_e('Note:', 'woocommerce'); ?></strong>
 				<div class="text-sm color-subtext">
 					<?php
 					$customer_note = wc_wptexturize_order_note($order->get_customer_note());
@@ -169,8 +150,7 @@ if ($show_downloads) {
 	</div>
 
 	<?php if (!empty($actions)): ?>
-		<div class="wam-order-actions"
-			style="margin-top: var(--wam-spacing-lg); display: flex; gap: var(--wam-spacing-sm); justify-content: flex-end;">
+		<div class="wam-order-actions mt-lg d-flex gap-sm justify-content-end">
 			<?php
 			foreach ($actions as $key => $action) {
 				echo '<a href="' . esc_url($action['url']) . '" class="btn-primary">' . esc_html($action['name']) . '</a>';

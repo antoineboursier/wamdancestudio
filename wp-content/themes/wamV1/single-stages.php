@@ -73,7 +73,7 @@ get_header();
             $date_princ = $has_acf ? get_field('date_stage') : '';
             $complet = $has_acf ? get_field('complete_cours') : false;
             $description = $has_acf ? get_field('description') : get_the_content();
-            $tarifs_grp = $has_acf ? get_field('tarifs') : null;
+            $tarifs_grp = function_exists('wamv1_stage_tarifs') ? wamv1_stage_tarifs(get_the_ID()) : (get_field('tarifs') ?: []);
             $info_comp = $has_acf ? get_field('info_complementaire') : '';
             $heure_debut = $has_acf ? get_field('heure_debut') : '';
             $heure_fin = $has_acf ? get_field('heure_de_fin') : '';
@@ -315,7 +315,7 @@ get_header();
                         $wc_pid = wamv1_get_wc_product_id(get_the_ID());
                         if ($wc_pid):
                             // Les tarifs sont des sous-champs du group field ACF "tarifs".
-                            $grp = function_exists('wamv1_stage_tarifs') ? wamv1_stage_tarifs(get_the_ID()) : (get_field('tarifs') ?: []);
+                            $grp = $tarifs_grp; // Réutilise les données déjà filtrées en haut de page
                             $tarifs_data = [];
 
                             if (!empty($grp['nom_tarif_1'])) {
@@ -350,22 +350,9 @@ get_header();
 
                             $nb_tarifs = count($tarifs_data);
 
-                            if ($nb_tarifs === 1):
-                                $t = $tarifs_data[0];
-                                $est_complet = ($t['total'] > 0 && $t['reserve'] >= $t['total']);
-                                if ($est_complet): ?>
-                                    <button type="button" class="btn-primary btn-inscription is-complet" disabled>Stage complet</button>
-                                <?php else: ?>
-                                    <button type="button" class="btn-primary btn-inscription btn-stage-item"
-                                        data-product-id="<?php echo esc_attr($wc_pid); ?>"
-                                        data-stage-id="<?php echo esc_attr(get_the_ID()); ?>"
-                                        data-tarif-index="<?php echo esc_attr($t['index']); ?>">
-                                        Réserver ma place
-                                        <span class="btn-icon"
-                                            style="--icon-url: url('<?php echo $icon_dir; ?>chevron-right.svg');"></span>
-                                    </button>
-                                <?php endif; ?>
-                            <?php elseif ($nb_tarifs > 1): ?>
+                             if ($complet): ?>
+                                <button type="button" class="btn-primary btn-inscription is-complet" disabled>Stage complet</button>
+                            <?php elseif ($nb_tarifs >= 1): ?>
                                 <button type="button" class="btn-primary btn-inscription btn-stage-item btn-open-stage-modal"
                                     data-modal="modal-booking-stage">
                                     Réserver mes places
@@ -458,7 +445,7 @@ get_header();
     </div>
  
     <!-- Modal de réservation (placée en fin de DOM pour éviter les conflits de layout) -->
-    <?php if (!empty($tarifs_data) && count($tarifs_data) > 1): ?>
+    <?php if (!empty($tarifs_data) && count($tarifs_data) >= 1): ?>
         <?php
         // Capture du contenu de la modal
         ob_start();

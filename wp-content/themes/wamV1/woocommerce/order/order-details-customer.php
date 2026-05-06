@@ -13,7 +13,7 @@ defined( 'ABSPATH' ) || exit;
 
 $show_shipping = ! wc_ship_to_billing_address_only() && $order->needs_shipping_address();
 ?>
-<section class="woocommerce-customer-details wam-customer-details" style="background: var(--wam-color-card-bg); border-radius: var(--wam-radius-lg); padding: var(--wam-spacing-lg); margin-top: var(--wam-spacing-xl);">
+<section class="woocommerce-customer-details wam-customer-details">
 
 	<?php if ( $show_shipping ) : ?>
 
@@ -22,15 +22,15 @@ $show_shipping = ! wc_ship_to_billing_address_only() && $order->needs_shipping_a
 
 	<?php endif; ?>
 
-	<header class="wam-order-card__header" style="display:flex; justify-content: space-between; align-items: flex-start; margin-bottom: var(--wam-spacing-sm);">
-		<h2 class="text-md color-subtext" style="margin: 0; font-weight: normal;"><?php esc_html_e( 'Billing address', 'woocommerce' ); ?></h2>
+	<header class="wam-order-card__header">
+		<h2 class="text-md color-subtext m-0 fw-normal"><?php esc_html_e( 'Billing address', 'woocommerce' ); ?></h2>
 	</header>
 
-	<address class="text-md" style="font-style: normal; line-height: 1.6; color: var(--wam-color-text);">
+	<address class="text-md">
 		<?php echo wp_kses_post( $order->get_formatted_billing_address( esc_html__( 'N/A', 'woocommerce' ) ) ); ?>
 
 		<?php if ( $order->get_billing_phone() ) : ?>
-			<p class="woocommerce-customer-details--phone" style="margin-top: var(--wam-spacing-xs);"><?php echo esc_html( $order->get_billing_phone() ); ?></p>
+			<p class="woocommerce-customer-details--phone mt-xs"><?php echo esc_html( $order->get_billing_phone() ); ?></p>
 		<?php endif; ?>
 
 		<?php if ( $order->get_billing_email() ) : ?>
@@ -54,14 +54,14 @@ $show_shipping = ! wc_ship_to_billing_address_only() && $order->needs_shipping_a
 		</div><!-- /.col-1 -->
 
 		<div class="woocommerce-column woocommerce-column--2 woocommerce-column--shipping-address col-2">
-			<header class="wam-order-card__header" style="display:flex; justify-content: space-between; align-items: flex-start; margin-bottom: var(--wam-spacing-sm);">
-				<h2 class="text-md color-subtext" style="margin: 0; font-weight: normal;"><?php esc_html_e( 'Shipping address', 'woocommerce' ); ?></h2>
+			<header class="wam-order-card__header">
+				<h2 class="text-md color-subtext m-0 fw-normal"><?php esc_html_e( 'Shipping address', 'woocommerce' ); ?></h2>
 			</header>
-			<address class="text-md" style="font-style: normal; line-height: 1.6; color: var(--wam-color-text);">
+			<address class="text-md">
 				<?php echo wp_kses_post( $order->get_formatted_shipping_address( esc_html__( 'N/A', 'woocommerce' ) ) ); ?>
 
 				<?php if ( $order->get_shipping_phone() ) : ?>
-					<p class="woocommerce-customer-details--phone" style="margin-top: var(--wam-spacing-xs);"><?php echo esc_html( $order->get_shipping_phone() ); ?></p>
+					<p class="woocommerce-customer-details--phone mt-xs"><?php echo esc_html( $order->get_shipping_phone() ); ?></p>
 				<?php endif; ?>
 
 				<?php

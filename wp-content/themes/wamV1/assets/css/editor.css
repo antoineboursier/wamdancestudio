@@ -316,3 +316,20 @@
     flex-shrink: 0;
     transform: translateY(1px);
 }
+
+/* -------------------------------------------------------
+   Aide visuelle pour les Colonnes (Back-office uniquement)
+   ------------------------------------------------------- */
+.editor-styles-wrapper .wp-block-columns {
+    border: 1px dashed rgba(225, 205, 172, 0.2) !important;
+    border-radius: var(--wam-radius-md);
+    padding: var(--wam-spacing-sm);
+    margin-bottom: var(--wam-spacing-xl) !important;
+}
+
+.editor-styles-wrapper .wp-block-column {
+    border: 1px dashed rgba(225, 205, 172, 0.1) !important;
+    border-radius: var(--wam-radius-sm);
+    padding: var(--wam-spacing-xs);
+    min-height: 50px;
+}

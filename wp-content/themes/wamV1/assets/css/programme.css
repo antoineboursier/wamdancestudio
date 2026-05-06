@@ -91,12 +91,14 @@
 
 @media (min-width: 1024px) {
 
-    .page-template-page-cours-collectifs .page-cours__address {
+    .page-template-page-cours-collectifs .page-cours__address,
+    .page-template-page-reinscription .page-cours__address {
         flex-direction: column;
         align-items: flex-start;
     }
 
-    .page-template-page-cours-collectifs .page-cours__address .page-cours__address-icon {
+    .page-template-page-cours-collectifs .page-cours__address .page-cours__address-icon,
+    .page-template-page-reinscription .page-cours__address .page-cours__address-icon {
         display: none;
     }
 }
@@ -306,8 +308,9 @@
 
 @media (max-width: 768px) {
     .cours-filter {
-        padding: var(--wam-spacing-lg) var(--wam-spacing-lg);
+        padding: var(--wam-spacing-md) var(--wam-spacing-lg) var(--wam-spacing-2xs);
         margin-top: calc(-1 * var(--wam-spacing-lg));
+        gap: var(--wam-spacing-md);
     }
 }
 
@@ -697,7 +700,11 @@
     font-weight: 400;
 }
 
-
+.card-cours__actions {
+    display: flex;
+    gap: var(--wam-spacing-xs);
+    align-items: center;
+}
 
 /* CTA bouton icône */
 .card-cours__cta {
@@ -709,17 +716,76 @@
     border: 1px solid var(--wam-color-subtext);
     border-radius: var(--wam-radius-md);
     color: var(--wam-color-subtext);
-    transition: border-color var(--wam-transition), color var(--wam-transition);
+    transition: border-color var(--wam-transition), color var(--wam-transition), background-color var(--wam-transition);
     position: relative;
     z-index: 2;
-    /* au-dessus du ::after du lien overlay */
+    background: transparent;
+    cursor: pointer;
 }
 
+/* Survol de la carte : met en avant l'action principale (voir) */
 .card-cours:hover .card-cours__cta,
 .card-cours:focus-within .card-cours__cta {
     border-color: var(--wam-color-yellow);
     color: var(--wam-color-yellow);
-    /* .btn-icon utilise background-color:currentColor — hérite automatiquement */
+}
+
+/* Si déjà ajouté : le vert prévaut sur le jaune du hover de carte */
+.card-cours:hover .card-cours__cta.is-added,
+.card-cours:focus-within .card-cours__cta.is-added {
+    border-color: var(--wam-color-green);
+    color: var(--wam-color-green);
+}
+
+/* Survol spécifique du bouton ajouter au panier : passage au vert accent */
+.card-cours__cta--add:hover {
+    border-color: var(--wam-color-green) !important;
+    color: var(--wam-color-green) !important;
+}
+
+/* État 'Ajouté' : Border et icône vertes, fond transparent */
+.card-cours__cta.is-added {
+    background-color: transparent;
+    border-color: var(--wam-color-green);
+    color: var(--wam-color-green);
+}
+
+/* Version spécifique Réinscription : moins de padding, icône plus grande */
+.card-cours__cta--reinscription {
+    padding: var(--wam-spacing-xs);
+    /* Réduit de sm à xs */
+}
+
+.card-cours__cta--reinscription .btn-icon {
+    width: 28px;
+    /* Plus grand que le défaut sm (20px) */
+    height: 28px;
+}
+
+/* Bulle de quantité sur la carte */
+.card-cours__cart-count {
+    position: absolute;
+    top: -8px;
+    right: -8px;
+    min-width: 21px;
+    /* Ajusté de 20px à 21px */
+    height: 21px;
+    background: var(--wam-color-yellow);
+    color: var(--wp--preset--color--background-500);
+    border-radius: 11px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.4);
+    z-index: 3;
+    border: 1px solid var(--wp--preset--color--background-600);
+    transition: opacity var(--wam-transition), transform var(--wam-transition);
+}
+
+.card-cours__cart-count.is-hidden {
+    opacity: 0;
+    transform: scale(0.5);
+    pointer-events: none;
 }
 
 .card-cours__cta--disabled {

@@ -123,13 +123,55 @@ if ($complet)   $card_classes[] = 'card-cours--complet';
                 <?php endif; ?>
             </div>
 
-            <a href="<?php the_permalink(); ?>"
-               class="card-cours__cta <?php echo $complet ? 'card-cours__cta--disabled' : ''; ?>"
-               aria-label="<?php echo esc_attr('Voir le cours : ' . get_the_title()); ?>"
-               <?php echo $complet ? 'tabindex="-1"' : ''; ?>>
-                <span class="btn-icon btn-icon--sm"
-                      style="--icon-url: url('<?php echo $icons_path; ?>chevron-right.svg');"></span>
-            </a>
+            <div class="card-cours__actions">
+                <?php if (($args['mode'] ?? 'standard') === 'reinscription') : ?>
+                    <!-- Mode Réinscription : Bouton d'ajout direct uniquement -->
+                    <?php if (!$complet) : ?>
+                        <?php 
+                        $current_post_id = get_the_ID();
+                        $wc_pid = wamv1_get_wc_product_id($current_post_id); 
+                        $cart_qty = 0;
+                        if (class_exists('WooCommerce') && WC()->cart) {
+                            foreach (WC()->cart->get_cart() as $cart_item) {
+                                // On vérifie l'ID produit ET l'ID du cours stocké en meta
+                                if ($cart_item['product_id'] == $wc_pid) {
+                                    $item_course_id = $cart_item['wam_course_id'] ?? 0;
+                                    // Si le cours utilise un produit générique, on filtre par wam_course_id
+                                    if ($item_course_id == $current_post_id) {
+                                        $cart_qty += $cart_item['quantity'];
+                                    }
+                                }
+                            }
+                        }
+                        ?>
+                        <?php if ($wc_pid) : ?>
+                            <button type="button"
+                                    class="card-cours__cta card-cours__cta--add card-cours__cta--reinscription btn-inscription"
+                                    data-product-id="<?php echo esc_attr($wc_pid); ?>"
+                                    data-course-id="<?php echo esc_attr(get_the_ID()); ?>"
+                                    aria-label="<?php echo esc_attr('Ajouter au panier : ' . get_the_title()); ?>">
+                                <span class="btn-icon"
+                                      style="--icon-url: url('<?php echo $icons_path; ?>ajout_panier.svg');"></span>
+                                
+                                <!-- Bulle de quantité (affichée si > 0) -->
+                                <span class="card-cours__cart-count <?php echo $cart_qty > 0 ? '' : 'is-hidden'; ?> text-xs fw-bold">
+                                    <?php echo esc_html($cart_qty); ?>
+                                </span>
+                            </button>
+                        <?php endif; ?>
+                    <?php endif; ?>
+
+                <?php else : ?>
+                    <!-- Mode Standard : 1 bouton chevron -->
+                    <a href="<?php the_permalink(); ?>"
+                       class="card-cours__cta <?php echo $complet ? 'card-cours__cta--disabled' : ''; ?>"
+                       aria-label="<?php echo esc_attr('Voir le cours : ' . get_the_title()); ?>"
+                       <?php echo $complet ? 'tabindex="-1"' : ''; ?>>
+                        <span class="btn-icon btn-icon--sm"
+                              style="--icon-url: url('<?php echo $icons_path; ?>chevron-right.svg');"></span>
+                    </a>
+                <?php endif; ?>
+            </div>
 
         </div><!-- .card-cours__footer -->
 

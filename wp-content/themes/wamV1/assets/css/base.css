@@ -606,12 +606,22 @@ p {
 /* -------------------------------------------------------
    Utilitaires de structure (Audit Conformité TOKENS.md)
    ------------------------------------------------------- */
-.d-block { display: block !important; }
-.d-none { display: none !important; }
-.text-center { text-align: center !important; }
+.d-block {
+    display: block !important;
+}
+
+.d-none {
+    display: none !important;
+}
+
+.text-center {
+    text-align: center !important;
+}
 
 /* Spacing spécifique hors échelle standard */
-.mt-2 { margin-top: 2px !important; }
+.mt-2 {
+    margin-top: 2px !important;
+}
 
 /* Conteneur max-width centré */
 .wam-container {
@@ -664,7 +674,7 @@ html.wam-reduce-motion *::after {
     /* Titres Mallia (H1 et Gutenberg) */
     .is-style-title-sign-lg,
     h1 {
-        font-size: 40px !important;
+        font-size: 36px !important;
     }
 
     /* Titres Norm Lg */

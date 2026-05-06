@@ -1,13 +1,9 @@
 <?php
 /**
- * Template Name: Cours collectifs
+ * Template Name: Réinscription
  *
- * Page d'archive des cours collectifs.
- * Groupés par taxonomie cat_cours, filtrables par chips + recherche.
- * Le contenu Gutenberg de la page (the_content) s'affiche en fin de page.
- *
- * Icônes par terme : mapper le slug ACF sur un SVG dans /assets/images/.
- * Ajouter les slugs manquants dans $cat_icons si la taxonomie évolue.
+ * Page de réinscription pour les élèves.
+ * Hidden (noindex) et avec ajout direct au panier dans la grille.
  *
  * @package wamv1
  */
@@ -16,12 +12,11 @@ get_header();
 
 /* ---- Données de la page courante ---- */
 $page = get_queried_object();
-$page_title = $page ? get_the_title($page->ID) : 'Cours collectifs';
-$page_except = $page ? get_the_excerpt($page->ID) : '';
+$page_title = $page ? get_the_title($page->ID) : 'Réinscription';
+
 /* ---- Chemin icônes ---- */
 $icons_path = get_template_directory_uri() . '/assets/images/';
 
-/* ---- Mapping slug terme → SVG ---- */
 /* ---- Mapping slug terme → SVG ---- */
 $cat_icons = wamv1_get_cat_cours_icons();
 
@@ -43,7 +38,7 @@ $terms = get_terms([
              BREADCRUMB
              ============================================================ -->
             <?php get_template_part('template-parts/breadcrumb', null, [
-                'id' => 'breadcrumb-cours-collectifs',
+                'id' => 'breadcrumb-reinscription',
                 'full' => true,
             ]); ?>
 
@@ -55,8 +50,7 @@ $terms = get_terms([
                 'page_title' => $page_title,
                 'page_desc' => '',
                 'icons_path' => $icons_path,
-                'show_planning_btn' => true,
-                'planning_url' => get_permalink(get_page_by_path('planning')),
+                'show_planning_btn' => false,
             ]); ?>
 
         </div><!-- .page-layout__inner -->
@@ -72,24 +66,27 @@ $terms = get_terms([
         </div>
 
         <!-- ============================================================
-         SECTIONS PAR TAXONOMIE
+         CONTENU GUTENBERG (CONSIGNES)
          ============================================================ -->
-        <?php get_template_part('template-parts/archive-cours-loop', null, [
-            'terms'      => $terms,
-            'cat_icons'  => $cat_icons,
-            'icons_path' => $icons_path,
-            'mode'       => 'standard',
-        ]); ?>
-
         <?php
         $content = get_post_field('post_content', $page->ID ?? get_the_ID());
         if (!empty(trim($content))): ?>
-            <div class="page-cours__outro wam-container mt-lg mb-lg">
+            <div class="page-cours__intro wam-container mt-lg mb-lg">
                 <div class="wam-prose">
                     <?php echo apply_filters('the_content', $content); ?>
                 </div>
             </div>
         <?php endif; ?>
+
+        <!-- ============================================================
+         SECTIONS PAR TAXONOMIE (LOOP PART)
+         ============================================================ -->
+        <?php get_template_part('template-parts/archive-cours-loop', null, [
+            'terms'      => $terms,
+            'cat_icons'  => $cat_icons,
+            'icons_path' => $icons_path,
+            'mode'       => 'reinscription',
+        ]); ?>
 
     </div><!-- .page-cours -->
 </main>

@@ -12,7 +12,7 @@
         if (document.body.classList.contains('wp-admin')) return;
 
         // 1. Boutons d'ajout direct (Single Tarif ou Cours)
-        var directBtns = document.querySelectorAll('#btn-inscription-cours, .btn-stage-item');
+        var directBtns = document.querySelectorAll('#btn-inscription-cours, .btn-inscription, .btn-stage-item');
         directBtns.forEach(function (btn) {
             btn.addEventListener('click', function (e) {
                 if (btn.classList.contains('btn-open-stage-modal')) return;
@@ -208,8 +208,30 @@
             .then(function (r) { return r.json(); })
             .then(function (res) {
                 if (res.success) {
-                    setLabel(btn, res.data.message);
-                    btn.classList.add('is-added');
+                    // Pour les boutons avec icône uniquement (réinscription), on évite d'ajouter du texte
+                    if (!btn.classList.contains('card-cours__cta--reinscription')) {
+                        setLabel(btn, res.data.message);
+                    }
+                    
+                    // Mise à jour de TOUTES les pastilles de ce COURS sur la page
+                    var courseId = data.course_id;
+                    var allButtons = document.querySelectorAll('.btn-inscription[data-course-id="' + courseId + '"]');
+                    
+                    allButtons.forEach(function(otherBtn) {
+                        var counter = otherBtn.querySelector('.card-cours__cart-count');
+                        if (counter) {
+                            var currentQty = parseInt(counter.textContent) || 0;
+                            var addedQty = 1; 
+                            if (data.selections) {
+                                addedQty = data.selections.reduce(function(acc, sel) { return acc + sel.qty; }, 0);
+                            }
+                            var newQty = currentQty + addedQty;
+                            counter.textContent = newQty;
+                            counter.classList.remove('is-hidden');
+                        }
+                        otherBtn.classList.add('is-added');
+                    });
+
                     if (res.data.fragments) {
                         updateCartFragments(res.data.fragments, res.data.cart_hash);
                     }
@@ -237,8 +259,10 @@
 
     function setLabel(el, text) {
         var icon = el.querySelector('.btn-icon');
+        var counter = el.querySelector('.card-cours__cart-count');
         el.textContent = text + ' ';
         if (icon) el.appendChild(icon);
+        if (counter) el.appendChild(counter);
     }
 
     // Protection double exécution si le script est chargé plusieurs fois

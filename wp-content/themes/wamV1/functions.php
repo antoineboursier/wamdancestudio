@@ -101,10 +101,49 @@ add_filter('mce_body_class', function ($classes) {
 // Noindex pages WooCommerce non-SEO
 // -------------------------------------------------------
 add_action('wp_head', function () {
-    if (is_cart() || is_checkout() || is_account_page()) {
+    if (is_cart() || is_checkout() || is_account_page() || is_page_template('page-reinscription.php')) {
         echo '<meta name="robots" content="noindex, nofollow">';
     }
 });
+
+// Exclure explicitement la page du sitemap Yoast SEO
+add_filter('wpseo_exclude_from_sitemap_by_post_ids', function ($excluded_ids) {
+    // On cherche la page qui utilise le template de réinscription
+    $pages = get_posts([
+        'post_type' => 'page',
+        'fields' => 'ids',
+        'meta_query' => [
+            [
+                'key' => '_wp_page_template',
+                'value' => 'page-reinscription.php'
+            ]
+        ]
+    ]);
+    if (!empty($pages)) {
+        $excluded_ids = array_merge($excluded_ids, $pages);
+    }
+    return $excluded_ids;
+});
+
+// -------------------------------------------------------
+// Configuration des icônes de catégories de cours
+// -------------------------------------------------------
+function wamv1_get_cat_cours_icons() {
+    return [
+        'cours-solo'      => 'dancer_courssolo.svg',
+        'solo'            => 'dancer_courssolo.svg',
+        'danse-solo'      => 'dancer_courssolo.svg',
+        'danse-adeux'     => 'dancer_adeux.svg',
+        'a-deux'          => 'dancer_adeux.svg',
+        'danse-en-couple' => 'dancer_adeux.svg',
+        'couple'          => 'dancer_adeux.svg',
+        'enfants'         => 'dancer_warmup.svg',
+        'danse-enfant'    => 'dancer_warmup.svg',
+        'enfants-ados'    => 'dancer_warmup.svg',
+        'ados'            => 'dancer_warmup.svg',
+        'ados-adultes'    => 'dancer_courssolo.svg',
+    ];
+}
 
 // -------------------------------------------------------
 // Styles de display custom (Gutenberg Block Styles)
@@ -231,13 +270,14 @@ function wamv1_scripts()
         is_page_template('page-stages-tous.php') ||
         is_page_template('page-events-tous.php') ||
         is_page_template('page-prof-wam.php') ||
-        is_page_template('page-planning-cours.php')
+        is_page_template('page-planning-cours.php') ||
+        is_page_template('page-reinscription.php')
     ) {
         wp_enqueue_style('wamv1-programme', $css . 'programme.css', array('wamv1-accessibility'), $get_ver('assets/css/programme.css'));
     }
 
     // JS filtrage — pages listing (cours collectifs + stages)
-    if (is_page_template('page-cours-collectifs.php') || is_page_template('page-stages-tous.php')) {
+    if (is_page_template('page-cours-collectifs.php') || is_page_template('page-stages-tous.php') || is_page_template('page-reinscription.php')) {
         wp_enqueue_script('wamv1-filter', $js . 'filter.js', array(), $get_ver('assets/js/filter.js'), true);
     }
 
@@ -267,7 +307,7 @@ function wamv1_scripts()
     // -------------------------------------------------------
     // Cours & Stages single — JS add-to-cart AJAX (bouton simple + modale multi-tarifs)
     // -------------------------------------------------------
-    if ((is_singular('cours') || is_singular('stages')) && class_exists('WooCommerce')) {
+    if ((is_singular('cours') || is_singular('stages') || is_page_template('page-reinscription.php')) && class_exists('WooCommerce')) {
         wp_enqueue_script('wamv1-enroll', $js . 'enroll.js', array(), $get_ver('assets/js/enroll.js'), ['in_footer' => true, 'strategy' => 'defer']);
         wp_localize_script('wamv1-enroll', 'wamEnroll', [
             'ajaxurl' => admin_url('admin-ajax.php'),
@@ -278,7 +318,7 @@ function wamv1_scripts()
     // -------------------------------------------------------
     // WooCommerce — shop.css
     // -------------------------------------------------------
-    if (class_exists('WooCommerce') && (is_woocommerce() || is_cart() || is_checkout() || is_account_page() || is_singular('stages') || is_singular('cours'))) {
+    if (class_exists('WooCommerce') && (is_woocommerce() || is_cart() || is_checkout() || is_account_page() || is_singular('stages') || is_singular('cours') || is_page_template('page-reinscription.php'))) {
         wp_enqueue_style('wamv1-shop', $css . 'shop.css', array('wamv1-layout'), $get_ver('assets/css/shop.css'));
     }
 

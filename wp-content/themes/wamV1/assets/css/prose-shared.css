@@ -79,6 +79,15 @@
 .wam-prose hr,
 .editor-styles-wrapper hr,
 .wam-prose .wp-block-separator,
+.editor-styles-wrapper .wp-block-separator,
+/* Force le nettoyage sur le wrapper de bloc dans l'éditeur */
+.editor-styles-wrapper [data-type="core/separator"] {
+    clear: both;
+}
+
+.wam-prose hr,
+.editor-styles-wrapper hr,
+.wam-prose .wp-block-separator,
 .editor-styles-wrapper .wp-block-separator {
     margin: var(--wam-spacing-3xl) 0;
     border: none;
@@ -86,7 +95,6 @@
     background: var(--wam-gradient-brand);
     border-radius: var(--wam-radius-pill);
     opacity: 1;
-    /* Override Gutenberg default opacity */
 }
 
 /* -------------------------------------------------------
@@ -264,16 +272,18 @@
 .editor-styles-wrapper .alignleft {
     float: left;
     margin-right: var(--wam-spacing-4xl);
-    margin-bottom: var(--wam-spacing-lg);
+    margin-bottom: var(--wam-spacing-xl);
     max-width: 50%;
+    margin-top: 0;
 }
 
 .wam-prose .alignright,
 .editor-styles-wrapper .alignright {
     float: right;
     margin-left: var(--wam-spacing-4xl);
-    margin-bottom: var(--wam-spacing-lg);
+    margin-bottom: var(--wam-spacing-xl);
     max-width: 50%;
+    margin-top: 0;
 }
 
 .wam-prose .aligncenter,

@@ -215,8 +215,7 @@
 }
 
 /* Espacement des boutons dans le contenu textuel (.wam-prose) */
-.wam-prose .wp-block-buttons,
-.wam-prose .wp-block-button {
+.wam-prose .wp-block-buttons {
     margin-top: var(--wam-spacing-lg);
     margin-bottom: var(--wam-spacing-lg);
 }

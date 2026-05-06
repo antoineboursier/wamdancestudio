@@ -228,8 +228,15 @@
    ------------------------------------------------------- */
 
 /* --- Bloc Bouton (Wrapper) --- */
-.wp-block-button {
-    margin: var(--wam-spacing-xl) 0;
+.editor-styles-wrapper .wp-block-buttons {
+    display: flex !important;
+    gap: var(--wam-spacing-md) !important;
+    margin: var(--wam-spacing-xl) 0 !important;
+}
+
+/* On s'assure que les boutons individuels n'ont pas de marges parasites qui cassent le gap */
+.editor-styles-wrapper .wp-block-button {
+    margin: 0 !important;
 }
 
 /* --- Lien du bouton (Editable Div) --- */

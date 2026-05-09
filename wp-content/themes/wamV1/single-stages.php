@@ -456,7 +456,18 @@ get_header();
         <div class="wam-tarif-selector-list">
             <?php
             foreach ($tarifs_data as $index => $t):
-                $est_complet = ($t['total'] > 0 && $t['reserve'] >= $t['total']);
+                // Places déjà dans le panier pour ce tarif
+                $en_panier = 0;
+                if (function_exists('WC') && WC()->cart) {
+                    foreach (WC()->cart->get_cart() as $cart_item) {
+                        if (($cart_item['wam_course_id'] ?? 0) == get_the_ID()
+                            && ($cart_item['wam_tarif_index'] ?? 0) == $t['index']) {
+                            $en_panier += $cart_item['quantity'];
+                        }
+                    }
+                }
+                $est_complet = ($t['total'] > 0 && ($t['reserve'] + $en_panier) >= $t['total']);
+                $dispo       = ($t['total'] > 0) ? max(0, $t['total'] - $t['reserve'] - $en_panier) : 999;
                 ?>
                 <div class="wam-tarif-selector-item <?php echo $est_complet ? 'is-disabled' : ''; ?>">
                     <div class="wam-tarif-info">
@@ -467,11 +478,14 @@ get_header();
                             <small class="color-pink d-block">Complet</small>
                         <?php endif; ?>
                     </div>
- 
+
                     <div class="wam-qty-selector">
                         <button type="button" class="wam-qty-btn-circle" data-qty-minus aria-label="<?php echo esc_attr( sprintf( __( 'Diminuer la quantité pour %s', 'wamv1' ), $t['nom'] ) ); ?>">–</button>
                         <span class="wam-qty-value" data-tarif-index="<?php echo $t['index']; ?>">0</span>
-                        <button type="button" class="wam-qty-btn-circle" data-qty-plus aria-label="<?php echo esc_attr( sprintf( __( 'Augmenter la quantité pour %s', 'wamv1' ), $t['nom'] ) ); ?>" <?php echo $est_complet ? 'disabled' : ''; ?>>+</button>
+                        <button type="button" class="wam-qty-btn-circle" data-qty-plus
+                            data-max="<?php echo esc_attr( $dispo ); ?>"
+                            aria-label="<?php echo esc_attr( sprintf( __( 'Augmenter la quantité pour %s', 'wamv1' ), $t['nom'] ) ); ?>"
+                            <?php echo $est_complet ? 'disabled' : ''; ?>>+</button>
                     </div>
                 </div>
             <?php endforeach; ?>

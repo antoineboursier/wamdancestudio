@@ -140,7 +140,12 @@
                 });
                 plus.addEventListener('click', function() {
                     var v = parseInt(valEl.textContent);
-                    valEl.textContent = v + 1;
+                    var max = parseInt(plus.dataset.max) || 999;
+                    if (v < max) {
+                        valEl.textContent = v + 1;
+                    } else {
+                        updateLiveFeedback('Plus de places disponibles pour ce tarif.');
+                    }
                     updateConfirmButtonState();
                 });
             });

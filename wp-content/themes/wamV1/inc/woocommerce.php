@@ -734,9 +734,7 @@ function wamv1_add_adherent_fields_to_checkout($checkout)
 {
     if (WC()->cart->is_empty()) return;
 
-    $items      = WC()->cart->get_cart();
-    $cart_count = WC()->cart->get_cart_contents_count();
-    $is_solo    = ($cart_count === 1);
+    $items = WC()->cart->get_cart();
 
     // Séparer les items par type de CPT
     $stage_items = [];
@@ -744,11 +742,14 @@ function wamv1_add_adherent_fields_to_checkout($checkout)
 
     foreach ($items as $key => $item) {
         $cpt_id = $item['wam_course_id'] ?? null;
-        if (!$cpt_id) continue; // Produit WC simple → rien
+        if (!$cpt_id) continue; // Produit WC simple (carte cadeau, formule mariage...) → rien
         $type = get_post_type($cpt_id);
         if ($type === 'stages')    $stage_items[$key] = $item;
         elseif ($type === 'cours') $cours_items[$key] = $item;
     }
+
+    // Section cours désactivée temporairement — logique à redéfinir.
+    $is_solo = true;
 
     // -------------------------------------------------------------------------
     // STAGES — toujours afficher les champs participants, 1 fiche par place
@@ -1216,6 +1217,20 @@ function wamv1_save_billing_emergency_to_order_meta($order_id) {
 }
 
 /**
+ * Vérifie si le panier contient au moins un cours (CPT 'cours')
+ */
+function wamv1_cart_has_cours() {
+    if (!WC()->cart) return false;
+    foreach (WC()->cart->get_cart() as $item) {
+        $course_id = $item['wam_course_id'] ?? null;
+        if ($course_id && get_post_type($course_id) === 'cours') {
+            return true;
+        }
+    }
+    return false;
+}
+
+/**
  * Vérifie si le panier contient uniquement des stages
  */
 function wamv1_cart_has_only_stages() {
@@ -1305,7 +1320,7 @@ function wamv1_simplify_billing_fields($fields)
  */
 add_action('woocommerce_after_checkout_billing_form', 'wamv1_add_billing_emergency_block', 5);
 function wamv1_add_billing_emergency_block($checkout) {
-    if (wamv1_cart_has_only_stages()) {
+    if (!wamv1_cart_has_cours()) {
         return;
     }
     echo '<div class="wam-emergency-block">';

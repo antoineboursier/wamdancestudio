@@ -632,6 +632,7 @@
     border-radius: var(--wam-radius-xl);
     border: 1px solid var(--wam-color-input-bg);
     overflow: hidden;
+    position: relative;
     transition: transform var(--wam-transition), box-shadow var(--wam-transition);
 }
 
@@ -749,6 +750,7 @@
     gap: var(--wam-spacing-md);
 }
 
+
 .wam-cart-card__qty {
     flex-shrink: 0;
     display: inline-flex;
@@ -825,26 +827,31 @@
     /* Le style est désormais géré par les classes utilitaires PHP .title-norm-sm .color-yellow */
 }
 
-/* Bouton "Retirer" */
+/* Bouton "Retirer" — croix positionnée en haut à droite de la carte */
 .wam-cart-card__remove {
+    position: absolute;
+    top: 12px;
+    right: 12px;
     display: inline-flex;
     align-items: center;
-    gap: var(--wam-spacing-3xs);
-    font-size: var(--wam-font-size-sm);
+    justify-content: center;
+    width: 26px;
+    height: 26px;
+    font-size: 1rem;
+    line-height: 1;
     color: var(--wam-color-subtext);
     text-decoration: none;
-    padding: var(--wam-spacing-2xs) var(--wam-spacing-sm);
-    border-radius: var(--wam-radius-pill);
-    border: 1px solid rgba(249, 244, 236, 0.12);
+    border-radius: 50%;
+    border: 1px solid rgba(249, 244, 236, 0.2);
     transition: all var(--wam-transition);
-    font-weight: 500;
     cursor: pointer;
+    z-index: 1;
 }
 
 .wam-cart-card__remove:hover {
-    background: transparent;
     border-color: var(--wam-color-pink);
     color: var(--wam-color-pink);
+    background: transparent;
 }
 
 .wam-cart-card__remove-icon {
@@ -858,6 +865,36 @@
     mask-size: contain;
     -webkit-mask-repeat: no-repeat;
     mask-repeat: no-repeat;
+}
+
+/* Données Bookly dans la carte panier — style cohérent avec les cartes WAM */
+.wam-cart-bookly-data dl.variation {
+    margin: 4px 0 0;
+}
+
+/* "Rendez-vous:" → même style que .wam-cart-card__subtitle (text-md fw-bold = 20px) */
+.wam-cart-card__body .wam-cart-bookly-data dl.variation dt {
+    display: block;
+    font-size: var(--wam-font-size-md) !important;
+    font-weight: 600 !important;
+    color: var(--wam-color-text) !important;
+    margin: 0 0 2px !important;
+    padding: 0 !important;
+}
+
+/* Valeurs → même style que la date du stage (text-sm color-subtext = 16px) */
+.wam-cart-card__body .wam-cart-bookly-data dl.variation dd {
+    display: block;
+    font-size: var(--wam-font-size-sm) !important;
+    font-weight: 400 !important;
+    color: var(--wam-color-subtext) !important;
+    margin: 0 0 2px !important;
+    padding: 0 !important;
+}
+
+.wam-cart-card__body .wam-cart-bookly-data dl.variation dd p {
+    margin: 0 !important;
+    font-size: inherit !important;
 }
 
 /* -------------------------------------------------------

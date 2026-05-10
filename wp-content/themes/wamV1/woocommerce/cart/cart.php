@@ -41,45 +41,47 @@ do_action('woocommerce_before_cart');
                         if (!apply_filters('woocommerce_cart_item_visible', true, $cart_item, $cart_item_key))
                             continue;
 
-                        // — Récupérer les données WAM liées à cet article —
-                        $course_id = $cart_item['wam_course_id'] ?? null;
-                        $course_title = $course_id ? get_the_title($course_id) : null;
+                        // — Données WAM cours/stage (vides si item Bookly) —
+                        $course_id       = $cart_item['wam_course_id'] ?? null;
+                        $course_title    = $course_id ? get_the_title($course_id) : null;
                         $course_subtitle = $course_id ? get_field('sous_titre', $course_id) : null;
-                        $course_thumb = $course_id ? get_the_post_thumbnail_url($course_id, 'medium') : null;
+                        $course_thumb    = $course_id ? get_the_post_thumbnail_url($course_id, 'medium') : null;
+                        $course_url      = $course_id ? get_permalink($course_id) : null;
 
-                        // On récupère les horaires directement depuis le cours (plus fiable que la session)
-                        $wam_jour = null;
+                        $wam_jour  = null;
                         $wam_heure = null;
-
                         if ($course_id) {
                             $jour_slug = get_field('jour_de_cours', $course_id);
-                            $wam_jour = function_exists('wamv1_get_day_label') ? wamv1_get_day_label($jour_slug) : $jour_slug;
-
+                            $wam_jour  = function_exists('wamv1_get_day_label') ? wamv1_get_day_label($jour_slug) : $jour_slug;
                             $h_deb = get_field('heure_debut', $course_id);
                             $h_fin = get_field('heure_de_fin', $course_id);
-                            if ($h_deb && $h_fin) {
-                                $wam_heure = $h_deb . ' – ' . $h_fin;
-                            } elseif ($h_deb) {
-                                $wam_heure = $h_deb;
-                            }
+                            $wam_heure = $h_deb && $h_fin ? $h_deb . ' – ' . $h_fin : $h_deb;
                         }
 
-
-                        // Image du cours
                         $image_html = $course_thumb
                             ? '<img src="' . esc_url($course_thumb) . '" alt="' . esc_attr($course_title ?: $product_name) . '" width="120" height="120" loading="lazy">'
                             : null;
-
-                        // URL du cours (retour vers la page)
-                        $course_url = $course_id ? get_permalink($course_id) : null;
-
-                        // Prix
-                        $price_html = WC()->cart->get_product_price($_product);
                         ?>
 
                         <article
                             class="wam-cart-card <?php echo !$image_html ? 'wam-cart-card--no-thumb' : ''; ?> <?php echo esc_attr(apply_filters('woocommerce_cart_item_class', 'cart_item', $cart_item, $cart_item_key)); ?>"
                             data-cart-item-key="<?php echo esc_attr($cart_item_key); ?>">
+
+                            <!-- Croix de suppression (haut-droite) — uniquement pour les items non-WAM -->
+                            <?php if (!$course_id): ?>
+                            <?php echo apply_filters(
+                                'woocommerce_cart_item_remove_link',
+                                sprintf(
+                                    '<a href="%s" class="wam-cart-card__remove" aria-label="%s" data-product_id="%s" data-cart_item_key="%s">%s</a>',
+                                    esc_url(wc_get_cart_remove_url($cart_item_key)),
+                                    esc_attr(sprintf(__('Supprimer %s du panier', 'woocommerce'), $product_name)),
+                                    esc_attr($product_id),
+                                    esc_attr($cart_item_key),
+                                    '&times;'
+                                ),
+                                $cart_item_key
+                            ); ?>
+                            <?php endif; ?>
 
                             <!-- Miniature du cours -->
                             <?php if ($image_html): ?>
@@ -91,34 +93,27 @@ do_action('woocommerce_before_cart');
                             <!-- Infos principales -->
                             <div class="wam-cart-card__body">
 
-                                <!-- Badge Adhésion (nom du produit WC) -->
+                                <!-- Badge (nom du produit WC) -->
                                 <span class="wam-cart-card__badge text-xs">
                                     <?php echo esc_html($_product->get_name()); ?>
                                 </span>
 
-                                <!-- Noms du cours -->
+                                <!-- Titre : cours WAM si dispo, sinon nom produit -->
                                 <div class="wam-cart-card__title-row mt-2xs">
-                                    <?php if ($course_title): ?>
-                                        <?php if ($course_url): ?>
-                                            <h2 class="wam-cart-card__title text-lg fw-bold">
-                                                <a
-                                                    href="<?php echo esc_url($course_url); ?>"><?php echo esc_html($course_title); ?></a>
-                                            </h2>
+                                    <h2 class="wam-cart-card__title text-lg fw-bold">
+                                        <?php if ($course_title && $course_url): ?>
+                                            <a href="<?php echo esc_url($course_url); ?>"><?php echo esc_html($course_title); ?></a>
+                                        <?php elseif ($course_title): ?>
+                                            <?php echo esc_html($course_title); ?>
                                         <?php else: ?>
-                                            <h2 class="wam-cart-card__title text-lg fw-bold"><?php echo esc_html($course_title); ?>
-                                            </h2>
+                                            <?php echo esc_html($product_name); ?>
                                         <?php endif; ?>
-                                    <?php else: ?>
-                                        <h2 class="wam-cart-card__title text-lg fw-bold"><?php echo esc_html($product_name); ?>
-                                        </h2>
-                                    <?php endif; ?>
-
+                                    </h2>
                                     <div class="wam-cart-card__type-subtitle">
                                         <?php if ($course_subtitle): ?>
-                                            <span
-                                                class="wam-cart-card__subtitle text-md fw-bold d-block"><?php echo esc_html($course_subtitle); ?></span>
+                                            <span class="wam-cart-card__subtitle text-md fw-bold d-block"><?php echo esc_html($course_subtitle); ?></span>
                                         <?php endif; ?>
-                                        <?php 
+                                        <?php
                                         $wam_tarif_label = $cart_item['wam_tarif_label'] ?? null;
                                         $is_stage = $course_id && get_post_type($course_id) === 'stages';
                                         if ($wam_tarif_label && $is_stage): ?>
@@ -127,7 +122,7 @@ do_action('woocommerce_before_cart');
                                     </div>
                                 </div>
 
-                                <!-- Créneau horaire -->
+                                <!-- Créneau WAM (cours/stage) -->
                                 <?php if ($wam_jour || $wam_heure): ?>
                                     <div class="wam-cart-card__meta">
                                         <span class="wam-cart-card__meta-item">
@@ -136,24 +131,23 @@ do_action('woocommerce_before_cart');
                                             <span class="color-subtext text-sm">
                                                 <?php
                                                 $wam_date = $cart_item['wam_date'] ?? null;
-                                                $is_stage = $course_id && get_post_type($course_id) === 'stages';
-                                                
-                                                if ($is_stage && $wam_date) {
-                                                    echo esc_html($wam_date) . ' — ';
-                                                }
-
-                                                if ($wam_jour && $wam_heure) {
-                                                    echo esc_html($wam_jour . ' — ' . $wam_heure);
-                                                } else {
-                                                    echo esc_html($wam_jour . $wam_heure);
-                                                }
+                                                if ($is_stage && $wam_date) echo esc_html($wam_date) . ' — ';
+                                                echo esc_html(($wam_jour && $wam_heure) ? $wam_jour . ' — ' . $wam_heure : $wam_jour . $wam_heure);
                                                 ?>
                                             </span>
                                         </span>
                                     </div>
                                 <?php endif; ?>
 
-                                <!-- Description courte du produit -->
+                                <!-- Données via le filtre WC standard : Bookly, produits variables, etc.
+                                     Pas pour les items WAM qui ont leur propre affichage (wam_course_id). -->
+                                <?php if (!$course_id): ?>
+                                    <div class="wam-cart-bookly-data">
+                                        <?php echo wc_get_formatted_cart_item_data($cart_item); ?>
+                                    </div>
+                                <?php endif; ?>
+
+                                <!-- Description courte -->
                                 <?php $short_desc = $_product->get_short_description(); ?>
                                 <?php if ($short_desc): ?>
                                     <p class="wam-cart-card__desc text-sm color-subtext mt-2xs">
@@ -161,10 +155,14 @@ do_action('woocommerce_before_cart');
                                     </p>
                                 <?php endif; ?>
 
-                                <!-- Ligne bas de carte : quantité + actions -->
+                                <!-- Pied de carte : quantité + prix -->
                                 <div class="wam-cart-card__footer">
+
+
+                                    <!-- Quantité (masquée pour les réservations Bookly) -->
+                                    <?php if (!isset($cart_item['bookly'])): ?>
                                     <div class="wam-cart-card__qty product-quantity">
-                                        <button type="button" class="wam-qty-btn minus" aria-label="<?php echo esc_attr( sprintf( __( 'Diminuer la quantité pour %s', 'wamv1' ), $course_title ?: $product_name ) ); ?>">-</button>
+                                        <button type="button" class="wam-qty-btn minus" aria-label="<?php echo esc_attr(sprintf(__('Diminuer la quantité pour %s', 'wamv1'), $course_title ?: $product_name)); ?>">-</button>
                                         <?php
                                         if ($_product->is_sold_individually()) {
                                             $min_quantity = 1;
@@ -173,29 +171,30 @@ do_action('woocommerce_before_cart');
                                             $min_quantity = 0;
                                             $max_quantity = $_product->get_max_purchase_quantity();
                                         }
-
                                         $product_quantity = woocommerce_quantity_input(
                                             array(
-                                                'input_name' => "cart[{$cart_item_key}][qty]",
-                                                'input_value' => $cart_item['quantity'],
-                                                'max_value' => $max_quantity,
-                                                'min_value' => $min_quantity,
+                                                'input_name'   => "cart[{$cart_item_key}][qty]",
+                                                'input_value'  => $cart_item['quantity'],
+                                                'max_value'    => $max_quantity,
+                                                'min_value'    => $min_quantity,
                                                 'product_name' => $product_name,
                                             ),
                                             $_product,
                                             false
                                         );
-
                                         echo apply_filters('woocommerce_cart_item_quantity', $product_quantity, $cart_item_key, $cart_item);
                                         ?>
-                                        <button type="button" class="wam-qty-btn plus" aria-label="<?php echo esc_attr( sprintf( __( 'Augmenter la quantité pour %s', 'wamv1' ), $course_title ?: $product_name ) ); ?>">+</button>
+                                        <button type="button" class="wam-qty-btn plus" aria-label="<?php echo esc_attr(sprintf(__('Augmenter la quantité pour %s', 'wamv1'), $course_title ?: $product_name)); ?>">+</button>
                                     </div>
+                                    <?php endif; ?>
+
                                     <div class="wam-cart-card__price">
                                         <span class="wam-cart-card__price-label title-norm-sm color-yellow">
                                             <?php echo apply_filters('woocommerce_cart_item_subtotal', WC()->cart->get_product_subtotal($_product, $cart_item['quantity']), $cart_item, $cart_item_key); ?>
                                         </span>
                                     </div>
                                 </div>
+
                             </div><!-- /.wam-cart-card__body -->
                         </article>
 

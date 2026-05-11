@@ -29,11 +29,16 @@ function wamv1_youtube_facade($html, $url, $attr) {
     }
 
     $thumb_url = "https://img.youtube.com/vi/{$video_id}/maxresdefault.jpg";
+    $fallback_url = "https://img.youtube.com/vi/{$video_id}/hqdefault.jpg";
     
     ob_start();
     ?>
     <div class="wam-video-facade" data-video-id="<?php echo esc_attr($video_id); ?>" style="position:relative; cursor:pointer; background: #000; aspect-ratio: 16/9; overflow: hidden; border-radius: var(--wam-radius-md);">
-        <img src="<?php echo esc_url($thumb_url); ?>" alt="YouTube Video" style="width:100%; height:100%; object-fit:cover; opacity: 0.8; transition: opacity 0.3s ease;" loading="lazy">
+        <img src="<?php echo esc_url($thumb_url); ?>" 
+             onerror="this.src='<?php echo esc_url($fallback_url); ?>'; this.onerror=null;"
+             alt="YouTube Video" 
+             style="width:100%; height:100%; object-fit:cover; opacity: 0.8; transition: opacity 0.3s ease;" 
+             loading="lazy">
         <div class="wam-video-play-btn" style="position:absolute; top:50%; left:50%; transform:translate(-50%, -50%); width: 68px; height: 48px; background: rgba(0,0,0,0.7); border-radius: 12px; display: flex; align-items: center; justify-content: center; transition: background 0.3s ease;">
              <svg width="30" height="30" viewBox="0 0 24 24" fill="white"><path d="M8 5v14l11-7z"/></svg>
         </div>

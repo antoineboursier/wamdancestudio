@@ -36,9 +36,13 @@ $reviews = [
 $google_stats = function_exists('wamv1_get_google_business_stats') ? wamv1_get_google_business_stats() : ['rating' => '4.7', 'count' => '23'];
 $google_rating = $google_stats['rating'];
 $google_count  = $google_stats['count'];
+$id = 'section-reviews';
+if (!empty($args['block_attributes']['anchor'])) {
+    $id = esc_attr($args['block_attributes']['anchor']);
+}
 ?>
 
-<section id="section-reviews" class="section-reviews wam-container" role="region" aria-labelledby="reviews-title">
+<section id="<?php echo $id; ?>" class="section-reviews" role="region" aria-labelledby="reviews-title">
     <div class="section-reviews__header">
         <h2 id="reviews-title" class="title-sign-md color-pink">
             <?php esc_html_e('C\'est vous qui le dites...', 'wamv1'); ?>
@@ -52,19 +56,31 @@ $google_count  = $google_stats['count'];
     </div>
 
     <div class="section-reviews__slider-container">
-        <div class="section-reviews__grid">
-            <?php foreach ($reviews as $review): ?>
-                <article class="review-card">
-                    <div class="review-card__stars" aria-hidden="true">
-                        <?php echo str_repeat('★', $review['stars']); ?>
-                    </div>
-                    <blockquote class="review-card__text text-xs">
-                        <p>« <?php echo esc_html($review['text']); ?> »</p>
-                    </blockquote>
-                    <cite class="review-card__author text-xs fw-bold"><?php echo esc_html($review['author']); ?></cite>
-                </article>
-            <?php endforeach; ?>
-        </div>
+        <?php 
+        // Si on vient d'un bloc Gutenberg avec des InnerBlocks, on affiche le contenu
+        if ( !empty($args['content']) ) {
+            // IMPORTANT: le contenu généré par wp_kses_post peut parfois casser le HTML complexe, on l'affiche directement car il vient de l'éditeur sécurisé
+            echo $args['content']; 
+        } 
+        // Sinon (ex: page d'accueil), on affiche la boucle par défaut
+        else : ?>
+            <ul class="section-reviews__grid" role="list">
+                <?php foreach ($reviews as $review) : ?>
+                    <li role="listitem">
+                        <article class="review-card">
+                            <div class="review-card__stars" aria-hidden="true">
+                                <?php echo str_repeat('★', $review['stars']) . str_repeat('☆', 5 - $review['stars']); ?>
+                            </div>
+                            <span class="screen-reader-text"><?php printf(__('Note : %d sur 5', 'wamv1'), $review['stars']); ?></span>
+                            <blockquote class="review-card__text">
+                                <p><?php echo esc_html($review['text']); ?></p>
+                            </blockquote>
+                            <cite class="review-card__author text-xs"><?php echo esc_html($review['author']); ?></cite>
+                        </article>
+                    </li>
+                <?php endforeach; ?>
+            </ul>
+        <?php endif; ?>
     </div>
 
     <div class="section-reviews__footer">

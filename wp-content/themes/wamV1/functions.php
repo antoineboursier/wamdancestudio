@@ -174,6 +174,37 @@ function wamv1_register_text_styles()
 }
 add_action('init', 'wamv1_register_text_styles');
 
+/**
+ * Enregistrement des Blocs Gutenberg Natifs (Sans ACF Pro)
+ */
+add_action('init', 'wamv1_register_native_blocks');
+function wamv1_register_native_blocks() {
+    // 1. Déclaration du script JS pour l'éditeur
+    wp_register_script(
+        'wam-reviews-editor',
+        get_template_directory_uri() . '/blocks/reviews/index.js',
+        array('wp-blocks', 'wp-element', 'wp-server-side-render'),
+        filemtime(get_template_directory() . '/blocks/reviews/index.js')
+    );
+
+    // 2. Enregistrement du bloc dynamique
+    register_block_type('wam/reviews', array(
+        'api_version' => 2,
+        'editor_script' => 'wam-reviews-editor',
+        'render_callback' => 'wamv1_render_reviews_block'
+    ));
+}
+
+function wamv1_render_reviews_block($attributes, $content) {
+    ob_start();
+    // On passe les attributs (comme l'ancre) et le contenu des InnerBlocks au template
+    get_template_part('template-parts/section', 'reviews', array(
+        'block_attributes' => $attributes,
+        'content' => $content
+    ));
+    return ob_get_clean();
+}
+
 // -------------------------------------------------------
 function wamv1_scripts()
 {

@@ -85,6 +85,168 @@
     clear: both;
 }
 
+/* =====================================================
+   UTILITAIRES TYPO
+   ===================================================== */
+.title-sign-md {
+    font-family: var(--wam-font-graphical-1);
+    font-size: 32px;
+    font-weight: 400;
+    line-height: 1.1;
+}
+
+/* =====================================================
+   SECTION AVIS CLIENTS (REUSABLE BLOCK)
+   ===================================================== */
+.section-reviews {
+    padding-top: var(--wam-spacing-4xl);
+    display: flex;
+    flex-direction: column;
+    gap: var(--wam-spacing-lg);
+    overflow: hidden;
+}
+
+.section-reviews__header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+}
+
+.section-reviews__google-badge {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    color: var(--wam-color-yellow);
+}
+
+.section-reviews__grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: var(--wam-spacing-xl);
+    list-style: none;
+    margin: 0;
+    padding: 0;
+}
+
+/* Dans l'éditeur, on annule la grille sur le parent pour ne la garder que sur le layout interne */
+.editor-styles-wrapper .section-reviews__grid {
+    display: block;
+}
+
+.section-reviews__grid .block-editor-inner-blocks>.block-editor-block-list__layout {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: var(--wam-spacing-xl);
+}
+
+.section-reviews__grid .block-editor-inner-blocks>.block-editor-block-list__layout>.wp-block {
+    height: 100%;
+}
+
+.review-card {
+    background: var(--wam-color-card-bg);
+    padding: var(--wam-spacing-xl) var(--wam-spacing-lg);
+    border-radius: var(--wam-radius-lg);
+    display: flex;
+    flex-direction: column;
+    gap: var(--wam-spacing-sm);
+    transition: transform 0.3s ease;
+    height: 100%;
+    box-sizing: border-box;
+}
+
+.review-card:hover {
+    transform: translateY(-5px);
+}
+
+.review-card__stars {
+    color: var(--wam-color-yellow);
+    font-size: 0.9rem;
+}
+
+.wam-prose blockquote.review-card__text,
+.editor-styles-wrapper blockquote.review-card__text {
+    color: var(--wam-color-text);
+    margin: 0;
+    padding: 0;
+    font-style: normal !important;
+    border: none !important;
+    background: none !important;
+}
+
+.wam-prose blockquote.review-card__text p {
+    font-size: var(--wam-font-size-sm);
+}
+
+.review-card__author {
+    color: var(--wam-color-subtext);
+    margin-top: auto;
+}
+
+.section-reviews__footer {
+    display: flex;
+    justify-content: center;
+}
+
+.section-reviews__link {
+    color: var(--wam-color-text);
+    text-decoration: none;
+    transition: opacity 0.3s ease;
+    text-decoration: underline;
+}
+
+.section-reviews__link:hover {
+    opacity: 0.7;
+    text-decoration: underline;
+}
+
+@media (max-width: 1024px) {
+
+    .section-reviews__grid,
+    .section-reviews__grid .block-editor-inner-blocks>.block-editor-block-list__layout {
+        display: flex;
+        overflow-x: auto;
+        scroll-snap-type: x mandatory;
+        scroll-behavior: smooth;
+        -webkit-overflow-scrolling: touch;
+        gap: var(--wam-spacing-sm);
+        padding-bottom: var(--wam-spacing-md);
+        margin: 0 calc(-1 * var(--wam-page-mx));
+        padding-left: var(--wam-page-mx);
+        padding-right: var(--wam-page-mx);
+    }
+
+    .section-reviews__grid::-webkit-scrollbar {
+        display: none;
+    }
+
+    .section-reviews__grid {
+        -ms-overflow-style: none;
+        scrollbar-width: none;
+    }
+
+    .review-card {
+        flex: 0 0 85%;
+        scroll-snap-align: center;
+    }
+}
+
+@media (max-width: 768px) {
+    .section-reviews__header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: var(--wam-spacing-sm);
+    }
+
+    .section-reviews__google-badge {
+        align-items: flex-start;
+    }
+
+    .review-card {
+        flex: 0 0 90%;
+    }
+}
+
 .wam-prose hr,
 .editor-styles-wrapper hr,
 .wam-prose .wp-block-separator,

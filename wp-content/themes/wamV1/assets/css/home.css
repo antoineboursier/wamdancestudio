@@ -479,4 +479,8 @@
         height: auto;
         aspect-ratio: 16/9;
     }
+
+    .section-signature__text-mallia.title-sign-lg {
+        font-size: 32px !important;
+    }
 }

@@ -187,10 +187,18 @@ function wamv1_register_native_blocks() {
         filemtime(get_template_directory() . '/blocks/reviews/index.js')
     );
 
-    // 2. Enregistrement du bloc dynamique
+    // 2. CSS de l'éditeur : prose-shared.css pour que les avis soient stylés dans Gutenberg
+    wp_register_style(
+        'wam-reviews-editor-style',
+        get_template_directory_uri() . '/assets/css/prose-shared.css',
+        array(),
+        filemtime(get_template_directory() . '/assets/css/prose-shared.css')
+    );
+
+    // 3. Enregistrement du bloc conteneur
     register_block_type('wam/reviews', array(
-        'api_version' => 2,
-        'editor_script' => 'wam-reviews-editor',
+        'editor_script'   => 'wam-reviews-editor',
+        'editor_style'    => 'wam-reviews-editor-style',
         'render_callback' => 'wamv1_render_reviews_block'
     ));
 }
@@ -200,7 +208,7 @@ function wamv1_render_reviews_block($attributes, $content) {
     // On passe les attributs (comme l'ancre) et le contenu des InnerBlocks au template
     get_template_part('template-parts/section', 'reviews', array(
         'block_attributes' => $attributes,
-        'content' => $content
+        'content'          => $content
     ));
     return ob_get_clean();
 }

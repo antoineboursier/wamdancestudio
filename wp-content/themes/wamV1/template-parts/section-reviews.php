@@ -4,8 +4,8 @@
  * @package wamv1
  */
 
-// On n'affiche la section que si elle contient des avis (via Gutenberg)
-if ( empty($args['content']) ) {
+// On n'affiche la section que si elle contient des avis (au moins un <li> généré via Gutenberg)
+if ( empty($args['content']) || strpos($args['content'], '<li') === false ) {
     return;
 }
 
@@ -34,9 +34,7 @@ if (!empty($args['block_attributes']['anchor'])) {
     </div>
 
     <div class="section-reviews__slider-container">
-        <ul class="section-reviews__grid" role="list">
-            <?php echo $args['content']; ?>
-        </ul>
+        <?php echo $args['content']; ?>
     </div>
 
     <div class="section-reviews__footer">

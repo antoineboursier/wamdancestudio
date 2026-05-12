@@ -119,6 +119,7 @@
     color: var(--wam-color-yellow);
 }
 
+.wam-prose ul.section-reviews__grid,
 .section-reviews__grid {
     display: grid;
     grid-template-columns: repeat(3, 1fr);
@@ -129,21 +130,23 @@
 }
 
 /* Dans l'éditeur, on annule la grille sur le parent pour ne la garder que sur le layout interne */
-:where(.editor-styles-wrapper) .section-reviews__grid {
-    display: block !important;
+.editor-styles-wrapper .section-reviews__grid {
+    display: block;
 }
 
-:where(.editor-styles-wrapper) .section-reviews__grid .block-editor-inner-blocks > .block-editor-block-list__layout {
-    display: grid !important;
-    grid-template-columns: repeat(3, 1fr) !important;
-    gap: var(--wam-spacing-xl) !important;
+.section-reviews__grid .block-editor-inner-blocks>.block-editor-block-list__layout {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: var(--wam-spacing-xl);
 }
 
-:where(.editor-styles-wrapper) .section-reviews__grid .block-editor-inner-blocks > .block-editor-block-list__layout > .wp-block {
-    height: 100% !important;
+.section-reviews__grid .block-editor-inner-blocks>.block-editor-block-list__layout>.wp-block {
+    height: 100%;
 }
 
-.review-card {
+/* On cible article.review-card pour ne pas appliquer
+   le style de carte au li qui porte aussi cette classe */
+article.review-card {
     background: var(--wam-color-card-bg);
     padding: var(--wam-spacing-xl) var(--wam-spacing-lg);
     border-radius: var(--wam-radius-lg);
@@ -155,7 +158,7 @@
     box-sizing: border-box;
 }
 
-.review-card:hover {
+article.review-card:hover {
     transform: translateY(-5px);
 }
 
@@ -165,7 +168,7 @@
 }
 
 .wam-prose blockquote.review-card__text,
-.editor-styles-wrapper blockquote.review-card__text {
+blockquote.review-card__text {
     color: var(--wam-color-text);
     margin: 0;
     padding: 0;
@@ -174,8 +177,10 @@
     background: none !important;
 }
 
-.wam-prose blockquote.review-card__text p {
+blockquote.review-card__text p {
     font-size: var(--wam-font-size-sm);
+    margin: 0;
+    font-style: normal;
 }
 
 .review-card__author {
@@ -361,38 +366,6 @@
         opacity: 1;
         transform: translateY(0);
     }
-}
-
-/* -------------------------------------------------------
-   Blockquote
-   ------------------------------------------------------- */
-
-.wam-prose blockquote,
-.editor-styles-wrapper blockquote,
-.wam-prose .wp-block-quote,
-.editor-styles-wrapper .wp-block-quote {
-    font-style: italic;
-    padding: var(--wam-spacing-md) var(--wam-spacing-lg);
-    border: 1px solid var(--wam-color-card-bg);
-    border-radius: var(--wam-radius-md);
-    margin: var(--wam-spacing-3xl) 0;
-    color: var(--wam-color-subtext);
-}
-
-.wam-prose .wp-block-quote p,
-.editor-styles-wrapper .wp-block-quote p {
-    color: var(--wam-color-subtext);
-}
-
-.wam-prose .wp-block-quote cite,
-.editor-styles-wrapper .wp-block-quote cite,
-.wam-prose .wp-block-quote footer,
-.editor-styles-wrapper .wp-block-quote footer {
-    font-size: var(--wam-font-size-xs);
-    color: var(--wam-color-disabled);
-    font-style: normal;
-    margin-top: var(--wam-spacing-sm);
-    display: block;
 }
 
 /* -------------------------------------------------------

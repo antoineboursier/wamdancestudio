@@ -3,16 +3,13 @@ const { createElement, Fragment } = wp.element;
 const { RichText, InnerBlocks, InspectorControls } = wp.blockEditor || wp.editor;
 const { PanelBody, RangeControl } = wp.components;
 
-/**
- * 1. Sous-bloc : Carte d'avis individuelle
- * Inclut désormais les micro-données Schema.org pour le SEO
- */
+// 1. Sous-bloc : Carte d'avis individuelle
 registerBlockType('wam/review-item', {
     title: 'Avis Individuel',
     parent: ['wam/reviews'],
     icon: 'format-quote',
     attributes: {
-        author: { type: 'string', source: 'html', selector: '.review-card__author' },
+        author: { type: 'string', source: 'html', selector: '.review-card__author span' },
         content: { type: 'string', source: 'html', selector: '.review-card__text' },
         rating: { type: 'number', default: 5 }
     },
@@ -38,7 +35,7 @@ registerBlockType('wam/review-item', {
                     value: attributes.content,
                     onChange: (val) => setAttributes({ content: val }),
                     placeholder: 'Le contenu de l\'avis...',
-                    multiline: 'p' // Permet de gérer les paragraphes (Entrée)
+                    multiline: 'p'
                 }),
                 createElement(RichText, {
                     tagName: 'cite',
@@ -52,13 +49,19 @@ registerBlockType('wam/review-item', {
     },
     save: function(props) {
         const { attributes } = props;
+        
+        // Si le contenu ET l'auteur sont vides, on ne génère aucun HTML pour le front-end
+        if (!attributes.content && !attributes.author) {
+            return null;
+        }
+
         return createElement('li', { role: 'listitem' },
             createElement('article', { 
                 className: 'review-card',
                 itemScope: true,
                 itemType: 'https://schema.org/Review'
             },
-                // SEO : On ajoute les données masquées pour Schema.org
+                // SEO Schema.org Rating
                 createElement('div', { 
                     itemProp: 'reviewRating', 
                     itemScope: true, 
@@ -109,8 +112,7 @@ registerBlockType('wam/reviews', {
     icon: 'star-filled',
     category: 'design',
     supports: {
-        anchor: true,
-        className: false // On désactive la classe automatique pour éviter les doublons
+        anchor: true
     },
     edit: function(props) {
         return createElement('div', { className: 'section-reviews' },

@@ -102,7 +102,12 @@ registerBlockType('wam/reviews', {
         );
     },
     save: function() {
-        // Le contenu généré par les InnerBlocks sera passé au render_callback PHP ($content)
-        return createElement(InnerBlocks.Content, {});
+        // En front-end, on génère la liste <ul> qui porte la grille CSS
+        return createElement('ul', { 
+            className: 'section-reviews__grid',
+            role: 'list'
+        }, 
+            createElement(InnerBlocks.Content, {})
+        );
     }
 });

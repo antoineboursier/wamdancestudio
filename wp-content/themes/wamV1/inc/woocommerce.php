@@ -399,18 +399,20 @@ function wamv1_validate_cart_integrity()
 // Quotas — Décompte automatique des places lors de la validation de commande
 // ============================================================================
 
-add_action('woocommerce_payment_complete', 'wamv1_decrement_course_quota_on_payment');
-add_action('woocommerce_order_status_processing', 'wamv1_decrement_course_quota_on_payment');
-add_action('woocommerce_order_status_completed', 'wamv1_decrement_course_quota_on_payment');
+// Décompte dès la création de la commande (avant paiement) pour bloquer les places
+// immédiatement et éviter la surréservation (ex : virement bancaire).
+add_action('woocommerce_checkout_order_created', 'wamv1_decrement_course_quota_on_payment');
 
 // Restauration des places si la commande est annulée, échouée ou remboursée
 add_action('woocommerce_order_status_cancelled', 'wamv1_restore_course_quota_on_cancellation');
 add_action('woocommerce_order_status_refunded', 'wamv1_restore_course_quota_on_cancellation');
 add_action('woocommerce_order_status_failed', 'wamv1_restore_course_quota_on_cancellation');
 
-function wamv1_decrement_course_quota_on_payment(int $order_id): void
+function wamv1_decrement_course_quota_on_payment( $order_or_id ): void
 {
-    $order = wc_get_order($order_id);
+    // Le hook woocommerce_checkout_order_created passe un objet WC_Order,
+    // les anciens hooks passaient un int. On supporte les deux.
+    $order = is_int( $order_or_id ) ? wc_get_order( $order_or_id ) : $order_or_id;
     if (!$order)
         return;
 
@@ -495,7 +497,7 @@ function wamv1_restore_course_quota_on_cancellation(int $order_id): void
             $grp = wamv1_stage_tarifs((int) $course_id);
             $reserve_key = 'quota_reserve_' . $tarif_idx;
             
-            $new_reserve = max(0, (int) ($grp[$reserve_key] ?? 0) - 1);
+            $new_reserve = max(0, (int) ($grp[$reserve_key] ?? 0) - $item->get_quantity());
             $grp[$reserve_key] = $new_reserve;
             update_field('tarifs', $grp, $course_id);
         }
@@ -567,10 +569,40 @@ function wamv1_ajax_add_to_cart(): void
     $added      = 0;
 
     if ($selections && is_array($selections)) {
+        // Récupérer les quotas du stage pour validation serveur
+        $grp_quota = $course_id ? (function_exists('wamv1_stage_tarifs') ? wamv1_stage_tarifs($course_id) : (get_field('tarifs', $course_id) ?: [])) : [];
+
         foreach ($selections as $sel) {
             $t_idx = absint($sel['tarif_index'] ?? 0);
             $qty   = absint($sel['qty'] ?? 0);
             if ($qty <= 0 || !$t_idx) continue;
+
+            // Validation quota côté serveur (protection contre contournement JS)
+            if ($course_id && !empty($grp_quota)) {
+                $total_key   = 'quota_tarif_'   . $t_idx;
+                $reserve_key = 'quota_reserve_' . $t_idx;
+                $total   = (int) ($grp_quota[$total_key]   ?? 0);
+                $reserve = (int) ($grp_quota[$reserve_key] ?? 0);
+
+                // Compter ce qui est déjà dans le panier pour ce stage + ce tarif
+                $en_panier = 0;
+                foreach (WC()->cart->get_cart() as $cart_item) {
+                    if (($cart_item['wam_course_id'] ?? 0) == $course_id
+                        && ($cart_item['wam_tarif_index'] ?? 0) == $t_idx) {
+                        $en_panier += $cart_item['quantity'];
+                    }
+                }
+
+                $dispo = $total > 0 ? max(0, $total - $reserve - $en_panier) : PHP_INT_MAX;
+
+                if ($qty > $dispo) {
+                    wp_send_json_error(['message' => sprintf(
+                        'Il ne reste que %d place(s) disponible(s) pour ce tarif.',
+                        $dispo
+                    )]);
+                }
+            }
+
             $cart_item_data = ['wam_tarif_index' => $t_idx];
             if ($course_id) $cart_item_data['wam_course_id'] = $course_id;
             if (WC()->cart->add_to_cart($product_id, $qty, 0, [], $cart_item_data)) {
@@ -694,173 +726,188 @@ add_action('init', function () {
 // 1. Ajouter les champs dans le formulaire (après la facturation)
 add_action('woocommerce_after_checkout_billing_form', 'wamv1_add_adherent_fields_to_checkout');
 
+// OG — refonte complète de l'affichage des champs checkout :
+// - stages  → toujours afficher les participants (1 fiche/place, index à partir de 1)
+// - cours   → logique Antoine inchangée (contact urgence, index à partir de 2)
+// - autres  → produits simples WC (carte cadeau, EVJF via Bookly...) : rien à afficher
 function wamv1_add_adherent_fields_to_checkout($checkout)
 {
-    if (WC()->cart->is_empty())
-        return;
+    if (WC()->cart->is_empty()) return;
 
     $items = WC()->cart->get_cart();
-    $cart_count = WC()->cart->get_cart_contents_count();
-    $is_solo = ($cart_count === 1);
 
-    // MODE SOLO RADICAL : Si 1 seul cours, pas de section adhérents (on utilise billing)
-    if ($is_solo) {
-        return;
+    // Séparer les items par type de CPT
+    $stage_items = [];
+    $cours_items = [];
+
+    foreach ($items as $key => $item) {
+        $cpt_id = $item['wam_course_id'] ?? null;
+        if (!$cpt_id) continue; // Produit WC simple (carte cadeau, formule mariage...) → rien
+        $type = get_post_type($cpt_id);
+        if ($type === 'stages')    $stage_items[$key] = $item;
+        elseif ($type === 'cours') $cours_items[$key] = $item;
     }
 
-    echo '<div id="wam-adherents-fields" class="wam-adherents-section mt-xl">';
-    echo '<h3 class="title-norm-sm color-green mb-md">Les adhérent·es</h3>';
+    // Section cours désactivée temporairement — logique à redéfinir.
+    $is_solo = true;
 
-    $index = 2;
+    // -------------------------------------------------------------------------
+    // STAGES — toujours afficher les champs participants, 1 fiche par place
+    // -------------------------------------------------------------------------
+    if (!empty($stage_items)) {
+        echo '<div id="wam-participants-stages" class="wam-adherents-section mt-xl">';
+        echo '<h3 class="title-norm-sm color-green mb-md">Les participants</h3>';
 
-    foreach ($items as $cart_item_key => $cart_item) {
-        $product = wc_get_product($cart_item['product_id']);
-        if (!$product)
-            continue;
+        $current_stage_id = null;
+        $index = 1;
+        foreach ($stage_items as $cart_item_key => $cart_item) {
+            $qty             = $cart_item['quantity'] ?? 1;
+            $cpt_id          = $cart_item['wam_course_id'];
+            $course_title    = get_the_title($cpt_id);
+            $course_subtitle = get_field('sous_titre', $cpt_id);
+            $tarif_label     = $cart_item['wam_tarif_label'] ?? '';
 
-        $product_name = $product->get_name();
-        $course_id = $cart_item['wam_course_id'] ?? null;
-        $course_title = $course_id ? get_the_title($course_id) : $product_name;
-        $course_subtitle = $course_id ? get_field('sous_titre', $course_id) : null;
-        $tarif_label = $cart_item['wam_tarif_label'] ?? '';
+            // Repartir à 1 à chaque nouveau stage
+            if ($cpt_id !== $current_stage_id) {
+                $index = 1;
+                $current_stage_id = $cpt_id;
+            }
 
-        // Détection auto du nombre de participants requis par le tarif
-        $nb_participants_base = 1;
-        $duo_keywords = ['duo', 'parent', 'enfant', 'accompagnant', 'couple', '2 personnes'];
-        foreach ($duo_keywords as $key) {
-            if (stripos($tarif_label, $key) !== false) {
-                $nb_participants_base = 2;
-                break;
+            for ($p = 1; $p <= $qty; $p++) {
+                $field_key_suffix = ($p > 1) ? "_p$p" : "";
+
+                echo '<div class="wam-adherent-group wam-adherent-card" data-stage-id="' . esc_attr($cpt_id) . '">';
+                echo '<div class="wam-adherent-card__header">';
+                echo '<p class="text-md mb-0">Participant·e ' . $index . '</p>';
+                echo '<div class="wam-adherent-card__course-info text-right">';
+                echo '<h4 class="text-md color-yellow fw-bold m-0">' . esc_html($course_title) . '</h4>';
+                if ($course_subtitle) echo '<p class="text-xs color-subtext m-0">' . esc_html($course_subtitle) . '</p>';
+                if ($tarif_label)     echo '<p class="text-sm color-green fw-bold mb-0">' . esc_html($tarif_label) . '</p>';
+                echo '</div></div>';
+
+                // Checkbox "Utiliser mes informations" sur chaque fiche — non pré-cochée
+                // car on ne sait pas quel participant est l'acheteur
+                // (ex: billet enfant en premier, ou 2 billets du même tarif)
+                echo '<p class="form-row form-row-wide wam-adherent-auto-fill mb-md">';
+                echo '<label class="woocommerce-form__label woocommerce-form__label-for-checkbox checkbox">';
+                echo '<input type="checkbox" class="wam-is-buyer-checkbox woocommerce-form__input woocommerce-form__input-checkbox input-checkbox" name="wam_is_buyer_' . $cart_item_key . $field_key_suffix . '" value="1" /> ';
+                echo '<span>Cette place est la mienne</span>';
+                echo '</label></p>';
+
+                echo '<div class="wam-adherent-card__fields">';
+
+                woocommerce_form_field('wam_prenom_eleve_' . $cart_item_key . $field_key_suffix, [
+                    'type' => 'text', 'class' => ['form-row-first validated'], 'label' => 'Prénom', 'required' => true,
+                ], $checkout->get_value('wam_prenom_eleve_' . $cart_item_key . $field_key_suffix));
+
+                woocommerce_form_field('wam_nom_eleve_' . $cart_item_key . $field_key_suffix, [
+                    'type' => 'text', 'class' => ['form-row-last validated'], 'label' => 'Nom', 'required' => true,
+                ], $checkout->get_value('wam_nom_eleve_' . $cart_item_key . $field_key_suffix));
+
+                echo '</div><div class="clear"></div></div>';
+                $index++;
             }
         }
 
-        // Multiplication par la quantité pour permettre l'inscription de plusieurs personnes
-        $qty = $cart_item['quantity'] ?? 1;
-        $total_p = $nb_participants_base * $qty;
+        echo '<div class="wam-rgpd-info mt-md">';
+        echo '<p class="text-xs color-subtext mb-xs">Les informations nominatives sont collectées exclusivement pour assurer le suivi et la sécurité des participant·es. Ces données sont conservées pour une durée maximale de 2 ans.</p>';
+        echo '<p class="text-xs color-subtext">L\'inscription aux stages WAM implique le consentement au droit à l\'image. Vous pouvez refuser l\'utilisation de votre image sur simple demande à <a href="mailto:contact@wamdancestudio.fr" class="color-yellow">contact@wamdancestudio.fr</a>.</p>';
+        echo '</div>';
+        echo '</div>'; // #wam-participants-stages
+    }
 
-        for ($p = 1; $p <= $total_p; $p++) {
-            $p_suffix = ($total_p > 1) ? " ($p)" : "";
-            
-            echo '<div class="wam-adherent-group wam-adherent-card">';
+    // -------------------------------------------------------------------------
+    // COURS — logique Antoine inchangée (contact urgence, index à partir de 2)
+    // -------------------------------------------------------------------------
+    if (!empty($cours_items) && !$is_solo) {
+        echo '<div id="wam-adherents-fields" class="wam-adherents-section mt-xl">';
+        echo '<h3 class="title-norm-sm color-green mb-md">Les adhérent·es</h3>';
 
-            echo '<div class="wam-adherent-card__header">';
-            $card_title = 'Participant·e ' . $index;
-            echo '<p class="text-md mb-0">' . $card_title . '</p>';
-            echo '<div class="wam-adherent-card__course-info text-right">';
-            echo '<h4 class="text-md color-yellow fw-bold m-0">' . esc_html($course_title) . '</h4>';
-            if ($course_subtitle) {
-                echo '<p class="text-xs color-subtext m-0">' . esc_html($course_subtitle) . '</p>';
-            }
-            if ($tarif_label) {
-                echo '<p class="text-sm color-green fw-bold mb-0">' . esc_html($tarif_label) . '</p>';
-            }
-            echo '</div>';
-            echo '</div>';
+        $index = 2;
 
-            // Checkbox d'auto-remplissage (uniquement pour le premier participant de chaque item)
-            if ($p === 1) {
-                echo '<p class="form-row form-row-wide wam-adherent-auto-fill mb-md">';
-                echo '<label class="woocommerce-form__label woocommerce-form__label-for-checkbox checkbox">';
-                $checked = ($is_solo && $p === 1) ? 'checked="checked"' : '';
-                echo '<input type="checkbox" class="wam-is-buyer-checkbox woocommerce-form__input woocommerce-form__input-checkbox input-checkbox" name="wam_is_buyer_' . $cart_item_key . '" value="1" ' . $checked . ' /> ';
-                echo '<span>Utiliser les informations de l\'adhérent·e principal·e</span>';
-                echo '</label>';
-                echo '</p>';
-            }
-            $index++;
+        foreach ($cours_items as $cart_item_key => $cart_item) {
+            $product = wc_get_product($cart_item['product_id']);
+            if (!$product) continue;
 
-            // Champs Prénom / Nom
-            $field_key_suffix = ($p > 1) ? "_p$p" : "";
-            $is_stage = wamv1_is_stage_item($cart_item);
+            $course_id       = $cart_item['wam_course_id'] ?? null;
+            $course_title    = $course_id ? get_the_title($course_id) : $product->get_name();
+            $course_subtitle = $course_id ? get_field('sous_titre', $course_id) : null;
+            $tarif_label     = $cart_item['wam_tarif_label'] ?? '';
+            $qty             = $cart_item['quantity'] ?? 1;
 
-            echo '<div class="wam-adherent-card__fields">';
+            for ($p = 1; $p <= $qty; $p++) {
+                $field_key_suffix = ($p > 1) ? "_p$p" : "";
 
-            woocommerce_form_field('wam_prenom_eleve_' . $cart_item_key . $field_key_suffix, [
-                'type' => 'text',
-                'class' => ['form-row-first validated'],
-                'label' => 'Prénom',
-                'required' => true,
-            ], $checkout->get_value('wam_prenom_eleve_' . $cart_item_key . $field_key_suffix));
+                echo '<div class="wam-adherent-group wam-adherent-card">';
+                echo '<div class="wam-adherent-card__header">';
+                echo '<p class="text-md mb-0">Participant·e ' . $index . '</p>';
+                echo '<div class="wam-adherent-card__course-info text-right">';
+                echo '<h4 class="text-md color-yellow fw-bold m-0">' . esc_html($course_title) . '</h4>';
+                if ($course_subtitle) echo '<p class="text-xs color-subtext m-0">' . esc_html($course_subtitle) . '</p>';
+                if ($tarif_label)     echo '<p class="text-sm color-green fw-bold mb-0">' . esc_html($tarif_label) . '</p>';
+                echo '</div></div>';
 
-            woocommerce_form_field('wam_nom_eleve_' . $cart_item_key . $field_key_suffix, [
-                'type' => 'text',
-                'class' => ['form-row-last validated'],
-                'label' => 'Nom',
-                'required' => true,
-            ], $checkout->get_value('wam_nom_eleve_' . $cart_item_key . $field_key_suffix));
+                if ($p === 1) {
+                    echo '<p class="form-row form-row-wide wam-adherent-auto-fill mb-md">';
+                    echo '<label class="woocommerce-form__label woocommerce-form__label-for-checkbox checkbox">';
+                    echo '<input type="checkbox" class="wam-is-buyer-checkbox woocommerce-form__input woocommerce-form__input-checkbox input-checkbox" name="wam_is_buyer_' . $cart_item_key . '" value="1" /> ';
+                    echo '<span>Utiliser les informations de l\'adhérent·e principal·e</span>';
+                    echo '</label></p>';
+                }
+                $index++;
 
-            if ($is_stage) {
-                // Pour les stages, on demande juste le téléphone en plus
-                woocommerce_form_field('wam_tel_participant_' . $cart_item_key . $field_key_suffix, [
-                    'type' => 'tel',
-                    'class' => ['form-row-wide validated'],
-                    'label' => 'Téléphone',
-                    'required' => true,
-                ], $checkout->get_value('wam_tel_participant_' . $cart_item_key . $field_key_suffix));
-            }
-
-            echo '</div>';
-            
-            if (!$is_stage) {
-                // Urgence 1 (Uniquement pour les cours)
-                echo '<div class="wam-emergency-block">';
-                echo '<p class="wam-emergency-block__title">Contact d\'urgence</p>';
                 echo '<div class="wam-adherent-card__fields">';
-                
+
+                woocommerce_form_field('wam_prenom_eleve_' . $cart_item_key . $field_key_suffix, [
+                    'type' => 'text', 'class' => ['form-row-first validated'], 'label' => 'Prénom', 'required' => true,
+                ], $checkout->get_value('wam_prenom_eleve_' . $cart_item_key . $field_key_suffix));
+
+                woocommerce_form_field('wam_nom_eleve_' . $cart_item_key . $field_key_suffix, [
+                    'type' => 'text', 'class' => ['form-row-last validated'], 'label' => 'Nom', 'required' => true,
+                ], $checkout->get_value('wam_nom_eleve_' . $cart_item_key . $field_key_suffix));
+
+                echo '</div>';
+
+                // Contact d'urgence (cours uniquement)
+                echo '<div class="wam-emergency-block"><p class="wam-emergency-block__title">Contact d\'urgence</p>';
+                echo '<div class="wam-adherent-card__fields">';
+
                 woocommerce_form_field('wam_urgent_name_1_' . $cart_item_key . $field_key_suffix, [
-                    'type' => 'text',
-                    'label' => 'Nom et prénom',
-                    'required' => true,
-                    'class' => ['form-row-first'],
+                    'type' => 'text', 'label' => 'Nom et prénom', 'required' => true, 'class' => ['form-row-first'],
                 ], $checkout->get_value('wam_urgent_name_1_' . $cart_item_key . $field_key_suffix));
 
                 woocommerce_form_field('wam_urgent_phone_1_' . $cart_item_key . $field_key_suffix, [
-                    'type' => 'tel',
-                    'label' => 'Téléphone',
-                    'required' => true,
-                    'class' => ['form-row-last'],
+                    'type' => 'tel', 'label' => 'Téléphone', 'required' => true, 'class' => ['form-row-last'],
                 ], $checkout->get_value('wam_urgent_phone_1_' . $cart_item_key . $field_key_suffix));
-                
-                echo '</div>';
-                echo '</div>';
 
-                // Urgence 2 (Optionnel pour Mineurs - Cours uniquement)
+                echo '</div></div>';
+
                 $is_minor = has_term(['enfants', 'ados'], 'product_cat', $cart_item['product_id']);
                 if ($is_minor) {
-                    echo '<div class="wam-emergency-block">';
-                    echo '<p class="wam-emergency-block__title">Second contact d\'urgence (Optionnel)</p>';
+                    echo '<div class="wam-emergency-block"><p class="wam-emergency-block__title">Second contact d\'urgence (Optionnel)</p>';
                     echo '<div class="wam-adherent-card__fields">';
-                    
+
                     woocommerce_form_field('wam_urgent_name_2_' . $cart_item_key . $field_key_suffix, [
-                        'type' => 'text',
-                        'label' => 'Nom et prénom',
-                        'required' => false,
-                        'class' => ['form-row-first'],
+                        'type' => 'text', 'label' => 'Nom et prénom', 'required' => false, 'class' => ['form-row-first'],
                     ], $checkout->get_value('wam_urgent_name_2_' . $cart_item_key . $field_key_suffix));
 
                     woocommerce_form_field('wam_urgent_phone_2_' . $cart_item_key . $field_key_suffix, [
-                        'type' => 'tel',
-                        'label' => 'Téléphone',
-                        'required' => false,
-                        'class' => ['form-row-last'],
+                        'type' => 'tel', 'label' => 'Téléphone', 'required' => false, 'class' => ['form-row-last'],
                     ], $checkout->get_value('wam_urgent_phone_2_' . $cart_item_key . $field_key_suffix));
-                    
-                    echo '</div>';
-                    echo '</div>';
+
+                    echo '</div></div>';
                 }
+
+                echo '<div class="clear"></div></div>';
             }
-
-            echo '<div class="clear"></div>';
-            echo '</div>';
         }
+
+        echo '<div class="wam-rgpd-info mt-md">';
+        echo '<p class="text-xs color-subtext mb-xs">Les informations nominatives et les contacts d\'urgence sont collectés exclusivement pour assurer le suivi pédagogique et la sécurité des participant·es pendant les cours. Ces données sont conservées pour une durée maximale de 2 ans.</p>';
+        echo '<p class="text-xs color-subtext">L\'inscription aux cours ou stages WAM implique le consentement au droit à l\'image. Vous pouvez toutefois refuser l\'utilisation de votre image (ou celle de votre enfant) sur simple demande à <a href="mailto:contact@wamdancestudio.fr" class="color-yellow">contact@wamdancestudio.fr</a>.</p>';
+        echo '</div>';
+        echo '</div>'; // #wam-adherents-fields
     }
-
-    echo '<div class="wam-rgpd-info mt-md">';
-    echo '<p class="text-xs color-subtext mb-xs">Les informations nominatives et les contacts d\'urgence sont collectés exclusivement pour assurer le suivi pédagogique et la sécurité des participant·es pendant les cours. Ces données sont conservées pour une durée maximale de 2 ans.</p>';
-    echo '<p class="text-xs color-subtext">L\'inscription aux cours ou stages WAM implique le consentement au droit à l\'image. Vous pouvez toutefois refuser l\'utilisation de votre image (ou celle de votre enfant) sur simple demande à <a href="mailto:contact@wamdancestudio.fr" class="color-yellow">contact@wamdancestudio.fr</a>.</p>';
-    echo '</div>';
-
-    echo '</div>'; // #wam-adherents-fields
 }
 
 // 2. JS Auto-remplissage et CSS Checkout
@@ -912,12 +959,26 @@ function wamv1_checkout_scripts()
             };
 
             checkboxes.forEach(checkbox => {
-                // État initial (pour le mode solo auto-coché)
+                // État initial
                 if (checkbox.checked) {
-                    setTimeout(() => syncFields(checkbox), 100); // Petit délai pour laisser WC peupler billing
+                    setTimeout(() => syncFields(checkbox), 100);
                 }
 
                 checkbox.addEventListener('change', function () {
+                    if (this.checked) {
+                        // Décocher les autres cases du MÊME stage uniquement
+                        // (on peut participer à plusieurs stages différents)
+                        const thisStageId = this.closest('.wam-adherent-card')?.dataset.stageId;
+                        checkboxes.forEach(other => {
+                            if (other !== this && other.checked) {
+                                const otherStageId = other.closest('.wam-adherent-card')?.dataset.stageId;
+                                if (otherStageId === thisStageId) {
+                                    other.checked = false;
+                                    syncFields(other);
+                                }
+                            }
+                        });
+                    }
                     syncFields(this);
                 });
 
@@ -965,154 +1026,144 @@ function wamv1_checkout_scripts()
 }
 
 // 3. Validation des champs d'adhérents WAM
+// OG — refonte complète, symétrique avec l'affichage :
+// - stages  → toujours valider (même 1 seule place), index à partir de 1
+// - cours   → valider uniquement si multi (logique Antoine inchangée), index à partir de 2
+// - autres  → rien à valider ici
 add_action('woocommerce_checkout_process', 'wamv1_validate_adherent_fields');
 
 function wamv1_validate_adherent_fields()
 {
-    $items = WC()->cart->get_cart();
-    $cart_count = WC()->cart->get_cart_contents_count();
-    $is_solo = ($cart_count === 1);
-    $has_only_stages = wamv1_cart_has_only_stages();
+    if (WC()->cart->is_empty()) return;
 
-    // 1. Validation du contact d'urgence Billing (Uniquement si pas que des stages)
-    if (!$has_only_stages) {
+    $items      = WC()->cart->get_cart();
+    $cart_count = WC()->cart->get_cart_contents_count();
+    $is_solo    = ($cart_count === 1);
+
+    $stage_items = [];
+    $cours_items = [];
+
+    foreach ($items as $key => $item) {
+        $cpt_id = $item['wam_course_id'] ?? null;
+        if (!$cpt_id) continue;
+        $type = get_post_type($cpt_id);
+        if ($type === 'stages')    $stage_items[$key] = $item;
+        elseif ($type === 'cours') $cours_items[$key] = $item;
+    }
+
+    // Contact d'urgence billing — requis uniquement si le panier contient des cours
+    if (!empty($cours_items)) {
         if (empty($_POST['billing_urgent_name'])) {
-            wc_add_notice('Le contact d\'urgence pour l\'adhérent·e principal·e est obligatoire.', 'error');
+            wc_add_notice('Le contact d\'urgence est obligatoire.', 'error');
         }
         if (empty($_POST['billing_urgent_phone'])) {
-            wc_add_notice('Le téléphone du contact d\'urgence pour l\'adhérent·e principal·e est obligatoire.', 'error');
+            wc_add_notice('Le téléphone du contact d\'urgence est obligatoire.', 'error');
         } elseif (!preg_match('/^[0-9\s\.\-\+\(\)]+$/', $_POST['billing_urgent_phone'])) {
-            wc_add_notice('Le numéro de téléphone d\'urgence (adhérent·e principal·e) n\'est pas valide.', 'error');
+            wc_add_notice('Le numéro de téléphone du contact d\'urgence n\'est pas valide.', 'error');
         }
     }
 
-    // 2. Validation des participants (si multi)
-    if ($is_solo) return;
+    // STAGES — toujours valider, même en solo, index à partir de 1
+    $index = 1;
+    foreach ($stage_items as $cart_item_key => $cart_item) {
+        $qty          = $cart_item['quantity'] ?? 1;
+        $course_id    = $cart_item['wam_course_id'] ?? null;
+        $course_title = $course_id ? get_the_title($course_id) : '';
+
+        for ($p = 1; $p <= $qty; $p++) {
+            $suffix    = ($p > 1) ? "_p$p" : "";
+            $item_desc = '<strong>Participant·e ' . $index . '</strong> (' . esc_html($course_title) . ')';
+
+            if (empty($_POST['wam_prenom_eleve_' . $cart_item_key . $suffix])) wc_add_notice('Le prénom pour ' . $item_desc . ' est obligatoire.', 'error');
+            if (empty($_POST['wam_nom_eleve_'   . $cart_item_key . $suffix])) wc_add_notice('Le nom pour '    . $item_desc . ' est obligatoire.', 'error');
+            $index++;
+        }
+    }
+
+    // COURS — valider uniquement si multi, index à partir de 2
+    if ($is_solo || empty($cours_items)) return;
 
     $index = 2;
-    foreach ($items as $cart_item_key => $cart_item) {
-        $product = wc_get_product($cart_item['product_id']);
-        if (!$product)
-            continue;
-
-        $is_stage = wamv1_is_stage_item($cart_item);
-        $course_id = $cart_item['wam_course_id'] ?? null;
-        $course_title = $course_id ? get_the_title($course_id) : $product->get_name();
+    foreach ($cours_items as $cart_item_key => $cart_item) {
+        $qty             = $cart_item['quantity'] ?? 1;
+        $course_id       = $cart_item['wam_course_id'] ?? null;
+        $course_title    = $course_id ? get_the_title($course_id) : '';
         $course_subtitle = $course_id ? get_field('sous_titre', $course_id) : null;
-        $tarif_label = $cart_item['wam_tarif_label'] ?? '';
 
-        $nb_participants_base = 1;
-        $duo_keywords = ['duo', 'parent', 'enfant', 'accompagnant', 'couple', '2 personnes'];
-        foreach ($duo_keywords as $key) {
-            if (stripos($tarif_label, $key) !== false) {
-                $nb_participants_base = 2;
-                break;
-            }
-        }
+        for ($p = 1; $p <= $qty; $p++) {
+            $suffix    = ($p > 1) ? "_p$p" : "";
+            $item_desc = '<strong>Participant·e ' . $index . '</strong> (' . esc_html($course_title) . ($course_subtitle ? ' — ' . esc_html($course_subtitle) : '') . ')';
 
-        $qty = $cart_item['quantity'] ?? 1;
-        $total_p = $nb_participants_base * $qty;
+            if (empty($_POST['wam_prenom_eleve_' . $cart_item_key . $suffix])) wc_add_notice('Le prénom pour ' . $item_desc . ' est obligatoire.', 'error');
+            if (empty($_POST['wam_nom_eleve_'   . $cart_item_key . $suffix])) wc_add_notice('Le nom pour '    . $item_desc . ' est obligatoire.', 'error');
 
-        for ($p = 1; $p <= $total_p; $p++) {
-            $field_key_suffix = ($p > 1) ? "_p$p" : "";
-            $item_desc = '<strong>Participant·e ' . $index . '</strong> (' . $course_title . ($course_subtitle ? ' — ' . $course_subtitle : '') . ')';
+            $u1_name_key  = 'wam_urgent_name_1_'  . $cart_item_key . $suffix;
+            $u1_phone_key = 'wam_urgent_phone_1_' . $cart_item_key . $suffix;
 
-            if (empty($_POST['wam_prenom_eleve_' . $cart_item_key . $field_key_suffix])) {
-                wc_add_notice('Le prénom pour ' . $item_desc . ' est obligatoire.', 'error');
-            }
-            if (empty($_POST['wam_nom_eleve_' . $cart_item_key . $field_key_suffix])) {
-                wc_add_notice('Le nom pour ' . $item_desc . ' est obligatoire.', 'error');
-            }
-
-            if ($is_stage) {
-                if (empty($_POST['wam_tel_participant_' . $cart_item_key . $field_key_suffix])) {
-                    wc_add_notice('Le téléphone pour ' . $item_desc . ' est obligatoire.', 'error');
-                }
-            } else {
-                $u1_name_key = 'wam_urgent_name_1_' . $cart_item_key . $field_key_suffix;
-                $u1_phone_key = 'wam_urgent_phone_1_' . $cart_item_key . $field_key_suffix;
-
-                if (empty($_POST[$u1_name_key])) {
-                    wc_add_notice('Le nom du contact d\'urgence 1 pour ' . $item_desc . ' est obligatoire.', 'error');
-                }
-                if (empty($_POST[$u1_phone_key])) {
-                    wc_add_notice('Le téléphone du contact d\'urgence 1 pour ' . $item_desc . ' est obligatoire.', 'error');
-                } elseif (!preg_match('/^[0-9\s\.\-\+\(\)]+$/', $_POST[$u1_phone_key])) {
-                    wc_add_notice('Le numéro de téléphone pour ' . $item_desc . ' n\'est pas valide.', 'error');
-                }
-            }
+            if (empty($_POST[$u1_name_key]))  wc_add_notice('Le nom du contact d\'urgence pour '       . $item_desc . ' est obligatoire.', 'error');
+            if (empty($_POST[$u1_phone_key])) wc_add_notice('Le téléphone du contact d\'urgence pour ' . $item_desc . ' est obligatoire.', 'error');
+            elseif (!preg_match('/^[0-9\s\.\-\+\(\)]+$/', $_POST[$u1_phone_key])) wc_add_notice('Le numéro de téléphone pour ' . $item_desc . ' n\'est pas valide.', 'error');
             $index++;
         }
     }
 }
 
 // 4. Mettre les Méta-données sur CHAQUE Ligne de Commande (Item)
+// OG — stages lisent TOUJOURS depuis les champs formulaire (jamais billing), même en solo.
+//      Cours : billing en solo, formulaire en multi (logique Antoine inchangée).
 add_action('woocommerce_checkout_create_order_line_item', 'wamv1_save_adherent_to_order_items', 20, 4);
 
 function wamv1_save_adherent_to_order_items($item, $cart_item_key, $values, $order)
 {
     $cart_count = WC()->cart->get_cart_contents_count();
-    $is_solo = ($cart_count === 1);
-    $is_stage = wamv1_is_stage_item($values);
+    $is_solo    = ($cart_count === 1);
+    $is_stage   = wamv1_is_stage_item($values);
 
-    if ($is_solo) {
-        // En mode solo, on tire les infos directement de la facturation (billing)
-        $item->add_meta_data('Prénom', sanitize_text_field($_POST['billing_first_name'] ?? ''), true);
-        $item->add_meta_data('Nom', sanitize_text_field($_POST['billing_last_name'] ?? ''), true);
-        
-        if ($is_stage) {
-            $item->add_meta_data('Téléphone', sanitize_text_field($_POST['billing_phone'] ?? ''), true);
-        } else {
-            $item->add_meta_data('Urgence 1 - Nom', sanitize_text_field($_POST['billing_urgent_name'] ?? ''), true);
-            $item->add_meta_data('Urgence 1 - Tél', sanitize_text_field($_POST['billing_urgent_phone'] ?? ''), true);
-        }
-    } else {
-        // Mode Multi-participants
-        // Note: WC appelle ce hook pour CHAQUE item de commande.
-        // On récupère le nombre de participants pour CET item.
-        $tarif_label = $values['wam_tarif_label'] ?? '';
-        $nb_participants_base = 1;
-        $duo_keywords = ['duo', 'parent', 'enfant', 'accompagnant', 'couple', '2 personnes'];
-        foreach ($duo_keywords as $key) {
-            if (stripos($tarif_label, $key) !== false) {
-                $nb_participants_base = 2;
-                break;
-            }
-        }
-
+    if ($is_stage) {
+        // STAGE — toujours lire depuis les champs participants du formulaire
         $qty = $values['quantity'] ?? 1;
-        $total_p = $nb_participants_base * $qty;
+        for ($p = 1; $p <= $qty; $p++) {
+            $suffix      = ($p > 1) ? "_p$p" : "";
+            $meta_prefix = ($qty > 1) ? "P$p - " : "";
+
+            $prenom_key = 'wam_prenom_eleve_' . $cart_item_key . $suffix;
+            $nom_key    = 'wam_nom_eleve_'    . $cart_item_key . $suffix;
+
+            if (isset($_POST[$prenom_key])) $item->add_meta_data($meta_prefix . 'Prénom', sanitize_text_field($_POST[$prenom_key]), true);
+            if (isset($_POST[$nom_key]))    $item->add_meta_data($meta_prefix . 'Nom',    sanitize_text_field($_POST[$nom_key]),    true);
+        }
+
+    } elseif ($is_solo) {
+        // COURS / autre, solo — infos depuis la facturation
+        $item->add_meta_data('Prénom',          sanitize_text_field($_POST['billing_first_name']   ?? ''), true);
+        $item->add_meta_data('Nom',             sanitize_text_field($_POST['billing_last_name']    ?? ''), true);
+        $item->add_meta_data('Urgence 1 - Nom', sanitize_text_field($_POST['billing_urgent_name']  ?? ''), true);
+        $item->add_meta_data('Urgence 1 - Tél', sanitize_text_field($_POST['billing_urgent_phone'] ?? ''), true);
+
+    } else {
+        // COURS / autre, multi — lire depuis les champs formulaire
+        $qty     = $values['quantity'] ?? 1;
+        $total_p = $qty;
 
         for ($p = 1; $p <= $total_p; $p++) {
-            $suffix = ($p > 1) ? "_p$p" : "";
+            $suffix      = ($p > 1) ? "_p$p" : "";
             $meta_prefix = ($total_p > 1) ? "P$p - " : "";
 
             $prenom_key = 'wam_prenom_eleve_' . $cart_item_key . $suffix;
-            $nom_key = 'wam_nom_eleve_' . $cart_item_key . $suffix;
-            
-            if (isset($_POST[$prenom_key])) {
-                $item->add_meta_data($meta_prefix . 'Prénom', sanitize_text_field($_POST[$prenom_key]), true);
-            }
-            if (isset($_POST[$nom_key])) {
-                $item->add_meta_data($meta_prefix . 'Nom', sanitize_text_field($_POST[$nom_key]), true);
-            }
+            $nom_key    = 'wam_nom_eleve_'    . $cart_item_key . $suffix;
 
-            if ($is_stage) {
-                $tel_key = 'wam_tel_participant_' . $cart_item_key . $suffix;
-                if (isset($_POST[$tel_key])) {
-                    $item->add_meta_data($meta_prefix . 'Téléphone', sanitize_text_field($_POST[$tel_key]), true);
-                }
-            } else {
-                $u1_n = 'wam_urgent_name_1_' . $cart_item_key . $suffix;
-                $u1_t = 'wam_urgent_phone_1_' . $cart_item_key . $suffix;
-                $u2_n = 'wam_urgent_name_2_' . $cart_item_key . $suffix;
-                $u2_t = 'wam_urgent_phone_2_' . $cart_item_key . $suffix;
+            if (isset($_POST[$prenom_key])) $item->add_meta_data($meta_prefix . 'Prénom', sanitize_text_field($_POST[$prenom_key]), true);
+            if (isset($_POST[$nom_key]))    $item->add_meta_data($meta_prefix . 'Nom',    sanitize_text_field($_POST[$nom_key]),    true);
 
-                if (isset($_POST[$u1_n])) $item->add_meta_data($meta_prefix . 'Urgence 1 - Nom', sanitize_text_field($_POST[$u1_n]), true);
-                if (isset($_POST[$u1_t])) $item->add_meta_data($meta_prefix . 'Urgence 1 - Tél', sanitize_text_field($_POST[$u1_t]), true);
-                if (isset($_POST[$u2_n])) $item->add_meta_data($meta_prefix . 'Urgence 2 - Nom', sanitize_text_field($_POST[$u2_n]), true);
-                if (isset($_POST[$u2_t])) $item->add_meta_data($meta_prefix . 'Urgence 2 - Tél', sanitize_text_field($_POST[$u2_t]), true);
-            }
+            $u1_n = 'wam_urgent_name_1_'  . $cart_item_key . $suffix;
+            $u1_t = 'wam_urgent_phone_1_' . $cart_item_key . $suffix;
+            $u2_n = 'wam_urgent_name_2_'  . $cart_item_key . $suffix;
+            $u2_t = 'wam_urgent_phone_2_' . $cart_item_key . $suffix;
+
+            if (isset($_POST[$u1_n])) $item->add_meta_data($meta_prefix . 'Urgence 1 - Nom', sanitize_text_field($_POST[$u1_n]), true);
+            if (isset($_POST[$u1_t])) $item->add_meta_data($meta_prefix . 'Urgence 1 - Tél', sanitize_text_field($_POST[$u1_t]), true);
+            if (isset($_POST[$u2_n])) $item->add_meta_data($meta_prefix . 'Urgence 2 - Nom', sanitize_text_field($_POST[$u2_n]), true);
+            if (isset($_POST[$u2_t])) $item->add_meta_data($meta_prefix . 'Urgence 2 - Tél', sanitize_text_field($_POST[$u2_t]), true);
         }
     }
 
@@ -1163,6 +1214,20 @@ function wamv1_save_billing_emergency_to_order_meta($order_id) {
     if (!empty($_POST['billing_urgent_phone'])) {
         update_post_meta($order_id, 'Contact Urgence - Tél', sanitize_text_field($_POST['billing_urgent_phone']));
     }
+}
+
+/**
+ * Vérifie si le panier contient au moins un cours (CPT 'cours')
+ */
+function wamv1_cart_has_cours() {
+    if (!WC()->cart) return false;
+    foreach (WC()->cart->get_cart() as $item) {
+        $course_id = $item['wam_course_id'] ?? null;
+        if ($course_id && get_post_type($course_id) === 'cours') {
+            return true;
+        }
+    }
+    return false;
 }
 
 /**
@@ -1255,7 +1320,7 @@ function wamv1_simplify_billing_fields($fields)
  */
 add_action('woocommerce_after_checkout_billing_form', 'wamv1_add_billing_emergency_block', 5);
 function wamv1_add_billing_emergency_block($checkout) {
-    if (wamv1_cart_has_only_stages()) {
+    if (!wamv1_cart_has_cours()) {
         return;
     }
     echo '<div class="wam-emergency-block">';
@@ -1334,10 +1399,11 @@ function wamv1_rename_checkout_title($title, $id = null)
 // 3. Déplacer le module de paiement hors du récapitulatif (on l'appelle manuellement dans form-checkout.php)
 remove_action('woocommerce_checkout_order_review', 'woocommerce_checkout_payment', 20);
 
-// Renommage du titre de facturation (Détails de facturation -> Adhérent·e principal·e)
+// OG — vu avec Charlotte : le payeur n'est pas forcément adhérent.
+// "Adhérent·e principal·e" ne convient pas pour tous les types de réservation. Terme générique.
 add_filter('gettext', function ($translated_text, $text, $domain) {
     if ($domain === 'woocommerce' && ($text === 'Billing details')) {
-        return 'Adhérent·e principal·e';
+        return 'Vos coordonnées';
     }
     return $translated_text;
 }, 20, 3);

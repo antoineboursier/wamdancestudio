@@ -58,10 +58,9 @@ if (!empty($args['block_attributes']['anchor'])) {
     <div class="section-reviews__slider-container">
         <?php 
         // Si on vient d'un bloc Gutenberg avec des InnerBlocks, on affiche le contenu
-        if ( !empty($args['content']) ) {
+        if ( !empty($args['content']) ) :
             // IMPORTANT: le contenu généré par wp_kses_post peut parfois casser le HTML complexe, on l'affiche directement car il vient de l'éditeur sécurisé
             echo $args['content']; 
-        } 
         // Sinon (ex: page d'accueil), on affiche la boucle par défaut
         else : ?>
             <ul class="section-reviews__grid" role="list">

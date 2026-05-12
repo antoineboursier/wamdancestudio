@@ -3,7 +3,10 @@ const { createElement, Fragment } = wp.element;
 const { RichText, InnerBlocks, InspectorControls } = wp.blockEditor || wp.editor;
 const { PanelBody, RangeControl } = wp.components;
 
-// 1. Sous-bloc : Carte d'avis individuelle
+/**
+ * 1. Sous-bloc : Carte d'avis individuelle
+ * Inclut désormais les micro-données Schema.org pour le SEO
+ */
 registerBlockType('wam/review-item', {
     title: 'Avis Individuel',
     parent: ['wam/reviews'],
@@ -34,7 +37,8 @@ registerBlockType('wam/review-item', {
                     className: 'review-card__text',
                     value: attributes.content,
                     onChange: (val) => setAttributes({ content: val }),
-                    placeholder: 'Le contenu de l\'avis...'
+                    placeholder: 'Le contenu de l\'avis...',
+                    multiline: 'p' // Permet de gérer les paragraphes (Entrée)
                 }),
                 createElement(RichText, {
                     tagName: 'cite',
@@ -49,19 +53,42 @@ registerBlockType('wam/review-item', {
     save: function(props) {
         const { attributes } = props;
         return createElement('li', { role: 'listitem' },
-            createElement('article', { className: 'review-card' },
+            createElement('article', { 
+                className: 'review-card',
+                itemScope: true,
+                itemType: 'https://schema.org/Review'
+            },
+                // SEO : On ajoute les données masquées pour Schema.org
+                createElement('div', { 
+                    itemProp: 'reviewRating', 
+                    itemScope: true, 
+                    itemType: 'https://schema.org/Rating',
+                    style: { display: 'none' }
+                },
+                    createElement('meta', { itemProp: 'ratingValue', content: attributes.rating }),
+                    createElement('meta', { itemProp: 'bestRating', content: '5' })
+                ),
+                
                 createElement('div', { className: 'review-card__stars', 'aria-hidden': 'true' }, '★'.repeat(attributes.rating) + '☆'.repeat(5 - attributes.rating)),
                 createElement('span', { className: 'screen-reader-text' }, `Note : ${attributes.rating} sur 5`),
+                
                 createElement(RichText.Content, {
                     tagName: 'blockquote',
                     className: 'review-card__text',
+                    itemProp: 'reviewBody',
                     value: attributes.content
                 }),
-                createElement(RichText.Content, {
-                    tagName: 'cite',
+                
+                createElement('cite', { 
                     className: 'review-card__author text-xs',
-                    value: attributes.author
-                })
+                    itemProp: 'author',
+                    itemScope: true,
+                    itemType: 'https://schema.org/Person'
+                },
+                    createElement('span', { itemProp: 'name' }, 
+                        createElement(RichText.Content, { value: attributes.author })
+                    )
+                )
             )
         );
     }
@@ -82,10 +109,10 @@ registerBlockType('wam/reviews', {
     icon: 'star-filled',
     category: 'design',
     supports: {
-        anchor: true
+        anchor: true,
+        className: false // On désactive la classe automatique pour éviter les doublons
     },
     edit: function(props) {
-        // En admin, on affiche juste la grille sans le badge Google ni le lien (selon la demande)
         return createElement('div', { className: 'section-reviews' },
             createElement('div', { className: 'section-reviews__header' },
                 createElement('h2', { className: 'title-sign-md color-pink' }, 'C\'est vous qui le dites...')
@@ -95,14 +122,13 @@ registerBlockType('wam/reviews', {
                     createElement(InnerBlocks, {
                         allowedBlocks: ['wam/review-item'],
                         template: TEMPLATE,
-                        templateLock: false // Permet d'ajouter ou supprimer des avis si besoin
+                        templateLock: false
                     })
                 )
             )
         );
     },
     save: function() {
-        // En front-end, on génère la liste <ul> qui porte la grille CSS
         return createElement('ul', { 
             className: 'section-reviews__grid',
             role: 'list'

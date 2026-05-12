@@ -129,18 +129,18 @@
 }
 
 /* Dans l'éditeur, on annule la grille sur le parent pour ne la garder que sur le layout interne */
-.editor-styles-wrapper .section-reviews__grid {
-    display: block;
+:where(.editor-styles-wrapper) .section-reviews__grid {
+    display: block !important;
 }
 
-.section-reviews__grid .block-editor-inner-blocks>.block-editor-block-list__layout {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: var(--wam-spacing-xl);
+:where(.editor-styles-wrapper) .section-reviews__grid .block-editor-inner-blocks > .block-editor-block-list__layout {
+    display: grid !important;
+    grid-template-columns: repeat(3, 1fr) !important;
+    gap: var(--wam-spacing-xl) !important;
 }
 
-.section-reviews__grid .block-editor-inner-blocks>.block-editor-block-list__layout>.wp-block {
-    height: 100%;
+:where(.editor-styles-wrapper) .section-reviews__grid .block-editor-inner-blocks > .block-editor-block-list__layout > .wp-block {
+    height: 100% !important;
 }
 
 .review-card {

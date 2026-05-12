@@ -31,11 +31,11 @@ $sub_src = esc_url($icon_dir . 'dancestudio_header.svg');
 
         <?php if (!$is_home): ?>
             <a href="<?php echo esc_url(home_url('/')); ?>" class="wam-header__logo-link">
-                <img src="<?php echo $logo_src; ?>" alt="WAM Dance Studio" class="wam-header__logo" width="120" height="55">
+                <img src="<?php echo esc_url($logo_src); ?>" alt="WAM Dance Studio" class="wam-header__logo" width="120" height="55">
             </a>
 
             <div class="wam-header__right">
-                <img src="<?php echo $sub_src; ?>" alt="Dance Studio" class="wam-header__logo-subtitle" width="140" height="14">
+                <img src="<?php echo esc_url($sub_src); ?>" alt="Dance Studio" class="wam-header__logo-subtitle" width="140" height="14">
 
                 <?php if (class_exists('WooCommerce')): ?>
                 <?php 

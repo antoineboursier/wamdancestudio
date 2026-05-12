@@ -293,9 +293,9 @@ $icon_dir       = get_template_directory_uri() . '/assets/images/';
         </div>
 
         <?php /* ── Bas de page — mentions légales ── */ ?>
-        <div class="wam-footer__partners" style="margin-bottom: 1.5rem;">
+        <div class="wam-footer__partners">
             <a rel='nofollow' href='https://www.mariages.net' title='Mariages.net' target="_blank">
-                <img alt='Mariages.net' src='https://www.mariages.net/images/sellos/label-partenaire--pp421197.png' style='border-width:0px; width: 120px; height: auto;' />
+                <img alt='Mariages.net' src='https://www.mariages.net/images/sellos/label-partenaire--pp421197.png' />
             </a>
         </div>
 

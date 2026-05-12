@@ -217,6 +217,12 @@ body.single-post #section-article-header.page-hero {
 }
 
 /* Titre — structure uniquement, typographie portée par is-style-* ou classes utilitaires */
+.page-hero__pre-title {
+    display: block;
+    margin-bottom: var(--wam-spacing-md);
+    font-family: var(--wam-font-body);
+}
+
 .page-hero__title {
     color: var(--wam-color-text);
     width: 100%;

@@ -28,7 +28,7 @@ if (!function_exists('wamv1_enqueue_accessibility')):
             $ver
         );
         wp_enqueue_script(
-            'wamv1-accessibility',
+            'wamv1-accessibility-js', // handle distinct du CSS (wamv1-accessibility) pour éviter collision
             get_template_directory_uri() . '/assets/js/accessibility.js',
             array(),
             $ver,

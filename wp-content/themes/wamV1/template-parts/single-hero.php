@@ -27,6 +27,8 @@ $show_reading_time = $args['show_reading_time'] ?? false;
 $image_size       = $args['image_size']        ?? 'wam-page-thumbnail';
 $image_modifier   = $args['image_modifier']    ?? '';
 
+$pre_title        = $args['pre_title']         ?? '';
+
 $content_class = 'page-hero__content' . ($content_modifier ? ' page-hero__content--' . $content_modifier : '');
 $image_class   = 'page-hero__image'   . ($image_modifier   ? ' page-hero__image--'   . $image_modifier   : '');
 
@@ -40,6 +42,9 @@ $reading_time = ($show_reading_time && function_exists('wamv1_get_reading_time')
     <div class="<?php echo esc_attr($content_class); ?>">
 
         <h1 class="page-hero__title <?php echo esc_attr($title_class); ?>">
+            <?php if ($pre_title) : ?>
+                <span class="page-hero__pre-title color-subtext text-lg"><?php echo wp_kses_post($pre_title); ?></span>
+            <?php endif; ?>
             <?php the_title(); ?>
         </h1>
 

@@ -200,7 +200,7 @@ get_header();
                 <div class="planning-corner" aria-hidden="true"></div>
 
                 <!-- Séparateur weekend : ligne pointillée à gauche du samedi -->
-                <div class="planning-col-weekend" style="grid-column: 7; grid-row: 1 / -1;" aria-hidden="true"></div>
+                <div class="planning-col-weekend" aria-hidden="true"></div>
 
                 <!-- En-têtes jours (colonnes 2-8) — positionnés explicitement pour éviter
                      tout conflit avec les divs de fond (planning-col-weekend) -->
@@ -254,7 +254,7 @@ get_header();
                 <?php endforeach; ?>
 
                 <?php if ( empty( $planning_items ) ) : ?>
-                    <p class="planning-empty text-sm color-subtext" style="grid-column: 2 / -1; grid-row: 2 / 8;">
+                    <p class="planning-empty text-sm color-subtext">
                         Aucun cours planifié pour le moment.
                     </p>
                 <?php endif; ?>

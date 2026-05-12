@@ -94,9 +94,11 @@ do_action('woocommerce_before_cart');
                             <div class="wam-cart-card__body">
 
                                 <!-- Badge (nom du produit WC) -->
-                                <span class="wam-cart-card__badge text-xs">
-                                    <?php echo esc_html($_product->get_name()); ?>
-                                </span>
+                                <?php if (!isset($cart_item['bookly'])): ?>
+                                    <span class="wam-cart-card__badge text-xs">
+                                        <?php echo esc_html($_product->get_name()); ?>
+                                    </span>
+                                <?php endif; ?>
 
                                 <!-- Titre : cours WAM si dispo, sinon nom produit -->
                                 <div class="wam-cart-card__title-row mt-2xs">
@@ -159,8 +161,8 @@ do_action('woocommerce_before_cart');
                                 <div class="wam-cart-card__footer">
 
 
-                                    <!-- Quantité (masquée pour les réservations Bookly) -->
-                                    <?php if (!isset($cart_item['bookly'])): ?>
+                                    <!-- Quantité (masquée pour les réservations Bookly et les Cours WAM) -->
+                                    <?php if (!isset($cart_item['bookly']) && !$course_id): ?>
                                     <div class="wam-cart-card__qty product-quantity">
                                         <button type="button" class="wam-qty-btn minus" aria-label="<?php echo esc_attr(sprintf(__('Diminuer la quantité pour %s', 'wamv1'), $course_title ?: $product_name)); ?>">-</button>
                                         <?php

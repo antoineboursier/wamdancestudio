@@ -74,7 +74,7 @@ $icons_path   = get_template_directory_uri() . '/assets/images/';
     $blog_outro   = get_post_field('post_content', $blog_page_id);
 
     if (!empty(trim($blog_outro))): ?>
-        <!-- Conclusion de la page (the_content) - ID: <?php echo $blog_page_id; ?> -->
+        <!-- Conclusion de la page (the_content) -->
         <div class="page-blog__outro wam-container">
             <div class="wam-prose text-sm color-subtext">
                 <?php echo apply_filters('the_content', $blog_outro); ?>

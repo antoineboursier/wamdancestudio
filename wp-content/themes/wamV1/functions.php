@@ -151,23 +151,14 @@ function wamv1_get_cat_cours_icons() {
 // -------------------------------------------------------
 function wamv1_register_text_styles()
 {
-    // Title Norm — Outfit Bold
-    register_block_style('core/paragraph', ['name' => 'title-norm-lg', 'label' => 'Title Norm LG']);
-    register_block_style('core/paragraph', ['name' => 'title-norm-md', 'label' => 'Title Norm MD']);
-    register_block_style('core/paragraph', ['name' => 'title-norm-sm', 'label' => 'Title Norm SM']);
+    // Variantes typographiques uniquement sur core/heading (sémantique correcte)
+    // → Title Norm (Outfit Bold) : styles natifs, pas de block_style nécessaire
 
-    // Title Cool — WAM Font
-    register_block_style('core/paragraph', ['name' => 'title-cool-lg', 'label' => 'Title Cool LG']);
-    register_block_style('core/paragraph', ['name' => 'title-cool-md', 'label' => 'Title Cool MD']);
-
-    // Title Sign — Mallia
-    register_block_style('core/paragraph', ['name' => 'title-sign-lg', 'label' => 'Title Sign LG']);
-    register_block_style('core/paragraph', ['name' => 'title-sign-md', 'label' => 'Title Sign MD']);
-    register_block_style('core/paragraph', ['name' => 'title-sign-sm', 'label' => 'Title Sign SM']);
-
-    // Sur core/heading aussi, pour les cas où on veut un display différent
+    // Title Cool — WAM Font (police signature)
     register_block_style('core/heading', ['name' => 'title-cool-lg', 'label' => 'Title Cool LG']);
     register_block_style('core/heading', ['name' => 'title-cool-md', 'label' => 'Title Cool MD']);
+
+    // Title Sign — Mallia
     register_block_style('core/heading', ['name' => 'title-sign-lg', 'label' => 'Title Sign LG']);
     register_block_style('core/heading', ['name' => 'title-sign-md', 'label' => 'Title Sign MD']);
     register_block_style('core/heading', ['name' => 'title-sign-sm', 'label' => 'Title Sign SM']);
@@ -405,8 +396,6 @@ function wamv1_preload_fonts()
 {
     $font_dir = get_template_directory_uri() . '/fonts/';
     echo '<link rel="preload" href="' . esc_url($font_dir . 'Outfit-VariableFont_wght.woff2') . '" as="font" type="font/woff2" crossorigin>' . "\n";
-    echo '<link rel="preload" href="' . esc_url($font_dir . 'wam-font.woff') . '" as="font" type="font/woff" crossorigin>' . "\n";
-    echo '<link rel="preload" href="' . esc_url($font_dir . 'Mallia.woff2') . '" as="font" type="font/woff2" crossorigin>' . "\n";
 }
 add_action('wp_head', 'wamv1_preload_fonts', 1);
 
@@ -455,7 +444,7 @@ function wamv1_save_user_specialty_field($user_id)
     if (!isset($_POST['wamv1_specialty_nonce']) || !wp_verify_nonce($_POST['wamv1_specialty_nonce'], 'wamv1_save_specialty_' . $user_id))
         return;
     if (isset($_POST['wam_specialite'])) {
-        update_user_meta($user_id, 'wam_specialite', sanitize_text_field($_POST['wam_specialite']));
+        update_user_meta($user_id, 'wam_specialite', sanitize_text_field(wp_unslash($_POST['wam_specialite'])));
     }
 }
 add_action('personal_options_update', 'wamv1_save_user_specialty_field');
@@ -553,7 +542,7 @@ add_action('init', 'wamv1_register_cpt_stages');
 
 function wamv1_disable_gutenberg_cours($use_block_editor, $post_type)
 {
-    if (in_array($post_type, array('cours', 'stages', 'events'))) {
+    if (in_array($post_type, array('cours', 'stages', 'evenements'))) {
         return false;
     }
     return $use_block_editor;
@@ -917,29 +906,32 @@ if (class_exists('WooCommerce')) {
 add_filter('wpseo_breadcrumb_links', 'wamv1_corriger_fil_ariane_yoast');
 function wamv1_corriger_fil_ariane_yoast($links)
 {
-    // Règle manuelle pour les Cours
+    // Règle pour les Cours
     if (is_singular('cours')) {
-        $links[1]['url'] = home_url('/cours-collectifs/'); // Modifiez si le slug de votre page Cours est différent
+        $page = get_page_by_path('cours-collectifs');
+        $links[1]['url']  = $page ? get_permalink($page) : home_url('/cours-collectifs/');
         $links[1]['text'] = 'Cours collectifs';
     }
-    // Règle manuelle pour les Professeurs
+    // Règle pour les Professeurs
     elseif (is_singular('wam_membre')) {
+        $page = get_page_by_path('prof-wam');
         $breadcrumb_equipe = array(
-            'url' => home_url('/prof-wam/'),
-            'text' => 'Notre Équipe'
+            'url'  => $page ? get_permalink($page) : home_url('/prof-wam/'),
+            'text' => 'Notre Équipe',
         );
-        // Comme le CPT prof n'a pas d'archive, le titre est en position 1. 
-        // On "insère" la page équipe en position 1 sans écraser la position du prof.
+        // Le CPT prof n'a pas d'archive → on insère la page équipe en position 1
         array_splice($links, 1, 0, array($breadcrumb_equipe));
     }
-    // Règle manuelle pour les Stages
+    // Règle pour les Stages
     elseif (is_singular('stages')) {
-        $links[1]['url'] = home_url('/stages-workshop-ateliers/');
+        $page = get_page_by_path('stages-workshop-ateliers');
+        $links[1]['url']  = $page ? get_permalink($page) : home_url('/stages-workshop-ateliers/');
         $links[1]['text'] = 'Les stages';
     }
-    // Règle manuelle pour les Évènements
+    // Règle pour les Évènements
     elseif (is_singular('evenements')) {
-        $links[1]['url'] = home_url('/les-evenements-au-studio/');
+        $page = get_page_by_path('les-evenements-au-studio');
+        $links[1]['url']  = $page ? get_permalink($page) : home_url('/les-evenements-au-studio/');
         $links[1]['text'] = 'Évènements';
     }
     return $links;
@@ -1003,9 +995,12 @@ add_filter('acf/settings/save_json', function ($path) {
     return get_template_directory() . '/acf-json';
 });
 add_filter('acf/settings/load_json', function ($paths) {
-    unset($paths[0]);
-    $paths[] = get_template_directory() . '/acf-json';
-    return $paths;
+    // On filtre explicitement pour ne garder que le chemin du thème
+    // (plus fiable que unset($paths[0]) si d'autres plugins ajoutent des chemins)
+    $theme_path = get_template_directory() . '/acf-json';
+    return array_values(array_filter($paths, function ($p) use ($theme_path) {
+        return $p === $theme_path;
+    }) ?: [$theme_path]);
 });
 
 // =============================================================================

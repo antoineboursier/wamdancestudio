@@ -1540,6 +1540,9 @@ html.wam-reduce-motion .card-article__notif::after {
     filter: none !important;
 }
 
+/* Force l'héritage de couleur sur les éléments SVG du menu.
+   Les valeurs HEX sont hardcodées pour cibler spécifiquement 
+   les couleurs statiques générées par l'export Figma. */
 .wam-logo-menu path[fill="#F9F6F1"],
 .wam-logo-menu path[fill="#E9DFCD"] {
     fill: currentColor;
@@ -2615,4 +2618,84 @@ html.wam-no-graphical-fonts .title-sign-sm {
     flex-wrap: wrap;
     gap: var(--wam-spacing-md);
     margin: var(--wam-spacing-lg) 0;
+}
+
+/* =====================================================
+   WOOCOMMERCE ACCOUNT ORDERS BEM
+   ===================================================== */
+.wam-orders-list {
+    display: flex;
+    flex-direction: column;
+}
+.wam-order-card {
+    background: var(--wam-color-card-bg);
+    border-radius: var(--wam-radius-lg);
+}
+.wam-order-card__header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    padding: var(--wam-spacing-lg);
+}
+.wam-order-card__status {
+    display: block;
+    margin-top: var(--wam-spacing-2xs);
+}
+.wam-order-card__actions {
+    text-align: right;
+}
+.wam-order-card__total {
+    display: block;
+    margin-bottom: var(--wam-spacing-2xs);
+}
+.wam-order-card__link {
+    text-decoration: underline;
+}
+.wam-order-card__items {
+    display: flex;
+    flex-direction: row;
+    flex-wrap: wrap;
+    gap: var(--wam-spacing-md);
+    padding: 0 var(--wam-spacing-lg) var(--wam-spacing-lg);
+}
+.wam-order-item {
+    display: flex;
+    gap: var(--wam-spacing-md);
+    align-items: center;
+    flex-direction: row;
+    border: 1px solid var(--wp--preset--color--background-500);
+    flex: 1 1 calc(50% - (var(--wam-spacing-md) / 2));
+    max-width: 50%;
+    border-radius: var(--wam-radius-sm);
+    padding: var(--wam-spacing-sm);
+    box-sizing: border-box;
+}
+.wam-order-item__thumb {
+    width: 80px;
+    height: 80px;
+    flex-shrink: 0;
+    border-radius: var(--wam-radius-sm);
+    overflow: hidden;
+}
+.wam-order-item__thumb img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+.wam-order-item__title {
+    margin: 0;
+}
+.wam-order-item__meta {
+    display: block;
+}
+.wam-order-item__price {
+    display: block;
+    margin-top: var(--wam-spacing-2xs);
+}
+
+@media (max-width: 768px) {
+    .wam-order-item {
+        flex: 1 1 100%;
+        max-width: 100%;
+    }
 }

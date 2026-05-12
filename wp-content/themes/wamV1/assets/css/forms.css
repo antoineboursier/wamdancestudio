@@ -444,3 +444,202 @@ input:-webkit-autofill:focus {
         left: 200%;
     }
 }
+
+/* =====================================================
+   BOOKLY FRONT-END FORM OVERRIDES
+   Préparation pour l'intégration de la réservation Bookly.
+   À ajuster en prod selon les besoins.
+   ===================================================== */
+
+/* --- Conteneur global du formulaire Bookly --- */
+.bookly-form {
+    font-family: var(--wam-font-body) !important;
+    color: var(--wp--preset--color--text-normal) !important;
+}
+
+/* --- Typographie générale et Labels --- */
+.bookly-form .bookly-form-group label {
+    font-family: var(--wam-font-body) !important;
+    font-size: var(--wam-label-font-size) !important;
+    font-weight: 400 !important;
+    color: var(--wp--preset--color--text-normal) !important;
+    margin-bottom: var(--wam-field-gap) !important;
+    display: block !important;
+}
+
+/* --- Champs Select et Inputs --- */
+.bookly-form select,
+.bookly-form input[type="text"],
+.bookly-form .bookly-date-from {
+    font-family: var(--wam-font-body) !important;
+    font-size: var(--wam-field-font-size) !important;
+    color: var(--wp--preset--color--text-normal) !important;
+    background-color: transparent !important;
+    border: var(--wam-field-border-default) !important;
+    border-radius: var(--wam-field-radius) !important;
+    padding: var(--wam-field-py) var(--wam-field-px) !important;
+    width: 100% !important;
+    max-width: 800px !important;
+    box-shadow: none !important;
+    outline: none !important;
+    transition: border-color 0.2s ease !important;
+}
+
+.bookly-form select:focus,
+.bookly-form input[type="text"]:focus {
+    border: var(--wam-field-border-focus) !important;
+}
+
+/* Override du background pour select (Chevron WAM) */
+.bookly-form select {
+    background-image: url("data:image/svg+xml,%3Csvg width='13' height='13' viewBox='0 0 13 13' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M2 4L6.5 8.5L11 4' stroke='%23e1cdad' stroke-width='1.5' stroke-linecap='round'/%3E%3C/svg%3E") !important;
+    background-repeat: no-repeat !important;
+    background-position: right var(--wam-field-px) center !important;
+    padding-right: calc(var(--wam-field-px) * 2.5) !important;
+    cursor: pointer !important;
+    appearance: none !important;
+    -webkit-appearance: none !important;
+}
+.bookly-form select option {
+    background: var(--wp--preset--color--background-600) !important;
+    color: var(--wp--preset--color--text-normal) !important;
+}
+
+/* --- Jours de la semaine (Checkboxes) --- */
+.bookly-week-days {
+    display: flex !important;
+    flex-wrap: wrap !important;
+    gap: var(--wam-spacing-sm) !important;
+    margin-top: var(--wam-spacing-sm) !important;
+}
+.bookly-week-days .bookly-form-group {
+    display: flex !important;
+    flex-direction: column-reverse !important;
+    align-items: center !important;
+    width: auto !important;
+    float: none !important;
+}
+.bookly-week-days label {
+    font-size: var(--wam-font-size-xs) !important;
+    margin: 0 0 4px 0 !important;
+}
+
+/* --- Calendrier Datepicker --- */
+/* (Couleurs générales du calendrier popup) */
+.bookly-js-datepicker-calendar {
+    background-color: var(--wp--preset--color--background-600) !important;
+    border: 1px solid var(--wp--preset--color--background-500) !important;
+    border-radius: var(--wam-radius-md) !important;
+    padding: var(--wam-spacing-sm) !important;
+    color: var(--wp--preset--color--text-normal) !important;
+}
+
+/* --- Étape Choix de l'Heure (Time Step) --- */
+.bookly-time-step {
+    margin-top: var(--wam-spacing-lg) !important;
+}
+
+/* En-tête des colonnes (Jour) : ex: "mer, Mai 20" */
+.bookly-time-step .bookly-day {
+    font-family: var(--wam-font-body) !important;
+    font-size: var(--wam-font-size-sm) !important;
+    font-weight: 600 !important;
+    color: var(--wam-color-text) !important;
+    background-color: transparent !important;
+    border: none !important;
+    padding: var(--wam-spacing-xs) 0 !important;
+    text-transform: capitalize !important;
+}
+
+/* Boutons Heures (Créneaux) : ex: "08:00" */
+.bookly-time-step .bookly-hour {
+    font-family: var(--wam-font-body) !important;
+    font-size: var(--wam-font-size-sm) !important;
+    color: var(--wp--preset--color--text-normal) !important;
+    background-color: transparent !important;
+    border: 1px solid var(--wp--preset--color--background-500) !important;
+    border-radius: var(--wam-radius-sm) !important;
+    padding: var(--wam-spacing-2xs) var(--wam-spacing-xs) !important;
+    margin-bottom: var(--wam-spacing-2xs) !important;
+    width: 100% !important;
+    transition: all 0.2s ease !important;
+    cursor: pointer !important;
+}
+
+.bookly-time-step .bookly-hour:hover {
+    background-color: var(--wp--preset--color--background-500) !important;
+    color: var(--wp--preset--color--text-normal) !important;
+    border-color: var(--wp--preset--color--accent-green) !important;
+}
+
+/* Créneau sélectionné */
+.bookly-time-step .bookly-hour.bookly-active,
+.bookly-time-step .bookly-hour:active {
+    background-color: var(--wp--preset--color--accent-green) !important;
+    color: #fff !important;
+    border-color: var(--wp--preset--color--accent-green) !important;
+}
+
+/* Cache l'icône de la petite flèche intégrée dans les créneaux Bookly */
+.bookly-hour-icon {
+    display: none !important;
+}
+
+/* --- Boutons d'action (Suivant, Retour) --- */
+.bookly-btn {
+    font-family: var(--wam-font-body) !important;
+    font-size: var(--wam-font-size-sm) !important;
+    font-weight: 600 !important;
+    text-transform: uppercase !important;
+    letter-spacing: 0.05em !important;
+    border-radius: 100px !important; /* Style pilule */
+    padding: 12px 24px !important;
+    cursor: pointer !important;
+    transition: all 0.3s ease !important;
+    border: none !important;
+}
+
+/* Bouton principal (Suivant) */
+.bookly-form .bookly-next-step, 
+.bookly-form .bookly-mobile-next-step {
+    background-color: var(--wp--preset--color--accent-yellow) !important;
+    color: var(--wp--preset--color--background-800) !important;
+}
+.bookly-form .bookly-next-step:hover,
+.bookly-form .bookly-mobile-next-step:hover {
+    background-color: var(--wp--preset--color--text-normal) !important;
+    color: var(--wp--preset--color--background-800) !important;
+}
+
+/* Bouton secondaire (Retour) */
+.bookly-form .bookly-back-step,
+.bookly-form .bookly-mobile-prev-step {
+    background-color: transparent !important;
+    color: var(--wp--preset--color--text-normal) !important;
+    border: 1px solid var(--wp--preset--color--text-normal) !important;
+}
+.bookly-form .bookly-back-step:hover,
+.bookly-form .bookly-mobile-prev-step:hover {
+    background-color: var(--wp--preset--color--text-normal) !important;
+    color: var(--wp--preset--color--background-800) !important;
+}
+
+/* Flèches de navigation du calendrier (Semaine suivante/précédente) */
+.bookly-form .bookly-time-next,
+.bookly-form .bookly-time-prev {
+    background-color: var(--wp--preset--color--background-500) !important;
+    color: var(--wp--preset--color--text-normal) !important;
+    border-radius: 50% !important;
+    width: 40px !important;
+    height: 40px !important;
+    padding: 0 !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    border: none !important;
+}
+.bookly-form .bookly-time-next:hover,
+.bookly-form .bookly-time-prev:hover {
+    background-color: var(--wp--preset--color--accent-green) !important;
+    color: #fff !important;
+}

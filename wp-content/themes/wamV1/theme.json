@@ -5,6 +5,16 @@
         "color": {
             "palette": [
                 {
+                    "slug": "background-50",
+                    "color": "#F9F6F1",
+                    "name": "Background 50"
+                },
+                {
+                    "slug": "background-100",
+                    "color": "#F6F2E9",
+                    "name": "Background 100"
+                },
+                {
                     "slug": "background-800",
                     "color": "#131620",
                     "name": "Background 800"
@@ -251,7 +261,7 @@
             "h3": {
                 "typography": {
                     "fontFamily": "var(--wp--preset--font-family--outfit)",
-                    "fontSize": "28px",
+                    "fontSize": "24px",
                     "fontWeight": "700",
                     "lineHeight": "1.1"
                 },

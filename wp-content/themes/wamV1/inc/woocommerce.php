@@ -565,7 +565,8 @@ function wamv1_ajax_add_to_cart(): void
     }
 
     // Ajouter au panier — WC fusionne les items au même wam_course_id + wam_tarif_index.
-    $selections = $_POST['selections'] ?? null; // [{tarif_index, qty}, ...]
+    $selections_raw = isset($_POST['selections']) ? wp_unslash($_POST['selections']) : null;
+    $selections = is_array($selections_raw) ? wc_clean($selections_raw) : (is_string($selections_raw) ? json_decode($selections_raw, true) : null);
     $added      = 0;
 
     if ($selections && is_array($selections)) {
@@ -1056,9 +1057,10 @@ function wamv1_validate_adherent_fields()
         if (empty($_POST['billing_urgent_name'])) {
             wc_add_notice('Le contact d\'urgence est obligatoire.', 'error');
         }
-        if (empty($_POST['billing_urgent_phone'])) {
+        $billing_urgent_phone = isset($_POST['billing_urgent_phone']) ? sanitize_text_field(wp_unslash($_POST['billing_urgent_phone'])) : '';
+        if (empty($billing_urgent_phone)) {
             wc_add_notice('Le téléphone du contact d\'urgence est obligatoire.', 'error');
-        } elseif (!preg_match('/^[0-9\s\.\-\+\(\)]+$/', $_POST['billing_urgent_phone'])) {
+        } elseif (!preg_match('/^[0-9\s\.\-\+\(\)]+$/', $billing_urgent_phone)) {
             wc_add_notice('Le numéro de téléphone du contact d\'urgence n\'est pas valide.', 'error');
         }
     }
@@ -1101,8 +1103,9 @@ function wamv1_validate_adherent_fields()
             $u1_phone_key = 'wam_urgent_phone_1_' . $cart_item_key . $suffix;
 
             if (empty($_POST[$u1_name_key]))  wc_add_notice('Le nom du contact d\'urgence pour '       . $item_desc . ' est obligatoire.', 'error');
-            if (empty($_POST[$u1_phone_key])) wc_add_notice('Le téléphone du contact d\'urgence pour ' . $item_desc . ' est obligatoire.', 'error');
-            elseif (!preg_match('/^[0-9\s\.\-\+\(\)]+$/', $_POST[$u1_phone_key])) wc_add_notice('Le numéro de téléphone pour ' . $item_desc . ' n\'est pas valide.', 'error');
+            $u1_phone_val = isset($_POST[$u1_phone_key]) ? sanitize_text_field(wp_unslash($_POST[$u1_phone_key])) : '';
+            if (empty($u1_phone_val)) wc_add_notice('Le téléphone du contact d\'urgence pour ' . $item_desc . ' est obligatoire.', 'error');
+            elseif (!preg_match('/^[0-9\s\.\-\+\(\)]+$/', $u1_phone_val)) wc_add_notice('Le numéro de téléphone pour ' . $item_desc . ' n\'est pas valide.', 'error');
             $index++;
         }
     }

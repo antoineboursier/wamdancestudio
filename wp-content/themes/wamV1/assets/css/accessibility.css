@@ -224,6 +224,10 @@
     outline: none;
 }
 
+.a11y-select:focus-visible {
+    box-shadow: 0 0 0 2px var(--wp--preset--color--accent-green);
+}
+
 .a11y-select option {
     background: var(--wp--preset--color--background-600);
     color: var(--wp--preset--color--text-normal);
@@ -255,7 +259,9 @@
 
 /* --- Thème clair --- */
 html.wam-theme-light {
-    /* Inversion du design system pour le mode clair */
+    /* Inversion du design system pour le mode clair. 
+       Ces valeurs HEX statiques sont volontairement hardcodées ici 
+       pour garantir les ratios d'accessibilité indépendamment des tokens variables. */
     --wp--preset--color--background-800: #f9f6f1;
     --wp--preset--color--background-600: #f6f2e9;
     --wp--preset--color--background-500: #e9e3d8;
@@ -401,4 +407,27 @@ html.wam-line-height-increased * {
     background: var(--wp--preset--color--background-600);
     border: 1px solid var(--wp--preset--color--background-500);
     color: var(--wp--preset--color--text-normal);
+}
+
+/* =====================================================
+   PREFERS-REDUCED-MOTION (RGAA)
+   ===================================================== */
+@media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+        scroll-behavior: auto !important;
+    }
+}
+
+/* =====================================================
+   FOCUS-VISIBLE GLOBAL (RGAA 10.7)
+   Compense les outline: none dispersés dans le CSS
+   ===================================================== */
+:focus-visible {
+    outline: 2px solid var(--wp--preset--color--text-normal) !important;
+    outline-offset: 2px !important;
 }

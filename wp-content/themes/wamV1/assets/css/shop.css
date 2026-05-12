@@ -868,27 +868,48 @@
 }
 
 /* Données Bookly dans la carte panier — style cohérent avec les cartes WAM */
-.wam-cart-bookly-data dl.variation {
-    margin: 4px 0 0;
+.wam-cart-bookly-data {
+    display: flex;
+    gap: var(--wam-spacing-xs);
+    margin-top: var(--wam-spacing-sm);
 }
 
-/* "Rendez-vous:" → même style que .wam-cart-card__subtitle (text-md fw-bold = 20px) */
-.wam-cart-card__body .wam-cart-bookly-data dl.variation dt {
+.wam-cart-bookly-data::before {
+    content: '';
     display: block;
-    font-size: var(--wam-font-size-md) !important;
+    width: 16px;
+    height: 16px;
+    background-color: currentcolor;
+    -webkit-mask: var(--icon-url) no-repeat center / contain;
+    mask: var(--icon-url) no-repeat center / contain;
+    --icon-url: url('../images/calendar.svg');
+    color: var(--wam-color-subtext);
+    flex-shrink: 0;
+    margin-top: 2px;
+}
+
+.wam-cart-bookly-data dl.variation {
+    margin: 0;
+    display: grid;
+    grid-template-columns: max-content 1fr;
+    column-gap: var(--wam-spacing-xs);
+    row-gap: 2px;
+    align-items: baseline;
+}
+
+.wam-cart-card__body .wam-cart-bookly-data dl.variation dt {
+    font-size: var(--wam-font-size-sm) !important;
     font-weight: 600 !important;
     color: var(--wam-color-text) !important;
-    margin: 0 0 2px !important;
+    margin: 0 !important;
     padding: 0 !important;
 }
 
-/* Valeurs → même style que la date du stage (text-sm color-subtext = 16px) */
 .wam-cart-card__body .wam-cart-bookly-data dl.variation dd {
-    display: block;
     font-size: var(--wam-font-size-sm) !important;
     font-weight: 400 !important;
     color: var(--wam-color-subtext) !important;
-    margin: 0 0 2px !important;
+    margin: 0 !important;
     padding: 0 !important;
 }
 
@@ -1962,6 +1983,12 @@ p:has(label[for="mailpoet_woocommerce_checkout_optin"]) {
     border-bottom: 1px solid var(--wam-color-input-bg);
 }
 
+.woocommerce-checkout .wam-order-item {
+    max-width: none;
+    align-items: flex-start;
+    flex-direction: column;
+}
+
 .wam-order-item:last-child {
     border-bottom: 0;
     padding-bottom: 0;
@@ -2457,4 +2484,100 @@ p:has(label[for="mailpoet_woocommerce_checkout_optin"]) {
     font-style: normal;
     line-height: 1.6;
     color: var(--wam-color-text);
+}
+
+/* -------------------------------------------------------
+   Single Product Custom Layout
+   ------------------------------------------------------- */
+
+.product-layout__inner {
+    display: flex;
+    flex-direction: row;
+    gap: var(--wam-spacing-2xl);
+    margin-top: var(--wam-spacing-xl);
+    align-items: flex-start;
+    width: 100%;
+    justify-content: flex-end;
+}
+
+.product-content {
+    flex: 1;
+    min-width: 0;
+    /* Empêche le débordement flex */
+}
+
+.product-sidebar {
+    width: 350px;
+    flex-shrink: 0;
+    margin-left: auto;
+    /* Force le bloc à droite même si le contenu est vide */
+}
+
+.product-buy-card {
+    background: var(--wam-color-card-bg);
+    border-radius: var(--wam-radius-2xl);
+    padding: var(--wam-spacing-xl);
+    position: sticky;
+    top: var(--wam-spacing-2xl);
+    display: flex;
+    flex-direction: column;
+    gap: var(--wam-spacing-md);
+}
+
+.product-buy-card .price {
+    font-size: 2rem;
+    font-weight: 700;
+    color: var(--wam-color-pink);
+    margin: 0;
+}
+
+.product-buy-card .woocommerce-product-details__short-description {
+    color: var(--wam-color-subtext);
+    font-size: 1.1rem;
+    line-height: 1.5;
+}
+
+.product-buy-card .cart {
+    margin-top: var(--wam-spacing-sm);
+    display: flex;
+    flex-direction: column;
+    gap: var(--wam-spacing-md);
+}
+
+.product-buy-card .product_meta {
+    margin-top: var(--wam-spacing-lg);
+    padding-top: var(--wam-spacing-md);
+    border-top: 1px solid var(--wam-color-input-bg);
+    font-size: 0.9rem;
+    color: var(--wam-color-disabled);
+    display: flex;
+    flex-direction: column;
+    gap: var(--wam-spacing-xs);
+}
+
+.product-buy-card .product_meta a {
+    color: var(--wam-color-text);
+    text-decoration: none;
+}
+
+.product-buy-card .product_meta a:hover {
+    color: var(--wam-color-pink);
+}
+
+/* Tablet & Mobile (max-width: 1024px) */
+@media (max-width: 1024px) {
+    .product-layout__inner {
+        flex-direction: column;
+    }
+
+    .product-sidebar {
+        width: 100%;
+        position: static;
+        margin-left: 0;
+    }
+
+    .product-buy-card {
+        position: static;
+        top: 0;
+    }
 }

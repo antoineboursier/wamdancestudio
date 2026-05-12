@@ -191,7 +191,7 @@ get_header();
                         <?php if ($p_obj): ?>
                             <div class="cours-info-card__row cours-info-card__row--top">
                                 <span class="btn-icon"
-                                    style="--icon-url: url('<?php echo $icon_dir; ?>calendar.svg'); --icon-size: 24px; color: <?php echo $ic['calendar']; ?>;"></span>
+                                    style="--icon-url: url('<?php echo esc_url($icon_dir . 'calendar.svg'); ?>'); --icon-size: 24px; color: <?php echo esc_attr($ic['calendar']); ?>;"></span>
                                 <div class="cours-info-card__cell">
                                     <div class="stage-date-display">
                                         <div
@@ -221,7 +221,7 @@ get_header();
                                 <button type="button" class="btn-toggle-dates" id="toggle-dates-list" aria-expanded="false">
                                     <span class="btn-label"></span>
                                     <span class="btn-icon btn-icon--xs"
-                                        style="--icon-url: url('<?php echo $icon_dir; ?>chevron_down.svg');"></span>
+                                        style="--icon-url: url('<?php echo esc_url($icon_dir . 'chevron_down.svg'); ?>');"></span>
                                 </button>
                             </div>
                             <div class="stage-dates-dropdown" id="dates-list" hidden>
@@ -271,7 +271,7 @@ get_header();
                         <?php if (wam_adresse_visible()): ?>
                             <div class="cours-info-card__row wam-adresse-globale">
                                 <span class="btn-icon"
-                                    style="--icon-url: url('<?php echo $icon_dir; ?>map.svg'); --icon-size: 24px; color: <?php echo $ic['map']; ?>;"></span>
+                                    style="--icon-url: url('<?php echo esc_url($icon_dir . 'map.svg'); ?>'); --icon-size: 24px; color: <?php echo esc_attr($ic['map']); ?>;"></span>
                                 <div class="cours-info-card__cell">
                                     <p class="cours-info-card__lieu text-md"><?php echo esc_html(wam_nom_lieu()); ?></p>
                                     <p class="cours-info-card__adresse text-sm">
@@ -284,7 +284,7 @@ get_header();
                         <?php if ($tarif_labels): ?>
                             <div class="cours-info-card__row">
                                 <span class="btn-icon"
-                                    style="--icon-url: url('<?php echo $icon_dir; ?>piggy-bank.svg'); --icon-size: 24px; color: <?php echo $ic['piggybank']; ?>;"></span>
+                                    style="--icon-url: url('<?php echo esc_url($icon_dir . 'piggy-bank.svg'); ?>'); --icon-size: 24px; color: <?php echo esc_attr($ic['piggybank']); ?>;"></span>
                                 <div class="cours-info-card__cell">
                                     <?php foreach ($tarif_labels as $t): ?>
                                         <p class="cours-info-card__tarif text-md">
@@ -302,7 +302,7 @@ get_header();
                         <!-- Info complémentaire (Tenue par défaut) -->
                         <div class="cours-info-card__row">
                             <span class="btn-icon"
-                                style="--icon-url: url('<?php echo $icon_dir; ?>thumbs-up.svg'); --icon-size: 24px; color: <?php echo $ic['thumbs']; ?>;"></span>
+                                style="--icon-url: url('<?php echo esc_url($icon_dir . 'thumbs-up.svg'); ?>'); --icon-size: 24px; color: <?php echo esc_attr($ic['thumbs']); ?>;"></span>
                             <p class="cours-info-card__info text-md">
                                 <?php echo $info_comp ?: 'Prévoir une tenue et chaussures adaptées au cours'; ?></p>
                         </div>
@@ -357,7 +357,7 @@ get_header();
                                     data-modal="modal-booking-stage">
                                     Réserver mes places
                                     <span class="btn-icon"
-                                        style="--icon-url: url('<?php echo $icon_dir; ?>chevron-right.svg');"></span>
+                                        style="--icon-url: url('<?php echo esc_url($icon_dir . 'chevron-right.svg'); ?>');"></span>
                                 </button>
                             <?php else: ?>
                                 <button type="button" class="btn-primary btn-inscription" disabled>Tarifs non configurés</button>
@@ -393,7 +393,7 @@ get_header();
                         <?php if ($complet): ?>
                             <!-- Badge cours complet — réutilise le même composant que single-cours.php -->
                             <div class="cours-complet">
-                                <img src="<?php echo $icon_dir; ?>sad-emoji.svg" width="40" height="40" alt="" aria-hidden="true">
+                                <img src="<?php echo esc_url($icon_dir . 'sad-emoji.svg'); ?>" width="40" height="40" alt="" aria-hidden="true">
                                 <div class="cours-complet__body">
                                     <p class="cours-complet__title">Stage complet</p>
                                     <p class="cours-complet__text">Malheureusement, ce stage est déjà rempli.</p>
@@ -499,7 +499,7 @@ get_header();
         <button type="button" class="btn-primary btn-confirm-booking" disabled
             data-product-id="<?php echo esc_attr($wc_pid); ?>" data-stage-id="<?php echo get_the_ID(); ?>">
             Ajouter au panier
-            <span class="btn-icon" style="--icon-url: url('<?php echo $icon_dir; ?>panier.svg');"></span>
+            <span class="btn-icon" style="--icon-url: url('<?php echo esc_url($icon_dir . 'panier.svg'); ?>');"></span>
         </button>
         <?php
         $modal_footer = ob_get_clean();

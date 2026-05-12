@@ -66,7 +66,7 @@ if ($complet)   $card_classes[] = 'card-cours--complet';
     <!-- Badge statut — position:absolute relative à l'article (.card-cours) -->
     <?php if ($complet) : ?>
         <div class="card-cours__badge card-cours__badge--complet" aria-label="Cours complet">
-            <img src="<?php echo $icons_path; ?>sad-emoji.svg" 
+            <img src="<?php echo esc_url($icons_path . 'sad-emoji.svg'); ?>" 
                  width="24" height="24" alt="" aria-hidden="true">
             <span>Complet</span>
         </div>

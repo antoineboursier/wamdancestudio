@@ -196,11 +196,16 @@ echo wp_get_attachment_image(get_post_thumbnail_id(), 'wam-card', false, [
 | Slug | Dimensions | Ratio | Contexte d'usage |
 |------|-----------|-------|-----------------|
 | `wam-hero` | 1536×800 | 16:10 | Héros single plein écran |
-| `wam-card` | 800×600 | 4:3 | Colonne hero singles (cours, stage), cards liste stages/articles |
-| `wam-portrait` | 480×640 | 3:4 | Photo profil professeur (`single-wam_membre`) |
-| `wam-thumb` | 400×300 | 4:3 | Mini-cards, vignettes cours liés sur single prof |
+| `wam-card` | 1600×1200 | 4:3 | Colonne hero singles (cours, stage), cards liste stages/articles (Retina 2x) |
+| `wam-portrait` | 960×1440 | 2:3 | Photo profil professeur (`single-wam_membre`, Retina 2x) |
+| `wam-thumb` | 800×600 | 4:3 | Mini-cards, vignettes cours liés sur single prof (Retina 2x) |
 | `wamv1-page-hero` | 1536×600 | ~5:2 | Banner hero article (`single.php`) |
-| `wam-page-thumbnail` | 624×200 | ~3:1 | Header listing pages (`page-cours-collectifs`, `page-stages-tous`) |
+| `wam-page-thumbnail` | 1248×400 | ~3:1 | Header listing pages (`page-cours-collectifs`, Retina 2x) |
+| `wam-card-thumbnail` | 466×370 | ~5:4 | Thumbnail cours card (Retina 2x) |
+| `wam-stage-card` | 810×1172 | ~2:3 | Card stage (Retina 2x) |
+| `wam-stage-portrait` | 1204×1704| A4 | A4 portrait pour écrans densités (Retina 2x) |
+| `wam-prof-thumb` | 400×600 | 2:3 | Vignette prof card (Retina 2x) |
+| `wam-event-card` | 810×486 | 5:3 | Card event paysage (Retina 2x) |
 
 > ⚠️ Après ajout d'une nouvelle taille : régénérer les miniatures via `ddev exec wp media regenerate --yes`
 

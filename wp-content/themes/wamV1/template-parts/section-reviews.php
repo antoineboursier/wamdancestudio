@@ -1,41 +1,19 @@
 <?php
 /**
- * Template part : Section Avis Clients (Google Business)
+ * Template part : Section Avis Clients (Gutenberg)
  * @package wamv1
  */
 
-$reviews = [
-    [
-        'author' => 'Marion Eltrudis',
-        'text' => "Charlotte est une excellente professeure de danse moderne, toujours à l’écoute et pleine de bienveillance. Mon rayon de soleil chaque semaine depuis 6 ans déjà ! Merci pour ce que tu nous apportes ❤️",
-        'stars' => 5
-    ],
-    [
-        'author' => 'Sarah Wimberley',
-        'text' => "Ma fille de 9 ans est ravie de son année avec Charlotte. La musique est moderne et rythmée, chaque enfant s'habille comme il veut pour les cours, et la qualité de la restitution finale était excellente.",
-        'stars' => 5
-    ],
-    [
-        'author' => 'Ophélie Ghyselinck',
-        'text' => "Des professeures passionnées qui proposent de la qualité à leurs élèves. Une bonne ambiance : salsa, west coast swing, latino et enfants au top !",
-        'stars' => 5
-    ],
-    [
-        'author' => 'Annabelle Cauderlier',
-        'text' => "Professeures très sympas et pédagogues, souriantes et professionnelles. Des danses pour tous les goûts, en solo ou en couple. Je vous recommande vivement WAM.",
-        'stars' => 5
-    ],
-    [
-        'author' => 'Pauline Hauet',
-        'text' => "Une association de danse dirigée et enseignée par des passionnés. Avec WAM, vous ne pourrez qu'aimer danser !",
-        'stars' => 5
-    ]
-];
+// On n'affiche la section que si elle contient des avis (via Gutenberg)
+if ( empty($args['content']) ) {
+    return;
+}
 
-// Récupération dynamique des stats (Note et nombre d'avis)
+// Récupération dynamique des stats Google
 $google_stats = function_exists('wamv1_get_google_business_stats') ? wamv1_get_google_business_stats() : ['rating' => '4.7', 'count' => '23'];
 $google_rating = $google_stats['rating'];
 $google_count  = $google_stats['count'];
+
 $id = 'section-reviews';
 if (!empty($args['block_attributes']['anchor'])) {
     $id = esc_attr($args['block_attributes']['anchor']);
@@ -56,30 +34,9 @@ if (!empty($args['block_attributes']['anchor'])) {
     </div>
 
     <div class="section-reviews__slider-container">
-        <?php 
-        // Si on vient d'un bloc Gutenberg avec des InnerBlocks, on affiche le contenu
-        if ( !empty($args['content']) ) :
-            // IMPORTANT: le contenu généré par wp_kses_post peut parfois casser le HTML complexe, on l'affiche directement car il vient de l'éditeur sécurisé
-            echo $args['content']; 
-        // Sinon (ex: page d'accueil), on affiche la boucle par défaut
-        else : ?>
-            <ul class="section-reviews__grid" role="list">
-                <?php foreach ($reviews as $review) : ?>
-                    <li role="listitem">
-                        <article class="review-card">
-                            <div class="review-card__stars" aria-hidden="true">
-                                <?php echo str_repeat('★', $review['stars']) . str_repeat('☆', 5 - $review['stars']); ?>
-                            </div>
-                            <span class="screen-reader-text"><?php printf(__('Note : %d sur 5', 'wamv1'), $review['stars']); ?></span>
-                            <blockquote class="review-card__text">
-                                <p><?php echo esc_html($review['text']); ?></p>
-                            </blockquote>
-                            <cite class="review-card__author text-xs"><?php echo esc_html($review['author']); ?></cite>
-                        </article>
-                    </li>
-                <?php endforeach; ?>
-            </ul>
-        <?php endif; ?>
+        <ul class="section-reviews__grid" role="list">
+            <?php echo $args['content']; ?>
+        </ul>
     </div>
 
     <div class="section-reviews__footer">
@@ -90,4 +47,3 @@ if (!empty($args['block_attributes']['anchor'])) {
         </a>
     </div>
 </section>
-

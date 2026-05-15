@@ -527,11 +527,16 @@ input:-webkit-autofill:focus {
 /* --- Calendrier Datepicker --- */
 /* (Couleurs générales du calendrier popup) */
 .bookly-js-datepicker-calendar {
+    /* Écrase --bookly-color-white uniquement ici pour ne pas casser les autres éléments */
+    --bookly-color-white: var(--wp--preset--color--background-600);
     background-color: var(--wp--preset--color--background-600) !important;
     border: 1px solid var(--wp--preset--color--background-500) !important;
     border-radius: var(--wam-radius-md) !important;
     padding: var(--wam-spacing-sm) !important;
     color: var(--wp--preset--color--text-normal) !important;
+}
+.bookly-js-datepicker-calendar:empty {
+    display: none !important;
 }
 
 /* --- Étape Choix de l'Heure (Time Step) --- */
@@ -583,6 +588,12 @@ input:-webkit-autofill:focus {
 /* Cache l'icône de la petite flèche intégrée dans les créneaux Bookly */
 .bookly-hour-icon {
     display: none !important;
+}
+
+/* Bookly force color:#333 sur les <span> internes — on écrase */
+.bookly-time-step .bookly-hour span,
+.bookly-columnizer .bookly-hour span {
+    color: var(--wp--preset--color--text-normal) !important;
 }
 
 /* --- Boutons d'action (Suivant, Retour) --- */

@@ -14,18 +14,18 @@ define( 'DB_CHARSET', 'utf8' );
 define( 'DB_COLLATE', '' );
 
 /** Authentication Unique Keys and Salts. */
-define( 'AUTH_KEY', 'YbdOJVvQAdTaRyKfXMtZHZDgCWQLPNeKzexvacsrOakCMygkluSNDvCPYPDkoWgv' );
-define( 'SECURE_AUTH_KEY', 'LIvvnxGdHmeRtTzBamrCKFenyquphfTCpkoyVunPwhyTvhREWPEUTOnhtqdpiAtq' );
-define( 'LOGGED_IN_KEY', 'sSGLGZBzUakfdmywlFDcYlvTSYhDaTcyolzYZjjdJbnHsINOsVpLIeAyjEBxVedj' );
-define( 'NONCE_KEY', 'wZxrkUCJOcpglhhCEMwNFlXrAcwMbNhndiWzaMTunMZKwWbRtHaCXjJYNNjbHjQA' );
-define( 'AUTH_SALT', 'voyVTBSbIABJrYflJtbKrggiDLLQSUnpQXFFTGZBqGUvvXJaSjoOWoLuJQCgCccB' );
-define( 'SECURE_AUTH_SALT', 'AObTVnQIkXXxopFwMUcXkkZsiYCBFLPEgTjLamMsJqhemgruAXlGiMSnhloSZwdP' );
-define( 'LOGGED_IN_SALT', 'VGNGgfvkPBWcETuvoOKaEvcqELZokmklSzMAyuHFDciEjjzCJYbsPzkYjKIbezVr' );
-define( 'NONCE_SALT', 'hLbLrCycxaoYWdLHWOtzJdMaAXCzVUOSqbuHEDKkMsewiJlKtCaNPvMxvPjfgQcW' );
+define( 'AUTH_KEY', 'uomSReZXRmImfxllQZkuDqvtpKreXTsUEkKFZreTxlsAdruejbZPoVNZBQDSuPMG' );
+define( 'SECURE_AUTH_KEY', 'vUJDAyBCFfwoOxQCHQeyVbQCWcQqwWUNmlWOJMyDIkdHHPRgGOwNbUnrWHKYAtrh' );
+define( 'LOGGED_IN_KEY', 'PbPhJYwyIJCGWmsQlNbCvDnrJMgqdOYSnmGrySmjowNFJfYvUNKSoQLJPCFZKodX' );
+define( 'NONCE_KEY', 'scojICBsMqBPRBRfaadUmPhuydHOsPxlqyrsXdcGcYsPrhFtrQNeqhDWuKFzNDnu' );
+define( 'AUTH_SALT', 'ZLosQloNHaFZVcOKASNoBIPZgYSbXKsjABSwJsICtgNfVtfZqscWaXfLweoBxedM' );
+define( 'SECURE_AUTH_SALT', 'GtuQrRpQOJZkIQgvDEBjowtyZTrIJkfEVECHXxDHspYRdukeNFCfkepatEgaSeAu' );
+define( 'LOGGED_IN_SALT', 'iEntyIeAIUKxlaBKiZWrUjmCOcwuHOCMYPHVldLeikDBzqelgQOqeGSUuuYIndOf' );
+define( 'NONCE_SALT', 'WvtZASblpBbycjTvbposgPUnHyhexJaJwARshjggzwthaGqOGNFoMuxbjGvpQGTo' );
 
-/* Paramètres d'hygiène de la base de données */
-define( 'WP_POST_REVISIONS', 5 );
-define( 'AUTOSAVE_INTERVAL', 300 ); // 5 minutes
+/* Add any custom values between this line and the "stop editing" line. */
+
+
 
 /* That's all, stop editing! Happy publishing. */
 

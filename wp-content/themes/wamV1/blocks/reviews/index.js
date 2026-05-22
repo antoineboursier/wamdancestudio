@@ -71,6 +71,16 @@ registerBlockType('wam/review-item', {
                     createElement('meta', { itemProp: 'ratingValue', content: attributes.rating }),
                     createElement('meta', { itemProp: 'bestRating', content: '5' })
                 ),
+
+                // SEO Schema.org itemReviewed (Required by Google Search Console)
+                createElement('div', { 
+                    itemProp: 'itemReviewed', 
+                    itemScope: true, 
+                    itemType: 'https://schema.org/LocalBusiness',
+                    style: { display: 'none' }
+                },
+                    createElement('meta', { itemProp: 'name', content: 'WAM Dance Studio' })
+                ),
                 
                 createElement('div', { className: 'review-card__stars', 'aria-hidden': 'true' }, '★'.repeat(attributes.rating) + '☆'.repeat(5 - attributes.rating)),
                 createElement('span', { className: 'screen-reader-text' }, `Note : ${attributes.rating} sur 5`),

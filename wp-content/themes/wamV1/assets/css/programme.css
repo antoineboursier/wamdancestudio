@@ -1992,9 +1992,9 @@
 .cours-encart-tarifs {
     width: 100%;
     padding: var(--wam-spacing-2xl);
-    background: var(--wp--preset--color--background-600);
+    background: var(--wam-color-card-bg);
     border-radius: var(--wam-radius-2xl);
-    border: 1px solid var(--wp--preset--color--background-500);
+    border: 1px solid var(--wam-color-input-bg);
     box-sizing: border-box;
     display: flex;
     flex-direction: column;

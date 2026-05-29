@@ -1991,16 +1991,15 @@
 
 .cours-encart-tarifs {
     width: 100%;
-    padding: var(--wam-spacing-3xl) 0;
+    padding: var(--wam-spacing-3xl) var(--wam-page-mx);
+    background: var(--wp--preset--color--background-600);
+    border-top: 1px solid var(--wp--preset--color--background-500);
+    box-sizing: border-box;
 }
 
 .cours-encart-tarifs__inner {
-    max-width: 800px;
+    max-width: var(--wam-max-screen);
     margin: 0 auto;
-    padding: var(--wam-spacing-2xl) var(--wam-spacing-xl);
-    background: var(--wp--preset--color--background-600);
-    border-radius: var(--wam-radius-2xl);
-    border: 1px solid var(--wp--preset--color--background-500);
     display: flex;
     flex-direction: column;
     gap: var(--wam-spacing-lg);
@@ -2032,9 +2031,11 @@
     margin-top: var(--wam-spacing-2xs);
 }
 
-/* Sur la page planning : pas de padding vertical supplémentaire */
+/* Sur la page planning : padding vertical réduit */
 .cours-encart-tarifs--planning {
-    padding-top: 0;
+    padding-top: var(--wam-spacing-xl);
     padding-bottom: var(--wam-spacing-xl);
+    border-top: none;
+    border-bottom: 1px solid var(--wp--preset--color--background-500);
 }
 }

@@ -156,7 +156,7 @@ get_header();
 
     <!-- ============ ENCART TARIFS ============ -->
     <?php
-    $cours_tarif_texte = function_exists( 'get_field' ) ? get_field( 'cours_tarif_texte', 'option' ) : '';
+    $cours_tarif_texte = get_option( 'cours_tarif_texte', '' );
     if ( $cours_tarif_texte ) :
     ?>
     <div class="wam-container">

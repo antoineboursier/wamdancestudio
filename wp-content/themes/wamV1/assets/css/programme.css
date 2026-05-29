@@ -1983,6 +1983,7 @@
     .card-stage {
         flex: 0 0 100%;
     }
+}
 
 /* ============================================================
    ENCART TARIFS — commun pages cours collectifs + planning
@@ -2011,6 +2012,24 @@
 
 .cours-encart-tarifs__body {
     color: var(--wp--preset--color--text-subtext);
+}
+
+.cours-encart-tarifs__body p {
+    margin-bottom: var(--wam-spacing-md);
+}
+
+.cours-encart-tarifs__body p:last-child {
+    margin-bottom: 0;
+}
+
+.cours-encart-tarifs__body ul,
+.cours-encart-tarifs__body ol {
+    padding-left: var(--wam-spacing-xl);
+    margin-bottom: var(--wam-spacing-md);
+}
+
+.cours-encart-tarifs__body li + li {
+    margin-top: var(--wam-spacing-2xs);
 }
 
 /* Sur la page planning : pas de padding vertical supplémentaire */

@@ -93,7 +93,6 @@ get_header();
             $jour_value = $has_acf ? get_field('jour_de_cours') : '';
             $heure_debut = $has_acf ? get_field('heure_debut') : '';
             $heure_fin = $has_acf ? get_field('heure_de_fin') : '';
-            $tarif_obj = $has_acf ? get_field('tarif_cours') : null;
             $info_comp = $has_acf ? get_field('info_complementaire') : '';
             $complet = $has_acf ? get_field('complete_cours') : false;
             $description = $has_acf ? get_field('description_cours') : '';
@@ -154,9 +153,6 @@ get_header();
                     }
                 }
             }
-
-            // — Tarif : peut être un champ texte direct ("240€") ou un post_object lié.
-            $tarif_label = is_string($tarif_obj) ? $tarif_obj : (($tarif_obj instanceof WP_Post) ? $tarif_obj->post_title : '');
 
             // — Vidéos : on filtre les URLs vides (champs non renseignés dans ACF)
             $videos = array_filter([$video_1, $video_2, $video_3]);
@@ -299,16 +295,6 @@ get_header();
                                     <p class="cours-info-card__lieu text-md"><?php echo esc_html(wam_nom_lieu()); ?></p>
                                     <p class="cours-info-card__adresse text-sm"><?php echo nl2br(esc_html(wam_adresse_lieu())); ?></p>
                                 </div>
-                            </div>
-                        <?php endif; ?>
-
-                        <?php if ($tarif_label): ?>
-                            <div class="cours-info-card__row">
-                                <span class="btn-icon"
-                                    style="--icon-url: url('<?php echo esc_url($icon_dir); ?>piggy-bank.svg'); --icon-size: 24px; color: <?php echo $ic['piggybank']; ?>;"></span>
-                                <p class="cours-info-card__tarif text-lg fw-bold">
-                                    <?php echo esc_html($tarif_label); ?>
-                                </p>
                             </div>
                         <?php endif; ?>
 
@@ -627,7 +613,7 @@ get_header();
 
         <!-- ============ ENCART TARIFS (commun à tous les cours collectifs) ============ -->
         <?php
-        $cours_tarif_texte = function_exists( 'get_field' ) ? get_field( 'cours_tarif_texte', 'option' ) : '';
+        $cours_tarif_texte = get_option( 'cours_tarif_texte', '' );
         if ( $cours_tarif_texte ) :
         ?>
         <div class="cours-encart-tarifs">

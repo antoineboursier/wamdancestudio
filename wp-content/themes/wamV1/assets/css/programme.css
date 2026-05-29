@@ -2014,11 +2014,20 @@
 }
 
 .cours-encart-tarifs__body p {
-    margin-bottom: var(--wam-spacing-md);
+    margin-bottom: var(--wam-spacing-xs);
+}
+
+.cours-encart-tarifs__body p:empty {
+    display: none;
 }
 
 .cours-encart-tarifs__body p:last-child {
     margin-bottom: 0;
+}
+
+.cours-encart-tarifs__body small {
+    font-size: 0.85em;
+    opacity: 0.75;
 }
 
 .cours-encart-tarifs__body ul,

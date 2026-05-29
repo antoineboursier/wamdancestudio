@@ -15,6 +15,30 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
+// ── Format "Petit texte" dans TinyMCE (uniquement sur cette page) ─────────────
+add_filter( 'tiny_mce_before_init', 'wamv1_cours_options_tiny_formats' );
+
+function wamv1_cours_options_tiny_formats( $init ) {
+	// N'ajouter le format que sur la page cours-parametres
+	$screen = get_current_screen();
+	if ( ! $screen || strpos( $screen->id, 'cours-parametres' ) === false ) {
+		return $init;
+	}
+
+	$formats = [
+		[ 'title' => 'Petit texte', 'inline' => 'small', 'classes' => '' ],
+	];
+
+	$init['style_formats'] = wp_json_encode( $formats );
+
+	// Ajoute le bouton "Formats" dans la barre si pas déjà là
+	if ( ! isset( $init['toolbar1'] ) || strpos( $init['toolbar1'], 'styleselect' ) === false ) {
+		$init['toolbar1'] = 'styleselect,bold,italic,underline,|,bullist,numlist,|,link,unlink,|,undo,redo';
+	}
+
+	return $init;
+}
+
 // ── Enregistrement du sous-menu ───────────────────────────────────────────────
 add_action( 'admin_menu', 'wamv1_register_cours_options_page' );
 

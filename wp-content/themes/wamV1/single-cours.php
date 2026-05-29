@@ -621,8 +621,22 @@ get_header();
                 <h2 class="cours-encart-tarifs__title is-style-title-cool-md has-text-normal-color">
                     Tarifs
                 </h2>
-                <div class="cours-encart-tarifs__body wam-prose text-md has-text-subtext-color">
-                    <?php echo wp_kses_post( $cours_tarif_texte ); ?>
+                <div class="cours-encart-tarifs__body text-md has-text-subtext-color">
+                    <?php
+                    // wpautop() convertit les doubles sauts de ligne en <p>
+                    // (TinyMCE ne balisait pas le contenu brut)
+                    // Normalise les fins de ligne Windows (\r\n → \n) puis marque les lignes vides
+                    $tarif_html = str_replace( "\r\n", "\n", $cours_tarif_texte );
+                    $tarif_html = preg_replace( '/^&nbsp;$/m', '<!-- wam-spacer -->', trim( $tarif_html ) );
+                    $tarif_html = wpautop( $tarif_html );
+                    // Remplace les marqueurs par des espaceurs CSS
+                    $tarif_html = str_replace( '<p><!-- wam-spacer --></p>', '<p class="tarif-spacer"></p>', $tarif_html );
+                    // Supprime aussi les <p><br></p> générés par TinyMCE en mode visuel
+                    $tarif_html = preg_replace( '/<p[^>]*>\s*(?:<br\s*\/?>)\s*<\/p>/i', '<p class="tarif-spacer"></p>', $tarif_html );
+                    // Supprime uniquement les <p> sans attribut qui sont vides (pas les tarif-spacer)
+                    $tarif_html = preg_replace( '/<p>\s*<\/p>/', '', $tarif_html );
+                    echo wp_kses_post( $tarif_html );
+                    ?>
                 </div>
             </div>
         </div>

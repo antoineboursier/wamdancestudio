@@ -12,6 +12,7 @@ require_once get_template_directory() . '/inc/roles.php';
 require_once get_template_directory() . '/inc/admin-ui.php';
 require_once get_template_directory() . '/inc/admin-config.php';
 require_once get_template_directory() . '/inc/admin-widget-cours.php';
+require_once get_template_directory() . '/inc/cours-options.php';
 require_once get_template_directory() . '/inc/schema.php';
 require_once get_template_directory() . '/inc/shortcodes.php';
 require_once get_template_directory() . '/inc/no-comments.php';

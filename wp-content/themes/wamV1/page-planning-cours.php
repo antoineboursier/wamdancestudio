@@ -154,6 +154,25 @@ get_header();
 
     </div><!-- .page-layout__inner -->
 
+    <!-- ============ ENCART TARIFS ============ -->
+    <?php
+    $cours_tarif_texte = function_exists( 'get_field' ) ? get_field( 'cours_tarif_texte', 'option' ) : '';
+    if ( $cours_tarif_texte ) :
+    ?>
+    <div class="wam-container">
+        <div class="cours-encart-tarifs cours-encart-tarifs--planning">
+            <div class="cours-encart-tarifs__inner">
+                <h2 class="cours-encart-tarifs__title is-style-title-cool-md has-text-normal-color">
+                    Nos tarifs
+                </h2>
+                <div class="cours-encart-tarifs__body wam-prose text-md has-text-subtext-color">
+                    <?php echo wp_kses_post( $cours_tarif_texte ); ?>
+                </div>
+            </div>
+        </div>
+    </div>
+    <?php endif; ?>
+
     <div class="wam-container">
 
         <!-- Légende / Filtres — générés dynamiquement depuis cat_cours + état Complet -->

@@ -625,6 +625,23 @@ get_header();
 
         <?php endwhile; ?>
 
+        <!-- ============ ENCART TARIFS (commun à tous les cours collectifs) ============ -->
+        <?php
+        $cours_tarif_texte = function_exists( 'get_field' ) ? get_field( 'cours_tarif_texte', 'option' ) : '';
+        if ( $cours_tarif_texte ) :
+        ?>
+        <div class="cours-encart-tarifs">
+            <div class="cours-encart-tarifs__inner">
+                <h2 class="cours-encart-tarifs__title is-style-title-cool-md has-text-normal-color">
+                    Nos tarifs
+                </h2>
+                <div class="cours-encart-tarifs__body wam-prose text-md has-text-subtext-color">
+                    <?php echo wp_kses_post( $cours_tarif_texte ); ?>
+                </div>
+            </div>
+        </div>
+        <?php endif; ?>
+
         <!-- ============ SÉPARATEUR + COURS SIMILAIRES ============ -->
         <?php
         /*

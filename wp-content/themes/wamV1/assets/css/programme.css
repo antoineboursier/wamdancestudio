@@ -2017,7 +2017,8 @@
     margin-bottom: var(--wam-spacing-xs);
 }
 
-.cours-encart-tarifs__body p:empty {
+.cours-encart-tarifs__body p:empty,
+.cours-encart-tarifs__body p > br:only-child {
     display: none;
 }
 

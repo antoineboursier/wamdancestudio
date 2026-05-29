@@ -166,7 +166,7 @@ get_header();
                     Tarifs
                 </h2>
                 <div class="cours-encart-tarifs__body wam-prose text-md has-text-subtext-color">
-                    <?php echo wp_kses_post( wpautop( $cours_tarif_texte ) ); ?>
+                    <?php echo wp_kses_post( $cours_tarif_texte ); ?>
                 </div>
             </div>
         </div>

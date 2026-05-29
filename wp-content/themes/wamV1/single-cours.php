@@ -611,6 +611,21 @@ get_header();
 
         <?php endwhile; ?>
 
+        <!-- ============ ENCART TARIFS ============ -->
+        <?php
+        $cours_tarif_texte = get_option( 'cours_tarif_texte', '' );
+        if ( $cours_tarif_texte ) :
+        ?>
+        <div class="cours-encart-tarifs">
+            <h2 class="cours-encart-tarifs__title is-style-title-cool-md has-text-normal-color">
+                Tarifs
+            </h2>
+            <div class="cours-encart-tarifs__body wam-prose text-md has-text-subtext-color">
+                <?php echo wp_kses_post( wpautop( $cours_tarif_texte ) ); ?>
+            </div>
+        </div>
+        <?php endif; ?>
+
         <!-- ============ SÉPARATEUR + COURS SIMILAIRES ============ -->
         <?php
         /*
@@ -627,25 +642,7 @@ get_header();
         get_template_part('template-parts/related-content');
         ?>
 
-    </div><!-- /page-layout__inner -->
-
-    <!-- ============ ENCART TARIFS — pleine largeur, hors conteneur ============ -->
-    <?php
-    $cours_tarif_texte = get_option( 'cours_tarif_texte', '' );
-    if ( $cours_tarif_texte ) :
-    ?>
-    <div class="cours-encart-tarifs">
-        <div class="cours-encart-tarifs__inner">
-            <h2 class="cours-encart-tarifs__title is-style-title-cool-md has-text-normal-color">
-                Tarifs
-            </h2>
-            <div class="cours-encart-tarifs__body wam-prose text-md has-text-subtext-color">
-                <?php echo wp_kses_post( wpautop( $cours_tarif_texte ) ); ?>
-            </div>
-        </div>
     </div>
-    <?php endif; ?>
-
 </main>
 
 <?php get_footer(); ?>

@@ -161,11 +161,13 @@ get_header();
     ?>
     <div class="wam-container">
         <div class="cours-encart-tarifs">
-            <h2 class="cours-encart-tarifs__title is-style-title-cool-md has-text-normal-color">
-                Tarifs
-            </h2>
-            <div class="cours-encart-tarifs__body wam-prose text-md has-text-subtext-color">
-                <?php echo wp_kses_post( wpautop( $cours_tarif_texte ) ); ?>
+            <div class="cours-encart-tarifs__inner">
+                <h2 class="cours-encart-tarifs__title is-style-title-cool-md has-text-normal-color">
+                    Tarifs
+                </h2>
+                <div class="cours-encart-tarifs__body wam-prose text-md has-text-subtext-color">
+                    <?php echo wp_kses_post( wpautop( $cours_tarif_texte ) ); ?>
+                </div>
             </div>
         </div>
     </div>

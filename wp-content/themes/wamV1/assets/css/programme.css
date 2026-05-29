@@ -1991,9 +1991,14 @@
 
 .cours-encart-tarifs {
     width: 100%;
+}
+
+.cours-encart-tarifs__inner {
+    width: 100%;
     padding: var(--wam-spacing-2xl) var(--wam-spacing-xl);
     background: var(--wp--preset--color--background-600);
     border-radius: var(--wam-radius-2xl);
+    border: 1px solid var(--wp--preset--color--background-500);
     box-sizing: border-box;
     display: flex;
     flex-direction: column;

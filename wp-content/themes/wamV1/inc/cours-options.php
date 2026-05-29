@@ -25,7 +25,7 @@ function wamv1_cours_options_tiny_formats( $init ) {
 	}
 
 	$init['style_formats'] = wp_json_encode( [
-		[ 'title' => 'Petit texte', 'inline' => 'small' ],
+		[ 'title' => 'Petit texte', 'block' => 'p', 'classes' => 'tarif-small', 'wrapper' => false ],
 	] );
 
 	// Ajoute styleselect en début de toolbar sans effacer le reste

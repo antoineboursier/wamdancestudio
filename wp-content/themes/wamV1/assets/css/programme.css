@@ -2018,8 +2018,13 @@
 }
 
 .cours-encart-tarifs__body p:empty,
-.cours-encart-tarifs__body p > br:only-child {
+.cours-encart-tarifs__body p:has(> br:only-child) {
     display: none;
+}
+
+.cours-encart-tarifs__body p.tarif-small {
+    font-size: 0.85em;
+    opacity: 0.8;
 }
 
 .cours-encart-tarifs__body p:last-child {

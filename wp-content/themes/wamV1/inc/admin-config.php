@@ -257,6 +257,27 @@ function wam_config_register_settings(): void
         'wam_section_lieux'
     );
 
+    register_setting('wam_config_general', 'cours_tarif_texte', [
+        'type'              => 'string',
+        'default'           => '',
+        'sanitize_callback' => 'wp_kses_post',
+    ]);
+
+    add_settings_section(
+        'wam_section_tarifs',
+        'Tarifs',
+        '',
+        'wam-config-general'
+    );
+
+    add_settings_field(
+        'cours_tarif_texte',
+        'Encart tarifs (pages cours & planning)',
+        'wam_field_cours_tarif_texte',
+        'wam-config-general',
+        'wam_section_tarifs'
+    );
+
     add_settings_section(
         'wam_section_socials',
         'Réseaux Sociaux',
@@ -561,6 +582,12 @@ function wam_field_nom_lieu(): void
     echo '<span id="wam-row-nom-lieu">';
     echo '<input type="text" name="wam_setting_nom_lieu" value="' . $val . '" class="regular-text">';
     echo '</span>';
+}
+
+function wam_field_cours_tarif_texte(): void {
+    $val = wp_kses_post( get_option( 'cours_tarif_texte', '' ) );
+    echo '<textarea name="cours_tarif_texte" rows="8" class="large-text">' . esc_textarea( $val ) . '</textarea>';
+    echo '<p class="description">Contenu affiché dans l\'encart tarifs en bas des pages cours et du planning. Laissez vide pour masquer l\'encart. HTML basique autorisé.</p>';
 }
 
 function wam_field_adresse_lieu(): void

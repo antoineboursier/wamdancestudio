@@ -1487,8 +1487,8 @@ function wamv1_wc_save_registration_fields($customer_id) {
  * 5. Redirection intelligente après login/register si un redirect est présent
  */
 add_filter('woocommerce_login_redirect', 'wamv1_wc_custom_login_redirect', 10, 2);
-add_filter('woocommerce_registration_redirect', 'wamv1_wc_custom_login_redirect', 10, 2);
-function wamv1_wc_custom_login_redirect($redirect, $user) {
+add_filter('woocommerce_registration_redirect', 'wamv1_wc_custom_login_redirect', 10, 1);
+function wamv1_wc_custom_login_redirect($redirect, $user = null) {
     if (!empty($_REQUEST['redirect'])) {
         return wp_validate_redirect($_REQUEST['redirect'], $redirect);
     }

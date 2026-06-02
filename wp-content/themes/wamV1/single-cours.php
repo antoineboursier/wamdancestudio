@@ -382,15 +382,31 @@ get_header();
                                 <button type="button" class="btn-primary btn-inscription is-complet" disabled>
                                     <?php _e('Cours complet', 'wamv1'); ?>
                                 </button>
-                            <?php elseif ($config_desactive): ?>
-                                <!-- Bouton désactivé config WAM -->
-                                <button type="button" class="btn-primary btn-inscription" aria-disabled="true" onclick="return false;">
-                                    <?php echo esc_html(function_exists('wam_btn_cours_desactive_texte') ? wam_btn_cours_desactive_texte() : 'Inscriptions fermées'); ?>
-                                </button>
+                            <?php elseif ( get_option( 'coulisses_inscription_active', 0 ) ) : ?>
+                                <!-- Tunnel d'inscription Coulisses -->
+                                <?php if ( $config_desactive ) : ?>
+                                    <button type="button" class="btn-primary btn-inscription" aria-disabled="true" onclick="return false;">
+                                        <?php echo esc_html( get_option( 'wam_setting_btn_cours_desactive_texte' ) ?: 'Inscriptions bientôt disponibles' ); ?>
+                                    </button>
+                                <?php else : ?>
+                                    <?php
+                                        $cta_text   = get_option( 'wam_setting_btn_inscription_texte', 'Démarrer mon inscription' );
+                                        $tunnel_url = home_url( '/inscription/?cours_id=' . get_the_ID() );
+                                    ?>
+                                    <a href="<?php echo esc_url( $tunnel_url ); ?>"
+                                       class="btn-primary btn-inscription"
+                                       data-tunnel="1">
+                                        <?php echo esc_html( $cta_text ); ?>
+                                        <span class="btn-icon"
+                                              style="--icon-url: url('<?php echo esc_url( $icon_dir_cta . 'chevron-right.svg' ); ?>');"
+                                              aria-hidden="true"></span>
+                                    </a>
+                                <?php endif; ?>
+
                             <?php else: ?>
-                                <!-- Bouton add-to-cart AJAX -->
-                                <?php 
-                                    $wc_pid = wamv1_get_wc_product_id(get_the_ID()); 
+                                <!-- Bouton add-to-cart AJAX (Antoine) -->
+                                <?php
+                                    $wc_pid = wamv1_get_wc_product_id(get_the_ID());
                                     $cart_qty = wamv1_get_course_cart_qty(get_the_ID());
                                     $is_in_cart = ($cart_qty > 0);
                                     $cta_text = $is_in_cart ? 'Déjà au panier' : (function_exists('wam_btn_inscription_texte') ? wam_btn_inscription_texte() : 'S\'inscrire');
@@ -414,10 +430,11 @@ get_header();
 
                         <?php else: ?>
                             <!-- Inscriptions fermées : message de remplacement -->
-                            <?php $msg = function_exists('wam_message_inscriptions_fermees') ? wam_message_inscriptions_fermees() : ''; ?>
-                            <?php if ($msg): ?>
-                                <p class="cours-inscriptions-fermees text-sm"><?php echo esc_html($msg); ?></p>
-                            <?php endif; ?>
+                            <?php
+                                $msg = function_exists('wam_message_inscriptions_fermees') ? wam_message_inscriptions_fermees() : '';
+                                $msg = $msg ?: get_option( 'wam_setting_message_inscriptions_fermees' ) ?: 'Les inscriptions sont actuellement fermées.';
+                            ?>
+                            <p class="cours-inscriptions-fermees text-sm"><?php echo esc_html($msg); ?></p>
 
                         <?php endif; ?>
                     </div><!-- /cours-ctas -->

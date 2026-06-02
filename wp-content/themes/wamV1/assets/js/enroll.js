@@ -16,6 +16,7 @@
         directBtns.forEach(function (btn) {
             btn.addEventListener('click', function (e) {
                 if (btn.classList.contains('btn-open-stage-modal')) return;
+                if (btn.dataset.tunnel) return; // lien tunnel Coulisses — laisser le navigateur suivre le lien
 
                 e.preventDefault();
                 handleAddToCart(btn, {

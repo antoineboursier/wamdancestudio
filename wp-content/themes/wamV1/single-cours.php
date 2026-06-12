@@ -382,7 +382,14 @@ get_header();
                                 <button type="button" class="btn-primary btn-inscription is-complet" disabled>
                                     <?php _e('Cours complet', 'wamv1'); ?>
                                 </button>
-                            <?php elseif ( get_option( 'coulisses_inscription_active', 0 ) ) : ?>
+                            <?php elseif ( get_option( 'coulisses_inscription_active', 0 ) ) :
+                                // Vérifier qu'au moins un type d'inscription est configurable pour ce cours
+                                $cours_wc  = function_exists( 'coulisses_get_wc_product_id' ) ? coulisses_get_wc_product_id( get_the_ID() ) : 0;
+                                $cours_bkl = ( (int) get_field( 'service_bookly' ) ) ?: (int) get_option( 'wam_default_service_bookly', 0 );
+                                if ( ! $cours_wc && ! $cours_bkl ) : // rien de configuré → pas de bouton
+                            ?>
+                                <!-- Cours non configuré pour le tunnel — bouton masqué -->
+                                <?php else : ?>
                                 <!-- Tunnel d'inscription Coulisses -->
                                 <?php if ( $config_desactive ) : ?>
                                     <button type="button" class="btn-primary btn-inscription" aria-disabled="true" onclick="return false;">
@@ -402,8 +409,10 @@ get_header();
                                               aria-hidden="true"></span>
                                     </a>
                                 <?php endif; ?>
+                                <?php endif; // fin else cours configuré ?>
+                            <?php endif; // fin coulisses_inscription_active ?>
 
-                            <?php else: ?>
+                            <?php if ( ! get_option( 'coulisses_inscription_active', 0 ) ) : ?>
                                 <!-- Bouton add-to-cart AJAX (Antoine) -->
                                 <?php
                                     $wc_pid = wamv1_get_wc_product_id(get_the_ID());
@@ -426,15 +435,10 @@ get_header();
                                               aria-hidden="true"></span>
                                     </button>
                                 <?php endif; ?>
-                            <?php endif; ?>
+                            <?php endif; // fin if ! coulisses_inscription_active ?>
 
                         <?php else: ?>
-                            <!-- Inscriptions fermées : message de remplacement -->
-                            <?php
-                                $msg = function_exists('wam_message_inscriptions_fermees') ? wam_message_inscriptions_fermees() : '';
-                                $msg = $msg ?: get_option( 'wam_setting_message_inscriptions_fermees' ) ?: 'Les inscriptions sont actuellement fermées.';
-                            ?>
-                            <p class="cours-inscriptions-fermees text-sm"><?php echo esc_html($msg); ?></p>
+                            <!-- Inscriptions fermées : rien affiché sur la fiche cours -->
 
                         <?php endif; ?>
                     </div><!-- /cours-ctas -->
@@ -444,6 +448,49 @@ get_header();
 
             <!-- Séparateur pattern danseurs (entre hero et sections) -->
             <?php get_template_part('template-parts/separator'); ?>
+
+            <!-- ============ ACTU + TARIFS (côte à côte) ============ -->
+            <?php
+            $actu_pattern      = get_posts( [ 'post_type' => 'wp_block', 'name' => 'actu-cours', 'posts_per_page' => 1, 'post_status' => 'publish' ] );
+            $has_actu          = get_option( 'coulisses_affichage_actu_active', 0 ) && $actu_pattern && trim( $actu_pattern[0]->post_content );
+            $cours_tarif_texte = get_option( 'cours_tarif_texte', '' );
+            $has_tarif         = get_option( 'coulisses_affichage_tarifs_active', 0 ) && (bool) $cours_tarif_texte;
+            if ( $has_actu || $has_tarif ) :
+            ?>
+            <div class="cours-actu-tarifs-row<?php echo ( $has_actu && $has_tarif ) ? ' has-both' : ''; ?>">
+
+                <?php if ( $has_actu ) : ?>
+                <div class="cours-encart-actu">
+                    <div class="cours-encart-actu__inner">
+                        <?php echo apply_filters( 'the_content', $actu_pattern[0]->post_content ); ?>
+                    </div>
+                </div>
+                <?php endif; ?>
+
+                <?php if ( $has_tarif ) : ?>
+                <div class="cours-encart-tarifs">
+                    <div class="cours-encart-tarifs__inner">
+                        <h2 class="cours-encart-tarifs__title is-style-title-cool-md has-text-normal-color">Tarifs</h2>
+                        <div class="cours-encart-tarifs__body text-md has-text-subtext-color">
+                            <?php
+                            $tarif_html = str_replace( "\r\n", "\n", $cours_tarif_texte );
+                            $tarif_html = preg_replace( '/^&nbsp;$/m', '<!-- wam-spacer -->', trim( $tarif_html ) );
+                            $tarif_html = wpautop( $tarif_html );
+                            $tarif_html = str_replace( '<p><!-- wam-spacer --></p>', '<p class="tarif-spacer"></p>', $tarif_html );
+                            $tarif_html = preg_replace( '/<p[^>]*>\s*(?:<br\s*\/?>)\s*<\/p>/i', '<p class="tarif-spacer"></p>', $tarif_html );
+                            $tarif_html = preg_replace( '/<p>\s*<\/p>/', '', $tarif_html );
+                            echo wp_kses_post( $tarif_html );
+                            ?>
+                        </div>
+                    </div>
+                </div>
+                <?php endif; ?>
+
+            </div><!-- /cours-actu-tarifs-row -->
+            <?php
+            // Séparateur avant les sections pédagogiques — affiché seulement si l'actu/tarifs existent
+            if ( $has_actu || $has_tarif ) get_template_part('template-parts/separator');
+            endif; ?>
 
             <!-- ============ SECTIONS DESCRIPTION ============ -->
             <div id="section-description" class="cours-sections">
@@ -627,37 +674,6 @@ get_header();
             <?php endif; ?>
 
         <?php endwhile; ?>
-
-        <!-- ============ ENCART TARIFS ============ -->
-        <?php
-        $cours_tarif_texte = get_option( 'cours_tarif_texte', '' );
-        if ( $cours_tarif_texte ) :
-        ?>
-        <div class="cours-encart-tarifs">
-            <div class="cours-encart-tarifs__inner">
-                <h2 class="cours-encart-tarifs__title is-style-title-cool-md has-text-normal-color">
-                    Tarifs
-                </h2>
-                <div class="cours-encart-tarifs__body text-md has-text-subtext-color">
-                    <?php
-                    // wpautop() convertit les doubles sauts de ligne en <p>
-                    // (TinyMCE ne balisait pas le contenu brut)
-                    // Normalise les fins de ligne Windows (\r\n → \n) puis marque les lignes vides
-                    $tarif_html = str_replace( "\r\n", "\n", $cours_tarif_texte );
-                    $tarif_html = preg_replace( '/^&nbsp;$/m', '<!-- wam-spacer -->', trim( $tarif_html ) );
-                    $tarif_html = wpautop( $tarif_html );
-                    // Remplace les marqueurs par des espaceurs CSS
-                    $tarif_html = str_replace( '<p><!-- wam-spacer --></p>', '<p class="tarif-spacer"></p>', $tarif_html );
-                    // Supprime aussi les <p><br></p> générés par TinyMCE en mode visuel
-                    $tarif_html = preg_replace( '/<p[^>]*>\s*(?:<br\s*\/?>)\s*<\/p>/i', '<p class="tarif-spacer"></p>', $tarif_html );
-                    // Supprime uniquement les <p> sans attribut qui sont vides (pas les tarif-spacer)
-                    $tarif_html = preg_replace( '/<p>\s*<\/p>/', '', $tarif_html );
-                    echo wp_kses_post( $tarif_html );
-                    ?>
-                </div>
-            </div>
-        </div>
-        <?php endif; ?>
 
         <!-- ============ SÉPARATEUR + COURS SIMILAIRES ============ -->
         <?php

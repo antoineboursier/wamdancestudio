@@ -31,6 +31,18 @@ do_action('woocommerce_before_cart');
 
                     <?php do_action('woocommerce_before_cart_contents'); ?>
 
+                    <?php
+                    // Élève stocké en session par le tunnel (pour les items Bookly)
+                    $tunnel_eleve = function_exists('WC') && WC()->session ? WC()->session->get('coulisses_eleve') : null;
+                    $tunnel_label = '';
+                    if ( ! empty( $tunnel_eleve ) ) {
+                        $te_enfant  = ! empty( $tunnel_eleve['pour_enfant'] );
+                        $te_prenom  = $te_enfant ? ( $tunnel_eleve['enfant_prenom'] ?? '' ) : ( $tunnel_eleve['prenom'] ?? '' );
+                        $te_nom     = $te_enfant ? ( $tunnel_eleve['enfant_nom']    ?? '' ) : ( $tunnel_eleve['nom']    ?? '' );
+                        $tunnel_label = trim( $te_prenom . ' ' . $te_nom );
+                    }
+                    ?>
+
                     <?php foreach (WC()->cart->get_cart() as $cart_item_key => $cart_item):
                         $_product = apply_filters('woocommerce_cart_item_product', $cart_item['data'], $cart_item, $cart_item_key);
                         $product_id = apply_filters('woocommerce_cart_item_product_id', $cart_item['product_id'], $cart_item, $cart_item_key);
@@ -67,8 +79,8 @@ do_action('woocommerce_before_cart');
                             class="wam-cart-card <?php echo !$image_html ? 'wam-cart-card--no-thumb' : ''; ?> <?php echo esc_attr(apply_filters('woocommerce_cart_item_class', 'cart_item', $cart_item, $cart_item_key)); ?>"
                             data-cart-item-key="<?php echo esc_attr($cart_item_key); ?>">
 
-                            <!-- Croix de suppression (haut-droite) — uniquement pour les items non-WAM -->
-                            <?php if (!$course_id): ?>
+                            <!-- Croix de suppression (haut-droite) — items non-WAM et items tunnel -->
+                            <?php if (!$course_id || !empty($cart_item['coulisses_eleve'])): ?>
                             <?php echo apply_filters(
                                 'woocommerce_cart_item_remove_link',
                                 sprintf(
@@ -93,10 +105,24 @@ do_action('woocommerce_before_cart');
                             <!-- Infos principales -->
                             <div class="wam-cart-card__body">
 
-                                <!-- Badge (nom du produit WC) -->
-                                <?php if (!isset($cart_item['bookly'])): ?>
+                                <?php
+                                $coulisses_eleve = $cart_item['coulisses_eleve'] ?? [];
+                                $coulisses_label = '';
+                                if ( ! empty( $coulisses_eleve ) ) {
+                                    $pour_enfant     = ! empty( $coulisses_eleve['pour_enfant'] );
+                                    $eleve_prenom    = $pour_enfant ? ( $coulisses_eleve['enfant_prenom'] ?? '' ) : ( $coulisses_eleve['prenom'] ?? '' );
+                                    $eleve_nom       = $pour_enfant ? ( $coulisses_eleve['enfant_nom']    ?? '' ) : ( $coulisses_eleve['nom']    ?? '' );
+                                    $coulisses_label = trim( $eleve_prenom . ' ' . $eleve_nom );
+                                }
+                                ?>
+
+                                <!-- Badge -->
+                                <?php if ( isset( $cart_item['bookly'] ) ): ?>
+                                    <span class="wam-cart-card__badge text-xs">Préinscription<?php if ( $tunnel_label ): ?> — pour <?php echo esc_html( $tunnel_label ); ?><?php endif; ?></span>
+                                <?php else: ?>
                                     <span class="wam-cart-card__badge text-xs">
-                                        <?php echo esc_html($_product->get_name()); ?>
+                                        <?php echo esc_html( $_product->get_name() ); ?>
+                                        <?php if ( $coulisses_label ): ?> — pour <?php echo esc_html( $coulisses_label ); ?><?php endif; ?>
                                     </span>
                                 <?php endif; ?>
 

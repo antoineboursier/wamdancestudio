@@ -71,14 +71,6 @@ function wam_get_settings_keys(): array
         'url_tiktok'                   => ['type' => 'string',  'default' => '', 'group' => 'socials'],
         'url_linkedin'                 => ['type' => 'string',  'default' => '', 'group' => 'socials'],
         'url_youtube'                  => ['type' => 'string',  'default' => '', 'group' => 'socials'],
-        'smtp_host'                    => ['type' => 'string',  'default' => '', 'group' => 'smtp'],
-        'smtp_port'                    => ['type' => 'integer', 'default' => 465, 'group' => 'smtp'],
-        'smtp_user'                    => ['type' => 'string',  'default' => '', 'group' => 'smtp'],
-        'smtp_pass'                    => ['type' => 'string',  'default' => '', 'group' => 'smtp'],
-        'smtp_secure'                  => ['type' => 'string',  'default' => 'ssl', 'group' => 'smtp'],
-        'smtp_from_email'              => ['type' => 'string',  'default' => 'contact@wamdancestudio.fr', 'group' => 'smtp'],
-        'smtp_from_name'               => ['type' => 'string',  'default' => 'WAM Dance Studio', 'group' => 'smtp'],
-        'smtp_to_emails'               => ['type' => 'string',  'default' => 'contact@wamdancestudio.fr', 'group' => 'smtp'],
     ];
 }
 
@@ -174,26 +166,7 @@ function wam_config_register_settings(): void
         'wam_section_lieux'
     );
 
-    register_setting('wam_config_general', 'cours_tarif_texte', [
-        'type'              => 'string',
-        'default'           => '',
-        'sanitize_callback' => 'wp_kses_post',
-    ]);
-
-    add_settings_section(
-        'wam_section_tarifs',
-        'Tarifs',
-        '',
-        'wam-config-general'
-    );
-
-    add_settings_field(
-        'cours_tarif_texte',
-        'Encart tarifs (pages cours & planning)',
-        'wam_field_cours_tarif_texte',
-        'wam-config-general',
-        'wam_section_tarifs'
-    );
+    // Actualité et tarifs gérés dans Coulisses → Réglages → Inscription → Affichages
 
     add_settings_section(
         'wam_section_socials',
@@ -207,21 +180,6 @@ function wam_config_register_settings(): void
     add_settings_field('url_tiktok', 'Lien TikTok', 'wam_field_url_tiktok', 'wam-config-socials', 'wam_section_socials');
     add_settings_field('url_linkedin', 'Lien LinkedIn', 'wam_field_url_linkedin', 'wam-config-socials', 'wam_section_socials');
     add_settings_field('url_youtube', 'Lien YouTube', 'wam_field_url_youtube', 'wam-config-socials', 'wam_section_socials');
-
-    add_settings_section(
-        'wam_section_smtp',
-        'Configuration SMTP (Envoi Email)',
-        'wam_section_smtp_desc',
-        'wam-config-smtp'
-    );
-    add_settings_field('smtp_host', 'Serveur SMTP (Hôte)', 'wam_field_smtp_host', 'wam-config-smtp', 'wam_section_smtp');
-    add_settings_field('smtp_port', 'Port', 'wam_field_smtp_port', 'wam-config-smtp', 'wam_section_smtp');
-    add_settings_field('smtp_user', 'Identifiant / Email', 'wam_field_smtp_user', 'wam-config-smtp', 'wam_section_smtp');
-    add_settings_field('smtp_pass', 'Mot de passe', 'wam_field_smtp_pass', 'wam-config-smtp', 'wam_section_smtp');
-    add_settings_field('smtp_secure', 'Sécurité (SSL/TLS)', 'wam_field_smtp_secure', 'wam-config-smtp', 'wam_section_smtp');
-    add_settings_field('smtp_from_email', 'Email expéditeur par défaut', 'wam_field_smtp_from_email', 'wam-config-smtp', 'wam_section_smtp');
-    add_settings_field('smtp_from_name', 'Nom expéditeur par défaut', 'wam_field_smtp_from_name', 'wam-config-smtp', 'wam_section_smtp');
-    add_settings_field('smtp_to_emails', 'Destinataire(s) des formulaires', 'wam_field_smtp_to_emails', 'wam-config-smtp', 'wam_section_smtp');
 
 }
 add_action('admin_init', 'wam_config_register_settings');
@@ -301,49 +259,6 @@ function wam_field_url_linkedin(): void {
 function wam_field_url_youtube(): void {
     $val = esc_attr(wam_get_setting('url_youtube', ''));
     echo '<input type="url" name="wam_setting_url_youtube" value="' . $val . '" class="regular-text">';
-}
-
-// --- Callbacks SMTP ---
-function wam_section_smtp_desc(): void {
-    echo '<p>Configurez ici les accès à votre serveur d\'envoi email (SMTP) pour garantir la bonne réception de vos messages de contact et notifications. Laissez vide si vous souhaitez utiliser le système par défaut de votre serveur d\'hébergement (déconseillé).</p>';
-}
-function wam_field_smtp_host(): void {
-    $val = esc_attr(wam_get_setting('smtp_host', ''));
-    echo '<input type="text" name="wam_setting_smtp_host" value="' . $val . '" class="regular-text" placeholder="ex: smtp.gmail.com">';
-}
-function wam_field_smtp_port(): void {
-    $val = esc_attr(wam_get_setting('smtp_port', '465'));
-    echo '<input type="number" name="wam_setting_smtp_port" value="' . $val . '" class="small-text">';
-}
-function wam_field_smtp_user(): void {
-    $val = esc_attr(wam_get_setting('smtp_user', ''));
-    echo '<input type="text" name="wam_setting_smtp_user" value="' . $val . '" class="regular-text">';
-}
-function wam_field_smtp_pass(): void {
-    $val = esc_attr(wam_get_setting('smtp_pass', ''));
-    echo '<input type="password" name="wam_setting_smtp_pass" value="' . $val . '" class="regular-text" placeholder="Votre mot de passe">';
-    echo '<p class="description">Le mot de passe sera enregistré en toute sécurité dans la base de données.</p>';
-}
-function wam_field_smtp_secure(): void {
-    $val = esc_attr(wam_get_setting('smtp_secure', 'ssl'));
-    echo '<select name="wam_setting_smtp_secure">
-        <option value="ssl" ' . selected($val, 'ssl', false) . '>SSL (recommandé port 465)</option>
-        <option value="tls" ' . selected($val, 'tls', false) . '>TLS (recommandé port 587)</option>
-        <option value="none" ' . selected($val, 'none', false) . '>Aucune (non recommandé)</option>
-    </select>';
-}
-function wam_field_smtp_from_email(): void {
-    $val = esc_attr(wam_get_setting('smtp_from_email', 'contact@wamdancestudio.fr'));
-    echo '<input type="email" name="wam_setting_smtp_from_email" value="' . $val . '" class="regular-text">';
-}
-function wam_field_smtp_from_name(): void {
-    $val = esc_attr(wam_get_setting('smtp_from_name', 'WAM Dance Studio'));
-    echo '<input type="text" name="wam_setting_smtp_from_name" value="' . $val . '" class="regular-text">';
-}
-function wam_field_smtp_to_emails(): void {
-    $val = esc_attr(wam_get_setting('smtp_to_emails', ''));
-    echo '<input type="text" name="wam_setting_smtp_to_emails" value="' . $val . '" class="large-text" placeholder="ex: contact@wamdancestudio.fr, direction@wamdancestudio.fr">';
-    echo '<p class="description">Séparez les adresses e-mail par une virgule. Si ce champ est vide, l\'e-mail par défaut (contact@wamdancestudio.fr) sera utilisé.</p>';
 }
 
 function wam_field_inscriptions_actives(): void
@@ -501,11 +416,7 @@ function wam_field_nom_lieu(): void
     echo '</span>';
 }
 
-function wam_field_cours_tarif_texte(): void {
-    $val = wp_kses_post( get_option( 'cours_tarif_texte', '' ) );
-    echo '<textarea name="cours_tarif_texte" rows="8" class="large-text">' . esc_textarea( $val ) . '</textarea>';
-    echo '<p class="description">Contenu affiché dans l\'encart tarifs en bas des pages cours et du planning. Laissez vide pour masquer l\'encart. HTML basique autorisé.</p>';
-}
+
 
 function wam_field_adresse_lieu(): void
 {
@@ -580,7 +491,6 @@ function wam_config_page_html(): void
 
         <h2 class="nav-tab-wrapper">
             <a href="?page=wam-config&tab=general" class="nav-tab <?php echo $active_tab === 'general' ? 'nav-tab-active' : ''; ?>">Général</a>
-            <a href="?page=wam-config&tab=smtp" class="nav-tab <?php echo $active_tab === 'smtp' ? 'nav-tab-active' : ''; ?>">Envoi Email (SMTP)</a>
             <a href="?page=wam-config&tab=socials" class="nav-tab <?php echo $active_tab === 'socials' ? 'nav-tab-active' : ''; ?>">Réseaux Sociaux</a>
         </h2>
 
@@ -590,60 +500,13 @@ function wam_config_page_html(): void
 
             if ($active_tab === 'general') {
                 do_settings_sections('wam-config-general');
-            } elseif ($active_tab === 'smtp') {
-                do_settings_sections('wam-config-smtp');
             } elseif ($active_tab === 'socials') {
                 do_settings_sections('wam-config-socials');
             }
             submit_button('Enregistrer');
-
-            if ($active_tab === 'smtp') {
-                echo '<button type="button" id="wam-test-smtp-btn" class="button button-secondary">Envoyer un e-mail de test</button>';
-                echo '<span id="wam-test-smtp-result" style="margin-left:10px;"></span>';
-            }
             ?>
         </form>
     </div>
-
-    <script>
-    jQuery(document).ready(function($) {
-        $('#wam-test-smtp-btn').on('click', function() {
-            var $btn = $(this);
-            var $result = $('#wam-test-smtp-result');
-            
-            $btn.prop('disabled', true).text('Envoi en cours...');
-            $result.text('');
-
-            $.ajax({
-                url: ajaxurl,
-                type: 'POST',
-                timeout: 30000, // 30 secondes max
-                data: {
-                    action: 'wam_test_smtp',
-                    nonce: '<?php echo wp_create_nonce("wam_test_smtp_nonce"); ?>'
-                },
-                success: function(response) {
-                    if (response.success) {
-                        $result.html('<div style="color:#2271b1; background:#fff; border-left:4px solid #72aee6; padding:10px; margin-top:10px;">✅ ' + response.data + '</div>');
-                    } else {
-                        var errorMsg = response.data;
-                        if (response.debug) {
-                            errorMsg += '<br><details style="margin-top:5px; font-size:11px;"><summary>Détails techniques (Debug Log)</summary><pre style="background:#f6f7f7; padding:5px; overflow:auto; max-height:200px;">' + response.debug + '</pre></details>';
-                        }
-                        $result.html('<div style="color:#d63638; background:#fff; border-left:4px solid #d63638; padding:10px; margin-top:10px;">❌ ' + errorMsg + '</div>');
-                    }
-                    $btn.prop('disabled', false).text('Envoyer un e-mail de test');
-                },
-                error: function(xhr, status, error) {
-                    var msg = 'Erreur lors de l\'appel AJAX.';
-                    if (status === 'timeout') msg = 'Le serveur a mis trop de temps à répondre (Timeout). Vérifiez vos paramètres d\'hôte et de port.';
-                    $result.html('<div style="color:#d63638; background:#fff; border-left:4px solid #d63638; padding:10px; margin-top:10px;">❌ ' + msg + '</div>');
-                    $btn.prop('disabled', false).text('Envoyer un e-mail de test');
-                }
-            });
-        });
-    });
-    </script>
 
     <style>
         /* Separateurs visuels entre les sections Settings API */
@@ -959,7 +822,7 @@ endif;
 if (!function_exists('wam_show_rentree')):
     function wam_show_rentree(): bool
     {
-        return (bool) wam_get_setting('show_rentree', false);
+        return (bool) get_option('coulisses_date_rentree_active', 0);
     }
 endif;
 
@@ -1010,57 +873,29 @@ if (!function_exists('wam_url_youtube')):
     }
 endif;
 
-/**
- * AJAX Handler : Test de l'envoi SMTP
- */
-function wam_ajax_test_smtp(): void
-{
-    check_ajax_referer('wam_test_smtp_nonce', 'nonce');
+// ── Création automatique du pattern synchronisé "actu-cours" ─────────────────
 
-    if (!current_user_can('manage_options')) {
-        wp_send_json_error('Droits insuffisants.');
+add_action( 'init', function() {
+    if ( get_option( 'wam_actu_cours_pattern_created' ) ) return;
+
+    $existing = get_posts( [
+        'post_type'      => 'wp_block',
+        'name'           => 'actu-cours',
+        'posts_per_page' => 1,
+        'post_status'    => 'any',
+    ] );
+    if ( $existing ) {
+        update_option( 'wam_actu_cours_pattern_created', true );
+        return;
     }
 
-    $to = wam_get_setting('smtp_to_emails', get_option('admin_email'));
-    // Si plusieurs emails, on prend le premier
-    $to_array = explode(',', $to);
-    $to = trim($to_array[0]);
+    wp_insert_post( [
+        'post_type'    => 'wp_block',
+        'post_title'   => 'Actualité cours',
+        'post_name'    => 'actu-cours',
+        'post_status'  => 'publish',
+        'post_content' => '',
+    ] );
 
-    if (empty($to)) {
-        $to = get_option('admin_email');
-    }
-
-    $subject = 'WAM V1 - Test de configuration SMTP';
-    $message = "Ceci est un e-mail de test envoyé depuis la configuration WAM de votre site.\n\nSi vous recevez ce message, cela signifie que votre serveur SMTP est correctement configuré.\n\nDate de l'envoi : " . date('d/m/Y H:i:s');
-
-    // On force l'utilisation des réglages SMTP pour ce test
-    // WordPress utilisera le hook phpmailer_init (dans smtp-config.php) automatiquement
-    
-    // Capturer les logs SMTP
-    add_action('phpmailer_init', function($phpmailer) {
-        $phpmailer->SMTPDebug = 3;
-        $phpmailer->Debugoutput = function($str, $level) {
-            $GLOBALS['wam_smtp_debug'] = ($GLOBALS['wam_smtp_debug'] ?? '') . $str . "\n";
-        };
-    }, 20);
-
-    $sent = wp_mail($to, $subject, $message);
-    $debug_log = $GLOBALS['wam_smtp_debug'] ?? '';
-
-    if ($sent) {
-        wp_send_json_success('E-mail de test envoyé avec succès à ' . $to);
-    } else {
-        global $phpmailer;
-        $error = 'L\'envoi a échoué.';
-        if (isset($phpmailer) && !empty($phpmailer->ErrorInfo)) {
-            $error .= ' Erreur : ' . $phpmailer->ErrorInfo;
-        }
-        
-        wp_send_json([
-            'success' => false,
-            'data'    => $error,
-            'debug'   => esc_html($debug_log)
-        ]);
-    }
-}
-add_action('wp_ajax_wam_test_smtp', 'wam_ajax_test_smtp');
+    update_option( 'wam_actu_cours_pattern_created', true );
+} );

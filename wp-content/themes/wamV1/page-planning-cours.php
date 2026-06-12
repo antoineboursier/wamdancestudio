@@ -154,33 +154,6 @@ get_header();
 
     </div><!-- .page-layout__inner -->
 
-    <!-- ============ ENCART TARIFS ============ -->
-    <?php
-    $cours_tarif_texte = get_option( 'cours_tarif_texte', '' );
-    if ( $cours_tarif_texte ) :
-    ?>
-    <div class="wam-container">
-        <div class="cours-encart-tarifs">
-            <div class="cours-encart-tarifs__inner">
-                <h2 class="cours-encart-tarifs__title is-style-title-cool-md has-text-normal-color">
-                    Tarifs
-                </h2>
-                <div class="cours-encart-tarifs__body text-md has-text-subtext-color">
-                    <?php
-                    $tarif_html = str_replace( "\r\n", "\n", $cours_tarif_texte );
-                    $tarif_html = preg_replace( '/^&nbsp;$/m', '<!-- wam-spacer -->', trim( $tarif_html ) );
-                    $tarif_html = wpautop( $tarif_html );
-                    $tarif_html = str_replace( '<p><!-- wam-spacer --></p>', '<p class="tarif-spacer"></p>', $tarif_html );
-                    $tarif_html = preg_replace( '/<p[^>]*>\s*(?:<br\s*\/?>)\s*<\/p>/i', '<p class="tarif-spacer"></p>', $tarif_html );
-                    $tarif_html = preg_replace( '/<p>\s*<\/p>/', '', $tarif_html );
-                    echo wp_kses_post( $tarif_html );
-                    ?>
-                </div>
-            </div>
-        </div>
-    </div>
-    <?php endif; ?>
-
     <div class="wam-container">
 
         <!-- Légende / Filtres — générés dynamiquement depuis cat_cours + état Complet -->
@@ -398,6 +371,48 @@ get_header();
         </details>
 
     </div><!-- .wam-container -->
+
+    <!-- ============ ACTU + TARIFS ============ -->
+    <?php
+    $actu_pattern      = get_posts( [ 'post_type' => 'wp_block', 'name' => 'actu-cours', 'posts_per_page' => 1, 'post_status' => 'publish' ] );
+    $has_actu          = get_option( 'coulisses_affichage_actu_active', 0 ) && $actu_pattern && trim( $actu_pattern[0]->post_content );
+    $cours_tarif_texte = get_option( 'cours_tarif_texte', '' );
+    $has_tarif         = get_option( 'coulisses_affichage_tarifs_active', 0 ) && (bool) $cours_tarif_texte;
+    if ( $has_actu || $has_tarif ) :
+    ?>
+    <div class="wam-container">
+        <div class="cours-actu-tarifs-row<?php echo ( $has_actu && $has_tarif ) ? ' has-both' : ''; ?>">
+
+            <?php if ( $has_actu ) : ?>
+            <div class="cours-encart-actu">
+                <div class="cours-encart-actu__inner">
+                    <?php echo apply_filters( 'the_content', $actu_pattern[0]->post_content ); ?>
+                </div>
+            </div>
+            <?php endif; ?>
+
+            <?php if ( $has_tarif ) : ?>
+            <div class="cours-encart-tarifs">
+                <div class="cours-encart-tarifs__inner">
+                    <h2 class="cours-encart-tarifs__title is-style-title-cool-md has-text-normal-color">Tarifs</h2>
+                    <div class="cours-encart-tarifs__body text-md has-text-subtext-color">
+                        <?php
+                        $tarif_html = str_replace( "\r\n", "\n", $cours_tarif_texte );
+                        $tarif_html = preg_replace( '/^&nbsp;$/m', '<!-- wam-spacer -->', trim( $tarif_html ) );
+                        $tarif_html = wpautop( $tarif_html );
+                        $tarif_html = str_replace( '<p><!-- wam-spacer --></p>', '<p class="tarif-spacer"></p>', $tarif_html );
+                        $tarif_html = preg_replace( '/<p[^>]*>\s*(?:<br\s*\/?>)\s*<\/p>/i', '<p class="tarif-spacer"></p>', $tarif_html );
+                        $tarif_html = preg_replace( '/<p>\s*<\/p>/', '', $tarif_html );
+                        echo wp_kses_post( $tarif_html );
+                        ?>
+                    </div>
+                </div>
+            </div>
+            <?php endif; ?>
+
+        </div>
+    </div>
+    <?php endif; ?>
 
 </main>
 

@@ -2018,6 +2018,36 @@ p:has(label[for="mailpoet_woocommerce_checkout_optin"]) {
     margin-top: var(--wam-spacing-2xs);
 }
 
+.wam-order-item__bookly-data,
+.wam-order-item__bookly-data dl,
+.wam-order-item__bookly-data dl.variation,
+.wam-order-item__bookly-data dt,
+.wam-order-item__bookly-data dd,
+.wam-order-item__bookly-data p {
+    font-size: 0.7rem !important;
+    color: var(--wam-color-subtext) !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    line-height: 1.4 !important;
+}
+.wam-order-item__bookly-data {
+    padding-left: 12px !important;
+}
+.wam-order-item__bookly-data dl.variation {
+    display: block !important;
+}
+.wam-order-item__bookly-data dt {
+    font-weight: normal !important;
+    display: inline !important;
+}
+.wam-order-item__bookly-data dd {
+    display: inline !important;
+}
+.wam-order-item__bookly-data dd::after {
+    content: '\A';
+    white-space: pre;
+}
+
 .wam-order-review__totals {
     display: flex;
     flex-direction: column;

@@ -827,6 +827,9 @@ function wamv1_add_adherent_fields_to_checkout($checkout)
         $index = 2;
 
         foreach ($cours_items as $cart_item_key => $cart_item) {
+            // Items venant du tunnel coulisses : infos déjà collectées, pas de champs à afficher
+            if (!empty($cart_item['coulisses_eleve'])) { $index++; continue; }
+
             $product = wc_get_product($cart_item['product_id']);
             if (!$product) continue;
 
@@ -1052,8 +1055,9 @@ function wamv1_validate_adherent_fields()
         elseif ($type === 'cours') $cours_items[$key] = $item;
     }
 
-    // Contact d'urgence billing — requis uniquement si le panier contient des cours
-    if (!empty($cours_items)) {
+    // Contact d'urgence billing — requis uniquement si le panier contient des cours hors tunnel coulisses
+    $cours_items_hors_tunnel = array_filter($cours_items, fn($item) => empty($item['coulisses_eleve']));
+    if (!empty($cours_items_hors_tunnel)) {
         if (empty($_POST['billing_urgent_name'])) {
             wc_add_notice('Le contact d\'urgence est obligatoire.', 'error');
         }
@@ -1087,6 +1091,9 @@ function wamv1_validate_adherent_fields()
 
     $index = 2;
     foreach ($cours_items as $cart_item_key => $cart_item) {
+        // Items venant du tunnel coulisses : données déjà collectées dans le tunnel
+        if (!empty($cart_item['coulisses_eleve'])) { $index++; continue; }
+
         $qty             = $cart_item['quantity'] ?? 1;
         $course_id       = $cart_item['wam_course_id'] ?? null;
         $course_title    = $course_id ? get_the_title($course_id) : '';
@@ -1118,6 +1125,9 @@ add_action('woocommerce_checkout_create_order_line_item', 'wamv1_save_adherent_t
 
 function wamv1_save_adherent_to_order_items($item, $cart_item_key, $values, $order)
 {
+    // Items venant du tunnel coulisses : déjà sauvegardés par le plugin, priorité 10
+    if (!empty($values['coulisses_eleve'])) return;
+
     $cart_count = WC()->cart->get_cart_contents_count();
     $is_solo    = ($cart_count === 1);
     $is_stage   = wamv1_is_stage_item($values);
@@ -1321,7 +1331,7 @@ function wamv1_simplify_billing_fields($fields)
  * On le place en fin de formulaire de facturation (priority 5)
  * pour qu'il soit avant le chargement des participants (priority 10)
  */
-add_action('woocommerce_after_checkout_billing_form', 'wamv1_add_billing_emergency_block', 5);
+// add_action('woocommerce_after_checkout_billing_form', 'wamv1_add_billing_emergency_block', 5);
 function wamv1_add_billing_emergency_block($checkout) {
     if (!wamv1_cart_has_cours()) {
         return;

@@ -91,8 +91,36 @@ defined( 'ABSPATH' ) || exit;
 					<span class="wam-order-item__qty text-sm color-text">× <?php echo esc_html( $cart_item['quantity'] ); ?></span>
 				</div>
 
-				<?php if ( $course_title ) : ?>
-					<span class="wam-order-item__product text-xs color-subtext"><?php echo esc_html( $product_name ); ?></span>
+				<?php
+				$coulisses_eleve = $cart_item['coulisses_eleve'] ?? [];
+				$coulisses_label = '';
+				if ( ! empty( $coulisses_eleve ) ) {
+					$pour_enfant     = ! empty( $coulisses_eleve['pour_enfant'] );
+					$eleve_prenom    = $pour_enfant ? ( $coulisses_eleve['enfant_prenom'] ?? '' ) : ( $coulisses_eleve['prenom'] ?? '' );
+					$eleve_nom       = $pour_enfant ? ( $coulisses_eleve['enfant_nom']    ?? '' ) : ( $coulisses_eleve['nom']    ?? '' );
+					$coulisses_label = trim( $eleve_prenom . ' ' . $eleve_nom );
+				}
+				?>
+
+				<?php if ( ! empty( $cart_item['bookly'] ) ) :
+					$tunnel_eleve = function_exists('WC') && WC()->session ? WC()->session->get('coulisses_eleve') : null;
+					$tunnel_label = '';
+					if ( ! empty( $tunnel_eleve ) ) {
+						$te_enfant    = ! empty( $tunnel_eleve['pour_enfant'] );
+						$te_prenom    = $te_enfant ? ( $tunnel_eleve['enfant_prenom'] ?? '' ) : ( $tunnel_eleve['prenom'] ?? '' );
+						$te_nom       = $te_enfant ? ( $tunnel_eleve['enfant_nom']    ?? '' ) : ( $tunnel_eleve['nom']    ?? '' );
+						$tunnel_label = trim( $te_prenom . ' ' . $te_nom );
+					}
+				?>
+					<span class="wam-order-item__product text-xs color-subtext">
+						Préinscription<?php if ( $tunnel_label ) : ?> — pour <?php echo esc_html( $tunnel_label ); ?><?php endif; ?>
+					</span>
+				<?php elseif ( $course_title ) : ?>
+					<span class="wam-order-item__product text-xs color-subtext">
+						<?php echo esc_html( $product_name ); ?><?php if ( $coulisses_label ) : ?> — pour <?php echo esc_html( $coulisses_label ); ?><?php endif; ?>
+					</span>
+				<?php elseif ( $coulisses_label ) : ?>
+					<span class="wam-order-item__product text-xs color-subtext">pour <?php echo esc_html( $coulisses_label ); ?></span>
 				<?php endif; ?>
 
 				<?php if ( $variation_label ) : ?>
@@ -101,6 +129,12 @@ defined( 'ABSPATH' ) || exit;
 
 				<?php if ( $wam_date ) : ?>
 					<span class="wam-order-item__meta text-xs color-subtext"><?php echo esc_html( $wam_date ); ?></span>
+				<?php endif; ?>
+
+				<?php if ( ! empty( $cart_item['bookly'] ) ) : ?>
+					<div class="wam-order-item__bookly-data">
+						<?php echo wc_get_formatted_cart_item_data( $cart_item ); ?>
+					</div>
 				<?php endif; ?>
 
 				<span class="wam-order-item__price text-sm color-subtext"><?php echo wp_kses_post( $price_html ); ?></span>

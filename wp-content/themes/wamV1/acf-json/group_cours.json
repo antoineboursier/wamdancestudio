@@ -169,11 +169,11 @@
 			"name": "age_min",
 			"aria-label": "",
 			"type": "number",
-			"instructions": "Laisser vide = ouvert à tous les âges",
+			"instructions": "Laisser vide = ouvert à tous les âges.<br>Âge strict : accepté dès le jour anniversaire (ex : 18 = éligible à partir de ses 18 ans, à la minute).",
 			"required": 0,
 			"conditional_logic": 0,
 			"wrapper": {
-				"width": "30",
+				"width": "50",
 				"class": "",
 				"id": ""
 			},
@@ -192,11 +192,11 @@
 			"name": "age_max",
 			"aria-label": "",
 			"type": "number",
-			"instructions": "Laisser vide = ouvert à tous les âges",
+			"instructions": "Laisser vide = ouvert à tous les âges.<br>Âge non strict : éligible jusqu'à la veille d'anniversaire suivant (ex : 11 = éligible jusqu'à 11 ans 11 mois 29 jours).",
 			"required": 0,
 			"conditional_logic": 0,
 			"wrapper": {
-				"width": "30",
+				"width": "50",
 				"class": "",
 				"id": ""
 			},

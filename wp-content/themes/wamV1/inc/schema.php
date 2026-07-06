@@ -227,7 +227,7 @@ if ( ! function_exists( 'wamv1_schema_person_from_acf_user' ) ) {
  * Construit une liste de VideoObject pour le schéma JSON-LD
  */
 if ( ! function_exists( 'wamv1_schema_video_objects' ) ) {
-    function wamv1_schema_video_objects( int $post_id, string $title, string $permalink, ?string $desc ): array {
+    function wamv1_schema_video_objects( $post_id, $title, $permalink, $desc ): array {
         $video_1 = get_field( 'video_1', $post_id );
         $video_2 = get_field( 'video_2', $post_id );
         $video_3 = get_field( 'video_3', $post_id );
@@ -236,6 +236,7 @@ if ( ! function_exists( 'wamv1_schema_video_objects' ) ) {
 
         if ( ! empty( $videos ) ) {
             $index = 1;
+            $desc_str = ( is_string( $desc ) && ! empty( $desc ) ) ? wp_strip_all_tags( $desc ) : '';
             foreach ( $videos as $video_url ) {
                 preg_match('%(?:youtube(?:-nocookie)?\.com/(?:[^/]+/.+/|(?:v|e(?:mbed)?)/|.*[?&]v=|shorts/)|youtu\.be/)([^"&?/ ]{11})%i', $video_url, $match);
                 $video_id = $match[1] ?? null;
@@ -245,7 +246,7 @@ if ( ! function_exists( 'wamv1_schema_video_objects' ) ) {
                         '@type'        => 'VideoObject',
                         '@id'          => $permalink . '#video-' . $video_id,
                         'name'         => $video_title,
-                        'description'  => $desc ? wp_strip_all_tags( $desc ) : $video_title,
+                        'description'  => $desc_str ?: $video_title,
                         'thumbnailUrl' => [
                             "https://img.youtube.com/vi/{$video_id}/maxresdefault.jpg",
                             "https://img.youtube.com/vi/{$video_id}/hqdefault.jpg"

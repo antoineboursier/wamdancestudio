@@ -50,7 +50,7 @@ function wamv1_youtube_facade($html, $url, $attr) {
                 const facade = document.currentScript.parentElement;
                 facade.addEventListener('click', function() {
                     const id = this.dataset.videoId;
-                    this.innerHTML = '<iframe width="100%" height="100%" src="https://www.youtube-nocookie.com/embed/' + id + '?autoplay=1" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen style="position:absolute; top:0; left:0; width:100%; height:100%; border-radius: inherit;"></iframe>';
+                    this.innerHTML = '<iframe width="100%" height="100%" src="https://www.youtube-nocookie.com/embed/' + id + '?autoplay=1&vq=hd1080" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen style="position:absolute; top:0; left:0; width:100%; height:100%; border-radius: inherit;"></iframe>';
                 }, { once: true });
                 
                 facade.addEventListener('mouseenter', function() {

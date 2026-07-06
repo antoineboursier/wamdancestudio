@@ -102,7 +102,9 @@ add_filter('mce_body_class', function ($classes) {
 // Noindex pages WooCommerce non-SEO
 // -------------------------------------------------------
 add_action('wp_head', function () {
-    if (is_cart() || is_checkout() || is_account_page() || is_page_template('page-reinscription.php')) {
+    // Garde : les conditionnelles WooCommerce n'existent pas si le plugin est inactif
+    $is_wc_page = class_exists('WooCommerce') && (is_cart() || is_checkout() || is_account_page());
+    if ($is_wc_page || is_page_template('page-reinscription.php')) {
         echo '<meta name="robots" content="noindex, nofollow">';
     }
 });

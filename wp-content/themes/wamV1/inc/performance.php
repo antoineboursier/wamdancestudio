@@ -20,26 +20,29 @@ function wamv1_youtube_facade($html, $url, $attr) {
         return $html;
     }
 
-    // Extraire l'ID de la vidéo
-    preg_match('%(?:youtube(?:-nocookie)?\.com/(?:[^/]+/.+/|(?:v|e(?:mbed)?)/|.*[?&]v=)|youtu\.be/)([^"&?/ ]{11})%i', $url, $match);
+    // Extraire l'ID de la vidéo (y compris pour les Shorts)
+    preg_match('%(?:youtube(?:-nocookie)?\.com/(?:[^/]+/.+/|(?:v|e(?:mbed)?)/|.*[?&]v=|shorts/)|youtu\.be/)([^"&?/ ]{11})%i', $url, $match);
     $video_id = $match[1] ?? null;
 
     if (!$video_id) {
         return $html;
     }
 
+    $is_shorts = (strpos($url, '/shorts/') !== false);
+    $aspect_ratio = $is_shorts ? '9/16' : '16/9';
+
     $thumb_url = "https://img.youtube.com/vi/{$video_id}/maxresdefault.jpg";
     $fallback_url = "https://img.youtube.com/vi/{$video_id}/hqdefault.jpg";
     
     ob_start();
     ?>
-    <div class="wam-video-facade" data-video-id="<?php echo esc_attr($video_id); ?>" style="position:relative; cursor:pointer; background: #000; aspect-ratio: 16/9; overflow: hidden; border-radius: var(--wam-radius-md);">
+    <div class="wam-video-facade" data-video-id="<?php echo esc_attr($video_id); ?>" style="position:relative; cursor:pointer; background: #000; aspect-ratio: <?php echo $aspect_ratio; ?>; overflow: hidden; border-radius: inherit; will-change: transform; isolation: isolate;">
         <img src="<?php echo esc_url($thumb_url); ?>" 
              onerror="this.src='<?php echo esc_url($fallback_url); ?>'; this.onerror=null;"
              alt="YouTube Video" 
              style="width:100%; height:100%; object-fit:cover; opacity: 0.8; transition: opacity 0.3s ease;" 
              loading="lazy">
-        <div class="wam-video-play-btn" style="position:absolute; top:50%; left:50%; transform:translate(-50%, -50%); width: 68px; height: 48px; background: rgba(0,0,0,0.7); border-radius: 12px; display: flex; align-items: center; justify-content: center; transition: background 0.3s ease;">
+        <div class="wam-video-play-btn" style="position:absolute; top:50%; left:50%; transform:translate(-50%, -50%); width: 68px; height: 48px; background: rgba(0,0,0,0.7); border-radius: 12px; display: flex; align-items: center; justify-content: center; transition: background 0.3s ease; pointer-events: none;">
              <svg width="30" height="30" viewBox="0 0 24 24" fill="white"><path d="M8 5v14l11-7z"/></svg>
         </div>
         <script>
@@ -47,18 +50,28 @@ function wamv1_youtube_facade($html, $url, $attr) {
                 const facade = document.currentScript.parentElement;
                 facade.addEventListener('click', function() {
                     const id = this.dataset.videoId;
-                    this.innerHTML = '<iframe width="100%" height="100%" src="https://www.youtube-nocookie.com/embed/' + id + '?autoplay=1" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen style="position:absolute; top:0; left:0; width:100%; height:100%;"></iframe>';
+                    this.innerHTML = '<iframe width="100%" height="100%" src="https://www.youtube-nocookie.com/embed/' + id + '?autoplay=1" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen style="position:absolute; top:0; left:0; width:100%; height:100%; border-radius: inherit;"></iframe>';
                 }, { once: true });
                 
                 facade.addEventListener('mouseenter', function() {
-                    this.querySelector('img').style.opacity = '1';
-                    this.querySelector('.wam-video-play-btn').style.background = 'var(--wp--preset--color--accent-yellow, #FBD150)';
-                    this.querySelector('svg').style.fill = '#000';
+                    const img = this.querySelector('img');
+                    if (img) img.style.opacity = '1';
+                    const btn = this.querySelector('.wam-video-play-btn');
+                    if (btn) {
+                        btn.style.background = 'var(--wp--preset--color--accent-yellow, #FBD150)';
+                        const svg = btn.querySelector('svg');
+                        if (svg) svg.style.fill = '#000';
+                    }
                 });
                 facade.addEventListener('mouseleave', function() {
-                    this.querySelector('img').style.opacity = '0.8';
-                    this.querySelector('.wam-video-play-btn').style.background = 'rgba(0,0,0,0.7)';
-                    this.querySelector('svg').style.fill = 'white';
+                    const img = this.querySelector('img');
+                    if (img) img.style.opacity = '0.8';
+                    const btn = this.querySelector('.wam-video-play-btn');
+                    if (btn) {
+                        btn.style.background = 'rgba(0,0,0,0.7)';
+                        const svg = btn.querySelector('svg');
+                        if (svg) svg.style.fill = 'white';
+                    }
                 });
             })();
         </script>
@@ -98,7 +111,42 @@ add_action('wp_dashboard_setup', function() {
 });
 
 /**
- * 4. Optimisation LCP (Largest Contentful Paint)
+ * 5. Invalidation des transients de contenu
+ * Les blocs mis en cache (footer, grille des profs, planning) sont
+ * invalidés dès qu'un contenu concerné est modifié, publié ou supprimé,
+ * plutôt que d'attendre l'expiration de 24h.
+ */
+add_action('save_post', 'wamv1_flush_content_transients');
+add_action('deleted_post', 'wamv1_flush_content_transients');
+function wamv1_flush_content_transients($post_id) {
+    if (wp_is_post_revision($post_id) || wp_is_post_autosave($post_id)) {
+        return;
+    }
+
+    switch (get_post_type($post_id)) {
+        case 'cours':
+            delete_transient('wamv1_planning_data_v1');
+            delete_transient('wamv1_footer_cours_grouped_v2');
+            break;
+        case 'stages':
+            delete_transient('wamv1_footer_stages_v3');
+            break;
+        case 'wam_membre':
+            delete_transient('wamv1_teachers_grid_v1');
+            break;
+    }
+}
+
+// Les termes cat_cours impactent la légende du planning et le groupement du footer
+foreach (array('created_cat_cours', 'edited_cat_cours', 'delete_cat_cours') as $wamv1_cat_hook) {
+    add_action($wamv1_cat_hook, function () {
+        delete_transient('wamv1_planning_data_v1');
+        delete_transient('wamv1_footer_cours_grouped_v2');
+    });
+}
+
+/**
+ * 6. Optimisation LCP (Largest Contentful Paint)
  * Précharge l'image Hero dans le head et lui donne une priorité haute.
  */
 

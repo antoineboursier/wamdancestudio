@@ -664,8 +664,11 @@ get_header();
                      */
                     foreach ($videos as $video_url):
                         $embed = wp_oembed_get(esc_url($video_url), ['width' => 1200]);
-                        if ($embed): ?>
-                            <div class="cours-video">
+                        if ($embed): 
+                            $is_shorts = (strpos($video_url, '/shorts/') !== false);
+                            $extra_class = $is_shorts ? ' cours-video--shorts' : '';
+                            ?>
+                            <div class="cours-video<?php echo $extra_class; ?>">
                                 <?php echo $embed; ?>
                             </div>
                         <?php endif; ?>

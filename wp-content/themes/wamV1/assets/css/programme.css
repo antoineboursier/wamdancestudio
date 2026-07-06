@@ -1390,6 +1390,15 @@
     aspect-ratio: 16 / 9;
     border-radius: var(--wam-radius-3xl);
     overflow: hidden;
+    will-change: transform;
+    isolation: isolate;
+}
+
+/* Shorts — ratio vertical et centrage */
+.cours-video--shorts {
+    aspect-ratio: 9 / 16;
+    max-width: 380px;
+    margin: 0 auto;
 }
 
 

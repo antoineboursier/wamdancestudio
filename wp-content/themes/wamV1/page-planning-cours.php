@@ -46,73 +46,92 @@ $wam_day_map = [
     '07day' => [ 'label' => 'Dimanche', 'col' => 8 ],
 ];
 
-/* ---- Requête de tous les cours publiés ---- */
+/* ---- Données du planning, mises en cache 24h ----
+ * Invalidation à la sauvegarde d'un cours / d'un terme cat_cours
+ * dans inc/performance.php (wamv1_flush_content_transients). */
 $has_acf = function_exists( 'get_field' );
 
-$all_cours_query = new WP_Query( [
-    'post_type'      => 'cours',
-    'posts_per_page' => -1,
-    'post_status'    => 'publish',
-    'orderby'        => 'title',
-    'order'          => 'ASC',
-    'no_found_rows'  => true,
-] );
+$planning_cache = get_transient( 'wamv1_planning_data_v1' );
 
-/* ---- Termes cat_cours pour la légende dynamique ---- */
-$legend_terms = get_terms( [
-    'taxonomy'   => 'cat_cours',
-    'hide_empty' => true,
-    'orderby'    => 'menu_order',
-    'order'      => 'ASC',
-] );
-if ( is_wp_error( $legend_terms ) ) $legend_terms = [];
+if ( is_array( $planning_cache ) && isset( $planning_cache['items'], $planning_cache['legend'] ) ) {
+    $planning_items = $planning_cache['items'];
+    $legend_terms   = $planning_cache['legend'];
+} else {
 
-/* ---- Construction des items ---- */
-$planning_items = [];
+    /* ---- Requête de tous les cours publiés ---- */
+    $all_cours_query = new WP_Query( [
+        'post_type'      => 'cours',
+        'posts_per_page' => -1,
+        'post_status'    => 'publish',
+        'orderby'        => 'title',
+        'order'          => 'ASC',
+        'no_found_rows'  => true,
+    ] );
 
-if ( $all_cours_query->have_posts() ) {
-    while ( $all_cours_query->have_posts() ) {
-        $all_cours_query->the_post();
+    /* ---- Termes cat_cours pour la légende dynamique ---- */
+    $legend_terms = get_terms( [
+        'taxonomy'   => 'cat_cours',
+        'hide_empty' => true,
+        'orderby'    => 'menu_order',
+        'order'      => 'ASC',
+    ] );
+    if ( is_wp_error( $legend_terms ) ) $legend_terms = [];
 
-        if ( ! $has_acf ) continue;
+    /* ---- Construction des items ---- */
+    $planning_items = [];
 
-        $jour        = get_field( 'jour_de_cours' );
-        $heure_debut = get_field( 'heure_debut' );
-        $heure_fin   = get_field( 'heure_de_fin' );
+    if ( $all_cours_query->have_posts() ) {
+        while ( $all_cours_query->have_posts() ) {
+            $all_cours_query->the_post();
 
-        /* Données obligatoires */
-        if ( ! $jour || ! isset( $wam_day_map[ $jour ] ) || ! $heure_debut || ! $heure_fin ) continue;
+            if ( ! $has_acf ) continue;
 
-        $start_min = wamv1_time_to_min( $heure_debut );
-        $end_min   = wamv1_time_to_min( $heure_fin );
+            $jour        = get_field( 'jour_de_cours' );
+            $heure_debut = get_field( 'heure_debut' );
+            $heure_fin   = get_field( 'heure_de_fin' );
 
-        /* Plage valide */
-        if ( $start_min < $wam_planning_start || $end_min > $wam_planning_end || $start_min >= $end_min ) continue;
+            /* Données obligatoires */
+            if ( ! $jour || ! isset( $wam_day_map[ $jour ] ) || ! $heure_debut || ! $heure_fin ) continue;
 
-        $is_enfant = wamv1_is_enfant_variant();
-        $complet   = get_field( 'complete_cours' );
+            $start_min = wamv1_time_to_min( $heure_debut );
+            $end_min   = wamv1_time_to_min( $heure_fin );
 
-        /* Catégories du cours : slugs pour le filtrage JS + objets pour la transcription */
-        $cat_terms = wp_get_post_terms( get_the_ID(), 'cat_cours' );
-        if ( is_wp_error( $cat_terms ) ) $cat_terms = [];
-        $cats = wp_list_pluck( $cat_terms, 'slug' );
+            /* Plage valide */
+            if ( $start_min < $wam_planning_start || $end_min > $wam_planning_end || $start_min >= $end_min ) continue;
 
-        $planning_items[] = [
-            'title'      => get_the_title(),
-            'permalink'  => get_permalink(),
-            'sous_titre' => get_field( 'sous_titre' ),
-            'col'        => $wam_day_map[ $jour ]['col'],
-            'row_start'  => wamv1_time_to_grid_row( $start_min, $wam_planning_start, $wam_planning_granularity ),
-            'row_end'    => wamv1_time_to_grid_row( $end_min,   $wam_planning_start, $wam_planning_granularity ),
-            'debut'      => $heure_debut,
-            'fin'        => $heure_fin,
-            'is_enfant'  => $is_enfant,
-            'complet'    => $complet,
-            'cats'       => $cats,      // slugs cat_cours
-            'cat_terms'  => $cat_terms, // objets WP_Term
-        ];
+            $is_enfant = wamv1_is_enfant_variant();
+            $complet   = get_field( 'complete_cours' );
+
+            /* Catégories du cours : slugs pour le filtrage JS + objets pour la transcription */
+            $cat_terms = wp_get_post_terms( get_the_ID(), 'cat_cours' );
+            if ( is_wp_error( $cat_terms ) ) $cat_terms = [];
+            $cats = wp_list_pluck( $cat_terms, 'slug' );
+
+            $planning_items[] = [
+                'title'      => get_the_title(),
+                'permalink'  => get_permalink(),
+                'sous_titre' => get_field( 'sous_titre' ),
+                'col'        => $wam_day_map[ $jour ]['col'],
+                'row_start'  => wamv1_time_to_grid_row( $start_min, $wam_planning_start, $wam_planning_granularity ),
+                'row_end'    => wamv1_time_to_grid_row( $end_min,   $wam_planning_start, $wam_planning_granularity ),
+                'debut'      => $heure_debut,
+                'fin'        => $heure_fin,
+                'is_enfant'  => $is_enfant,
+                'complet'    => $complet,
+                'cats'       => $cats,      // slugs cat_cours
+                'cat_terms'  => $cat_terms, // objets WP_Term
+            ];
+        }
+        wp_reset_postdata();
     }
-    wp_reset_postdata();
+
+    /* Sans ACF (env. local incomplet), les items sont forcément vides : on ne cache pas */
+    if ( $has_acf ) {
+        set_transient( 'wamv1_planning_data_v1', [
+            'items'  => $planning_items,
+            'legend' => $legend_terms,
+        ], DAY_IN_SECONDS );
+    }
 }
 
 /*

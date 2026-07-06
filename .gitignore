@@ -1,6 +1,7 @@
 # Ignorer tout le répertoire WordPress par défaut
 /*
 !/.gitignore
+!/.htaccess
 !/wp-content/
 !/.cpanel.yml
 !/.ddev/

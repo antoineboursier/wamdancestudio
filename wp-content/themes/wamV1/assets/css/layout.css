@@ -461,8 +461,6 @@ body.single-post #section-article-header.page-hero {
     line-height: 0;
     display: inline-block;
     width: 100%;
-    /* Fond subtil visible uniquement tant que l'image n'est pas peinte */
-    background-color: rgba(255, 255, 255, 0.03);
 }
 
 .photo-overlay {

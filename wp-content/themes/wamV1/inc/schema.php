@@ -230,6 +230,7 @@ if ( ! function_exists( 'wamv1_schema_person_from_acf_user' ) ) {
             $person['@id'] = home_url( '/#person-' . sanitize_title( $name ) );
         }
 
+        return $person;
     }
 }
 

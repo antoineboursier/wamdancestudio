@@ -22,6 +22,16 @@
  * @package wamv1
  */
 
+// Polyfill pour PHP < 8.1 (compatibilité avec les versions antérieures en production)
+if ( ! function_exists( 'array_is_list' ) ) {
+    function array_is_list( array $arr ): bool {
+        if ( $arr === [] ) {
+            return true;
+        }
+        return array_keys( $arr ) === range( 0, count( $arr ) - 1 );
+    }
+}
+
 // =========================================================================
 // 1. YOAST — Corriger Organization → DanceSchool
 // =========================================================================

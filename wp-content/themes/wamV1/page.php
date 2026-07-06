@@ -38,7 +38,7 @@ get_header();
             $page_content = get_the_content();
             if (!empty(trim($page_content))): ?>
                 <div id="section-page-content" class="page-content">
-                    <div class="page-content__inner <?php echo (is_cart() || is_checkout()) ? '' : 'wam-prose'; ?>">
+                    <div class="page-content__inner <?php echo (function_exists('is_cart') && (is_cart() || is_checkout())) ? '' : 'wam-prose'; ?>">
                         <?php echo apply_filters('the_content', $page_content); ?>
                     </div>
                 </div>

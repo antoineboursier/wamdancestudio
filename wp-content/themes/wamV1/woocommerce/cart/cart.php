@@ -7,7 +7,7 @@
  *
  * @see https://woocommerce.com/document/template-structure/
  * @package wamv1
- * @version 10.1.0
+ * @version 10.8.0
  */
 
 defined('ABSPATH') || exit;

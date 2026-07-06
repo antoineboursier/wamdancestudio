@@ -7,6 +7,7 @@
  * - Bouton "Retour aux cours" vers /cours-collectifs
  *
  * @package wamv1
+ * @version 7.0.1
  */
 
 defined('ABSPATH') || exit;

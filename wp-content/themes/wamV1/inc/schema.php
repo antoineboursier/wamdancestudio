@@ -220,7 +220,44 @@ if ( ! function_exists( 'wamv1_schema_person_from_acf_user' ) ) {
             $person['@id'] = home_url( '/#person-' . sanitize_title( $name ) );
         }
 
-        return $person;
+    }
+}
+
+/**
+ * Construit une liste de VideoObject pour le schéma JSON-LD
+ */
+if ( ! function_exists( 'wamv1_schema_video_objects' ) ) {
+    function wamv1_schema_video_objects( int $post_id, string $title, string $permalink, ?string $desc ): array {
+        $video_1 = get_field( 'video_1', $post_id );
+        $video_2 = get_field( 'video_2', $post_id );
+        $video_3 = get_field( 'video_3', $post_id );
+        $videos  = array_filter( [ $video_1, $video_2, $video_3 ] );
+        $video_schemas = [];
+
+        if ( ! empty( $videos ) ) {
+            $index = 1;
+            foreach ( $videos as $video_url ) {
+                preg_match('%(?:youtube(?:-nocookie)?\.com/(?:[^/]+/.+/|(?:v|e(?:mbed)?)/|.*[?&]v=|shorts/)|youtu\.be/)([^"&?/ ]{11})%i', $video_url, $match);
+                $video_id = $match[1] ?? null;
+                if ( $video_id ) {
+                    $video_title = $title . ' - Vidéo de démonstration' . ( count( $videos ) > 1 ? ' ' . $index : '' );
+                    $video_schemas[] = [
+                        '@type'        => 'VideoObject',
+                        '@id'          => $permalink . '#video-' . $video_id,
+                        'name'         => $video_title,
+                        'description'  => $desc ? wp_strip_all_tags( $desc ) : $video_title,
+                        'thumbnailUrl' => [
+                            "https://img.youtube.com/vi/{$video_id}/maxresdefault.jpg",
+                            "https://img.youtube.com/vi/{$video_id}/hqdefault.jpg"
+                        ],
+                        'uploadDate'   => get_the_date( 'c', $post_id ),
+                        'embedUrl'     => "https://www.youtube-nocookie.com/embed/{$video_id}",
+                    ];
+                    $index++;
+                }
+            }
+        }
+        return $video_schemas;
     }
 }
 
@@ -334,6 +371,12 @@ if ( ! function_exists( 'wamv1_schema_cours' ) ) {
                 '@type'        => 'EducationalAudience',
                 'audienceType' => 'Enfants',
             ];
+        }
+
+        // Ajout des VideoObjects associés dans le graphe JSON-LD si présents
+        $video_schemas = wamv1_schema_video_objects( $post_id, $title, $permalink, $desc );
+        if ( ! empty( $video_schemas ) ) {
+            return array_merge( [ $schema ], $video_schemas );
         }
 
         return $schema;
@@ -496,6 +539,12 @@ if ( ! function_exists( 'wamv1_schema_stage' ) ) {
             if ( $offers ) {
                 $schema['offers'] = count( $offers ) === 1 ? $offers[0] : $offers;
             }
+        }
+
+        // Ajout des VideoObjects associés dans le graphe JSON-LD si présents
+        $video_schemas = wamv1_schema_video_objects( $post_id, $title, $permalink, $desc );
+        if ( ! empty( $video_schemas ) ) {
+            return array_merge( [ $schema ], $video_schemas );
         }
 
         return $schema;

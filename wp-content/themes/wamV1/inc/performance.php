@@ -9,7 +9,7 @@
  * 1. Façade YouTube légère (Click-to-load)
  * Remplace l'iframe oEmbed lourde par une image et un script de chargement au clic.
  */
-add_filter('embed_oembed_html', 'wamv1_youtube_facade', 10, 3);
+add_filter('oembed_result', 'wamv1_youtube_facade', 10, 3);
 function wamv1_youtube_facade($html, $url, $attr) {
     // Ne pas appliquer sur la homepage (demande utilisateur)
     if (is_front_page()) {

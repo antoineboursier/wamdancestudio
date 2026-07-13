@@ -38,14 +38,45 @@ if ( ! function_exists( 'array_is_list' ) ) {
 
 /**
  * Yoast génère un nœud Organization dans son @graph.
- * On y ajoute DanceSchool (sous-type de LocalBusiness > EntertainmentBusiness).
- * Yoast conserve tous ses autres champs (address, logo, sameAs, url…).
+ * On y ajoute DanceSchool (sous-type de LocalBusiness > EntertainmentBusiness)
+ * et on complète les champs recommandés d'un LocalBusiness que Yoast ne fournit
+ * pas nativement (priceRange, address structurée, image). On n'écrase JAMAIS une
+ * valeur déjà présente : chaque champ n'est ajouté que s'il est absent/vide.
+ * Yoast conserve tous ses autres champs (logo, sameAs, url…).
  */
 add_filter( 'wpseo_schema_organization', 'wamv1_schema_fix_organization_type' );
 
 if ( ! function_exists( 'wamv1_schema_fix_organization_type' ) ) {
     function wamv1_schema_fix_organization_type( array $data ): array {
         $data['@type'] = [ 'Organization', 'DanceSchool' ];
+
+        // priceRange — fourchette indicative (réservation à l'heure → cours annuel).
+        if ( empty( $data['priceRange'] ) ) {
+            $data['priceRange'] = '35–285€';
+        }
+
+        // address — réutilise l'adresse structurée déjà définie pour le lieu WAM.
+        if ( empty( $data['address'] ) && function_exists( 'wamv1_schema_place_wam' ) ) {
+            $place = wamv1_schema_place_wam();
+            if ( ! empty( $place['address'] ) ) {
+                $data['address'] = $place['address'];
+            }
+        }
+
+        // image — logo du site (custom_logo puis site_icon). Absent si aucun défini.
+        if ( empty( $data['image'] ) ) {
+            $logo_id = (int) get_theme_mod( 'custom_logo' );
+            if ( ! $logo_id ) {
+                $logo_id = (int) get_option( 'site_icon' );
+            }
+            if ( $logo_id ) {
+                $img_url = wp_get_attachment_image_url( $logo_id, 'full' );
+                if ( $img_url ) {
+                    $data['image'] = $img_url;
+                }
+            }
+        }
+
         return $data;
     }
 }
@@ -117,7 +148,10 @@ if ( ! function_exists( 'wamv1_schema_organization_ref' ) ) {
 if ( ! function_exists( 'wamv1_schema_place_wam' ) ) {
     function wamv1_schema_place_wam(): array {
         $nom = function_exists('wam_nom_lieu') ? wam_nom_lieu() : 'WAM Dance Studio';
-        $adresse = function_exists('wam_adresse_lieu') ? str_replace("\n", ' ', wam_adresse_lieu()) : '202 rue Jean Jaurès, Villeneuve-d\'Ascq';
+        // On ne garde que la 1re ligne (la rue) : addressLocality porte déjà la ville.
+        // Décodage des entités HTML pour un JSON-LD propre (ex: &#039; → ').
+        $adresse_brute = function_exists('wam_adresse_lieu') ? wam_adresse_lieu() : "202 rue Jean Jaurès\nVilleneuve-d'Ascq";
+        $adresse = html_entity_decode( trim( strtok( $adresse_brute, "\n" ) ), ENT_QUOTES, 'UTF-8' );
         return [
             '@type'   => 'Place',
             'name'    => $nom,

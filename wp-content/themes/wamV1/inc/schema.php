@@ -69,9 +69,9 @@ if ( ! function_exists( 'wamv1_inject_schema_jsonld' ) ) {
         } elseif ( is_singular( 'wam_membre' ) ) {
             $schema = wamv1_schema_membre();
         } elseif ( is_singular( 'post' ) ) {
-            $schema = wamv1_schema_article_author();
+            $schema = wamv1_schema_merge_with_faq( wamv1_schema_article_author() );
         } elseif ( is_page() ) {
-            $schema = wamv1_schema_page_service();
+            $schema = wamv1_schema_merge_with_faq( wamv1_schema_page_service() );
         }
 
         if ( ! $schema ) return;
@@ -667,6 +667,105 @@ if ( ! function_exists( 'wamv1_schema_article_author' ) ) {
         }
 
         return $schema;
+    }
+}
+
+// =========================================================================
+// 4d-bis. FAQPage — depuis les blocs Gutenberg « Détails » (core/details)
+//     Tout bloc « Détails » d'une page/article devient une paire Q/R.
+//     Aucune intervention Gutenberg requise : le simple usage du bloc suffit.
+// =========================================================================
+
+/**
+ * Aplatit récursivement un arbre de blocs et collecte tous les core/details.
+ * Les blocs Détails peuvent être imbriqués dans un core/group, core/columns, etc.
+ *
+ * @param array $blocks   Résultat de parse_blocks().
+ * @param array $collected Accumulateur (passé par référence).
+ */
+if ( ! function_exists( 'wamv1_collect_details_blocks' ) ) {
+    function wamv1_collect_details_blocks( array $blocks, array &$collected ): void {
+        foreach ( $blocks as $block ) {
+            if ( isset( $block['blockName'] ) && 'core/details' === $block['blockName'] ) {
+                $collected[] = $block;
+            }
+            if ( ! empty( $block['innerBlocks'] ) ) {
+                wamv1_collect_details_blocks( $block['innerBlocks'], $collected );
+            }
+        }
+    }
+}
+
+/**
+ * Construit un nœud FAQPage à partir des blocs « Détails » du contenu courant.
+ * Question = texte du <summary>, Réponse = texte du reste du bloc.
+ * Retourne null si aucune paire valide (contenu sans accordéon, classic editor…).
+ */
+if ( ! function_exists( 'wamv1_schema_faqpage' ) ) {
+    function wamv1_schema_faqpage(): ?array {
+        $post_id = get_queried_object_id();
+        if ( ! $post_id ) return null;
+
+        $content = get_post_field( 'post_content', $post_id );
+        if ( empty( $content ) || false === strpos( $content, 'wp:details' ) ) return null;
+
+        $blocks    = parse_blocks( $content );
+        $collected = [];
+        wamv1_collect_details_blocks( $blocks, $collected );
+        if ( empty( $collected ) ) return null;
+
+        $questions = [];
+
+        foreach ( $collected as $block ) {
+            $html = render_block( $block );
+            if ( empty( $html ) ) continue;
+
+            // Question : contenu du <summary>.
+            if ( ! preg_match( '#<summary[^>]*>(.*?)</summary>#is', $html, $m ) ) continue;
+            $question = trim( html_entity_decode( wp_strip_all_tags( $m[1] ), ENT_QUOTES, 'UTF-8' ) );
+
+            // Réponse : le reste du bloc, une fois le <summary> retiré.
+            $answer_html = preg_replace( '#<summary[^>]*>.*?</summary>#is', '', $html );
+            $answer      = html_entity_decode( wp_strip_all_tags( $answer_html ), ENT_QUOTES, 'UTF-8' );
+            $answer      = trim( preg_replace( '/\s+/u', ' ', $answer ) );
+
+            if ( '' === $question || '' === $answer ) continue;
+
+            $questions[] = [
+                '@type'          => 'Question',
+                'name'           => $question,
+                'acceptedAnswer' => [
+                    '@type' => 'Answer',
+                    'text'  => $answer,
+                ],
+            ];
+        }
+
+        if ( empty( $questions ) ) return null;
+
+        return [
+            '@type'      => 'FAQPage',
+            '@id'        => get_permalink( $post_id ) . '#faq',
+            'mainEntity' => $questions,
+        ];
+    }
+}
+
+/**
+ * Combine un nœud schema métier (Service, Article…) avec le FAQPage éventuel.
+ * Retourne :
+ *   - null                si ni l'un ni l'autre,
+ *   - l'objet unique      si un seul des deux existe,
+ *   - une liste [base, faq] (emballée en @graph par l'appelant) si les deux existent.
+ */
+if ( ! function_exists( 'wamv1_schema_merge_with_faq' ) ) {
+    function wamv1_schema_merge_with_faq( ?array $base ) {
+        $faq = wamv1_schema_faqpage();
+
+        if ( $base && $faq )  return [ $base, $faq ];
+        if ( $base )          return $base;
+        if ( $faq )           return $faq;
+        return null;
     }
 }
 

@@ -76,6 +76,19 @@ add_filter('widget_text', 'wamv1_mark_external_links', 20);
 add_filter('the_excerpt', 'wamv1_mark_external_links', 20);
 
 /**
+ * Nettoie les textes d'accessibilité des liens externes dans l'extrait
+ */
+function wamv1_clean_excerpt_external_links($excerpt)
+{
+    if (empty($excerpt)) {
+        return $excerpt;
+    }
+    return str_replace(' (ouvre un nouveau lien externe)', '', $excerpt);
+}
+add_filter('get_the_excerpt', 'wamv1_clean_excerpt_external_links', 30);
+
+
+/**
  * Marquage des liens dans les menus WordPress
  */
 function wamv1_mark_menu_external_links($atts, $item, $args)

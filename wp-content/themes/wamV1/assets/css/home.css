@@ -375,15 +375,22 @@
 
 /* Hauteur minimale Figma pour maintenir les proportions visuelles */
 
+@media (min-width: 769px) {
+    .video-card--v1 {
+        width: 380px;
+    }
+
+    .video-card--v2 {
+        width: 380px;
+    }
+}
+
 .video-card--v1 {
-    width: 380px;
     min-height: 200px;
 }
 
 .video-card--v2 {
-    width: 380px;
     min-height: 200px;
-
 }
 
 .video-card--v3 {
@@ -392,8 +399,8 @@
 
 .video-card--v4 {
     min-height: 297px;
-
 }
+
 
 /* =====================================================
    SECTION KEYWORDS — Éléments hors animation

@@ -79,8 +79,7 @@ do_action('woocommerce_before_cart');
                             class="wam-cart-card <?php echo !$image_html ? 'wam-cart-card--no-thumb' : ''; ?> <?php echo esc_attr(apply_filters('woocommerce_cart_item_class', 'cart_item', $cart_item, $cart_item_key)); ?>"
                             data-cart-item-key="<?php echo esc_attr($cart_item_key); ?>">
 
-                            <!-- Croix de suppression (haut-droite) — items non-WAM et items tunnel -->
-                            <?php if (!$course_id || !empty($cart_item['coulisses_eleve'])): ?>
+                            <!-- Croix de suppression (haut-droite) -->
                             <?php echo apply_filters(
                                 'woocommerce_cart_item_remove_link',
                                 sprintf(
@@ -93,7 +92,6 @@ do_action('woocommerce_before_cart');
                                 ),
                                 $cart_item_key
                             ); ?>
-                            <?php endif; ?>
 
                             <!-- Miniature du cours -->
                             <?php if ($image_html): ?>

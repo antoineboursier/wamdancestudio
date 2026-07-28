@@ -1,0 +1,89 @@
+# Provider de synchronisation PROD (o2switch) -> LOCAL (DDEV)
+#
+# Usage :
+#   ddev auth ssh                 # une fois par session/redémarrage (charge la clé)
+#   ddev pull o2switch            # base + médias
+#   ddev pull o2switch --skip-files   # base seule (rapide)
+#   ddev pull o2switch --skip-db      # médias seuls
+#   ddev pull o2switch --environment=sync_plugins=true   # + wp-content/plugins
+#
+# Aucun push n'est défini volontairement : on ne remonte JAMAIS le local vers la prod.
+# Le code du thème est déployé par git/cPanel (.cpanel.yml), pas par ce provider.
+
+environment_variables:
+  # Hôte SSH o2switch.
+  # ⚠ NE PAS utiliser wamdancestudio.fr : ce nom pointe sur le frontal web/proxy
+  # (185.154.137.78) qui n'expose ni SSH (22) ni cPanel (2083).
+  # Le serveur réel est joignable via cpanel.wamdancestudio.fr (109.234.167.117).
+  # Cf. la section « Synchronisation Production → Local » de CLAUDE.md.
+  o2_host: cpanel.wamdancestudio.fr
+  o2_user: yuqo3097
+  o2_path: /home/yuqo3097/public_html
+  # Mettre à true pour rapatrier aussi les plugins (ACF, WooCommerce, Yoast, Bookly...).
+  sync_plugins: "false"
+
+auth_command:
+  service: web
+  command: |
+    set -eu -o pipefail
+    ssh-add -l >/dev/null 2>&1 || { echo "❌ Lance d'abord : ddev auth ssh"; exit 1; }
+    ssh -o StrictHostKeyChecking=accept-new -o ConnectTimeout=15 -o BatchMode=yes \
+        "${o2_user}@${o2_host}" "test -f '${o2_path}/wp-config.php'" \
+      || { echo "❌ Connexion SSH ou chemin distant invalide (${o2_user}@${o2_host}:${o2_path})"; exit 1; }
+    echo "✅ Connexion SSH o2switch OK"
+
+db_pull_command:
+  service: web
+  command: |
+    set -eu -o pipefail
+    echo "⏬ Export de la base de production..."
+    ssh -o StrictHostKeyChecking=accept-new "${o2_user}@${o2_host}" \
+      "WPPATH='${o2_path}' bash -s" > /var/www/html/.ddev/.downloads/db.sql.gz <<'REMOTE'
+    set -eu -o pipefail
+    cd "$WPPATH"
+    if command -v wp >/dev/null 2>&1; then
+      wp db export - --single-transaction --quick --default-character-set=utf8mb4 \
+         --skip-plugins --skip-themes 2>/dev/null | gzip -c
+    else
+      # Repli : lecture des identifiants dans wp-config.php
+      eval "$(php -r '
+        require "wp-config.php";
+        printf("DBN=%s\nDBU=%s\nDBP=%s\nDBH=%s\n",
+          escapeshellarg(DB_NAME), escapeshellarg(DB_USER),
+          escapeshellarg(DB_PASSWORD), escapeshellarg(DB_HOST));
+      ')"
+      mysqldump --single-transaction --quick --default-character-set=utf8mb4 \
+        -h "$DBH" -u "$DBU" -p"$DBP" "$DBN" | gzip -c
+    fi
+    REMOTE
+    # Un dump valide fait au moins quelques centaines de Ko
+    [ -s /var/www/html/.ddev/.downloads/db.sql.gz ] || { echo "❌ Dump vide"; exit 1; }
+    echo "✅ Dump récupéré ($(du -h /var/www/html/.ddev/.downloads/db.sql.gz | cut -f1))"
+
+files_pull_command:
+  service: web
+  command: |
+    set -eu -o pipefail
+    RSYNC_OPTS=(-az --delete --human-readable --info=progress2
+      -e "ssh -o StrictHostKeyChecking=accept-new"
+      --exclude='*wpvivid*' --exclude='cache/' --exclude='litespeed/'
+      --exclude='*.zip' --exclude='*.tar.gz' --exclude='*.sql')
+    echo "⏬ Synchronisation des médias (wp-content/uploads)..."
+    mkdir -p /var/www/html/wp-content/uploads
+    rsync "${RSYNC_OPTS[@]}" \
+      "${o2_user}@${o2_host}:${o2_path}/wp-content/uploads/" \
+      /var/www/html/wp-content/uploads/
+    if [ "${sync_plugins}" = "true" ]; then
+      echo "⏬ Synchronisation des plugins..."
+      mkdir -p /var/www/html/wp-content/plugins
+      rsync "${RSYNC_OPTS[@]}" \
+        "${o2_user}@${o2_host}:${o2_path}/wp-content/plugins/" \
+        /var/www/html/wp-content/plugins/
+    fi
+    echo "✅ Fichiers synchronisés"
+
+# Les fichiers sont déjà écrits à leur emplacement final par files_pull_command
+# (évite une copie intermédiaire de plusieurs Go dans .ddev/.downloads).
+files_import_command:
+  service: web
+  command: 'true'

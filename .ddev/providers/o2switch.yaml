@@ -1,0 +1,44 @@
+# Synchronisation PROD (o2switch) -> LOCAL (DDEV) — transport FTPS + MySQL distant.
+#
+# C'est le provider par défaut tant que l'accès SSH n'est pas ouvert par o2switch.
+# Variante SSH (plus rapide, à privilégier dès qu'elle est disponible) : o2switch-ssh.yaml
+#
+# Prérequis (voir CLAUDE.md, section « Synchronisation Production → Local ») :
+#   1. .ddev/o2switch.env rempli avec les identifiants FTP (fichier non versionné)
+#   2. cPanel > Bases de données > MySQL distant : autoriser l'IP publique du poste
+#   3. ddev restart (installe lftp dans le conteneur web)
+#
+# Usage :
+#   ddev pull o2switch                                   # base + médias
+#   ddev pull o2switch --skip-files                      # base seule
+#   ddev pull o2switch --skip-db                         # médias seuls
+#   ddev pull o2switch --environment=sync_plugins=true   # + wp-content/plugins
+#
+# Aucun push n'est défini volontairement : on ne remonte JAMAIS le local vers la prod.
+
+environment_variables:
+  sync_plugins: "false"
+
+auth_command:
+  service: web
+  command: bash /var/www/html/.ddev/scripts/o2switch-check.sh
+
+db_pull_command:
+  service: web
+  command: bash /var/www/html/.ddev/scripts/o2switch-pull-db.sh
+
+# Import piloté explicitement : l'import automatique de DDEV déduit le nom de la base
+# du chemin du fichier et échoue sous Windows (nom de base « C:\... »).
+db_import_command:
+  service: web
+  command: bash /var/www/html/.ddev/scripts/o2switch-import-db.sh
+
+files_pull_command:
+  service: web
+  command: bash /var/www/html/.ddev/scripts/o2switch-pull-files.sh
+
+# Les fichiers sont écrits directement à leur emplacement final par files_pull_command
+# (évite une copie intermédiaire de plusieurs Go dans .ddev/.downloads).
+files_import_command:
+  service: web
+  command: 'true'

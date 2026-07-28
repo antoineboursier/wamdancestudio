@@ -127,12 +127,53 @@ if ( ! function_exists( 'wamv1_inject_schema_jsonld' ) ) {
 // =========================================================================
 
 /**
+ * Nom du studio, avec repli garanti non vide.
+ *
+ * wam_nom_lieu() (wam-custom-plugin) EXISTE mais retourne une chaîne vide tant
+ * que l'option n'est pas renseignée — un simple function_exists() ne suffit donc
+ * pas : sans ce repli, les nœuds Place et Organization sortaient avec "name": "".
+ */
+if ( ! function_exists( 'wamv1_schema_nom_studio' ) ) {
+    function wamv1_schema_nom_studio(): string {
+        $nom = function_exists( 'wam_nom_lieu' ) ? trim( (string) wam_nom_lieu() ) : '';
+        if ( ! $nom ) {
+            $nom = trim( (string) get_bloginfo( 'name' ) );
+        }
+        return $nom ?: 'WAM Dance Studio';
+    }
+}
+
+/**
+ * Nettoie un texte destiné au JSON-LD : suppression des balises, décodage des
+ * entités HTML (&nbsp;, &#8211;, &rsquo;…) et normalisation des espaces.
+ * Sans décodage, les entités ressortent telles quelles dans les données
+ * structurées et polluent la lecture par les moteurs.
+ */
+if ( ! function_exists( 'wamv1_schema_text' ) ) {
+    function wamv1_schema_text( $texte, int $max = 0 ): string {
+        if ( ! is_string( $texte ) || $texte === '' ) return '';
+
+        $texte = wp_strip_all_tags( $texte );
+        $texte = html_entity_decode( $texte, ENT_QUOTES | ENT_HTML5, 'UTF-8' );
+        // Espaces insécables issus du décodage de &nbsp; puis espaces multiples.
+        $texte = str_replace( "\xC2\xA0", ' ', $texte );
+        $texte = trim( preg_replace( '/\s+/u', ' ', $texte ) );
+
+        if ( $max > 0 && function_exists( 'mb_strlen' ) && mb_strlen( $texte, 'UTF-8' ) > $max ) {
+            $texte = rtrim( mb_substr( $texte, 0, $max, 'UTF-8' ) ) . '…';
+        }
+
+        return $texte;
+    }
+}
+
+/**
  * Nœud DanceSchool minimal — utilisé comme référence dans d'autres schémas.
  * @id pointe vers l'Organization Yoast pour relier les graphes.
  */
 if ( ! function_exists( 'wamv1_schema_organization_ref' ) ) {
     function wamv1_schema_organization_ref(): array {
-        $nom = function_exists('wam_nom_lieu') ? wam_nom_lieu() : 'WAM Dance Studio';
+        $nom = wamv1_schema_nom_studio();
         return [
             '@type' => [ 'Organization', 'DanceSchool' ],
             '@id'   => home_url( '/#organization' ),
@@ -147,7 +188,7 @@ if ( ! function_exists( 'wamv1_schema_organization_ref' ) ) {
  */
 if ( ! function_exists( 'wamv1_schema_place_wam' ) ) {
     function wamv1_schema_place_wam(): array {
-        $nom = function_exists('wam_nom_lieu') ? wam_nom_lieu() : 'WAM Dance Studio';
+        $nom = wamv1_schema_nom_studio();
         // On ne garde que la 1re ligne (la rue) : addressLocality porte déjà la ville.
         // Décodage des entités HTML pour un JSON-LD propre (ex: &#039; → ').
         $adresse_brute = function_exists('wam_adresse_lieu') ? wam_adresse_lieu() : "202 rue Jean Jaurès\nVilleneuve-d'Ascq";
@@ -218,13 +259,40 @@ if ( ! function_exists( 'wamv1_schema_day_of_week' ) ) {
  */
 if ( ! function_exists( 'wamv1_schema_time_iso' ) ) {
     function wamv1_schema_time_iso( string $time_str ): string {
-        if ( strpos( $time_str, 'h' ) !== false ) {
-            $parts = explode( 'h', trim( $time_str ) );
-            $h     = str_pad( intval( $parts[0] ), 2, '0', STR_PAD_LEFT );
-            $m     = str_pad( intval( $parts[1] ?? 0 ), 2, '0', STR_PAD_LEFT );
-            return "{$h}:{$m}:00";
+        $time_str = trim( $time_str );
+        if ( $time_str === '' ) return '';
+
+        // Les CPT n'utilisent pas la même notation : "18h", "18h30" (cours)
+        // et "18:00" (stages). Les deux doivent produire "18:00:00".
+        $sep = ( strpos( $time_str, 'h' ) !== false ) ? 'h' : ( ( strpos( $time_str, ':' ) !== false ) ? ':' : '' );
+        if ( $sep === '' ) return $time_str;
+
+        $parts = explode( $sep, $time_str );
+        $h     = str_pad( intval( $parts[0] ), 2, '0', STR_PAD_LEFT );
+        $m     = str_pad( intval( $parts[1] ?? 0 ), 2, '0', STR_PAD_LEFT );
+        return "{$h}:{$m}:00";
+    }
+}
+
+/**
+ * Assemble une date ISO (Y-m-d) et une heure ACF en un datetime ISO 8601
+ * complet, décalage horaire du site inclus (ex : 2026-07-30T18:00:00+02:00).
+ * Google recommande explicitement le fuseau sur startDate/endDate d'un Event :
+ * sans lui, l'heure est ambiguë pour les moteurs.
+ */
+if ( ! function_exists( 'wamv1_schema_datetime_iso' ) ) {
+    function wamv1_schema_datetime_iso( string $date_iso, string $heure = '' ): string {
+        if ( ! $date_iso ) return '';
+
+        $heure_iso = $heure ? wamv1_schema_time_iso( $heure ) : '';
+        if ( ! $heure_iso ) return $date_iso;
+
+        try {
+            $dt = new DateTime( $date_iso . ' ' . $heure_iso, wp_timezone() );
+            return $dt->format( 'c' );
+        } catch ( Exception $e ) {
+            return $date_iso . 'T' . $heure_iso;
         }
-        return $time_str;
     }
 }
 
@@ -471,24 +539,19 @@ if ( ! function_exists( 'wamv1_schema_stage' ) ) {
             'eventAttendanceMode' => 'https://schema.org/OfflineEventAttendanceMode',
         ];
 
-        if ( $desc ) {
-            $schema['description'] = wp_strip_all_tags( $desc );
+        $desc_txt = wamv1_schema_text( $desc );
+        if ( $desc_txt ) {
+            $schema['description'] = $desc_txt;
         }
         if ( $sous_titre ) {
-            $schema['abstract'] = $sous_titre;
+            $schema['abstract'] = wamv1_schema_text( $sous_titre );
         }
 
         /* ---- Dates — ACF retourne d/m/Y, schema.org attend ISO 8601 ---- */
-        if ( $date_raw ) {
-            $date_iso = wamv1_schema_date_iso( $date_raw );
-            if ( $date_iso ) {
-                $schema['startDate'] = $heure_debut
-                    ? $date_iso . 'T' . wamv1_schema_time_iso( $heure_debut )
-                    : $date_iso;
-                $schema['endDate'] = $heure_fin
-                    ? $date_iso . 'T' . wamv1_schema_time_iso( $heure_fin )
-                    : $date_iso;
-            }
+        $date_iso = $date_raw ? wamv1_schema_date_iso( $date_raw ) : '';
+        if ( $date_iso ) {
+            $schema['startDate'] = wamv1_schema_datetime_iso( $date_iso, $heure_debut );
+            $schema['endDate']   = wamv1_schema_datetime_iso( $date_iso, $heure_fin );
         }
 
         // Image mise en avant
@@ -532,59 +595,110 @@ if ( ! function_exists( 'wamv1_schema_stage' ) ) {
             }
         }
 
-        /* ---- Offers — Groupe tarifs ou extraction WooCommerce ---- */
-        if ( class_exists( 'WooCommerce' ) && function_exists('wc_get_product') ) {
-            $product_id = get_post_meta( $post_id, '_wam_linked_product', true );
-            if ( $product_id ) {
-                $product = wc_get_product( $product_id );
-                if ( $product ) {
-                    if ( $product->is_type( 'variable' ) ) {
-                        // Fourchette de prix pour les stages à tarifs multiples
-                        $prices = $product->get_variation_prices();
-                        $schema['offers'] = [
-                            '@type'         => 'AggregateOffer',
-                            'lowPrice'      => min( $prices['price'] ),
-                            'highPrice'     => max( $prices['price'] ),
-                            'priceCurrency' => 'EUR',
-                            'offerCount'    => count( $prices['price'] ),
-                            'url'           => $permalink,
-                            'seller'        => wamv1_schema_organization_ref(),
-                        ];
-                    } else {
-                        $schema['offers'] = [
-                            '@type'         => 'Offer',
-                            'price'         => $product->get_price(),
-                            'priceCurrency' => 'EUR',
-                            'url'           => $permalink,
-                            'seller'        => wamv1_schema_organization_ref(),
-                            'availability'  => $complet ? 'https://schema.org/SoldOut' : 'https://schema.org/InStock',
-                        ];
-                    }
+        /* ---- Offers — groupe ACF « tarifs » (source de vérité par stage) ----
+         *
+         * Structure réelle du groupe (cf. acf-json/group_stages.json) :
+         *   nom_tarif_N     — libellé affiché ("Place 1 personne")
+         *   prix_tarif_N    — prix en euros
+         *   quota_tarif_N   — nombre total de places
+         *   quota_reserve_N — places déjà réservées
+         *   tarif_2 / tarif_3 — booléens activant les tarifs 2 et 3
+         *
+         * Le code précédent lisait des sous-champs "tarif_1/2/3" qui n'ont
+         * jamais porté de prix (ce sont des interrupteurs) : aucun stage ne
+         * sortait donc avec d'offers. On lit désormais nom_/prix_ directement.
+         */
+        $offers          = [];
+        $capacite_totale = 0;
+        $places_prises   = 0;
+
+        if ( $tarifs_grp && is_array( $tarifs_grp ) ) {
+            foreach ( [ 1, 2, 3 ] as $n ) {
+                $prix = $tarifs_grp[ 'prix_tarif_' . $n ] ?? '';
+                if ( $prix === '' || $prix === null || ! is_numeric( $prix ) ) continue;
+
+                $quota   = (int) ( $tarifs_grp[ 'quota_tarif_' . $n ]   ?? 0 );
+                $reserve = (int) ( $tarifs_grp[ 'quota_reserve_' . $n ] ?? 0 );
+                $restant = max( 0, $quota - $reserve );
+
+                $capacite_totale += $quota;
+                $places_prises   += $reserve;
+
+                // Complet si le stage est marqué complet, ou si le quota est atteint.
+                $epuise = $complet || ( $quota > 0 && $restant === 0 );
+
+                $offer = [
+                    '@type'         => 'Offer',
+                    'price'         => (string) ( 0 + $prix ),
+                    'priceCurrency' => 'EUR',
+                    'url'           => $permalink,
+                    'availability'  => $epuise
+                        ? 'https://schema.org/SoldOut'
+                        : 'https://schema.org/InStock',
+                    'seller'        => wamv1_schema_organization_ref(),
+                ];
+
+                $nom_tarif = wamv1_schema_text( $tarifs_grp[ 'nom_tarif_' . $n ] ?? '' );
+                if ( $nom_tarif ) {
+                    $offer['name'] = $nom_tarif;
                 }
+                if ( $quota > 0 ) {
+                    $offer['inventoryLevel'] = [
+                        '@type' => 'QuantitativeValue',
+                        'value' => $restant,
+                    ];
+                }
+                // L'offre court jusqu'au début du stage.
+                if ( ! empty( $schema['startDate'] ) ) {
+                    $offer['validThrough'] = $schema['startDate'];
+                }
+
+                $offers[] = $offer;
             }
         }
 
-        // Fallback sur les tarifs ACF si WooCommerce n'a rien donné
-        if ( empty( $schema['offers'] ) && $tarifs_grp && is_array( $tarifs_grp ) ) {
-            $offers = [];
-            foreach ( [ 'tarif_1', 'tarif_2', 'tarif_3' ] as $key ) {
-                if ( ! empty( $tarifs_grp[ $key ] ) ) {
-                    $offer = [
-                        '@type'         => 'Offer',
-                        'name'          => $tarifs_grp[ $key ],
-                        'url'           => $permalink,
+        /* Repli WooCommerce : uniquement si aucun tarif ACF n'est renseigné.
+         * Le produit générique « Stage » (wc_product_id) est à 0 € — il ne sert
+         * que de conteneur panier — donc on ignore tout prix nul ou vide. */
+        if ( ! $offers && class_exists( 'WooCommerce' ) && function_exists( 'wc_get_product' ) ) {
+            $product_id = get_post_meta( $post_id, 'wc_product_id', true );
+            $product    = $product_id ? wc_get_product( $product_id ) : null;
+
+            if ( $product && $product->is_type( 'variable' ) ) {
+                $prices = $product->get_variation_prices();
+                if ( ! empty( $prices['price'] ) ) {
+                    $offers[] = [
+                        '@type'         => 'AggregateOffer',
+                        'lowPrice'      => min( $prices['price'] ),
+                        'highPrice'     => max( $prices['price'] ),
                         'priceCurrency' => 'EUR',
+                        'offerCount'    => count( $prices['price'] ),
+                        'url'           => $permalink,
                         'seller'        => wamv1_schema_organization_ref(),
-                        'availability'  => $complet ? 'https://schema.org/SoldOut' : 'https://schema.org/InStock',
                     ];
-                    preg_match('/\d+/', $tarifs_grp[ $key ], $matches);
-                    if (!empty($matches[0])) { $offer['price'] = $matches[0]; }
-                    $offers[] = $offer;
                 }
+            } elseif ( $product && (float) $product->get_price() > 0 ) {
+                $offers[] = [
+                    '@type'         => 'Offer',
+                    'price'         => (string) $product->get_price(),
+                    'priceCurrency' => 'EUR',
+                    'url'           => $permalink,
+                    'availability'  => $complet ? 'https://schema.org/SoldOut' : 'https://schema.org/InStock',
+                    'seller'        => wamv1_schema_organization_ref(),
+                ];
             }
-            if ( $offers ) {
-                $schema['offers'] = count( $offers ) === 1 ? $offers[0] : $offers;
-            }
+        }
+
+        if ( $offers ) {
+            $schema['offers'] = count( $offers ) === 1 ? $offers[0] : $offers;
+        }
+
+        /* ---- Jauge de l'événement — dérivée des quotas ACF ---- */
+        if ( $capacite_totale > 0 ) {
+            $schema['maximumAttendeeCapacity']   = $capacite_totale;
+            $schema['remainingAttendeeCapacity'] = $complet
+                ? 0
+                : max( 0, $capacite_totale - $places_prises );
         }
 
         // Ajout des VideoObjects associés dans le graphe JSON-LD si présents

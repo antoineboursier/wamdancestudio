@@ -1,0 +1,10 @@
+# Synchronisation prod → local : outillage et post-traitement.
+# Ce fichier est fusionné avec config.yaml par DDEV.
+
+# lftp assure le miroir FTPS des médias (transport de repli tant que SSH est fermé).
+webimage_extra_packages:
+  - lftp
+
+hooks:
+  post-pull:
+    - exec: bash /var/www/html/.ddev/scripts/post-pull-o2switch.sh

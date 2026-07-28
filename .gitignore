@@ -16,6 +16,9 @@
 /wp-content/themes/*
 !/wp-content/themes/wamV1/
 
+# Identifiants FTP/MySQL de production : jamais versionnés
+/.ddev/o2switch.env
+
 # On ignore les fichiers de configuration et les dumps SQL !
 # *.sql (désactivé pour inclure export-wam.sql)
 # *.sql.gz

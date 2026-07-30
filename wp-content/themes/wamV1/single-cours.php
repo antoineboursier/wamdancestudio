@@ -173,48 +173,148 @@ get_header();
 
             <!-- ============ HERO : Infos cours ============ -->
             <?php
+            /*
+             * Construction de la liste des diapositives du carrousel d'en-tête (Photo + Vidéos ACF).
+             */
             $photo_id = has_post_thumbnail() ? get_post_thumbnail_id() : null;
-            $has_sidebar = ($photo_id || $complet);
+            $media_slides = [];
+
+            if ($photo_id) {
+                $media_slides[] = [
+                    'type'  => 'image',
+                    'id'    => $photo_id,
+                    'label' => 'Photo',
+                ];
+            }
+
+            if (!empty($videos)) {
+                foreach ($videos as $vurl) {
+                    $is_shorts = (strpos($vurl, '/shorts/') !== false);
+                    $embed = wp_oembed_get(esc_url($vurl), ['width' => 1200]);
+                    if ($embed) {
+                        // La façade gère elle-même enablejsapi=1 à l'injection de l'iframe (performance.php).
+                        // Rien à faire ici — le preg_replace précédent injectait enablejsapi dans l'img src de la façade par erreur.
+                        $media_slides[] = [
+                            'type'      => 'video',
+                            'is_shorts' => $is_shorts,
+                            'embed'     => $embed,
+                            'label'     => $is_shorts ? 'Short' : 'Vidéo',
+                        ];
+                    }
+                }
+            }
+
+            $has_sidebar = (!empty($media_slides) || $complet);
+
+            /*
+             * Un Short (9:16) tient mal dans un cadre 4/3 : il n'y occupe que la
+             * moitié de la largeur. Le cadre est allongé dès qu'il y en a un.
+             */
+            $has_shorts = false;
+            foreach ($media_slides as $slide) {
+                if (!empty($slide['is_shorts'])) {
+                    $has_shorts = true;
+                    break;
+                }
+            }
             ?>
             <div id="section-hero-cours" class="page-hero <?php echo !$has_sidebar ? 'page-hero--no-image' : ''; ?>">
 
-                <!-- Photo (colonne masquée si ni image à la une, ni photo ACF, ni badge cours complet) -->
-                <?php
-                if ($has_sidebar):
-                    ?>
-                    <div id="section-hero-photo" class="page-hero__image">
-                        <?php if ($photo_id): ?>
-                            <?php echo wp_get_attachment_image($photo_id, 'wam-card', false, [
-                                'class' => 'page-hero__image-img',
-                                'fetchpriority' => 'high',
-                                'loading' => 'eager',
-                                'data-no-overlay' => 'true' // Désactive le wrapper automatique de functions.php
-                            ]); ?>
-                            <div class="page-hero__image-overlay"></div>
-                        <?php endif; ?>
+                <!-- Photo / Carrousel médias (colonne masquée si aucun média ni badge cours complet) -->
+                <?php if ($has_sidebar): ?>
+                    <div id="section-hero-photo" class="page-hero__image<?php echo $has_shorts ? ' page-hero__image--shorts' : ''; ?>">
+                        <?php if (!empty($media_slides)): ?>
+                            <div class="wam-carousel" role="region" aria-roledescription="carrousel" aria-label="Médias de présentation du cours">
+                                
+                                <div class="wam-carousel__track-container">
+                                    <ul class="wam-carousel__track">
+                                        <?php foreach ($media_slides as $index => $slide): ?>
+                                            <li class="wam-carousel__slide <?php echo $index === 0 ? 'is-active' : ''; ?>"
+                                                role="group"
+                                                aria-roledescription="diapositive"
+                                                aria-label="<?php echo esc_attr(($index + 1) . ' sur ' . count($media_slides) . ' : ' . $slide['label']); ?>"
+                                                aria-hidden="<?php echo $index === 0 ? 'false' : 'true'; ?>">
 
-                        <?php if ($complet): ?>
-                            <!-- Badge cours complet -->
+                                                <?php if ($slide['type'] === 'image'): ?>
+                                                    <div class="wam-carousel__media-wrapper wam-carousel__media-wrapper--image">
+                                                        <?php echo wp_get_attachment_image($slide['id'], 'wam-card', false, [
+                                                            'class' => 'page-hero__image-img',
+                                                            'fetchpriority' => 'high',
+                                                            'loading' => 'eager',
+                                                            'data-no-overlay' => 'true'
+                                                        ]); ?>
+                                                        <div class="page-hero__image-overlay"></div>
+                                                    </div>
+                                                <?php else: ?>
+                                                    <div class="wam-carousel__media-wrapper wam-carousel__media-wrapper--video">
+                                                        <div class="wam-carousel__video-container <?php echo $slide['is_shorts'] ? 'wam-carousel__video-container--shorts' : 'wam-carousel__video-container--landscape'; ?>">
+                                                            <?php echo $slide['embed']; ?>
+                                                        </div>
+                                                    </div>
+                                                <?php endif; ?>
+                                            </li>
+                                        <?php endforeach; ?>
+                                    </ul>
+                                </div>
+
+                                <?php if (count($media_slides) > 1): ?>
+                                    <!-- Boutons de navigation fléchés -->
+                                    <button type="button" class="wam-carousel__nav wam-carousel__nav--prev" aria-label="Diapositive précédente">
+                                        <span class="btn-icon" style="--icon-url: url('<?php echo esc_url($icon_dir); ?>chevron-right.svg');" aria-hidden="true"></span>
+                                    </button>
+                                    <button type="button" class="wam-carousel__nav wam-carousel__nav--next" aria-label="Diapositive suivante">
+                                        <span class="btn-icon" style="--icon-url: url('<?php echo esc_url($icon_dir); ?>chevron-right.svg');" aria-hidden="true"></span>
+                                    </button>
+
+                                    <!-- Puces de navigation (Dots) -->
+                                    <div class="wam-carousel__dots" role="tablist" aria-label="Choisir la diapositive">
+                                        <?php foreach ($media_slides as $index => $slide): ?>
+                                            <button type="button"
+                                                    class="wam-carousel__dot <?php echo $index === 0 ? 'is-active' : ''; ?>"
+                                                    role="tab"
+                                                    aria-selected="<?php echo $index === 0 ? 'true' : 'false'; ?>"
+                                                    aria-label="<?php echo esc_attr('Diapositive ' . ($index + 1) . ' : ' . $slide['label']); ?>"
+                                                    tabindex="<?php echo $index === 0 ? '0' : '-1'; ?>"></button>
+                                        <?php endforeach; ?>
+                                    </div>
+                                <?php endif; ?>
+
+                                <?php if ($complet): ?>
+                                    <!-- Badge cours complet -->
+                                    <div class="cours-complet">
+                                        <img src="<?php echo esc_url($icon_dir); ?>sad-emoji.svg" width="40" height="40" alt="" aria-hidden="true">
+                                        <div class="cours-complet__body">
+                                            <p class="cours-complet__title">Cours complet</p>
+                                            <p class="cours-complet__text">Malheureusement, ce cours est déjà rempli.</p>
+                                            <a href="<?php echo esc_url($cours_listing_url ?: home_url('/')); ?>" class="cours-complet__link">
+                                                <span>Voir tous les cours de danse</span>
+                                                <svg width="12" height="12" viewBox="0 0 12 12" fill="none" aria-hidden="true">
+                                                    <path d="M4 2l4 4-4 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" />
+                                                </svg>
+                                            </a>
+                                        </div>
+                                    </div>
+                                <?php endif; ?>
+
+                            </div>
+                        <?php elseif ($complet): ?>
+                            <!-- Badge cours complet seul sans médias -->
                             <div class="cours-complet">
-                                <!-- Icône triste -->
-                                <img src="<?php echo esc_url($icon_dir); ?>sad-emoji.svg"
-                                     width="40" height="40" alt="" aria-hidden="true">
+                                <img src="<?php echo esc_url($icon_dir); ?>sad-emoji.svg" width="40" height="40" alt="" aria-hidden="true">
                                 <div class="cours-complet__body">
                                     <p class="cours-complet__title">Cours complet</p>
                                     <p class="cours-complet__text">Malheureusement, ce cours est déjà rempli.</p>
-                                    <a href="<?php echo esc_url($cours_listing_url ?: home_url('/')); ?>"
-                                        class="cours-complet__link">
+                                    <a href="<?php echo esc_url($cours_listing_url ?: home_url('/')); ?>" class="cours-complet__link">
                                         <span>Voir tous les cours de danse</span>
                                         <svg width="12" height="12" viewBox="0 0 12 12" fill="none" aria-hidden="true">
-                                            <path d="M2 4l4 4 4-4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"
-                                                stroke-linejoin="round" />
+                                            <path d="M4 2l4 4-4 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" />
                                         </svg>
                                     </a>
                                 </div>
                             </div>
                         <?php endif; ?>
                     </div>
-                <?php endif; // has_post_thumbnail || complet ?>
+                <?php endif; // has_sidebar ?>
 
                 <!-- Infos : titre, sous-titre, prof, carte infos, chips, description, CTAs -->
                 <div id="section-hero-infos" class="page-hero__content">
@@ -652,16 +752,10 @@ get_header();
 
             </div><!-- /description sections -->
 
-            <!-- ============ VIDÉOS ============ -->
-            <?php if ($videos): ?>
+            <!-- ============ VIDÉOS (désactivé bas de page, désormais intégrées au carrousel hero) ============ -->
+            <?php /* if ($videos): ?>
                 <div id="section-videos" class="cours-videos">
                     <?php
-                    /*
-                     * wp_oembed_get() contacte le provider (YouTube, Vimeo…) et retourne
-                     * le HTML de l'iframe. Retourne false si l'URL n'est pas supportée.
-                     * On passe 'width' pour que WordPress calcule la hauteur en respectant
-                     * le ratio 16:9 (aspect-video en CSS fait le reste).
-                     */
                     foreach ($videos as $video_url):
                         $embed = wp_oembed_get(esc_url($video_url), ['width' => 1200]);
                         if ($embed): 
@@ -674,7 +768,7 @@ get_header();
                         <?php endif; ?>
                     <?php endforeach; ?>
                 </div>
-            <?php endif; ?>
+            <?php endif; */ ?>
 
         <?php endwhile; ?>
 

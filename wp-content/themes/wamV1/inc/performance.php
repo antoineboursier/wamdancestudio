@@ -16,6 +16,13 @@ function wamv1_youtube_facade($html, $url, $attr) {
         return $html;
     }
 
+    if (strpos($url, 'vimeo.com') !== false) {
+        if (strpos($html, 'quality=') === false) {
+            $html = preg_replace('/src=["\']([^"\']+)["\']/', 'src="$1&quality=1080p"', $html);
+        }
+        return $html;
+    }
+
     if (strpos($url, 'youtube.com') === false && strpos($url, 'youtu.be') === false) {
         return $html;
     }
@@ -32,49 +39,39 @@ function wamv1_youtube_facade($html, $url, $attr) {
     $aspect_ratio = $is_shorts ? '9/16' : '16/9';
 
     $thumb_url = "https://img.youtube.com/vi/{$video_id}/maxresdefault.jpg";
-    $fallback_url = "https://img.youtube.com/vi/{$video_id}/hqdefault.jpg";
-    
+    $sd_url    = "https://img.youtube.com/vi/{$video_id}/sddefault.jpg";
+    $hq_url    = "https://img.youtube.com/vi/{$video_id}/hqdefault.jpg";
+
+    // Le titre porté par l'iframe oEmbed d'origine sert de libellé accessible :
+    // « Lire la vidéo » seul ne distingue pas trois vidéos sur une même page.
+    $video_title = '';
+    if (preg_match('/title=["\']([^"\']*)["\']/', $html, $m_title)) {
+        $video_title = html_entity_decode($m_title[1], ENT_QUOTES, 'UTF-8');
+    }
+    $play_label = $video_title ? 'Lire la vidéo : ' . $video_title : 'Lire la vidéo';
+
+    // Comportement (clic, clavier, survol, réinitialisation) : assets/js/video-facade.js,
+    // enfilé globalement dans functions.php — surtout pas ici : ce filtre ne
+    // rejoue pas sur les intégrations servies depuis le cache postmeta `_oembed_*`.
     ob_start();
     ?>
-    <div class="wam-video-facade" data-video-id="<?php echo esc_attr($video_id); ?>" style="position:relative; cursor:pointer; background: #000; aspect-ratio: <?php echo $aspect_ratio; ?>; overflow: hidden; border-radius: inherit; will-change: transform; isolation: isolate;">
-        <img src="<?php echo esc_url($thumb_url); ?>" 
-             onerror="this.src='<?php echo esc_url($fallback_url); ?>'; this.onerror=null;"
-             alt="YouTube Video" 
-             style="width:100%; height:100%; object-fit:cover; opacity: 0.8; transition: opacity 0.3s ease;" 
-             loading="lazy">
-        <div class="wam-video-play-btn" style="position:absolute; top:50%; left:50%; transform:translate(-50%, -50%); width: 68px; height: 48px; background: rgba(0,0,0,0.7); border-radius: 12px; display: flex; align-items: center; justify-content: center; transition: background 0.3s ease; pointer-events: none;">
-             <svg width="30" height="30" viewBox="0 0 24 24" fill="white"><path d="M8 5v14l11-7z"/></svg>
+    <div class="wam-video-facade"
+         role="button"
+         tabindex="0"
+         aria-label="<?php echo esc_attr($play_label); ?>"
+         data-video-id="<?php echo esc_attr($video_id); ?>"
+         data-video-title="<?php echo esc_attr($video_title); ?>"
+         data-play-label="<?php echo esc_attr($play_label); ?>"
+         style="position:relative; cursor:pointer; background: #000; aspect-ratio: <?php echo $aspect_ratio; ?>; overflow: hidden; border-radius: inherit; will-change: transform; isolation: isolate;">
+        <img src="<?php echo esc_url($thumb_url); ?>"
+             onerror="if(this.src.indexOf('maxresdefault')!==-1){this.src='<?php echo esc_url($sd_url); ?>';}else if(this.src.indexOf('sddefault')!==-1){this.src='<?php echo esc_url($hq_url); ?>';}else{this.style.visibility='hidden';}"
+             alt=""
+             style="width:100%; height:100%; object-fit:cover; opacity: 0.8; transition: opacity 0.3s ease;"
+             loading="lazy"
+             decoding="async">
+        <div class="wam-video-play-btn" style="position:absolute; top:50%; left:50%; transform:translate(-50%, -50%); width: 68px; height: 48px; background: rgba(0,0,0,0.7); color: #fff; border-radius: 12px; display: flex; align-items: center; justify-content: center; transition: background 0.3s ease, color 0.3s ease; pointer-events: none;">
+             <svg width="30" height="30" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M8 5v14l11-7z"/></svg>
         </div>
-        <script>
-            (function() {
-                const facade = document.currentScript.parentElement;
-                facade.addEventListener('click', function() {
-                    const id = this.dataset.videoId;
-                    this.innerHTML = '<iframe width="100%" height="100%" src="https://www.youtube-nocookie.com/embed/' + id + '?autoplay=1&vq=hd1080" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen style="position:absolute; top:0; left:0; width:100%; height:100%; border-radius: inherit;"></iframe>';
-                }, { once: true });
-                
-                facade.addEventListener('mouseenter', function() {
-                    const img = this.querySelector('img');
-                    if (img) img.style.opacity = '1';
-                    const btn = this.querySelector('.wam-video-play-btn');
-                    if (btn) {
-                        btn.style.background = 'var(--wp--preset--color--accent-yellow, #FBD150)';
-                        const svg = btn.querySelector('svg');
-                        if (svg) svg.style.fill = '#000';
-                    }
-                });
-                facade.addEventListener('mouseleave', function() {
-                    const img = this.querySelector('img');
-                    if (img) img.style.opacity = '0.8';
-                    const btn = this.querySelector('.wam-video-play-btn');
-                    if (btn) {
-                        btn.style.background = 'rgba(0,0,0,0.7)';
-                        const svg = btn.querySelector('svg');
-                        if (svg) svg.style.fill = 'white';
-                    }
-                });
-            })();
-        </script>
     </div>
     <?php
     return ob_get_clean();
@@ -127,9 +124,13 @@ function wamv1_flush_content_transients($post_id) {
         case 'cours':
             delete_transient('wamv1_planning_data_v1');
             delete_transient('wamv1_footer_cours_grouped_v2');
+            // Le produit WooCommerce porteur de l'adhésion est déduit des cours
+            delete_transient('wamv1_tarifs_produit_cours_v1');
             break;
         case 'stages':
             delete_transient('wamv1_footer_stages_v3');
+            // Prix d'entrée affiché sur /tarifs/
+            delete_transient('wamv1_tarifs_stage_min_v1');
             break;
         case 'wam_membre':
             delete_transient('wamv1_teachers_grid_v1');

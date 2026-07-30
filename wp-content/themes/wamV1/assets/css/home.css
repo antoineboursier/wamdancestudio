@@ -203,8 +203,9 @@
 .section-videos {
     position: relative;
     width: 100%;
+    max-width: 100%;
     padding-bottom: var(--wam-spacing-lg);
-    /* pb-6 = 24px */
+    overflow: hidden;
 }
 
 .videos-wrapper {
@@ -253,7 +254,7 @@
     color: var(--wam-color-text);
 }
 
-/* Exception unique : MOVE en 140px (Desktop & Mobile) */
+/* Exception unique : MOVE en 140px (Desktop) */
 .videos-move-xl {
     font-size: 140px !important;
 }
@@ -268,11 +269,19 @@
 
 /* Version responsive — passage en colonne "tranquille" */
 @media (max-width: 768px) {
+    .videos-move-xl {
+        font-size: clamp(64px, 20vw, 90px) !important;
+        max-width: 100%;
+    }
+
     .videos-wrapper {
         display: flex;
         flex-direction: column;
         gap: var(--wam-spacing-xs);
         padding: 0 var(--wam-page-mx);
+        max-width: 100%;
+        box-sizing: border-box;
+        overflow: hidden;
     }
 
     .videos-col--left,
@@ -285,6 +294,8 @@
         align-items: center;
         padding: var(--wam-spacing-lg) 0;
         min-width: 0;
+        max-width: 100%;
+        overflow: hidden;
     }
 
 
@@ -308,6 +319,7 @@
     position: relative;
     background-color: var(--wam-color-card-bg);
     flex: 1;
+    contain: paint; /* Isole les iframes 150% pour ne pas affecter le scroll de la page */
 }
 
 .video-card iframe {

@@ -2699,3 +2699,19 @@ html.wam-no-graphical-fonts .title-sign-sm {
         max-width: 100%;
     }
 }
+/* =====================================================
+   FAÇADE VIDÉO YOUTUBE (click-to-load)
+   Markup : wamv1_youtube_facade() — inc/performance.php
+   Comportement : assets/js/video-facade.js
+   ===================================================== */
+
+/*
+ * La façade est un role="button" focusable : il lui faut un anneau de focus.
+ * L'outline globale d'accessibility.css serait rognée — la façade remplit un
+ * conteneur en overflow:hidden — d'où l'offset négatif. Le !important est
+ * imposé par la règle :focus-visible globale, elle-même en !important.
+ */
+.wam-video-facade:focus-visible {
+    outline: 2px solid var(--wam-media-on-surface) !important;
+    outline-offset: -4px !important;
+}

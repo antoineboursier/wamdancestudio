@@ -822,7 +822,7 @@ endif;
 if (!function_exists('wam_show_rentree')):
     function wam_show_rentree(): bool
     {
-        return (bool) get_option('coulisses_date_rentree_active', 0);
+        return (bool) wam_get_setting('show_rentree', get_option('coulisses_date_rentree_active', 0));
     }
 endif;
 

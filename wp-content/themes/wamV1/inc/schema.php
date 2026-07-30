@@ -101,6 +101,12 @@ if ( ! function_exists( 'wamv1_inject_schema_jsonld' ) ) {
             $schema = wamv1_schema_membre();
         } elseif ( is_singular( 'post' ) ) {
             $schema = wamv1_schema_merge_with_faq( wamv1_schema_article_author() );
+        } elseif ( is_tax( 'cat_cours' ) ) {
+            $schema = wamv1_schema_cat_cours();
+        } elseif ( is_page( 'tarifs' ) ) {
+            // Page de prix plutôt que page de service : un OfferCatalog est plus
+            // exploitable qu'un Service, et la FAQ y est rendue en PHP.
+            $schema = wamv1_schema_merge_with_faq( wamv1_schema_tarifs() );
         } elseif ( is_page() ) {
             $schema = wamv1_schema_merge_with_faq( wamv1_schema_page_service() );
         }
@@ -168,16 +174,30 @@ if ( ! function_exists( 'wamv1_schema_text' ) ) {
 }
 
 /**
- * Nœud DanceSchool minimal — utilisé comme référence dans d'autres schémas.
- * @id pointe vers l'Organization Yoast pour relier les graphes.
+ * Référence vers l'Organization du site — utilisée comme provider / organizer /
+ * seller / worksFor dans les autres schémas (jamais comme nœud autonome).
+ *
+ * Quand Yoast est actif, il publie déjà un nœud complet portant le même @id
+ * (nom, logo, sameAs, priceRange, adresse…). Les consommateurs de JSON-LD
+ * fusionnent les nœuds de même @id : redéclarer name/url ici produisait des
+ * propriétés en double (« Champ url en double » au Rich Results Test).
+ * On n'émet donc qu'une **référence pure** et Yoast reste seul propriétaire du
+ * contenu du nœud.
+ *
+ * Sans Yoast, plus personne ne décrit l'Organization : on retombe alors sur un
+ * nœud minimal complet pour que le graphe reste autoportant.
  */
 if ( ! function_exists( 'wamv1_schema_organization_ref' ) ) {
     function wamv1_schema_organization_ref(): array {
-        $nom = wamv1_schema_nom_studio();
-        return [
+        $ref = [ '@id' => home_url( '/#organization' ) ];
+
+        if ( defined( 'WPSEO_VERSION' ) ) {
+            return $ref;
+        }
+
+        return $ref + [
             '@type' => [ 'Organization', 'DanceSchool' ],
-            '@id'   => home_url( '/#organization' ),
-            'name'  => $nom,
+            'name'  => wamv1_schema_nom_studio(),
             'url'   => home_url( '/' ),
         ];
     }
@@ -232,6 +252,86 @@ if ( ! function_exists( 'wamv1_schema_place_wam' ) ) {
                 ]
             ]
         ];
+    }
+}
+
+/**
+ * Zone desservie par un service, sous forme de liste de nœuds City.
+ *
+ * Remplace la chaîne unique « Villeneuve-d'Ascq, Roubaix, Wasquehal… » qui
+ * agglomérait toutes les communes dans un seul `name` : des City distinctes sont
+ * nettement plus exploitables, et surtout la zone peut désormais être
+ * **spécifique à la page** — c'est tout l'intérêt des pages géo.
+ *
+ * @param string $cle 'mel' (défaut) | 'roubaix' | 'wasquehal' | 'belgique'
+ */
+if ( ! function_exists( 'wamv1_schema_area_served' ) ) {
+    function wamv1_schema_area_served( string $cle = 'mel' ): array {
+        $mel = [
+            '@type' => 'AdministrativeArea',
+            'name'  => 'Métropole Européenne de Lille',
+        ];
+        $belgique = [
+            '@type' => 'Country',
+            'name'  => 'Belgique',
+        ];
+
+        $zones = [
+            'mel'       => [ [ "Villeneuve-d'Ascq", 'Lille', 'Roubaix', 'Wasquehal', 'Croix', 'Hem' ], $mel ],
+            'roubaix'   => [ [ 'Roubaix', 'Croix', 'Hem', 'Lys-lez-Lannoy' ], $mel ],
+            'wasquehal' => [ [ 'Wasquehal', 'Croix', 'Marcq-en-Barœul' ], $mel ],
+            'belgique'  => [ [ 'Tournai', 'Mouscron', 'Kortrijk' ], $belgique ],
+        ];
+
+        [ $villes, $parent ] = $zones[ $cle ] ?? $zones['mel'];
+
+        $area = [];
+        foreach ( $villes as $ville ) {
+            $area[] = [
+                '@type'            => 'City',
+                'name'             => $ville,
+                'containedInPlace' => $parent,
+            ];
+        }
+
+        return $area;
+    }
+}
+
+/**
+ * Construit une liste d'Offer à partir d'IDs de produits WooCommerce.
+ *
+ * Les montants ne sont jamais écrits en dur dans le thème : ils suivent
+ * WooCommerce, donc la prod reste la source de vérité et le schema ne se périme
+ * pas d'une saison à l'autre. Les produits sans prix exploitable (0 € ou vide —
+ * simples conteneurs panier, ex. « Location » ou « Stage ») sont ignorés.
+ *
+ * @param int[]  $ids IDs de produits WooCommerce.
+ * @param string $url URL de la page portant l'offre.
+ */
+if ( ! function_exists( 'wamv1_schema_offers_from_products' ) ) {
+    function wamv1_schema_offers_from_products( array $ids, string $url ): array {
+        if ( ! $ids || ! class_exists( 'WooCommerce' ) || ! function_exists( 'wc_get_product' ) ) {
+            return [];
+        }
+
+        $offers = [];
+        foreach ( $ids as $id ) {
+            $product = wc_get_product( $id );
+            if ( ! $product || (float) $product->get_price() <= 0 ) continue;
+
+            $offers[] = [
+                '@type'         => 'Offer',
+                'name'          => wamv1_schema_text( $product->get_name() ),
+                'price'         => (string) $product->get_price(),
+                'priceCurrency' => 'EUR',
+                'url'           => $url,
+                'availability'  => 'https://schema.org/InStock',
+                'seller'        => wamv1_schema_organization_ref(),
+            ];
+        }
+
+        return $offers;
     }
 }
 
@@ -458,14 +558,17 @@ if ( ! function_exists( 'wamv1_schema_cours' ) ) {
                 : 'https://schema.org/InStock',
         ];
 
-        // Tenter de récupérer le prix numérique depuis WooCommerce
-        if ( class_exists( 'WooCommerce' ) && function_exists('wc_get_product') ) {
-            $product_id = get_post_meta( $post_id, '_wam_linked_product', true );
-            if ( $product_id ) {
-                $product = wc_get_product( $product_id );
-                if ( $product ) {
-                    $offer['price'] = $product->get_price();
-                }
+        /* Prix depuis WooCommerce.
+         * ⚠️ La meta est `wc_product_id` — l'ancienne clé `_wam_linked_product`
+         * n'a jamais existé, d'où des Offer sans prix sur les 34 fiches cours.
+         * Même garde-fou que pour les stages : on ignore les prix nuls ou vides,
+         * certains produits ne servant que de conteneur panier. */
+        if ( class_exists( 'WooCommerce' ) && function_exists( 'wc_get_product' ) ) {
+            $product_id = get_post_meta( $post_id, 'wc_product_id', true );
+            $product    = $product_id ? wc_get_product( $product_id ) : null;
+            if ( $product && (float) $product->get_price() > 0 ) {
+                $offer['price'] = (string) $product->get_price();
+                $offer['name']  = wamv1_schema_text( $product->get_name() );
             }
         }
 
@@ -689,6 +792,27 @@ if ( ! function_exists( 'wamv1_schema_stage' ) ) {
             }
         }
 
+        /* ---- validFrom — date d'ouverture des inscriptions ----
+         * Aucun champ ACF ne porte cette date : on retient la publication du
+         * stage, moment à partir duquel la place est réellement réservable.
+         * Garde-fou : on n'écrit rien si la publication est postérieure au
+         * début du stage (stage saisi après coup), car validFrom doit précéder
+         * validThrough.
+         */
+        if ( $offers && function_exists( 'get_post_datetime' ) ) {
+            $pub_dt = get_post_datetime( $post_id, 'date', 'local' );
+            if ( $pub_dt instanceof DateTimeInterface ) {
+                $start_ts = ! empty( $schema['startDate'] ) ? strtotime( $schema['startDate'] ) : 0;
+                if ( ! $start_ts || $pub_dt->getTimestamp() < $start_ts ) {
+                    $valid_from = $pub_dt->format( 'c' );
+                    foreach ( $offers as &$offre_ref ) {
+                        $offre_ref['validFrom'] = $valid_from;
+                    }
+                    unset( $offre_ref );
+                }
+            }
+        }
+
         if ( $offers ) {
             $schema['offers'] = count( $offers ) === 1 ? $offers[0] : $offers;
         }
@@ -854,6 +978,18 @@ if ( ! function_exists( 'wamv1_schema_faqpage' ) ) {
         $post_id = get_queried_object_id();
         if ( ! $post_id ) return null;
 
+        /*
+         * Certains gabarits rendent leur FAQ en PHP plutôt qu'en blocs Gutenberg,
+         * pour que le contenu se déploie par git et survive aux `ddev pull`
+         * (cf. page-tarifs.php). Ils la déclarent via ce filtre, sous forme de
+         * paires [ 'q' => …, 'r' => … ] : le nœud reste construit depuis la même
+         * source que l'affichage, les deux ne peuvent donc pas diverger.
+         */
+        $items = apply_filters( 'wamv1_schema_faq_items', [], $post_id );
+        if ( $items ) {
+            return wamv1_schema_faqpage_from_items( $items, $post_id );
+        }
+
         $content = get_post_field( 'post_content', $post_id );
         if ( empty( $content ) || false === strpos( $content, 'wp:details' ) ) return null;
 
@@ -900,6 +1036,42 @@ if ( ! function_exists( 'wamv1_schema_faqpage' ) ) {
 }
 
 /**
+ * Construit un nœud FAQPage depuis un tableau de paires question / réponse.
+ *
+ * @param array<int, array{q:string, r:string}> $items
+ * @param int                                   $post_id
+ */
+if ( ! function_exists( 'wamv1_schema_faqpage_from_items' ) ) {
+    function wamv1_schema_faqpage_from_items( array $items, int $post_id ): ?array {
+        $questions = [];
+
+        foreach ( $items as $item ) {
+            $question = wamv1_schema_text( $item['q'] ?? '' );
+            $reponse  = wamv1_schema_text( $item['r'] ?? '' );
+
+            if ( '' === $question || '' === $reponse ) continue;
+
+            $questions[] = [
+                '@type'          => 'Question',
+                'name'           => $question,
+                'acceptedAnswer' => [
+                    '@type' => 'Answer',
+                    'text'  => $reponse,
+                ],
+            ];
+        }
+
+        if ( ! $questions ) return null;
+
+        return [
+            '@type'      => 'FAQPage',
+            '@id'        => get_permalink( $post_id ) . '#faq',
+            'mainEntity' => $questions,
+        ];
+    }
+}
+
+/**
  * Combine un nœud schema métier (Service, Article…) avec le FAQPage éventuel.
  * Retourne :
  *   - null                si ni l'un ni l'autre,
@@ -918,6 +1090,265 @@ if ( ! function_exists( 'wamv1_schema_merge_with_faq' ) ) {
 }
 
 // =========================================================================
+// 4f. ARCHIVE D'UN STYLE DE COURS — CollectionPage + ItemList
+//     Sur /cat_cours/<slug>/ : énumère les cours du style, ce qui rend la
+//     page directement exploitable par un moteur de réponse (GEO).
+// =========================================================================
+
+if ( ! function_exists( 'wamv1_schema_cat_cours' ) ) {
+    function wamv1_schema_cat_cours(): ?array {
+        $term = get_queried_object();
+        if ( ! $term instanceof WP_Term ) return null;
+
+        $url = get_term_link( $term );
+        if ( is_wp_error( $url ) ) return null;
+
+        $cours = get_posts( [
+            'post_type'      => 'cours',
+            'posts_per_page' => -1,
+            'post_status'    => 'publish',
+            'tax_query'      => [ [
+                'taxonomy' => 'cat_cours',
+                'field'    => 'term_id',
+                'terms'    => $term->term_id,
+            ] ],
+        ] );
+
+        if ( ! $cours ) return null;
+
+        $elements = [];
+        foreach ( $cours as $i => $post ) {
+            $elements[] = [
+                '@type'    => 'ListItem',
+                'position' => $i + 1,
+                'url'      => get_permalink( $post->ID ),
+                'name'     => wamv1_schema_text( get_the_title( $post->ID ) ),
+            ];
+        }
+
+        /* Yoast publie déjà le nœud CollectionPage de cette URL : en émettre un
+         * second créerait le même doublon que celui relevé au Rich Results Test
+         * sur Organization. On ne publie donc qu'un ItemList autonome, que le
+         * filtre wpseo_schema_webpage ci-dessous rattache à Yoast via mainEntity. */
+        // Libellé long (« Cours de danse ados ») plutôt que le nom court du
+        // terme : c'est ce qui est affiché en H1, le schema doit correspondre.
+        $libelle = function_exists( 'wamv1_cat_cours_h1' )
+            ? wamv1_cat_cours_h1( $term )
+            : $term->name;
+
+        $schema = [
+            '@type'           => 'ItemList',
+            '@id'             => $url . '#courses',
+            'name'            => wamv1_schema_text( $libelle ),
+            'numberOfItems'   => count( $elements ),
+            'itemListElement' => $elements,
+        ];
+
+        // La description du terme est saisie dans l'admin : elle peut être vide.
+        $desc = wamv1_schema_text( term_description( $term ), 300 );
+        if ( $desc ) {
+            $schema['description'] = $desc;
+        }
+
+        return $schema;
+    }
+}
+
+/**
+ * Rattache l'ItemList des cours au nœud CollectionPage produit par Yoast, et
+ * décrit le sujet de la page (`about`) — sans jamais dupliquer le nœud de page.
+ */
+add_filter( 'wpseo_schema_webpage', 'wamv1_schema_cat_cours_webpage' );
+
+if ( ! function_exists( 'wamv1_schema_cat_cours_webpage' ) ) {
+    function wamv1_schema_cat_cours_webpage( $data ) {
+        if ( ! is_array( $data ) || ! is_tax( 'cat_cours' ) ) return $data;
+
+        $term = get_queried_object();
+        if ( ! $term instanceof WP_Term ) return $data;
+
+        $url = get_term_link( $term );
+        if ( is_wp_error( $url ) ) return $data;
+
+        if ( empty( $data['mainEntity'] ) ) {
+            $data['mainEntity'] = [ '@id' => $url . '#courses' ];
+        }
+        if ( empty( $data['about'] ) ) {
+            $libelle = function_exists( 'wamv1_cat_cours_h1' )
+                ? wamv1_cat_cours_h1( $term )
+                : $term->name;
+
+            $data['about'] = [
+                '@type'      => 'Service',
+                'name'       => wamv1_schema_text( $libelle ),
+                'provider'   => wamv1_schema_organization_ref(),
+                'areaServed' => wamv1_schema_area_served( 'mel' ),
+            ];
+        }
+
+        return $data;
+    }
+}
+
+/**
+ * Rattache l'OfferCatalog de /tarifs/ au nœud WebPage produit par Yoast.
+ *
+ * Même stratégie que pour l'ItemList des archives de style : le thème n'émet
+ * jamais son propre nœud de page (ce qui dupliquerait celui de Yoast), il se
+ * contente de le pointer via `mainEntity`.
+ */
+add_filter( 'wpseo_schema_webpage', 'wamv1_schema_tarifs_webpage' );
+
+if ( ! function_exists( 'wamv1_schema_tarifs_webpage' ) ) {
+    function wamv1_schema_tarifs_webpage( $data ) {
+        if ( ! is_array( $data ) || ! is_page( 'tarifs' ) ) return $data;
+
+        if ( empty( $data['mainEntity'] ) ) {
+            $data['mainEntity'] = [ '@id' => get_permalink() . '#tarifs' ];
+        }
+
+        return $data;
+    }
+}
+
+// =========================================================================
+// 4d bis. PAGE TARIFS — OfferCatalog
+//     Énumère l'ensemble des prestations tarifées, ce qui rend la grille
+//     directement citable par un moteur de réponse (« combien coûte un cours
+//     de danse à Villeneuve d'Ascq ? »). Les montants viennent tous de
+//     inc/tarifs.php : le déclaré ne peut pas diverger de l'affiché.
+// =========================================================================
+
+if ( ! function_exists( 'wamv1_schema_tarifs' ) ) {
+    function wamv1_schema_tarifs(): ?array {
+        if ( ! function_exists( 'wamv1_tarifs_paliers_cours' ) ) return null;
+
+        $url   = get_permalink();
+        $seller = wamv1_schema_organization_ref();
+        $items = [];
+
+        /* ---- Cours hebdomadaires : une offre par palier ---- */
+        foreach ( wamv1_tarifs_paliers_cours( 5 ) as $palier ) {
+            $items[] = [
+                '@type'         => 'Offer',
+                'name'          => sprintf(
+                    _n( '%d cours collectif hebdomadaire, saison complète',
+                        '%d cours collectifs hebdomadaires, saison complète',
+                        $palier['nb'], 'wamv1' ),
+                    $palier['nb']
+                ),
+                'price'         => (string) round( $palier['total'], 2 ),
+                'priceCurrency' => 'EUR',
+                'url'           => $url,
+                'availability'  => 'https://schema.org/InStock',
+                'seller'        => $seller,
+                'itemOffered'   => [
+                    '@type' => 'Service',
+                    'name'  => 'Cours collectif de danse hebdomadaire',
+                ],
+            ];
+        }
+
+        /* ---- Stages : prix d'entrée uniquement (le tarif varie par session) ---- */
+        $stage_min = wamv1_tarifs_stage_prix_min();
+        if ( $stage_min > 0 ) {
+            $items[] = [
+                '@type'            => 'AggregateOffer',
+                'name'             => 'Stage, workshop ou atelier de danse',
+                'lowPrice'         => (string) round( $stage_min, 2 ),
+                'priceCurrency'    => 'EUR',
+                'url'              => home_url( '/stages-workshop-ateliers/' ),
+                'availability'     => 'https://schema.org/InStock',
+                'offeredBy'        => $seller,
+            ];
+        }
+
+        /* ---- Prestations chiffrées dans WooCommerce ---- */
+        $produits = [
+            675 => [ 'Cours particulier de danse, 1 heure',        '/cours-particulier-prive/' ],
+            785 => [ 'Mariage — formule découverte, 1 heure',      '/choregraphie-de-mariage-ouvertures-de-bal/' ],
+            681 => [ 'Mariage — formule 5 heures',                 '/choregraphie-de-mariage-ouvertures-de-bal/' ],
+            964 => [ 'Mariage — formule 8 heures',                 '/choregraphie-de-mariage-ouvertures-de-bal/' ],
+            682 => [ 'Mariage — formule 10 heures',                '/choregraphie-de-mariage-ouvertures-de-bal/' ],
+        ];
+
+        foreach ( $produits as $id => [ $nom, $chemin ] ) {
+            $prix = wamv1_tarifs_prix_produit( (int) $id );
+            if ( $prix <= 0 ) continue;
+
+            $items[] = [
+                '@type'         => 'Offer',
+                'name'          => $nom,
+                'price'         => (string) round( $prix, 2 ),
+                'priceCurrency' => 'EUR',
+                'url'           => home_url( $chemin ),
+                'availability'  => 'https://schema.org/InStock',
+                'seller'        => $seller,
+            ];
+        }
+
+        /* ---- Forfaits sans prix WooCommerce exploitable ---- */
+        $forfaits = wamv1_tarifs_forfaits_manuels();
+
+        $items[] = [
+            '@type'         => 'Offer',
+            'name'          => sprintf(
+                'Animation EVJF, EVG ou anniversaire, %s pour le groupe',
+                $forfaits['evjf']['duree']
+            ),
+            'price'         => (string) round( $forfaits['evjf']['prix'], 2 ),
+            'priceCurrency' => 'EUR',
+            'url'           => home_url( '/evjf-evg-anniversaire/' ),
+            'availability'  => 'https://schema.org/InStock',
+            'seller'        => $seller,
+        ];
+
+        // Location : fourchette horaire → UnitPriceSpecification, plus juste
+        // qu'un prix sec puisque le tarif dépend du créneau.
+        $items[] = [
+            '@type'             => 'Offer',
+            'name'              => 'Location du studio de danse, à l’heure',
+            'url'               => home_url( '/location-du-studio/' ),
+            'availability'      => 'https://schema.org/InStock',
+            'seller'            => $seller,
+            'priceSpecification' => [
+                '@type'         => 'UnitPriceSpecification',
+                'minPrice'      => (string) round( $forfaits['location']['prix_bas'], 2 ),
+                'maxPrice'      => (string) round( $forfaits['location']['prix_haut'], 2 ),
+                'priceCurrency' => 'EUR',
+                'unitCode'      => 'HUR',
+                'unitText'      => 'heure',
+            ],
+        ];
+
+        // Team building : aucun prix public, on ne déclare que le point d'entrée.
+        $items[] = [
+            '@type'         => 'Offer',
+            'name'          => 'Team building danse en entreprise, sur devis',
+            'priceCurrency' => 'EUR',
+            'url'           => home_url( '/team-building/' ),
+            'availability'  => 'https://schema.org/InStock',
+            'seller'        => $seller,
+        ];
+
+        if ( ! $items ) return null;
+
+        return [
+            '@type'           => 'OfferCatalog',
+            '@id'             => $url . '#tarifs',
+            'name'            => 'Tarifs ' . wamv1_schema_nom_studio(),
+            'description'     => 'Tarifs des cours de danse hebdomadaires, stages, cours '
+                               . 'particuliers, chorégraphies de mariage, animations privées '
+                               . 'et location de studio à Villeneuve d’Ascq.',
+            'url'             => $url,
+            'provider'        => $seller,
+            'areaServed'      => wamv1_schema_area_served( 'mel' ),
+            'itemListElement' => $items,
+        ];
+    }
+}
+
+// =========================================================================
 // 4e. PAGES DE SERVICE — Service + areaServed
 //     Uniquement sur les pages identifiées comme services WAM.
 // =========================================================================
@@ -926,18 +1357,28 @@ if ( ! function_exists( 'wamv1_schema_page_service' ) ) {
     function wamv1_schema_page_service(): ?array {
         $slug = get_post_field( 'post_name', get_queried_object_id() );
 
+        /* Clés facultatives par entrée (toutes rétrocompatibles) :
+         *   'area'     — clé de zone pour wamv1_schema_area_served() (défaut 'mel')
+         *   'type'     — serviceType (défaut 'École de danse')
+         *   'products' — IDs produits WooCommerce → offers chiffrées
+         *   'quote'    — chemin de la page de devis → Offer sans prix
+         *   'audience' — 'business' → BusinessAudience
+         *   'catalog'  — [ [name, desc], … ] → hasOfferCatalog
+         */
         $service_map = [
             'cours-collectifs' => [
-                'name' => 'Cours collectifs de danse',
-                'desc' => 'Cours hebdomadaires adultes et enfants : danse moderne, salon, WCS, street jazz, orientale, latino.',
+                'name'     => 'Cours collectifs de danse',
+                'desc'     => 'Cours hebdomadaires adultes et enfants : danse moderne, salon, WCS, street jazz, orientale, latino.',
+                'products' => [ 591 ],
             ],
             'stages-workshop-ateliers' => [
                 'name' => 'Stages, Workshops & Ateliers de danse',
                 'desc' => 'Stages ponctuels et ateliers thématiques tous niveaux, enfants et adultes.',
             ],
             'choregraphie-de-mariage-ouvertures-de-bal' => [
-                'name' => 'Chorégraphie de mariage & ouverture de bal',
-                'desc' => 'Formules sur mesure pour préparer une ouverture de bal : solo, duo, groupe.',
+                'name'  => 'Chorégraphie de mariage & ouverture de bal',
+                'desc'  => 'Formules sur mesure pour préparer une ouverture de bal : solo, duo, groupe.',
+                'quote' => '/contact/',
             ],
             'prof-wam' => [
                 'name' => "Professeur·es WAM Dance Studio",
@@ -947,28 +1388,124 @@ if ( ! function_exists( 'wamv1_schema_page_service' ) ) {
                 'name' => 'Planning hebdomadaire des cours WAM',
                 'desc' => 'Grille horaire de tous les cours collectifs de la semaine.',
             ],
+
+            /* --- Pages de service ajoutées (audit SEO/GEO) --- */
+            'team-building' => [
+                'name'     => 'Team building danse en entreprise',
+                'desc'     => "Animations danse pour entreprises, collectivités et comités d'entreprise de la métropole lilloise : cours à deux, chorégraphie de groupe, danses collectives. Au studio ou dans vos locaux.",
+                'type'     => "Animation d'entreprise",
+                'audience' => 'business',
+                'quote'    => '/contact/',
+                'catalog'  => [
+                    [ 'name' => 'Cours de danse à deux',           'desc' => 'Valse, salsa, West Coast Swing en binômes, avec rotations régulières de partenaires.' ],
+                    [ 'name' => 'Chorégraphie de groupe à thème',  'desc' => "Chorégraphie commune sur un univers musical choisi, avec restitution possible en fin de séance ou support vidéo type LipDub." ],
+                    [ 'name' => 'Initiation aux danses collectives','desc' => 'Folk, rueda, danses en ligne : tout le groupe danse ensemble, sans partenaire attitré.' ],
+                ],
+            ],
+            'cours-particulier-prive' => [
+                'name'     => 'Cours particulier et cours privé de danse',
+                'desc'     => "Cours individuels ou en petit comité, à la carte ou en formule, adaptés à vos envies, votre niveau et votre rythme.",
+                'products' => [ 675, 681, 964, 682 ],
+            ],
+            'evjf-evg-anniversaire' => [
+                'name'  => 'EVJF, EVG et anniversaire dansant',
+                'desc'  => "Animation danse sur mesure pour enterrement de vie de jeune fille ou de garçon, anniversaire et fête privée, à Villeneuve d'Ascq ou dans le lieu de votre choix.",
+                'type'  => 'Animation événementielle',
+                'quote' => '/contact/',
+            ],
+            'location-du-studio' => [
+                'name'  => 'Location du studio de danse',
+                'desc'  => "Location d'une salle équipée (parquet, miroirs, sonorisation) à Villeneuve d'Ascq, pour répétition, cours, casting ou tournage.",
+                'type'  => 'Location de salle',
+                'quote' => '/contact/',
+            ],
+
+            /* --- Pages géo : même service, zone desservie spécifique --- */
+            'cours-de-danse-roubaix' => [
+                'name'     => 'Cours de danse près de Roubaix',
+                'desc'     => "Cours de danse hebdomadaires à 15 minutes de Roubaix : K-Pop, heels, latino solo, swing, comédie musicale. Enfants dès 3 ans et adultes tous niveaux.",
+                'area'     => 'roubaix',
+                'products' => [ 591 ],
+            ],
+            'cours-de-danse-wasquehal' => [
+                'name'     => 'Cours de danse près de Wasquehal',
+                'desc'     => "Cours de danse hebdomadaires à moins de 10 minutes de Wasquehal : K-Pop, heels, urban, swing, danse orientale. Enfants dès 3 ans et adultes tous niveaux.",
+                'area'     => 'wasquehal',
+                'products' => [ 591 ],
+            ],
+            'cours-de-danse-belgique' => [
+                'name'     => 'Cours de danse depuis la Belgique',
+                'desc'     => "Cours de danse hebdomadaires accessibles depuis Tournai, Mouscron et Kortrijk : inscription en ligne, tarifs en euros, créneaux adultes en soirée.",
+                'area'     => 'belgique',
+                'products' => [ 591 ],
+            ],
         ];
 
         if ( ! isset( $service_map[ $slug ] ) ) return null;
 
-        $service_data = $service_map[ $slug ];
+        $data      = $service_map[ $slug ];
+        $permalink = get_permalink();
 
-        return [
-            '@type'      => 'Service',
-            '@id'        => get_permalink() . '#service',
-            'name'       => $service_data['name'],
-            'description' => $service_data['desc'],
-            'url'        => get_permalink(),
-            'provider'   => wamv1_schema_organization_ref(),
-            'serviceType' => 'École de danse',
-            'areaServed' => [
-                '@type'  => 'AdministrativeArea',
-                'name'   => "Villeneuve-d'Ascq, Roubaix, Wasquehal, Croix, Hem, Lille",
-                'containedInPlace' => [
-                    '@type' => 'AdministrativeArea',
-                    'name'  => 'Métropole Européenne de Lille',
-                ],
-            ],
+        $schema = [
+            '@type'       => 'Service',
+            '@id'         => $permalink . '#service',
+            'name'        => $data['name'],
+            'description' => $data['desc'],
+            'url'         => $permalink,
+            'provider'    => wamv1_schema_organization_ref(),
+            'serviceType' => $data['type'] ?? 'École de danse',
+            'areaServed'  => wamv1_schema_area_served( $data['area'] ?? 'mel' ),
         ];
+
+        /* ---- Offers : prix réels WooCommerce, sinon renvoi vers un devis ---- */
+        $offers = wamv1_schema_offers_from_products( $data['products'] ?? [], $permalink );
+
+        if ( ! $offers && ! empty( $data['quote'] ) ) {
+            // Prestation sur mesure : aucun prix public n'est affirmé, on ne
+            // renseigne donc pas `price` — seulement l'URL où demander un devis.
+            $offers[] = [
+                '@type'         => 'Offer',
+                'name'          => 'Prestation sur mesure, sur devis',
+                'priceCurrency' => 'EUR',
+                'url'           => home_url( $data['quote'] ),
+                'availability'  => 'https://schema.org/InStock',
+                'seller'        => wamv1_schema_organization_ref(),
+            ];
+        }
+
+        if ( $offers ) {
+            $schema['offers'] = count( $offers ) === 1 ? $offers[0] : $offers;
+        }
+
+        /* ---- Catalogue de prestations (formats proposés sur la page) ---- */
+        if ( ! empty( $data['catalog'] ) ) {
+            $items = [];
+            foreach ( $data['catalog'] as $item ) {
+                $items[] = [
+                    '@type'       => 'Offer',
+                    'itemOffered' => [
+                        '@type'       => 'Service',
+                        'name'        => $item['name'],
+                        'description' => $item['desc'],
+                        'provider'    => wamv1_schema_organization_ref(),
+                    ],
+                ];
+            }
+            $schema['hasOfferCatalog'] = [
+                '@type'          => 'OfferCatalog',
+                'name'           => $data['name'],
+                'itemListElement' => $items,
+            ];
+        }
+
+        /* ---- Public visé ---- */
+        if ( ( $data['audience'] ?? '' ) === 'business' ) {
+            $schema['audience'] = [
+                '@type'        => 'BusinessAudience',
+                'audienceType' => "Entreprises, collectivités et comités d'entreprise",
+            ];
+        }
+
+        return $schema;
     }
 }

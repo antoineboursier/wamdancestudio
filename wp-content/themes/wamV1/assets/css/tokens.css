@@ -107,6 +107,22 @@
    --wam-color-overlay-photo-hover: rgba(21, 28, 50, 0.5);
 
    /* -------------------------------------------------------
+       Cadre média — carrousel de la fiche cours, façades vidéo
+       Volontairement identiques en thème clair ET sombre : un cadre
+       de lecture vidéo reste sombre dans les deux cas. Ces jetons ne
+       sont donc PAS redéfinis dans .wam-theme-light — c'est ce qui
+       garantit que les contrôles restent lisibles sur les deux thèmes.
+       ------------------------------------------------------- */
+   --wam-media-surface: #0B0E14;
+   --wam-media-surface-alt: #151C32;
+   --wam-media-on-surface: #F9F4EB;
+   --wam-media-glass-bg: rgba(11, 14, 20, 0.75);
+   --wam-media-glass-border: rgba(249, 244, 236, 0.2);
+   --wam-media-glass-hover: rgba(29, 54, 127, 0.9);
+   --wam-media-dot: rgba(249, 244, 236, 0.35);
+   --wam-media-dot-hover: rgba(249, 244, 236, 0.7);
+
+   /* -------------------------------------------------------
        Assets de fond
        ------------------------------------------------------- */
    --wam-pattern-url: var(--wam-pattern-dark-url);

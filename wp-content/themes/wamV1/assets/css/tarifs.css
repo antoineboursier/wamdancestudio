@@ -1,0 +1,334 @@
+/* =====================================================
+   BLOCS TARIFS
+   Chargé sur le front dès qu'un bloc `wam/tarifs-*` est
+   présent dans le contenu (cf. inc/tarifs-blocks.php), et
+   dans l'éditeur pour que l'aperçu soit fidèle.
+
+   Le texte de la page (titres, chapô, listes, boutons) est
+   en blocs Gutenberg natifs : ce fichier ne stylise que ce
+   que les blocs dynamiques produisent.
+
+   Mobile-first : base pour mobile, media queries min-width
+   pour les écrans plus larges.
+   ===================================================== */
+
+/* Wrapper commun aux quatre blocs.
+   min-width: 0 empêche la largeur mini du tableau de remonter la chaîne des
+   conteneurs flex du thème (.page-content est un flex column) : sans lui, la
+   page s'élargit au-delà du viewport et le contenu se fait tronquer par le
+   `overflow-x: hidden` du body. */
+.tarifs-block {
+    min-width: 0;
+    margin-block: var(--wam-spacing-lg);
+}
+
+.tarifs-block__note {
+    margin-top: var(--wam-spacing-xs);
+}
+
+/* =====================================================
+   TABLEAUX DE TARIFS
+   Tarifs en HTML texte (jamais en image) : lisibles par les
+   lecteurs d'écran comme par les moteurs de recherche.
+   ===================================================== */
+
+/* Le wrapper scrolle horizontalement plutôt que la page entière */
+.tarifs-table-wrap {
+    max-width: 100%;
+    min-width: 0;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+}
+
+/* Zone scrollable atteignable au clavier (tabindex="0" dans le template) */
+.tarifs-table-wrap:focus-visible {
+    outline: 2px solid var(--wam-color-yellow);
+    outline-offset: 2px;
+}
+
+.tarifs-table,
+.wam-prose .tarifs-table {
+    width: 100%;
+    border-collapse: collapse;
+    /* Empêche l'écrasement des colonnes sur petit écran : le wrapper scrolle */
+    min-width: 30rem;
+    background: var(--wam-color-card-bg);
+    border-radius: var(--wam-radius-md);
+    overflow: hidden;
+    font-size: var(--wam-font-size-sm);
+}
+
+.tarifs-table__caption {
+    caption-side: bottom;
+    margin-top: var(--wam-spacing-xs);
+    text-align: left;
+}
+
+.tarifs-table thead th,
+.wam-prose .tarifs-table thead th {
+    padding: var(--wam-spacing-xs) var(--wam-spacing-sm);
+    text-align: left;
+    font-size: var(--wam-font-size-xs);
+    font-weight: 600;
+    color: var(--wam-color-subtext);
+    border-bottom: 1px solid var(--wam-color-glass-white);
+    white-space: nowrap;
+}
+
+.tarifs-table tbody th,
+.tarifs-table tbody td,
+.wam-prose .tarifs-table tbody th,
+.wam-prose .tarifs-table tbody td {
+    padding: var(--wam-spacing-sm);
+    text-align: left;
+    border-bottom: 1px solid var(--wam-color-glass-white);
+    vertical-align: top;
+}
+
+.tarifs-table tbody tr:last-child th,
+.tarifs-table tbody tr:last-child td {
+    border-bottom: 0;
+}
+
+.tarifs-table tbody th {
+    font-weight: 600;
+    color: var(--wam-color-text);
+    white-space: nowrap;
+}
+
+.tarifs-table__price {
+    font-family: var(--wam-font-graphical-2);
+    font-size: var(--wam-font-size-md);
+    color: var(--wam-color-text);
+    white-space: nowrap;
+}
+
+.tarifs-table__note {
+    display: block;
+    margin-top: var(--wam-spacing-4xs);
+    color: var(--wam-color-subtext);
+}
+
+/* =====================================================
+   CARTES DE PRESTATION
+   ===================================================== */
+.tarifs-cards {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: var(--wam-spacing-md);
+}
+
+.tarifs-card {
+    display: flex;
+    flex-direction: column;
+    gap: var(--wam-spacing-2xs);
+    padding: var(--wam-spacing-lg);
+    background: var(--wam-color-card-bg);
+    border-radius: var(--wam-radius-lg);
+}
+
+.tarifs-card__title,
+.wam-prose .tarifs-card__title {
+    margin: 0;
+}
+
+.tarifs-card__price {
+    margin: 0;
+    font-family: var(--wam-font-graphical-2);
+    font-size: var(--wam-font-size-lg);
+    line-height: 1.1;
+    color: var(--wam-color-green);
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: var(--wam-spacing-3xs);
+}
+
+.tarifs-card__prefix,
+.tarifs-card__suffix {
+    font-family: var(--wam-font-body);
+}
+
+.tarifs-card__detail {
+    margin: 0;
+    /* Pousse le lien en bas quand les cartes ont des hauteurs différentes */
+    flex-grow: 1;
+}
+
+/* `.wam-prose a` souligne tous les liens du contenu : il faut une spécificité
+   au moins égale pour que le soulignement maison prenne le dessus. */
+.tarifs-card__link,
+.wam-prose .tarifs-card__link {
+    margin-top: var(--wam-spacing-2xs);
+    font-size: var(--wam-font-size-xs);
+    color: var(--wam-color-yellow);
+    text-decoration: none;
+    border-bottom: 1px solid transparent;
+    align-self: flex-start;
+    transition: border-color 0.2s ease;
+}
+
+.tarifs-card__link:hover,
+.tarifs-card__link:focus-visible,
+.wam-prose .tarifs-card__link:hover,
+.wam-prose .tarifs-card__link:focus-visible {
+    text-decoration: none;
+    border-bottom-color: currentColor;
+}
+
+/* =====================================================
+   ENCARTS DU CHAPÔ
+   Classe posée sur des blocs core/group depuis l'éditeur.
+   height: 100% aligne le bas des trois encarts quand leurs
+   titres ne tiennent pas sur le même nombre de lignes.
+   ===================================================== */
+.tarifs-highlight,
+.wam-prose .tarifs-highlight {
+    height: 100%;
+    box-sizing: border-box;
+}
+
+@media (min-width: 640px) {
+    .tarifs-cards {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+@media (min-width: 1024px) {
+    .tarifs-cards {
+        grid-template-columns: repeat(3, 1fr);
+    }
+}
+
+/* =====================================================
+   LISTE « CE QUE COMPREND L'ADHÉSION »
+   Classe posée sur un bloc core/list depuis l'éditeur :
+   la surcharge doit battre `.wam-prose ul`, d'où le
+   sélecteur composé.
+   ===================================================== */
+.tarifs-inclus,
+.wam-prose .tarifs-inclus,
+.editor-styles-wrapper .tarifs-inclus {
+    list-style: none;
+    padding-left: 0;
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: var(--wam-spacing-2xs);
+}
+
+.tarifs-inclus li,
+.wam-prose .tarifs-inclus li,
+.editor-styles-wrapper .tarifs-inclus li {
+    position: relative;
+    padding-left: var(--wam-spacing-lg);
+    font-size: var(--wam-font-size-sm);
+    color: var(--wam-color-subtext);
+    list-style: none;
+}
+
+/* Coche purement décorative */
+.tarifs-inclus li::before {
+    content: "✓";
+    position: absolute;
+    left: 0;
+    color: var(--wam-color-green);
+    font-weight: 700;
+}
+
+@media (min-width: 768px) {
+
+    .tarifs-inclus,
+    .wam-prose .tarifs-inclus {
+        grid-template-columns: repeat(2, 1fr);
+        gap: var(--wam-spacing-xs) var(--wam-spacing-lg);
+    }
+}
+
+/* =====================================================
+   FAQ — accordéons natifs <details>
+   ===================================================== */
+.tarifs-faq {
+    display: flex;
+    flex-direction: column;
+    gap: var(--wam-spacing-2xs);
+}
+
+.tarifs-faq__item {
+    background: var(--wam-color-card-bg);
+    border-radius: var(--wam-radius-md);
+    overflow: hidden;
+}
+
+.tarifs-faq__question {
+    padding: var(--wam-spacing-sm) var(--wam-spacing-md);
+    cursor: pointer;
+    font-weight: 600;
+    font-size: var(--wam-font-size-sm);
+    color: var(--wam-color-text);
+    list-style: none;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: var(--wam-spacing-sm);
+}
+
+/* Retire le triangle natif de WebKit ; ailleurs, list-style ci-dessus suffit */
+.tarifs-faq__question::-webkit-details-marker {
+    display: none;
+}
+
+/* Chevron maison, piloté par l'état ouvert/fermé */
+.tarifs-faq__question::after {
+    content: "";
+    flex-shrink: 0;
+    width: 0.5rem;
+    height: 0.5rem;
+    border-right: 2px solid var(--wam-color-yellow);
+    border-bottom: 2px solid var(--wam-color-yellow);
+    transform: rotate(45deg);
+    transition: transform 0.2s ease;
+}
+
+.tarifs-faq__item[open] .tarifs-faq__question::after {
+    transform: rotate(-135deg);
+}
+
+.tarifs-faq__question:focus-visible {
+    outline: 2px solid var(--wam-color-yellow);
+    outline-offset: -2px;
+}
+
+.tarifs-faq__answer {
+    padding: 0 var(--wam-spacing-md) var(--wam-spacing-md);
+}
+
+.tarifs-faq__answer p,
+.wam-prose .tarifs-faq__answer p {
+    margin: 0;
+}
+
+/* =====================================================
+   APERÇU DANS L'ÉDITEUR
+   Les blocs dynamiques n'ont pas de contenu propre : un
+   libellé discret les rend identifiables et cliquables.
+   ===================================================== */
+.wam-tarifs-block-preview__label {
+    margin: 0 0 var(--wam-spacing-2xs);
+    font-size: 11px;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    opacity: 0.6;
+}
+
+.editor-styles-wrapper .wam-tarifs-block-preview {
+    /* Évite que l'aperçu serveur capte le clic à la place du bloc */
+    pointer-events: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+
+    .tarifs-faq__question::after,
+    .tarifs-card__link {
+        transition: none;
+    }
+}

@@ -42,6 +42,13 @@
     color: var(--wp--preset--color--accent-yellow) !important;
 }
 
+/* Espacement mobile entre le carrousel (puces) et le titre du cours */
+@media (max-width: 1023px) {
+    .single-cours .page-hero:not(.page-hero--no-image) .page-hero__heading {
+        margin-top: var(--wam-spacing-3xl);
+    }
+}
+
 /* Hero 2 colonnes — max-width / margin / padding gérés par .page-layout__inner > *:not(.wam-separator) */
 .page-cours__hero {
     display: grid;
@@ -331,6 +338,14 @@
     cursor: pointer;
     transition: border-color var(--wam-transition), color var(--wam-transition);
     white-space: nowrap;
+    /* Les chips sont des <button> sur les pages listing et des <a> sur les
+       archives de style : on neutralise le soulignement hérité des liens. */
+    text-decoration: none;
+}
+
+.chip:hover,
+.chip:focus-visible {
+    text-decoration: none;
 }
 
 /* Réserve l'espace du texte en bold — évite le layout shift au passage 400→700 */
@@ -2130,4 +2145,351 @@
 .cours-encart-tarifs__body li + li {
     margin-top: 0.2rem;
 }
+
+/* =====================================================
+   CARROUSEL MÉDIAS FICHE COURS (HERO)
+   ===================================================== */
+.single-cours .page-hero__image {
+    position: relative;
+    width: 100%;
+    min-height: 280px;
+    height: 100%;
+    aspect-ratio: 4 / 3;
+    align-self: stretch;
+    overflow: visible; /* Permet aux boutons nav du carrousel de déborder */
+}
+
+@media (min-width: 1024px) {
+    .single-cours .page-hero__image {
+        min-height: 480px;
+        aspect-ratio: auto;
+    }
+}
+
+/*
+ * Cadre allongé quand le carrousel contient au moins un Short (9:16).
+ * Sans cela, une vidéo verticale n'occupait que ~48 % de la largeur du cadre
+ * sur mobile (157 px sur 326) et ~42 % en desktop : le reste était du vide.
+ * Le modificateur est posé par single-cours.php, les cours sans Short gardent
+ * leur cadre 4/3 d'origine.
+ */
+.single-cours .page-hero__image--shorts {
+    aspect-ratio: 4 / 5;
+    min-height: 380px;
+}
+
+@media (min-width: 1024px) {
+    .single-cours .page-hero__image--shorts {
+        aspect-ratio: auto;
+        min-height: 560px;
+    }
+}
+
+.wam-carousel {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    min-height: 280px;
+    margin-bottom: 56px; /* Espace pour aérer les dots et le titre en dessous sur mobile */
+    user-select: none;
+}
+
+@media (min-width: 1024px) {
+    .wam-carousel {
+        min-height: 480px;
+        margin-bottom: 40px;
+    }
+}
+
+/* Le carrousel suit la hauteur du cadre allongé (cf. --shorts ci-dessus) */
+.page-hero__image--shorts .wam-carousel {
+    min-height: 380px;
+}
+
+@media (min-width: 1024px) {
+    .page-hero__image--shorts .wam-carousel {
+        min-height: 560px;
+    }
+}
+
+.wam-carousel__track-container {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+    border-radius: var(--wam-radius-3xl);
+    background-color: var(--wam-media-surface);
+}
+
+.wam-carousel__track {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    width: 100%;
+    height: 100%;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    transition: transform var(--wam-transition-slow, 0.35s ease);
+    will-change: transform;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .wam-carousel__track {
+        transition: none;
+    }
+}
+
+.wam-carousel__slide,
+.wam-carousel__track > li,
+.wam-carousel__track > li + li {
+    flex: 0 0 100%;
+    width: 100%;
+    height: 100%;
+    position: relative;
+    box-sizing: border-box;
+    overflow: hidden;
+    margin: 0 !important;
+    margin-top: 0 !important;
+    padding: 0 !important;
+}
+
+.wam-carousel__media-wrapper {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: var(--wam-media-surface);
+}
+
+/* Slide Photo */
+.wam-carousel__media-wrapper--image .page-hero__image-img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+}
+
+/* Slide Vidéo Container — Force la contenance stricte sans débordement */
+.wam-carousel__media-wrapper--video {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    background: radial-gradient(circle at center, var(--wam-media-surface-alt) 0%, var(--wam-media-surface) 100%);
+    overflow: hidden;
+}
+
+.wam-carousel__video-container,
+.wam-carousel__video-container .wp-block-embed__wrapper,
+.wam-carousel__video-container figure {
+    position: absolute;
+    inset: 0;
+    width: 100% !important;
+    height: 100% !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    background-color: var(--wam-media-surface);
+}
+
+/* Prise en charge des façades YouTube (.wam-video-facade) et des iframes */
+.wam-carousel__video-container .wam-video-facade {
+    position: absolute !important;
+    inset: 0 !important;
+    width: 100% !important;
+    height: 100% !important;
+    margin: auto !important;
+    display: block !important;
+    background-color: var(--wam-media-surface) !important;
+    border-radius: var(--wam-radius-xl) !important;
+    overflow: hidden !important;
+    cursor: pointer !important;
+}
+
+/* État actif lors de la lecture : passe l'iframe en premier plan cliquable */
+.wam-carousel__video-container .wam-video-facade.is-playing {
+    cursor: default !important;
+    pointer-events: auto !important;
+    touch-action: manipulation !important;
+    -webkit-user-select: auto !important;
+    user-select: auto !important;
+    z-index: 10 !important;
+}
+
+.wam-carousel__video-container iframe,
+.wam-carousel__video-container video {
+    position: absolute;
+    border: 0;
+    box-sizing: border-box;
+}
+
+.wam-carousel__video-container .wam-video-facade.is-playing iframe {
+    position: absolute !important;
+    top: 0 !important;
+    left: 0 !important;
+    width: 100% !important;
+    height: 100% !important;
+    transform: none !important;
+    border-radius: inherit !important;
+    pointer-events: auto !important;
+    touch-action: manipulation !important;
+    -webkit-user-select: auto !important;
+    user-select: auto !important;
+    z-index: 10 !important;
+}
+
+/* Vidéo Landscape (16:9) */
+.wam-carousel__video-container--landscape > .wam-video-facade,
+.wam-carousel__video-container--landscape > iframe,
+.wam-carousel__video-container--landscape > video {
+    top: 0;
+    left: 0;
+    width: 100% !important;
+    height: 100% !important;
+    max-width: 100% !important;
+    max-height: 100% !important;
+    object-fit: contain;
+}
+
+/* Vidéo Shorts (9:16 vertical) */
+.wam-carousel__video-container--shorts > .wam-video-facade,
+.wam-carousel__video-container--shorts > iframe,
+.wam-carousel__video-container--shorts > video {
+    top: 50% !important;
+    left: 50% !important;
+    bottom: auto !important;
+    right: auto !important;
+    transform: translate(-50%, -50%) !important;
+    height: 100% !important;
+    width: auto !important;
+    aspect-ratio: 9 / 16 !important;
+    max-width: 100% !important;
+    max-height: 100% !important;
+    border-radius: var(--wam-radius-3xl);
+    box-shadow: var(--wam-shadow-card);
+}
+
+.wam-carousel__video-container .wam-video-facade img {
+    width: 100% !important;
+    height: 100% !important;
+    object-fit: cover !important;
+    display: block !important;
+}
+
+.wam-carousel__video-container .wam-video-play-btn {
+    z-index: 5 !important;
+    pointer-events: none !important;
+}
+
+/* Contrôles de navigation (Boutons fléchés) */
+.wam-carousel__nav {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    z-index: 15;
+    width: 40px;
+    height: 40px;
+    border-radius: var(--wam-radius-pill);
+    background: var(--wam-media-glass-bg);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid var(--wam-media-glass-border);
+    color: var(--wam-media-on-surface);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all var(--wam-transition);
+}
+
+@media (min-width: 768px) {
+    .wam-carousel__nav {
+        width: 44px;
+        height: 44px;
+    }
+}
+
+.wam-carousel__nav:hover,
+.wam-carousel__nav:focus-visible {
+    background: var(--wam-media-glass-hover) !important;
+    border-color: transparent !important;
+    transform: translateY(-50%) scale(1.08);
+    outline: none;
+}
+
+.wam-carousel__nav--prev {
+    left: -20px;
+}
+
+.wam-carousel__nav--next {
+    right: -20px;
+}
+
+@media (min-width: 768px) {
+    .wam-carousel__nav--prev {
+        left: -22px;
+    }
+
+    .wam-carousel__nav--next {
+        right: -22px;
+    }
+}
+
+/* Icône uniquement : rotation sans affecter le positionnement du bouton */
+.wam-carousel__nav--prev .btn-icon {
+    transform: rotate(180deg);
+}
+
+.wam-carousel__nav .btn-icon {
+    width: 18px;
+    height: 18px;
+    color: var(--wam-media-on-surface);
+}
+
+/* Barre de puces (Dots) */
+.wam-carousel__dots {
+    position: absolute;
+    bottom: -40px;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 15;
+    display: flex;
+    align-items: center;
+    gap: var(--wam-spacing-2xs);
+    padding: 6px 12px;
+    background: var(--wam-media-glass-bg);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid var(--wam-media-glass-border);
+    border-radius: var(--wam-radius-pill);
+}
+
+.wam-carousel__dot {
+    width: 8px;
+    height: 8px;
+    padding: 0;
+    border-radius: var(--wam-radius-pill);
+    background: var(--wam-media-dot);
+    border: none;
+    cursor: pointer;
+    transition: all var(--wam-transition);
+}
+
+.wam-carousel__dot:hover,
+.wam-carousel__dot:focus-visible {
+    background: var(--wam-media-dot-hover);
+    outline: none;
+}
+
+.wam-carousel__dot.is-active {
+    width: 22px;
+    background: var(--wam-color-green);
 }

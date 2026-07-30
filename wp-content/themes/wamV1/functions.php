@@ -13,6 +13,8 @@ require_once get_template_directory() . '/inc/admin-ui.php';
 require_once get_template_directory() . '/inc/admin-config.php';
 require_once get_template_directory() . '/inc/admin-widget-cours.php';
 require_once get_template_directory() . '/inc/cours-options.php';
+require_once get_template_directory() . '/inc/tarifs.php';
+require_once get_template_directory() . '/inc/tarifs-blocks.php';
 require_once get_template_directory() . '/inc/schema.php';
 require_once get_template_directory() . '/inc/shortcodes.php';
 require_once get_template_directory() . '/inc/no-comments.php';
@@ -146,6 +148,37 @@ function wamv1_get_cat_cours_icons() {
         'ados'            => 'dancer_warmup.svg',
         'ados-adultes'    => 'dancer_courssolo.svg',
     ];
+}
+
+// -------------------------------------------------------
+// Titre H1 des archives de styles de cours (taxonomie cat_cours)
+// -------------------------------------------------------
+/**
+ * Le nom du terme est pensé pour les filtres et les en-têtes de section : court
+ * (« Ados », « À deux (adultes) »). Il fait donc un H1 trop pauvre sur l'archive,
+ * qui est indexée et se positionne sur des requêtes « cours de danse … ».
+ *
+ * Ces titres restent volontairement dans le code : ils se déploient par git,
+ * survivent aux `ddev pull` et n'ont rien à ressaisir en prod — contrairement à
+ * la description du terme, qui elle est en base.
+ * Le <title> reste piloté par Yoast et n'est pas touché ici.
+ *
+ * Ajouter une entrée ici si un nouveau terme cat_cours est créé.
+ */
+function wamv1_cat_cours_h1($term) {
+    if (!$term instanceof WP_Term) {
+        return '';
+    }
+
+    $titres = [
+        'enfants'    => 'Cours de danse enfants',
+        'ados'       => 'Cours de danse ados',
+        'a-deux'     => 'Cours de danse à deux',
+        'danse-solo' => 'Cours de danse solo (adultes)',
+        'troupe'     => 'Troupe de danse',
+    ];
+
+    return $titres[$term->slug] ?? 'Cours de danse ' . $term->name;
 }
 
 // -------------------------------------------------------
@@ -304,13 +337,21 @@ function wamv1_scripts()
         is_page_template('page-events-tous.php') ||
         is_page_template('page-prof-wam.php') ||
         is_page_template('page-planning-cours.php') ||
-        is_page_template('page-reinscription.php')
+        is_page_template('page-reinscription.php') ||
+        is_tax('cat_cours')
     ) {
         wp_enqueue_style('wamv1-programme', $css . 'programme.css', array('wamv1-accessibility'), $get_ver('assets/css/programme.css'));
     }
 
-    // JS filtrage — pages listing (cours collectifs + stages)
-    if (is_page_template('page-cours-collectifs.php') || is_page_template('page-stages-tous.php') || is_page_template('page-reinscription.php')) {
+    // JS filtrage — pages listing (cours collectifs + stages) et archives de style.
+    // Sur l'archive de taxonomie les chips sont des liens (sans data-filter) :
+    // filter.js les ignore et seule la recherche reste active.
+    if (
+        is_page_template('page-cours-collectifs.php') ||
+        is_page_template('page-stages-tous.php') ||
+        is_page_template('page-reinscription.php') ||
+        is_tax('cat_cours')
+    ) {
         wp_enqueue_script('wamv1-filter', $js . 'filter.js', array(), $get_ver('assets/js/filter.js'), true);
     }
 
@@ -348,6 +389,29 @@ function wamv1_scripts()
             'icons_url' => get_template_directory_uri() . '/assets/images/'
         ]);
     }
+
+    // -------------------------------------------------------
+    // Façades vidéo YouTube (click-to-load) — TOUTES LES PAGES
+    //
+    // Chargé inconditionnellement, et non depuis wamv1_youtube_facade() :
+    // les vidéos intégrées dans du contenu passent par WP_Embed::shortcode(),
+    // qui met le HTML rendu en cache dans la postmeta `_oembed_*`. Sur ces
+    // rendus-là le filtre `oembed_result` ne rejoue pas — une façade peut donc
+    // s'afficher sans qu'aucun hook n'ait eu l'occasion d'enfiler le script.
+    // 5 Ko en defer, contre jusqu'à 24 <script> inline sur un article de gala.
+    // -------------------------------------------------------
+    wp_enqueue_script('wamv1-video-facade', $js . 'video-facade.js', array(), $get_ver('assets/js/video-facade.js'), ['in_footer' => true, 'strategy' => 'defer']);
+
+    // -------------------------------------------------------
+    // Carrousel médias fiche cours
+    // -------------------------------------------------------
+    if (is_singular('cours')) {
+        wp_enqueue_script('wamv1-cours-carousel', $js . 'cours-carousel.js', array('wamv1-video-facade'), $get_ver('assets/js/cours-carousel.js'), ['in_footer' => true, 'strategy' => 'defer']);
+    }
+
+
+    // NB : le CSS des tarifs est chargé par inc/tarifs-blocks.php, dès qu'un
+    // bloc tarifs est présent dans le contenu — et non plus par slug de page.
 
     // -------------------------------------------------------
     // WooCommerce — shop.css

@@ -33,6 +33,15 @@
    --wam-radius-pill: 999px;
 
    /* -------------------------------------------------------
+       Largeurs maximales des médias intégrés (oEmbed dans le contenu)
+       Bride la vidéo dans le flux éditorial : sans cela, un embed
+       occupe toute la largeur du conteneur de prose. Ne concerne pas
+       le plein écran YouTube, qui sort du flux du document.
+       ------------------------------------------------------- */
+   --wam-embed-max-width-landscape: 1000px;
+   --wam-embed-max-width-portrait: 600px;
+
+   /* -------------------------------------------------------
        Ombres
        ------------------------------------------------------- */
    --wam-shadow-sm: 0 4px 16px rgba(6, 8, 14, 0.3);

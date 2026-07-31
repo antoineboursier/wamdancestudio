@@ -406,6 +406,36 @@ blockquote.review-card__text p {
     height: auto;
 }
 
+/* -------------------------------------------------------
+   Galeries Gutenberg (core/gallery)
+
+   L'espacement n'était pas désactivé : c'est la valeur par défaut du
+   cœur de WordPress (0.5em, soit 13px ici) qui rendait les images
+   collées — d'autant que chaque image porte l'ombre décorative en
+   quatre couleurs ci-dessus, qui mord sur l'espace disponible.
+
+   On agit sur `--gallery-block--gutter-size`, la variable que le cœur
+   lit lui-même dans sa cascade de replis, plutôt que de forcer `gap` :
+   le calcul de largeur des colonnes reste celui du cœur, et un
+   espacement réglé depuis l'éditeur continue de primer.
+   ------------------------------------------------------- */
+
+.wam-prose .wp-block-gallery,
+.editor-styles-wrapper .wp-block-gallery {
+    --gallery-block--gutter-size: var(--wam-spacing-2xl);
+    margin: var(--wam-spacing-2xl) 0;
+}
+
+/*
+ * Dans une galerie, l'espacement est porté par le `gap` du conteneur :
+ * la marge verticale des images isolées ferait double emploi et
+ * désalignerait les lignes.
+ */
+.wam-prose .wp-block-gallery .wp-block-image,
+.editor-styles-wrapper .wp-block-gallery .wp-block-image {
+    margin: 0;
+}
+
 .wam-prose figcaption,
 .editor-styles-wrapper figcaption {
     margin-top: var(--wam-spacing-md);
@@ -413,6 +443,59 @@ blockquote.review-card__text p {
     color: var(--wam-color-subtext);
     text-align: center;
     font-style: italic;
+}
+
+/* -------------------------------------------------------
+   Médias intégrés (core/embed) — bridage de la largeur
+
+   Sans ces règles, un embed occupe toute la largeur du conteneur de
+   prose : une vidéo verticale y devenait démesurément haute.
+
+   Le bridage porte sur la LARGEUR DU CADRE dans le flux du document.
+   Le plein écran YouTube sort de ce flux et n'est donc pas affecté.
+
+   Deux ratios, deux signaux distincts :
+     - paysage : Gutenberg pose `wp-embed-aspect-16-9` ;
+     - vertical : Gutenberg ne pose AUCUNE classe de ratio — la classe
+       `wam-embed--portrait` est ajoutée côté PHP (inc/performance.php)
+       et côté éditeur (assets/js/editor-embeds.js) d'après l'URL.
+   ------------------------------------------------------- */
+
+.wam-prose .wp-block-embed,
+.editor-styles-wrapper .wp-block-embed {
+    margin-left: auto;
+    margin-right: auto;
+    max-width: var(--wam-embed-max-width-landscape);
+}
+
+.wam-prose .wp-block-embed.wam-embed--portrait,
+.editor-styles-wrapper .wp-block-embed.wam-embed--portrait {
+    max-width: var(--wam-embed-max-width-portrait);
+}
+
+/*
+ * Le ratio vertical doit être imposé : le wrapper `wp-block-embed__wrapper`
+ * ne porte pas de ratio pour les Shorts, faute de classe `wp-embed-aspect-*`.
+ * La façade (`.wam-video-facade`) porte déjà son propre aspect-ratio 9/16 ;
+ * la règle ne cible donc que l'iframe, pour le cas où la façade est absente
+ * (front page, ou embed servi sans façade).
+ */
+.wam-prose .wam-embed--portrait .wp-block-embed__wrapper > iframe,
+.editor-styles-wrapper .wam-embed--portrait .wp-block-embed__wrapper > iframe {
+    display: block;
+    width: 100%;
+    height: auto;
+    aspect-ratio: 9 / 16;
+}
+
+/*
+ * Dans la toile de l'éditeur, l'enveloppe du bloc porte elle-même la classe :
+ * c'est elle qu'il faut brider pour que l'aperçu corresponde au front.
+ */
+.editor-styles-wrapper .wp-block[data-type="core/embed"].wam-embed--portrait {
+    max-width: var(--wam-embed-max-width-portrait);
+    margin-left: auto;
+    margin-right: auto;
 }
 
 /* -------------------------------------------------------

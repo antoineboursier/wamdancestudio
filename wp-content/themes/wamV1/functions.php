@@ -746,6 +746,22 @@ function wamv1_block_editor_title_styles()
 }
 add_action('enqueue_block_editor_assets', 'wamv1_block_editor_title_styles');
 
+/**
+ * Marquage des Shorts dans la toile de l'éditeur.
+ * Voir assets/js/editor-embeds.js : la toile rend `core/embed` côté client,
+ * le filtre PHP `render_block` n'y passe donc jamais.
+ */
+add_action('enqueue_block_editor_assets', function () {
+    $rel = 'assets/js/editor-embeds.js';
+    wp_enqueue_script(
+        'wamv1-editor-embeds',
+        get_template_directory_uri() . '/' . $rel,
+        array('wp-hooks', 'wp-element', 'wp-compose'),
+        filemtime(get_template_directory() . '/' . $rel),
+        true
+    );
+});
+
 // -------------------------------------------------------
 // Utilitaires de contenu
 // -------------------------------------------------------

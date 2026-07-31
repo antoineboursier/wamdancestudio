@@ -78,6 +78,47 @@ function wamv1_youtube_facade($html, $url, $attr) {
 }
 
 /**
+ * 1 bis. Marquage des embeds verticaux (YouTube Shorts) dans le contenu.
+ *
+ * Gutenberg ajoute `wp-embed-aspect-16-9` sur les vidéos paysage, mais
+ * n'émet AUCUNE classe de ratio pour les Shorts : le markup d'un Short et
+ * celui d'une vidéo paysage sont sinon strictement identiques. Le seul
+ * signal disponible est le `/shorts/` de l'URL, qui n'existe qu'ici, côté
+ * PHP — d'où ce filtre, qui pose la classe que le CSS ne peut pas déduire.
+ *
+ * Appliqué sur `render_block` et non sur `the_content` : le rendu de bloc
+ * est aussi ce que l'aperçu de l'éditeur consomme, et le filtre reste sans
+ * effet sur les contenus n'ayant pas d'embed.
+ *
+ * @param string $block_content HTML rendu du bloc.
+ * @param array  $block         Bloc analysé (attributs compris).
+ * @return string
+ */
+add_filter('render_block', 'wamv1_mark_portrait_embeds', 10, 2);
+function wamv1_mark_portrait_embeds($block_content, $block) {
+    if (empty($block['blockName']) || $block['blockName'] !== 'core/embed') {
+        return $block_content;
+    }
+
+    $url = $block['attrs']['url'] ?? '';
+    if (strpos($url, '/shorts/') === false) {
+        return $block_content;
+    }
+
+    // Idempotent : ne pas repositionner la classe si elle est déjà là.
+    if (strpos($block_content, 'wam-embed--portrait') !== false) {
+        return $block_content;
+    }
+
+    return preg_replace(
+        '/class="([^"]*\bwp-block-embed\b[^"]*)"/',
+        'class="$1 wam-embed--portrait"',
+        $block_content,
+        1
+    );
+}
+
+/**
  * 2. Désactivation des scripts WP Embed (si non utilisés ailleurs)
  * Le script wp-embed.js est souvent inutile si on gère nos propres façades.
  */

@@ -55,6 +55,8 @@ do_action('woocommerce_before_cart');
 
                         // — Données WAM cours/stage (vides si item Bookly) —
                         $course_id       = $cart_item['wam_course_id'] ?? null;
+                        // Seuls les stages sont ajustables en quantité (on achète N places).
+                        $is_stage        = function_exists('wamv1_is_stage_item') && wamv1_is_stage_item($cart_item);
                         $course_title    = $course_id ? get_the_title($course_id) : null;
                         $course_subtitle = $course_id ? get_field('sous_titre', $course_id) : null;
                         $course_thumb    = $course_id ? get_the_post_thumbnail_url($course_id, 'medium') : null;
@@ -141,7 +143,6 @@ do_action('woocommerce_before_cart');
                                         <?php endif; ?>
                                         <?php
                                         $wam_tarif_label = $cart_item['wam_tarif_label'] ?? null;
-                                        $is_stage = $course_id && get_post_type($course_id) === 'stages';
                                         if ($wam_tarif_label && $is_stage): ?>
                                             <span class="wam-cart-card__tarif text-md color-text d-block mt-2"><?php echo esc_html($wam_tarif_label); ?></span>
                                         <?php endif; ?>
@@ -185,17 +186,34 @@ do_action('woocommerce_before_cart');
                                 <div class="wam-cart-card__footer">
 
 
-                                    <!-- Quantité (masquée pour les réservations Bookly et les Cours WAM) -->
-                                    <?php if (!isset($cart_item['bookly']) && !$course_id): ?>
+                                    <!-- Quantité : stages uniquement (on achète N places).
+                                         Cours, réservations Bookly et produits hors WAM restent à
+                                         quantité fixe et se retirent par la croix. -->
+                                    <?php if ($is_stage): ?>
                                     <div class="wam-cart-card__qty product-quantity">
                                         <button type="button" class="wam-qty-btn minus" aria-label="<?php echo esc_attr(sprintf(__('Diminuer la quantité pour %s', 'wamv1'), $course_title ?: $product_name)); ?>">-</button>
                                         <?php
-                                        if ($_product->is_sold_individually()) {
-                                            $min_quantity = 1;
-                                            $max_quantity = 1;
-                                        } else {
-                                            $min_quantity = 0;
+                                        // Plancher à 1 : la suppression passe par la croix, jamais
+                                        // par la quantité. Plafond = places restantes du tarif.
+                                        // is_sold_individually() n'est volontairement pas consulté :
+                                        // le produit WC est un conteneur générique partagé entre
+                                        // cours et stages, il ne peut pas porter une règle propre
+                                        // au CPT lié.
+                                        $min_quantity = 1;
+                                        $max_quantity = function_exists('wamv1_stage_places_restantes')
+                                            ? wamv1_stage_places_restantes(
+                                                (int) $course_id,
+                                                (int) ($cart_item['wam_tarif_index'] ?? 0),
+                                                $cart_item_key
+                                            )
+                                            : -1;
+                                        if ($max_quantity < 0) {
                                             $max_quantity = $_product->get_max_purchase_quantity();
+                                        } else {
+                                            // Le quota a pu être réduit après l'ajout au panier :
+                                            // la quantité déjà réservée reste toujours atteignable,
+                                            // sinon le champ deviendrait insaisissable.
+                                            $max_quantity = max($max_quantity, (int) $cart_item['quantity']);
                                         }
                                         $product_quantity = woocommerce_quantity_input(
                                             array(
@@ -346,6 +364,41 @@ do_action('woocommerce_before_cart');
         // 3. Auto-Update panier sur changement de quantité et boutons +/-
         let timeout;
 
+        // Bornes réelles du champ. WooCommerce émet max="" quand la quantité
+        // est illimitée : parseFloat renvoie alors NaN, d'où le repli explicite.
+        // (Ne jamais tester !min : min vaut légitimement 1, mais 0 serait falsy.)
+        function qtyBounds(input) {
+            let min = parseFloat(input.getAttribute('min'));
+            let max = parseFloat(input.getAttribute('max'));
+            return {
+                min: isNaN(min) ? 1 : min,
+                max: (isNaN(max) || max < 0) ? Infinity : max,
+                step: parseFloat(input.getAttribute('step')) || 1
+            };
+        }
+
+        // Un bouton inerte sans indication se lit comme une panne : on le désactive.
+        function syncQtyButtons(container) {
+            let input = container.querySelector('input.qty');
+            if (!input) return;
+            let b = qtyBounds(input);
+            let currentVal = parseFloat(input.value) || b.min;
+            let minus = container.querySelector('.wam-qty-btn.minus');
+            let plus = container.querySelector('.wam-qty-btn.plus');
+            if (minus) minus.disabled = currentVal <= b.min;
+            if (plus) plus.disabled = currentVal >= b.max;
+        }
+
+        function syncAllQtyButtons() {
+            document.querySelectorAll('.wam-cart-card__qty').forEach(syncQtyButtons);
+        }
+
+        syncAllQtyButtons();
+
+        if (typeof jQuery !== 'undefined') {
+            jQuery(document.body).on('updated_cart_totals', syncAllQtyButtons);
+        }
+
         // Fonctionnalité clics +/- sur la page
         document.body.addEventListener('click', function (e) {
             if (e.target && e.target.classList.contains('wam-qty-btn')) {
@@ -353,20 +406,20 @@ do_action('woocommerce_before_cart');
                 if (container) {
                     let input = container.querySelector('input.qty');
                     if (input) {
-                        let currentVal = parseFloat(input.value) || 0;
-                        let max = parseFloat(input.getAttribute('max'));
-                        let min = parseFloat(input.getAttribute('min'));
-                        let step = parseFloat(input.getAttribute('step')) || 1;
+                        let b = qtyBounds(input);
+                        let currentVal = parseFloat(input.value) || b.min;
 
                         if (e.target.classList.contains('plus')) {
-                            if (!max || max === '' || currentVal < max) {
-                                input.value = currentVal + step;
+                            if (currentVal < b.max) {
+                                input.value = currentVal + b.step;
                             }
                         } else if (e.target.classList.contains('minus')) {
-                            if (!min || min === '' || currentVal > min) {
-                                input.value = currentVal - step;
+                            if (currentVal > b.min) {
+                                input.value = currentVal - b.step;
                             }
                         }
+
+                        syncQtyButtons(container);
 
                         // Déclenche l'événement "change" pour que le script d'auto-update suivant se lance
                         input.dispatchEvent(new Event('change', { bubbles: true }));
@@ -378,7 +431,16 @@ do_action('woocommerce_before_cart');
         // Auto-update lors d'un "change" (clavier ou bouton)
         document.body.addEventListener('change', function (e) {
             if (e.target && e.target.classList.contains('qty')) {
-                if (e.target.closest('.wam-cart-card__qty')) { // Uniquement pour le change sur les quantités
+                let container = e.target.closest('.wam-cart-card__qty');
+                if (container) { // Uniquement pour le change sur les quantités
+                    // Saisie clavier : ramener dans les bornes avant d'envoyer.
+                    // Le serveur revalide de toute façon (woocommerce_update_cart_validation).
+                    let b = qtyBounds(e.target);
+                    let typed = parseFloat(e.target.value);
+                    if (isNaN(typed)) typed = b.min;
+                    e.target.value = Math.min(Math.max(typed, b.min), b.max);
+                    syncQtyButtons(container);
+
                     clearTimeout(timeout);
                     timeout = setTimeout(function () {
                         let updateBtn = document.querySelector('[name="update_cart"]');

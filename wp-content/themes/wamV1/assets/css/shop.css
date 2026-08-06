@@ -775,9 +775,17 @@
     transition: background-color var(--wam-transition), color var(--wam-transition);
 }
 
-.wam-qty-btn:hover {
+.wam-qty-btn:hover:not(:disabled) {
     background: var(--wam-color-glass-white);
     color: var(--wam-color-yellow);
+}
+
+/* Bornes atteintes (plancher à 1, plafond = places restantes du stage) :
+   le JS pose `disabled`. Un bouton inerte doit se voir, sinon il se lit
+   comme une panne. */
+.wam-qty-btn:disabled {
+    opacity: 0.35;
+    cursor: not-allowed;
 }
 
 .wam-cart-card__qty .quantity {
@@ -815,6 +823,20 @@
     background: var(--wam-color-glass-white);
 }
 
+/* Cibles tactiles : 32x38px passe mal au doigt. Le desktop reste compact.
+   Placé APRÈS les règles de base : à spécificité égale, c'est l'ordre qui
+   tranche — la media query de la ligne 648 serait écrasée. */
+@media (max-width: 640px) {
+    .wam-qty-btn {
+        min-width: 44px;
+        height: 44px;
+    }
+
+    .wam-cart-card__qty .quantity input.qty {
+        height: 44px;
+    }
+}
+
 .wam-cart-card__price {
     display: flex;
     flex-direction: column;
@@ -827,44 +849,43 @@
     /* Le style est désormais géré par les classes utilitaires PHP .title-norm-sm .color-yellow */
 }
 
-/* Bouton "Retirer" — croix positionnée en haut à droite de la carte */
+/* Bouton "Retirer" — croix positionnée en haut à droite de la carte.
+   Fond opaque : sous 640px la carte passe en une colonne et la croix se
+   superpose à la miniature pleine largeur — elle ne doit pas dépendre de la
+   photo qui passe dessous. Cible de 44px : le seul retour visuel disponible
+   au tactile est :active, il n'y a pas de survol. */
 .wam-cart-card__remove {
     position: absolute;
-    top: 12px;
-    right: 12px;
+    top: var(--wam-spacing-xs);
+    right: var(--wam-spacing-xs);
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    width: 26px;
-    height: 26px;
-    font-size: 1rem;
+    width: 44px;
+    height: 44px;
+    font-size: var(--wam-font-size-lg);
     line-height: 1;
-    color: var(--wam-color-subtext);
+    color: var(--wam-color-text);
+    background: var(--wam-color-card-bg);
     text-decoration: none;
-    border-radius: 50%;
-    border: 1px solid rgba(249, 244, 236, 0.2);
-    transition: all var(--wam-transition);
+    border-radius: var(--wam-radius-pill);
+    border: 1px solid var(--wam-color-input-bg);
+    box-shadow: var(--wam-shadow-md);
+    transition: color var(--wam-transition), border-color var(--wam-transition), transform var(--wam-transition);
     cursor: pointer;
     z-index: 1;
 }
 
-.wam-cart-card__remove:hover {
+.wam-cart-card__remove:hover,
+.wam-cart-card__remove:focus-visible {
     border-color: var(--wam-color-pink);
     color: var(--wam-color-pink);
-    background: transparent;
 }
 
-.wam-cart-card__remove-icon {
-    display: inline-block;
-    width: 14px;
-    height: 14px;
-    background-color: currentColor;
-    -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2.5' stroke-linecap='round'%3E%3Cline x1='18' y1='6' x2='6' y2='18'/%3E%3Cline x1='6' y1='6' x2='18' y2='18'/%3E%3C/svg%3E");
-    mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2.5' stroke-linecap='round'%3E%3Cline x1='18' y1='6' x2='6' y2='18'/%3E%3Cline x1='6' y1='6' x2='18' y2='18'/%3E%3C/svg%3E");
-    -webkit-mask-size: contain;
-    mask-size: contain;
-    -webkit-mask-repeat: no-repeat;
-    mask-repeat: no-repeat;
+.wam-cart-card__remove:active {
+    border-color: var(--wam-color-pink);
+    color: var(--wam-color-pink);
+    transform: scale(0.92);
 }
 
 /* Données Bookly dans la carte panier — style cohérent avec les cartes WAM */

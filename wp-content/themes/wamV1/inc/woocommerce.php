@@ -146,6 +146,75 @@ function wamv1_stage_tarifs(?int $post_id = null): array
     return $grp;
 }
 
+/**
+ * Places encore disponibles pour un tarif donné d'un stage.
+ *
+ * Source de vérité unique du calcul de quota : utilisée à la fois par l'ajout
+ * au panier (AJAX) et par le sélecteur de quantité de la page panier.
+ *
+ * @param int    $stage_id     ID du CPT 'stages'.
+ * @param int    $tarif_index  Index du tarif (1 à 3).
+ * @param string $exclude_key  Clé d'un item du panier à ne PAS compter. Sert à
+ *                             calculer le plafond de la ligne courante dans le
+ *                             panier (sinon la ligne se déduirait d'elle-même).
+ * @return int Places restantes, ou -1 si aucun quota n'est administré
+ *             (convention identique à WC_Product::get_max_purchase_quantity()).
+ */
+function wamv1_stage_places_restantes(int $stage_id, int $tarif_index, string $exclude_key = ''): int
+{
+    if (!$stage_id || $tarif_index < 1 || $tarif_index > 3) return -1;
+
+    $grp = wamv1_stage_tarifs($stage_id);
+    if (empty($grp)) return -1;
+
+    $total = (int) ($grp['quota_tarif_' . $tarif_index] ?? 0);
+
+    // Quota à 0 = non administré, donc illimité.
+    if ($total <= 0) return -1;
+
+    $reserve = (int) ($grp['quota_reserve_' . $tarif_index] ?? 0);
+
+    // Ce qui occupe déjà des places dans le panier pour ce stage + ce tarif.
+    $en_panier = 0;
+    if (function_exists('WC') && WC()->cart) {
+        foreach (WC()->cart->get_cart() as $key => $cart_item) {
+            if ($key === $exclude_key) continue;
+            if (($cart_item['wam_course_id'] ?? 0) == $stage_id
+                && ($cart_item['wam_tarif_index'] ?? 0) == $tarif_index) {
+                $en_panier += (int) $cart_item['quantity'];
+            }
+        }
+    }
+
+    return max(0, $total - $reserve - $en_panier);
+}
+
+/**
+ * Empêche de dépasser le quota d'un stage en modifiant la quantité depuis le
+ * panier. L'attribut `max` du champ n'est qu'une barrière côté client : un POST
+ * direct la contourne.
+ */
+add_filter('woocommerce_update_cart_validation', 'wamv1_validate_stage_qty_update', 10, 4);
+
+function wamv1_validate_stage_qty_update($passed, $cart_item_key, $values, $quantity)
+{
+    if (!$passed || $quantity <= 0) return $passed;
+    if (!wamv1_is_stage_item($values)) return $passed;
+
+    $stage_id  = (int) ($values['wam_course_id'] ?? 0);
+    $tarif_idx = (int) ($values['wam_tarif_index'] ?? 0);
+
+    $dispo = wamv1_stage_places_restantes($stage_id, $tarif_idx, $cart_item_key);
+    if ($dispo < 0 || $quantity <= $dispo) return $passed;
+
+    wc_add_notice(sprintf(
+        'Il ne reste que %d place(s) disponible(s) pour ce tarif.',
+        $dispo
+    ), 'error');
+
+    return false;
+}
+
 // ============================================================================
 // E. Sync stock — quand on coche complete_cours sur un cours/stage,
 //    mettre à jour le statut de stock du produit WC lié
@@ -570,38 +639,20 @@ function wamv1_ajax_add_to_cart(): void
     $added      = 0;
 
     if ($selections && is_array($selections)) {
-        // Récupérer les quotas du stage pour validation serveur
-        $grp_quota = $course_id ? (function_exists('wamv1_stage_tarifs') ? wamv1_stage_tarifs($course_id) : (get_field('tarifs', $course_id) ?: [])) : [];
-
         foreach ($selections as $sel) {
             $t_idx = absint($sel['tarif_index'] ?? 0);
             $qty   = absint($sel['qty'] ?? 0);
             if ($qty <= 0 || !$t_idx) continue;
 
-            // Validation quota côté serveur (protection contre contournement JS)
-            if ($course_id && !empty($grp_quota)) {
-                $total_key   = 'quota_tarif_'   . $t_idx;
-                $reserve_key = 'quota_reserve_' . $t_idx;
-                $total   = (int) ($grp_quota[$total_key]   ?? 0);
-                $reserve = (int) ($grp_quota[$reserve_key] ?? 0);
-
-                // Compter ce qui est déjà dans le panier pour ce stage + ce tarif
-                $en_panier = 0;
-                foreach (WC()->cart->get_cart() as $cart_item) {
-                    if (($cart_item['wam_course_id'] ?? 0) == $course_id
-                        && ($cart_item['wam_tarif_index'] ?? 0) == $t_idx) {
-                        $en_panier += $cart_item['quantity'];
-                    }
-                }
-
-                $dispo = $total > 0 ? max(0, $total - $reserve - $en_panier) : PHP_INT_MAX;
-
-                if ($qty > $dispo) {
-                    wp_send_json_error(['message' => sprintf(
-                        'Il ne reste que %d place(s) disponible(s) pour ce tarif.',
-                        $dispo
-                    )]);
-                }
+            // Validation quota côté serveur (protection contre contournement JS).
+            // Le panier est relu à chaque tour de boucle : les sélections déjà
+            // ajoutées ci-dessous comptent donc dans les places occupées.
+            $dispo = wamv1_stage_places_restantes($course_id, $t_idx);
+            if ($dispo >= 0 && $qty > $dispo) {
+                wp_send_json_error(['message' => sprintf(
+                    'Il ne reste que %d place(s) disponible(s) pour ce tarif.',
+                    $dispo
+                )]);
             }
 
             $cart_item_data = ['wam_tarif_index' => $t_idx];

@@ -40,6 +40,32 @@ if ($post_type === 'post') {
     $query_args['orderby'] = 'rand';
 }
 
+/*
+ * Stages : on ne suggère jamais une date déjà passée.
+ * La meta ACF "date_stage" est stockée au format Ymd, donc comparable
+ * en chaîne. Un stage sans date reste proposé, comme sur la page listing
+ * (cf. wamv1_stage_est_passe()).
+ */
+if ($post_type === 'stages') {
+    $query_args['meta_query'] = [
+        'relation' => 'OR',
+        [
+            'key'     => 'date_stage',
+            'value'   => current_time('Ymd'),
+            'compare' => '>=',
+        ],
+        [
+            'key'     => 'date_stage',
+            'compare' => 'NOT EXISTS',
+        ],
+        [
+            'key'     => 'date_stage',
+            'value'   => '',
+            'compare' => '=',
+        ],
+    ];
+}
+
 $related_query = new WP_Query($query_args);
 
 /* ---- Détection de la variante de card ---- */

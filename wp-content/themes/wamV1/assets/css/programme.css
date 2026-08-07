@@ -1047,6 +1047,12 @@
     width: 100%;
 }
 
+/* Mention "stage passé" — occupe toute la ligne pour ne pas se coller au bouton */
+.cours-ctas__note {
+    flex-basis: 100%;
+    margin: 0;
+}
+
 /* Bouton inscription actif (similaire à btn-primary) */
 .btn-inscription svg {
     margin-left: 8px;
@@ -1681,6 +1687,67 @@
     color: var(--wam-color-disabled);
     text-align: center;
     padding: var(--wam-spacing-4xl) 0;
+}
+
+/* ── Encart newsletter, sous la grille des stages à venir ───────────────── */
+
+.page-stages__newsletter {
+    margin-top: var(--wam-spacing-3xl);
+}
+
+.page-stages__newsletter-inner {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: var(--wam-spacing-lg);
+    padding: var(--wam-spacing-xl);
+    box-sizing: border-box;
+    background: color-mix(in srgb, var(--wp--preset--color--accent-green) 10%, transparent);
+    border: 1px solid color-mix(in srgb, var(--wp--preset--color--accent-green) 40%, transparent);
+    border-radius: var(--wam-radius-2xl);
+}
+
+.page-stages__newsletter-body > *:first-child {
+    margin-top: 0;
+}
+
+.page-stages__newsletter-body > *:last-child {
+    margin-bottom: 0;
+}
+
+.page-stages__newsletter-title {
+    margin: 0 0 var(--wam-spacing-sm);
+}
+
+.page-stages__newsletter-text {
+    margin: 0;
+    color: var(--wam-color-text);
+}
+
+/* Mobile : le bouton prend toute la largeur et son libellé peut passer à la
+   ligne — .btn-primary est en white-space: nowrap / width: fit-content,
+   il déborderait sinon du conteneur (masqué par body { overflow-x: hidden }). */
+.page-stages__newsletter-cta {
+    width: 100%;
+    justify-content: center;
+    text-align: center;
+    white-space: normal;
+}
+
+@media (min-width: 768px) {
+    .page-stages__newsletter-inner {
+        flex-direction: row;
+        align-items: center;
+        justify-content: space-between;
+        gap: var(--wam-spacing-2xl);
+        padding: var(--wam-spacing-2xl) var(--wam-spacing-xl);
+    }
+
+    .page-stages__newsletter-cta {
+        width: fit-content;
+        flex-shrink: 0;
+        white-space: nowrap;
+    }
 }
 
 /* =====================================================

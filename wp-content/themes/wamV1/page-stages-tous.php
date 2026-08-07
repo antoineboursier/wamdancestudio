@@ -48,29 +48,19 @@ $stages_query = new WP_Query([
 ]);
 
 /* ---- Séparation Futur / Passé ---- */
+/* La règle "ce stage est passé" est centralisée dans wamv1_stage_est_passe()
+   (functions.php), partagée avec single-stages.php et related-content.php. */
 $stages_futurs = [];
 $stages_passes = [];
-$today_ymd     = date('Ymd');
 
 if ($stages_query->have_posts()) {
     while ($stages_query->have_posts()) {
         $stages_query->the_post();
-        
-        // La date ACF est retournée en format d/m/Y par défaut
-        $date_acf_dmY = get_field('date_stage');
-        $date_ymd     = '';
-        
-        if ($date_acf_dmY) {
-            $dt = DateTime::createFromFormat('d/m/Y', $date_acf_dmY);
-            if ($dt) {
-                $date_ymd = $dt->format('Ymd');
-            }
-        }
-        
-        if ($date_ymd && $date_ymd < $today_ymd) {
+
+        if (wamv1_stage_est_passe(get_the_ID())) {
             $stages_passes[] = get_post(); // Date passée (Historique)
         } else {
-            $stages_futurs[] = get_post(); // Date future ou aujourd'hui
+            $stages_futurs[] = get_post(); // Date future, aujourd'hui, ou sans date
         }
     }
     wp_reset_postdata();
@@ -148,6 +138,31 @@ if (!empty($stages_passes)) {
         <?php endif; ?>
 
     </div><!-- .wam-container #cours-results -->
+
+    <!-- ============================================================
+         ENCART NEWSLETTER
+         L'URL suit le domaine courant (home_url) : locale en DDEV,
+         wamdancestudio.fr en prod — comme dans template-parts/site-footer.php.
+         ============================================================ -->
+    <?php $newsletter_url = home_url('/newsletter/'); ?>
+    <aside class="wam-container page-stages__newsletter">
+        <div class="page-stages__newsletter-inner">
+            <div class="page-stages__newsletter-body">
+                <h2 class="page-stages__newsletter-title title-cool-md color-yellow">Pour ne rien manquer</h2>
+                <?php /* Pas de color-subtext ici : sur le fond teinté de l'encart, il tombe à 3,70:1
+                         en thème clair (4,65:1 sur le fond de page). La couleur de texte par défaut donne 8,22:1. */ ?>
+                <p class="page-stages__newsletter-text text-md">
+                    Nouveaux stages, workshops et ateliers : inscrivez-vous à la newsletter pour être prévenu·e
+                    dès l'ouverture des réservations.
+                </p>
+            </div>
+            <a href="<?php echo esc_url($newsletter_url); ?>" class="btn-primary page-stages__newsletter-cta">
+                Je m'inscris à la newsletter
+                <span class="btn-icon btn-icon--sm"
+                    style="--icon-url: url('<?php echo esc_url($icons_path . 'chevron-right.svg'); ?>');"></span>
+            </a>
+        </div>
+    </aside>
 
     <!-- ============================================================
          HISTORIQUE (Stages Passés) — Sorti du wam-container pour Full-Bleed

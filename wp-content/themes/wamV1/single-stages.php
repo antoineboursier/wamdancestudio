@@ -78,6 +78,9 @@ get_header();
             $heure_debut = $has_acf ? get_field('heure_debut') : '';
             $heure_fin = $has_acf ? get_field('heure_de_fin') : '';
 
+            /* ---- Stage déjà passé : plus d'inscription possible ---- */
+            $est_passe = wamv1_stage_est_passe($current_id);
+
             /* ---- Tarifs (info-card : icône tirelire) ---- */
             $tarif_labels = [];
             if (is_array($tarifs_grp)) {
@@ -309,11 +312,19 @@ get_header();
 
                     </div><!-- /cours-info-card -->
 
-                    <!-- CTA réservation multi-tarifs -->
+                    <!-- CTA réservation multi-tarifs — masqué si le stage est passé -->
                     <div class="cours-ctas">
                         <?php
                         $wc_pid = wamv1_get_wc_product_id(get_the_ID());
-                        if ($wc_pid):
+                        if ($est_passe): ?>
+                            <p class="cours-ctas__note text-sm color-subtext">Ce stage a déjà eu lieu, les inscriptions sont
+                                closes.</p>
+                            <a href="<?php echo esc_url($stages_listing_url); ?>" class="btn-secondary">
+                                Voir les prochains stages
+                                <span class="btn-icon btn-icon--sm"
+                                    style="--icon-url: url('<?php echo esc_url($icon_dir . 'chevron-right.svg'); ?>');"></span>
+                            </a>
+                        <?php elseif ($wc_pid):
                             // Les tarifs sont des sous-champs du group field ACF "tarifs".
                             $grp = $tarifs_grp; // Réutilise les données déjà filtrées en haut de page
                             $tarifs_data = [];

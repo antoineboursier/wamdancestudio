@@ -817,6 +817,40 @@ if (!function_exists('wamv1_is_enfant_variant')):
     }
 endif;
 
+/**
+ * Un stage est-il déjà passé ?
+ *
+ * Le champ ACF "date_stage" est stocké en base au format Ymd (date_picker),
+ * et retourné en d/m/Y par ACF (return_format du groupe group_stages).
+ * On lit donc la meta brute : comparable en chaîne, sans parsing.
+ *
+ * Le jour même n'est PAS considéré comme passé — un stage reste réservable
+ * jusqu'à sa date incluse. Un stage sans date exploitable est considéré
+ * comme à venir (cohérent avec le tri de page-stages-tous.php).
+ *
+ * Utilisé par single-stages.php (masquage du CTA), template-parts/related-content.php
+ * (suggestions) et page-stages-tous.php (séparation futur / historique).
+ *
+ * @param int $post_id 0 = post courant de la boucle.
+ * @return bool
+ */
+if (!function_exists('wamv1_stage_est_passe')):
+    function wamv1_stage_est_passe(int $post_id = 0): bool
+    {
+        $post_id = $post_id ?: get_the_ID();
+        if (!$post_id) {
+            return false;
+        }
+
+        $date_ymd = get_post_meta($post_id, 'date_stage', true);
+        if (!is_string($date_ymd) || !preg_match('/^\d{8}$/', $date_ymd)) {
+            return false;
+        }
+
+        return $date_ymd < current_time('Ymd');
+    }
+endif;
+
 if (!function_exists('wamv1_get_reading_time')):
     /**
      * Calcule le temps de lecture estimé d'un contenu.

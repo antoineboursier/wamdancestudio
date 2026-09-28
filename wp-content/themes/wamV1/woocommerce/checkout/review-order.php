@@ -113,7 +113,7 @@ defined( 'ABSPATH' ) || exit;
 					}
 				?>
 					<span class="wam-order-item__product text-xs color-subtext">
-						Préinscription<?php if ( $tunnel_label ) : ?> — pour <?php echo esc_html( $tunnel_label ); ?><?php endif; ?>
+						<?php echo esc_html( wamv1_bookly_badge_label( $cart_item, $tunnel_label ) ); ?>
 					</span>
 				<?php elseif ( $course_title ) : ?>
 					<span class="wam-order-item__product text-xs color-subtext">

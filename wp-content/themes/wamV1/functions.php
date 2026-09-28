@@ -818,6 +818,42 @@ if (!function_exists('wamv1_is_enfant_variant')):
 endif;
 
 /**
+ * Retourne le service_id Bookly d'un item panier/commande, ou 0 si ce n'en est pas un.
+ * Utilisé dans woocommerce/cart/cart.php et woocommerce/checkout/review-order.php.
+ *
+ * @param array $cart_item
+ * @return int
+ */
+if (!function_exists('wamv1_cart_item_bookly_service_id')):
+    function wamv1_cart_item_bookly_service_id(array $cart_item): int
+    {
+        $items = $cart_item['bookly']['items'] ?? [];
+        $first = ! empty($items) ? reset($items) : null;
+        return $first['service_id'] ?? 0;
+    }
+endif;
+
+/**
+ * Libellé du badge à afficher sur une carte panier/commande pour un item Bookly :
+ * "Préinscription" ou "Séance à la carte" selon le service réservé, jamais l'un pour
+ * l'autre — un item Bookly n'est plus forcément une préinscription depuis l'ajout de
+ * la vente à la carte (plugin wam-custom-plugin, coulisses_is_service_carte()).
+ *
+ * @param array  $cart_item
+ * @param string $label_suffix "pour Prénom Nom" déjà calculé côté appelant, ou ''.
+ * @return string
+ */
+if (!function_exists('wamv1_bookly_badge_label')):
+    function wamv1_bookly_badge_label(array $cart_item, string $label_suffix): string
+    {
+        $service_id = wamv1_cart_item_bookly_service_id($cart_item);
+        $is_carte   = function_exists('coulisses_is_service_carte') && coulisses_is_service_carte($service_id);
+        $label      = $is_carte ? 'Séance à la carte' : 'Préinscription';
+        return $label . ($label_suffix ? ' — pour ' . $label_suffix : '');
+    }
+endif;
+
+/**
  * Un stage est-il déjà passé ?
  *
  * Le champ ACF "date_stage" est stocké en base au format Ymd (date_picker),

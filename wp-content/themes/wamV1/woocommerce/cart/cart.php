@@ -118,7 +118,7 @@ do_action('woocommerce_before_cart');
 
                                 <!-- Badge -->
                                 <?php if ( isset( $cart_item['bookly'] ) && $tunnel_eleve ): ?>
-                                    <span class="wam-cart-card__badge text-xs">Préinscription<?php if ( $tunnel_label ): ?> — pour <?php echo esc_html( $tunnel_label ); ?><?php endif; ?></span>
+                                    <span class="wam-cart-card__badge text-xs"><?php echo esc_html( wamv1_bookly_badge_label( $cart_item, $tunnel_label ) ); ?></span>
                                 <?php else: ?>
                                     <span class="wam-cart-card__badge text-xs">
                                         <?php echo esc_html( $_product->get_name() ); ?>

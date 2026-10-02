@@ -304,7 +304,8 @@ function wamv1_custom_login_assets()
         echo '<strong>Accès Tests (Local uniquement) :</strong><br>';
         echo 'Directrice : <code>test_directrice</code> / <code>wam_test_2024</code><br>';
         echo 'Professeur : <code>test_prof</code> / <code>wam_test_2024</code><br>';
-        echo 'Admin technique : <code>test_admin_tech</code> / <code>wam_test_2024</code>';
+        echo 'Admin technique : <code>test_admin_tech</code> / <code>wam_test_2024</code><br>';
+        echo 'Adhérent·e (commandes fictives) : <code>wam-test-fixtures</code> / <code>WamTest2026!</code>';
         echo '</div>';
     }
 }

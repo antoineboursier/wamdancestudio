@@ -1,4 +1,6 @@
 <?php
+define( 'WP_CACHE', true );
+
 /**
  * Configuration WordPress de l'environnement local DDEV.
  *

@@ -39,12 +39,11 @@ $allowed_html = array(
 </p>
 
 <p class="text-sm">
-	À partir du tableau de bord de votre compte, vous pouvez visualiser vos <a
-		href="<?php echo esc_url(wc_get_endpoint_url('orders')); ?>" class="color-subtext">commandes récentes</a>,
-	gérer vos <a href="<?php echo esc_url(wc_get_endpoint_url('edit-address')); ?>" class="color-subtext">adresses
-		de facturation</a> ainsi que changer votre <a
-		href="<?php echo esc_url(wc_get_endpoint_url('edit-account')); ?>" class="color-subtext">mot de passe et les
-		détails de votre compte</a>.
+	Dans votre espace, vous pouvez visualiser vos <a
+		href="<?php echo esc_url(wc_get_endpoint_url(WAMV1_INSCRIPTIONS_ENDPOINT)); ?>"
+		class="color-subtext">commandes et inscriptions</a> (élèves, contacts d'urgence, factures),
+	éditer vos informations personnelles dans vos cours, gérer votre adresse de facturation
+	et modifier votre mot de passe. Belle journée à vous !
 </p>
 
 <div class="wam-dashboard-legal" style="margin-top: var(--wam-spacing-4xl);">

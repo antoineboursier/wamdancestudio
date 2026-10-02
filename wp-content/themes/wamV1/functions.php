@@ -1014,6 +1014,7 @@ function wamv1_get_course_cart_qty($course_id) {
 
 if (class_exists('WooCommerce')) {
     require_once get_template_directory() . '/inc/woocommerce.php';
+    require_once get_template_directory() . '/inc/account-inscriptions.php';
 }
 
 // =============================================================================

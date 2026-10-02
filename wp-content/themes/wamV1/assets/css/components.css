@@ -2692,7 +2692,6 @@ html.wam-no-graphical-fonts .title-sign-sm {
     display: block;
     margin-top: var(--wam-spacing-2xs);
 }
-
 @media (max-width: 768px) {
     .wam-order-item {
         flex: 1 1 100%;

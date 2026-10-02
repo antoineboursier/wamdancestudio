@@ -2632,3 +2632,413 @@ p:has(label[for="mailpoet_woocommerce_checkout_optin"]) {
         top: 0;
     }
 }
+
+
+/* =====================================================
+   MON COMPTE — MES COMMANDES
+   Markup : template-parts/account-inscriptions.php
+
+   Une carte par commande (.wam-commande, contour marqué), avec son en-tête
+   interne (numéro, date, statut, total, facture) puis ses articles
+   (.wam-commande-item) : photo à gauche en pleine hauteur comme sur les
+   fiches cours (.card-cours), intitulé et champs de correction à droite.
+   ===================================================== */
+.wam-commandes {
+    display: flex;
+    flex-direction: column;
+}
+
+/* Pas de carte : les commandes s'enchaînent, séparées par un filet — même
+   motif que le bloc « Adresse de facturation » de Informations personnelles. */
+.wam-commande + .wam-commande {
+    margin-top: var(--wam-spacing-xl);
+    padding-top: var(--wam-spacing-lg);
+    border-top: 1px solid var(--wam-color-disabled);
+}
+
+/* Commande annulée, remboursée ou échouée : tout passe en gris de charte.
+   Pas d'opacité — le texte doit rester lisible, seulement dévalorisé. */
+.wam-commande--inactive .wam-commande-item__title,
+.wam-commande--inactive .wam-commande__total,
+.wam-commande--inactive .wam-commande-item__price,
+.wam-commande--inactive .color-green,
+.wam-commande--inactive .color-text,
+.wam-commande--inactive strong {
+    color: var(--wam-color-subtext);
+}
+
+.wam-commande--inactive .wam-commande-item__participants {
+    color: var(--wam-color-disabled);
+}
+
+/* En-tête interne : identité de la commande à gauche, argent à droite. */
+.wam-commande__header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: var(--wam-spacing-md);
+    flex-wrap: wrap;
+    margin-bottom: var(--wam-spacing-md);
+}
+
+.wam-commande__identite {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: var(--wam-spacing-xs);
+}
+
+/* Pastille de statut — trois familles, sans inventer de nouvelle couleur. */
+.wam-commande__status {
+    display: inline-flex;
+    align-items: center;
+    padding: var(--wam-spacing-4xs) var(--wam-spacing-xs);
+    border-radius: var(--wam-radius-pill);
+    font-size: var(--wam-font-size-xs);
+    font-weight: bold;
+}
+
+.wam-commande__status--actif {
+    background: var(--wam-color-glass-green);
+    color: var(--wam-color-green);
+}
+
+.wam-commande__status--attente {
+    background: var(--wam-color-glass-yellow);
+    color: var(--wam-color-yellow);
+}
+
+.wam-commande__status--inactif {
+    background: var(--wam-color-input-bg);
+    color: var(--wam-color-subtext);
+}
+
+.wam-commande__summary {
+    display: flex;
+    align-items: center;
+    gap: var(--wam-spacing-md);
+}
+
+/* Lisible sans dominer : le nom du cours reste l'élément le plus gros. */
+.wam-commande__total {
+    font-size: var(--wam-font-size-md);
+    font-weight: bold;
+    color: var(--wam-color-yellow);
+    white-space: nowrap;
+}
+
+/* Lien de téléchargement (et non bouton) : même traitement que les autres
+   liens du thème — souligné, couleur de texte, accent au survol. */
+.wam-commande__facture {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--wam-spacing-3xs);
+    font-size: var(--wam-font-size-sm);
+    color: var(--wam-color-subtext);
+    text-decoration: underline;
+    text-underline-offset: 2px;
+    white-space: nowrap;
+    transition: color var(--wam-transition);
+}
+
+.wam-commande__facture:hover,
+.wam-commande__facture:focus-visible {
+    color: var(--wam-color-yellow);
+}
+
+.wam-commande__facture svg {
+    flex-shrink: 0;
+}
+
+.wam-commande__items {
+    display: flex;
+    flex-direction: column;
+    gap: var(--wam-spacing-lg);
+}
+
+/* Deux articles ou plus : filet de séparation, pas de carte dans la carte. */
+.wam-commande-item + .wam-commande-item {
+    padding-top: var(--wam-spacing-lg);
+    border-top: 1px solid var(--wp--preset--color--background-500);
+}
+
+/* Carte article — même langage visuel que .card-cours (programme.css) :
+   photo à gauche en pleine hauteur, corps à droite. */
+.wam-commande-item {
+    display: flex;
+    gap: var(--wam-spacing-md);
+}
+
+/* Cadre fixe : la photo ne suit pas la hauteur du bloc, sinon elle s'étire et
+   devient illisible dès que la fiche s'allonge. Portrait pour les photos de
+   cours/stage, carré pour les illustrations de produits génériques. */
+.wam-commande-item__media {
+    position: relative;
+    width: 120px;
+    flex-shrink: 0;
+    border-radius: var(--wam-radius-md);
+    overflow: hidden;
+}
+
+.wam-commande-item__media--portrait {
+    height: 200px;
+}
+
+.wam-commande-item__media--carre {
+    height: 120px;
+}
+
+/* .photo-wrapper est en inline-block par défaut (hauteur = image) : on le
+   force à remplir le cadre, comme pour .wam-carousel__media-wrapper. */
+.wam-commande-item__media .photo-wrapper {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+}
+
+/* gap lg = les 24 px d'air demandés au-dessus de la fiche participant. */
+.wam-commande-item__body {
+    display: flex;
+    flex-direction: column;
+    gap: var(--wam-spacing-lg);
+    min-width: 0;
+    flex: 1;
+}
+
+.wam-commande-item__info {
+    display: flex;
+    flex-direction: column;
+    gap: var(--wam-spacing-4xs);
+}
+
+/* Le nom du cours porte la page : il domine la nature et le sous-titre,
+   qui restent collés à lui.
+   Double classe obligatoire : la page du compte est rendue dans `.wam-prose`,
+   dont la règle `h3` (prose-shared.css, 0-1-1) écrase sinon la marge. */
+.wam-commande-item__info .wam-commande-item__title {
+    margin: var(--wam-spacing-xs) 0 var(--wam-spacing-xs);
+    font-size: var(--wam-font-size-lg);
+    font-weight: bold;
+    line-height: 1.2;
+    color: var(--wam-color-text);
+}
+
+.wam-commande-item__precision {
+    display: block;
+}
+
+.wam-commande-item__price {
+    margin-top: var(--wam-spacing-2xs);
+    font-size: var(--wam-font-size-sm);
+    font-weight: bold;
+    color: var(--wam-color-yellow);
+}
+
+/* Participant·es en lecture seule (essai, saison passée, commande annulée) :
+   même traitement que le `legend` d'un participant dans la fiche éditable.
+   Des `li` étaient décalés de 40 px par le `padding` de `.wam-prose ul`. */
+.wam-commande-item__participants {
+    display: flex;
+    flex-direction: column;
+    gap: var(--wam-spacing-3xs);
+}
+
+.wam-commande-item__participants .wam-commande-item__participant {
+    margin: 0;
+}
+
+/* Fiche participant — affichée en lecture, le bouton icône en haut à droite
+   fait passer les champs en édition (et inversement). */
+/* Formulaire à gauche, bouton de bascule à droite, alignés en haut du bloc.
+   Le bouton est avant le formulaire dans le DOM (ordre de tabulation) et
+   remis à droite ici. */
+.wam-fiche {
+    display: flex;
+    align-items: flex-start;
+    gap: var(--wam-spacing-sm);
+}
+
+.wam-fiche .wam-inscription__form {
+    order: 1;
+    flex: 1;
+    min-width: 0;
+}
+
+.wam-fiche__toggle {
+    order: 2;
+    flex-shrink: 0;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 40px;
+    height: 40px;
+    padding: 0;
+    background: transparent;
+    border: 1px solid var(--wam-color-subtext);
+    border-radius: var(--wam-radius-md);
+    color: var(--wam-color-subtext);
+    cursor: pointer;
+    transition: border-color var(--wam-transition), color var(--wam-transition), background var(--wam-transition);
+}
+
+.wam-fiche__toggle:hover,
+.wam-fiche__toggle:focus-visible {
+    border-color: var(--wam-color-yellow);
+    color: var(--wam-color-yellow);
+    background: var(--wam-color-glass-yellow);
+}
+
+.wam-fiche__toggle[aria-expanded="false"] .wam-fiche__icon--cancel,
+.wam-fiche__toggle[aria-expanded="true"] .wam-fiche__icon--edit {
+    display: none;
+}
+
+/* Le libellé n'accompagne l'icône qu'en mobile (cf. media query). */
+.wam-fiche__toggle-label {
+    display: none;
+}
+
+/* Champs verrouillés : lisibles, mais visiblement inertes — gris de charte,
+   sans bordure active ni curseur de saisie. */
+.wam-fiche .wam-inscription__field input[readonly] {
+    border-color: transparent !important;
+    background: var(--wam-color-input-bg) !important;
+    color: var(--wam-color-subtext) !important;
+    cursor: default;
+}
+
+.wam-fiche:not(.is-editing) .wam-inscription__field label {
+    color: var(--wam-color-disabled);
+}
+
+.wam-inscription__form {
+    display: flex;
+    flex-direction: column;
+    gap: var(--wam-spacing-md);
+}
+
+/* Double classe : `.woocommerce fieldset` (bloc mot de passe) est plus spécifique. */
+.wam-commande-item .wam-inscription__participant {
+    border: 0;
+    border-radius: 0;
+    margin: 0;
+    padding: 0;
+    min-width: 0;
+}
+
+.wam-commande-item .wam-inscription__participant + .wam-inscription__participant {
+    margin-top: var(--wam-spacing-md);
+}
+
+.wam-commande-item .wam-inscription__participant legend {
+    padding: 0;
+    margin-left: 0;
+    margin-bottom: var(--wam-spacing-xs);
+}
+
+.wam-inscription__fields {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: 0 var(--wam-spacing-md);
+}
+
+/* Les classes de grille WC (form-row-first/last) n'ont pas cours ici. */
+.wam-inscription__fields .form-row {
+    width: auto;
+    float: none;
+    margin: 0 0 var(--wam-spacing-sm);
+}
+
+.wam-inscription__fields .description {
+    display: block;
+    margin-top: var(--wam-spacing-3xs);
+    font-size: var(--wam-font-size-xs) !important;
+    color: var(--wam-color-disabled) !important;
+}
+
+/* Champ affiché pour information (date de naissance) : lisible mais inerte,
+   sans la mention « (facultatif) » que WooCommerce ajoute aux champs non requis. */
+.wam-inscription__fields .form-row:has(input:disabled) .optional {
+    display: none;
+}
+
+.wam-inscription__fields input:disabled {
+    color: var(--wam-color-disabled) !important;
+    cursor: not-allowed;
+}
+
+.wam-inscription__actions {
+    margin-top: calc(-1 * var(--wam-spacing-2xs));
+}
+
+.wam-inscription__actions[hidden] {
+    display: none;
+}
+
+.wam-inscription__actions .btn-primary {
+    width: 100%;
+    justify-content: center;
+}
+
+@media (min-width: 768px) {
+    .wam-inscription__fields {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .wam-inscription__actions .btn-primary {
+        width: fit-content;
+    }
+}
+
+/* Mobile — même point de rupture que .card-cours (programme.css) : la photo
+   passe en pleine largeur au-dessus du corps plutôt qu'en colonne étroite. */
+@media (max-width: 640px) {
+    .wam-commande__header {
+        flex-direction: column;
+        gap: var(--wam-spacing-xs);
+    }
+
+    .wam-commande-item {
+        flex-direction: column;
+    }
+
+    /* Les champs sont repliés derrière un bouton pleine largeur : sur un
+       écran étroit, quatre champs en lecture poussent le reste de la
+       commande hors de vue. `is-enhanced` garantit que le repli n'a lieu
+       que si le JS peut le rouvrir. */
+    .wam-fiche {
+        flex-direction: column;
+        gap: var(--wam-spacing-sm);
+    }
+
+    .wam-fiche.is-enhanced:not(.is-editing) .wam-inscription__form {
+        display: none;
+    }
+
+    .wam-fiche .wam-inscription__form {
+        order: 2;
+    }
+
+    .wam-fiche__toggle {
+        order: 1;
+        width: 100%;
+        height: auto;
+        gap: var(--wam-spacing-2xs);
+        padding: 0 var(--wam-spacing-sm);
+        min-height: 44px;
+        border-radius: var(--wam-radius-md);
+        font-family: var(--wam-font-body);
+        font-size: var(--wam-font-size-sm);
+        font-weight: bold;
+    }
+
+    .wam-fiche__toggle-label {
+        display: inline;
+    }
+
+    .wam-commande-item__media {
+        width: 100%;
+        height: 160px;
+    }
+}

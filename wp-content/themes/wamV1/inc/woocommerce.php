@@ -7,7 +7,6 @@
  *   B. Retirer les endpoints inutiles du menu Mon compte
  *   C. Rediriger /boutique → /cours-collectifs
  *   D. Helper : récupérer l'ID du produit WC lié à un CPT
- *   E. Sync stock WC depuis le champ ACF complete_cours
  *   F. Injecter métadonnées WAM dans les items panier / commandes
  *
  * @package wamv1
@@ -43,15 +42,34 @@ function wamv1_custom_coupon_html($coupon_html, $coupon) {
 
 add_filter('woocommerce_account_menu_items', 'wamv1_wc_account_menu_items');
 
+/**
+ * Le champ « Nom affiché » n'a plus d'entrée dans le formulaire « Informations
+ * personnelles » (woocommerce/myaccount/form-edit-account.php, qui envoie sa
+ * valeur actuelle dans un champ caché) : il ne doit donc plus être exigé ici,
+ * sans quoi WC bloquerait l'enregistrement du formulaire.
+ */
+add_filter('woocommerce_save_account_details_required_fields', function (array $champs): array {
+    unset($champs['account_display_name']);
+    return $champs;
+});
+
 function wamv1_wc_account_menu_items(array $items): array
 {
     // On masque edit-address du menu (accessible via edit-account)
     unset($items['edit-address']);
     unset($items['downloads']);    // Téléchargements — pas de produits numériques
+    unset($items['orders']);       // Commandes — contenu repris dans « Mes commandes »
 
-    // Renommage
+    // Renommage (et re-traduction de secours : certaines chaînes du coeur WC
+    // restent en anglais si le pack de langue du plugin est absent du serveur)
     if (isset($items['edit-account'])) {
         $items['edit-account'] = 'Informations personnelles';
+    }
+    if (isset($items['dashboard'])) {
+        $items['dashboard'] = 'Tableau de bord';
+    }
+    if (isset($items['customer-logout'])) {
+        $items['customer-logout'] = 'Déconnexion';
     }
 
     // Ajouter le lien Administration pour les rôles autorisés (Directrice et Professeurs)
@@ -213,34 +231,6 @@ function wamv1_validate_stage_qty_update($passed, $cart_item_key, $values, $quan
     ), 'error');
 
     return false;
-}
-
-// ============================================================================
-// E. Sync stock — quand on coche complete_cours sur un cours/stage,
-//    mettre à jour le statut de stock du produit WC lié
-// ============================================================================
-
-add_action('acf/save_post', 'wamv1_sync_wc_stock_from_acf', 20);
-
-function wamv1_sync_wc_stock_from_acf($post_id): void
-{
-    $post_type = get_post_type($post_id);
-    if (!in_array($post_type, ['cours', 'stages'], true))
-        return;
-    if (!function_exists('get_field') || !function_exists('wc_get_product'))
-        return;
-
-    $product_id = wamv1_get_wc_product_id((int) $post_id);
-    if (!$product_id)
-        return;
-
-    $product = wc_get_product($product_id);
-    if (!$product)
-        return;
-
-    $complet = (bool) get_field('complete_cours', $post_id);
-    $product->set_stock_status($complet ? 'outofstock' : 'instock');
-    $product->save();
 }
 
 // ============================================================================
@@ -627,9 +617,18 @@ function wamv1_ajax_add_to_cart(): void
         wp_send_json_error(['message' => 'Produit introuvable.']);
     }
 
-    // Vérifier que le produit existe et est achetable
+    // Vérifier que le produit existe et est achetable.
+    // Le statut de stock du produit WC n'est pas fiable ici : la plupart des
+    // cours partagent le même produit (ex. #591, "Inscription saison"), donc
+    // is_in_stock() refléterait l'état d'un cours quelconque parmi tous ceux
+    // qui le partagent, pas celui demandé. Le complet se vérifie directement
+    // sur le cours via le champ ACF `complete_cours`.
     $product = wc_get_product($product_id);
-    if (!$product || !$product->is_purchasable() || !$product->is_in_stock()) {
+    if (!$product || !$product->is_purchasable()) {
+        wp_send_json_error(['message' => 'Produit introuvable.']);
+    }
+
+    if ($course_id && function_exists('get_field') && get_field('complete_cours', $course_id)) {
         wp_send_json_error(['message' => 'Ce cours n\'est plus disponible.']);
     }
 
@@ -1264,19 +1263,6 @@ function wamv1_save_adherent_to_order_items($item, $cart_item_key, $values, $ord
         if (!empty($name_suffix)) {
             $item->set_name($item->get_name() . ' (' . implode(' - ', $name_suffix) . ')');
         }
-    }
-}
-
-/**
- * 5. Sauvegarder les contacts d'urgence de facturation dans les méta de commande "propres"
- */
-add_action('woocommerce_checkout_update_order_meta', 'wamv1_save_billing_emergency_to_order_meta');
-function wamv1_save_billing_emergency_to_order_meta($order_id) {
-    if (!empty($_POST['billing_urgent_name'])) {
-        update_post_meta($order_id, 'Contact Urgence - Nom', sanitize_text_field($_POST['billing_urgent_name']));
-    }
-    if (!empty($_POST['billing_urgent_phone'])) {
-        update_post_meta($order_id, 'Contact Urgence - Tél', sanitize_text_field($_POST['billing_urgent_phone']));
     }
 }
 

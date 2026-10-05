@@ -387,14 +387,14 @@ get_header();
 
                 <!-- Colonne droite : image à la une + badge complet -->
                 <?php if ($has_sidebar): ?>
-                    <div class="page-hero__image">
+                    <div class="page-hero__image page-hero__image--square">
 
                         <?php if ($has_photo):
-                            wamv1_stage_image_ensure_sizes((int) get_post_thumbnail_id());
+                            wamv1_square_image_ensure_sizes((int) get_post_thumbnail_id());
                         ?>
-                            <?php the_post_thumbnail('wam-stage-square', [
+                            <?php the_post_thumbnail('wam-square', [
                                 'class' => 'page-hero__image-img',
-                                'sizes' => wamv1_stage_image_sizes_attr('hero'),
+                                'sizes' => wamv1_square_image_sizes_attr('hero'),
                                 'fetchpriority' => 'high',
                                 'loading' => 'eager',
                                 'data-no-overlay' => 'true',

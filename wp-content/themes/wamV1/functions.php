@@ -50,12 +50,11 @@ if (!function_exists('wamv1_setup')):
         add_image_size('wam-card-thumbnail', 466, 370, true); // thumbnail cours card (x2 for Retina)
         add_image_size('wam-hero', 1536, 800, true); // héros single plein écran
         add_image_size('wam-card', 1600, 1200, true); // card media & colonne hero (Retina x2)
-        add_image_size('wam-stage-square', 1200, 1200, true); // visuel stage 1:1 — hero fiche (600x600 @2x Retina)
-        add_image_size('wam-stage-square-md', 600, 600, true); // visuel stage 1:1 — card listing (300x300 @2x Retina)
+        add_image_size('wam-square', 1200, 1200, true); // visuel 1:1 stages/événements — hero fiche (600x600 @2x Retina)
+        add_image_size('wam-square-md', 600, 600, true); // visuel 1:1 stages/événements — card listing (300x300 @2x Retina)
         add_image_size('wam-portrait', 960, 1440, true); // photo profil portrait 2:3 (480x720 @2x Retina)
         add_image_size('wam-prof-thumb', 400, 600, true); // vignette prof card 2:3 (200x300 @2x Retina)
         add_image_size('wam-thumb', 800, 600, true); // miniature vignette compacte (Retina x2)
-        add_image_size('wam-event-card', 810, 486, true); // card event paysage (Retina x2 de 405×243)
         add_theme_support('editor-styles');
         add_theme_support('html5', array(
             'search-form',
@@ -888,27 +887,34 @@ if (!function_exists('wamv1_stage_est_passe')):
 endif;
 
 /**
- * Visuels de stage au format 1:1 — tailles et attribut "sizes".
+ * Visuels 1:1 des stages et événements — attribut "sizes".
  *
- * Deux tailles carrées recadrées (cf. add_image_size) : 'wam-stage-square'
- * (1200, hero de la fiche) et 'wam-stage-square-md' (600, card du listing).
- * Avec les carrés natifs de WP/WooCommerce (150, 300), le srcset couvre
- * 150 → 1200 px et le navigateur choisit selon l'attribut "sizes".
+ * Deux tailles carrées recadrées (cf. add_image_size) : 'wam-square'
+ * (1200, hero de la fiche) et 'wam-square-md' (600, card du listing).
+ * Avec les carrés natifs de WP/WooCommerce (100, 150, 300), le srcset couvre
+ * 100 → 1200 px et le navigateur choisit selon l'attribut "sizes".
+ *
+ * @param string $contexte 'hero' | 'card-stage' | 'card-event'
  */
-if (!function_exists('wamv1_stage_image_sizes_attr')):
-    function wamv1_stage_image_sizes_attr(string $contexte): string
+if (!function_exists('wamv1_square_image_sizes_attr')):
+    function wamv1_square_image_sizes_attr(string $contexte): string
     {
-        if ($contexte === 'hero') {
-            // Colonne pleine largeur sous 1024px, moitié du hero au-delà.
-            return '(max-width: 1023px) 100vw, 50vw';
+        switch ($contexte) {
+            case 'hero':
+                // Colonne pleine largeur sous 1024px, moitié du hero au-delà.
+                return '(max-width: 1023px) 100vw, 50vw';
+            case 'card-event':
+                // .page-events__grid : 1 / 2 / 3 colonnes (events.css).
+                return '(max-width: 639px) 100vw, (max-width: 1023px) 50vw, 33vw';
+            default:
+                // .card-stage : 1 / 2 / 4 par ligne (programme.css).
+                return '(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw';
         }
-        // Card : 1 / 2 / 4 par ligne (cf. .card-stage dans programme.css).
-        return '(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw';
     }
 endif;
 
 /**
- * Génère à la volée les tailles carrées manquantes d'un visuel de stage.
+ * Génère à la volée les tailles carrées manquantes d'un visuel (stage, événement).
  *
  * add_image_size() ne s'applique qu'aux médias téléversés APRÈS son ajout :
  * les visuels déjà en ligne n'ont pas ces tailles, et WordPress servirait
@@ -916,8 +922,8 @@ endif;
  * fois, à la première demande, puis elles sont lues depuis les métadonnées.
  * En cas d'échec de l'éditeur d'image, on ne retente pas avant 24 h.
  */
-if (!function_exists('wamv1_stage_image_ensure_sizes')):
-    function wamv1_stage_image_ensure_sizes(int $attachment_id): void
+if (!function_exists('wamv1_square_image_ensure_sizes')):
+    function wamv1_square_image_ensure_sizes(int $attachment_id): void
     {
         if (!$attachment_id) {
             return;
@@ -928,13 +934,13 @@ if (!function_exists('wamv1_stage_image_ensure_sizes')):
             return;
         }
 
-        $tailles  = ['wam-stage-square' => 1200, 'wam-stage-square-md' => 600];
+        $tailles  = ['wam-square' => 1200, 'wam-square-md' => 600];
         $manquant = array_diff_key($tailles, $meta['sizes'] ?? []);
         if (!$manquant) {
             return;
         }
 
-        $verrou = 'wamv1_stage_sq_fail_' . $attachment_id;
+        $verrou = 'wamv1_square_fail_' . $attachment_id;
         if (get_transient($verrou)) {
             return;
         }
@@ -965,13 +971,16 @@ if (!function_exists('wamv1_stage_image_ensure_sizes')):
     }
 endif;
 
-// Pré-génère les carrés dès l'enregistrement du stage dans l'admin.
-add_action('save_post_stages', function ($post_id) {
+// Pré-génère les carrés dès l'enregistrement d'un stage ou d'un événement dans l'admin.
+function wamv1_square_image_on_save($post_id)
+{
     if (wp_is_post_autosave($post_id) || wp_is_post_revision($post_id)) {
         return;
     }
-    wamv1_stage_image_ensure_sizes((int) get_post_thumbnail_id($post_id));
-});
+    wamv1_square_image_ensure_sizes((int) get_post_thumbnail_id($post_id));
+}
+add_action('save_post_stages', 'wamv1_square_image_on_save');
+add_action('save_post_evenements', 'wamv1_square_image_on_save');
 
 if (!function_exists('wamv1_get_reading_time')):
     /**

@@ -1,6 +1,6 @@
 <?php
 /**
- * Template part: Card event (paysage)
+ * Template part: Card event (visuel carré 1:1)
  *
  * Réutilisable dans page-events-tous.php.
  * Doit être appelé dans une WP_Query loop (the_post() requis).
@@ -12,7 +12,7 @@
  *   heure_de_fin    (text)       — ex. "23:00"
  *   complete_event  (true_false) — badge orange "Complet"
  *
- * Design : image paysage (405×243), pill date bas-gauche glassmorphism,
+ * Design : image carrée 1:1, pill date bas-gauche glassmorphism,
  *   titre title-cool-md color-text, sous-titre text-md color-subtext,
  *   horaires text-md color-text, CTA chevron bottom-right.
  *
@@ -65,19 +65,23 @@ if ($complet) $card_classes[] = 'card-event--complet';
          class="<?php echo esc_attr(implode(' ', $card_classes)); ?>"
          data-title="<?php echo esc_attr(get_the_title()); ?>">
 
-    <!-- ---- Media (image paysage) ---- -->
+    <!-- ---- Media (image carrée) ---- -->
     <div class="card-event__media">
 
         <!-- Lien cliquable sur la zone image -->
         <a href="<?php the_permalink(); ?>" style="position: absolute; inset: 0; z-index: 1;" aria-hidden="true" tabindex="-1"></a>
 
-        <?php if (has_post_thumbnail()) : ?>
+        <?php if (has_post_thumbnail()) :
+            $thumb_id = get_post_thumbnail_id();
+            wamv1_square_image_ensure_sizes((int) $thumb_id);
+        ?>
             <?php echo wp_get_attachment_image(
-                get_post_thumbnail_id(),
-                'wam-event-card',
+                $thumb_id,
+                'wam-square-md',
                 false,
                 [
                     'class'          => 'card-event__img',
+                    'sizes'          => wamv1_square_image_sizes_attr('card-event'),
                     'data-no-overlay' => 'true',
                 ]
             ); ?>

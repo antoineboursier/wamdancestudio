@@ -309,8 +309,9 @@ body.single-post #section-article-header.page-hero {
     margin-top: 0;
 }
 
-/* Stage : visuel carré 1:1. height auto obligatoire, sinon aspect-ratio est ignoré. */
-.single-stages .page-hero__image {
+/* Visuel carré 1:1 — fiches stage et événement.
+   height auto obligatoire, sinon aspect-ratio est ignoré. */
+.page-hero__image--square {
     aspect-ratio: 1 / 1;
     height: auto;
     min-width: auto;

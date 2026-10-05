@@ -106,15 +106,15 @@ if (isset($current_type['class'])) $card_classes[] = $current_type['class'];
 
         <?php if (has_post_thumbnail()) :
             $thumb_id = get_post_thumbnail_id();
-            wamv1_stage_image_ensure_sizes((int) $thumb_id);
+            wamv1_square_image_ensure_sizes((int) $thumb_id);
         ?>
             <?php echo wp_get_attachment_image(
                 $thumb_id,
-                'wam-stage-square-md',
+                'wam-square-md',
                 false,
                 [
                     'class' => 'card-stage__img',
-                    'sizes' => wamv1_stage_image_sizes_attr('card'),
+                    'sizes' => wamv1_square_image_sizes_attr('card-stage'),
                     'data-no-overlay' => 'true'
                 ]
             ); ?>

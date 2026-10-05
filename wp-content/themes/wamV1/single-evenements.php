@@ -87,11 +87,14 @@ get_header();
 
                 </div>
 
-                <?php if (has_post_thumbnail()): ?>
-                    <!-- Image à la une -->
-                    <div class="page-hero__image page-hero__image--sm">
-                        <?php the_post_thumbnail('wam-page-thumbnail', [
+                <?php if (has_post_thumbnail()):
+                    wamv1_square_image_ensure_sizes((int) get_post_thumbnail_id());
+                ?>
+                    <!-- Image à la une (carrée 1:1) -->
+                    <div class="page-hero__image page-hero__image--square">
+                        <?php the_post_thumbnail('wam-square', [
                             'class' => 'page-hero__image-img',
+                            'sizes' => wamv1_square_image_sizes_attr('hero'),
                             'fetchpriority' => 'high',
                             'loading' => 'eager'
                         ]); ?>

@@ -202,10 +202,9 @@ echo wp_get_attachment_image(get_post_thumbnail_id(), 'wam-card', false, [
 | `wamv1-page-hero` | 1536×600 | ~5:2 | Banner hero article (`single.php`) |
 | `wam-page-thumbnail` | 1248×400 | ~3:1 | Header listing pages (`page-cours-collectifs`, Retina 2x) |
 | `wam-card-thumbnail` | 466×370 | ~5:4 | Thumbnail cours card (Retina 2x) |
-| `wam-stage-square` | 1200×1200 | 1:1 | Visuel hero fiche stage (Retina 2x) |
-| `wam-stage-square-md` | 600×600 | 1:1 | Visuel card stage (Retina 2x) — générées à la volée pour les médias anciens (`wamv1_stage_image_ensure_sizes()`) |
+| `wam-square` | 1200×1200 | 1:1 | Visuel hero fiche stage / événement (Retina 2x) |
+| `wam-square-md` | 600×600 | 1:1 | Visuel card stage / événement (Retina 2x) — générées à la volée pour les médias anciens (`wamv1_square_image_ensure_sizes()`) |
 | `wam-prof-thumb` | 400×600 | 2:3 | Vignette prof card (Retina 2x) |
-| `wam-event-card` | 810×486 | 5:3 | Card event paysage (Retina 2x) |
 
 > ⚠️ Après ajout d'une nouvelle taille : régénérer les miniatures via `ddev exec wp media regenerate --yes`
 

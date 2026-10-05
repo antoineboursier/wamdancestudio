@@ -146,7 +146,7 @@
 .card-event__media {
     position: relative;
     width: 100%;
-    aspect-ratio: 405 / 243;
+    aspect-ratio: 1 / 1;
     overflow: hidden;
     border-radius: var(--wam-radius-xl);
     flex-shrink: 0;

@@ -309,8 +309,10 @@ body.single-post #section-article-header.page-hero {
     margin-top: 0;
 }
 
+/* Stage : visuel carré 1:1. height auto obligatoire, sinon aspect-ratio est ignoré. */
 .single-stages .page-hero__image {
-    aspect-ratio: 70 / 99;
+    aspect-ratio: 1 / 1;
+    height: auto;
     min-width: auto;
 }
 

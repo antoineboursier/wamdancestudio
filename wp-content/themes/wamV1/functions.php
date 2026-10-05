@@ -50,8 +50,8 @@ if (!function_exists('wamv1_setup')):
         add_image_size('wam-card-thumbnail', 466, 370, true); // thumbnail cours card (x2 for Retina)
         add_image_size('wam-hero', 1536, 800, true); // héros single plein écran
         add_image_size('wam-card', 1600, 1200, true); // card media & colonne hero (Retina x2)
-        add_image_size('wam-stage-card', 810, 1172, true);   // x2 Retina (405x586 Figma)
-        add_image_size('wam-stage-portrait', 1204, 1704, false); // A4 portrait x2 Retina pour écrans densités (602x852 @2x) - Pas de recadrage forcé
+        add_image_size('wam-stage-square', 1200, 1200, true); // visuel stage 1:1 — hero fiche (600x600 @2x Retina)
+        add_image_size('wam-stage-square-md', 600, 600, true); // visuel stage 1:1 — card listing (300x300 @2x Retina)
         add_image_size('wam-portrait', 960, 1440, true); // photo profil portrait 2:3 (480x720 @2x Retina)
         add_image_size('wam-prof-thumb', 400, 600, true); // vignette prof card 2:3 (200x300 @2x Retina)
         add_image_size('wam-thumb', 800, 600, true); // miniature vignette compacte (Retina x2)
@@ -886,6 +886,92 @@ if (!function_exists('wamv1_stage_est_passe')):
         return $date_ymd < current_time('Ymd');
     }
 endif;
+
+/**
+ * Visuels de stage au format 1:1 — tailles et attribut "sizes".
+ *
+ * Deux tailles carrées recadrées (cf. add_image_size) : 'wam-stage-square'
+ * (1200, hero de la fiche) et 'wam-stage-square-md' (600, card du listing).
+ * Avec les carrés natifs de WP/WooCommerce (150, 300), le srcset couvre
+ * 150 → 1200 px et le navigateur choisit selon l'attribut "sizes".
+ */
+if (!function_exists('wamv1_stage_image_sizes_attr')):
+    function wamv1_stage_image_sizes_attr(string $contexte): string
+    {
+        if ($contexte === 'hero') {
+            // Colonne pleine largeur sous 1024px, moitié du hero au-delà.
+            return '(max-width: 1023px) 100vw, 50vw';
+        }
+        // Card : 1 / 2 / 4 par ligne (cf. .card-stage dans programme.css).
+        return '(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw';
+    }
+endif;
+
+/**
+ * Génère à la volée les tailles carrées manquantes d'un visuel de stage.
+ *
+ * add_image_size() ne s'applique qu'aux médias téléversés APRÈS son ajout :
+ * les visuels déjà en ligne n'ont pas ces tailles, et WordPress servirait
+ * alors l'original (plusieurs Mo, sans srcset carré). On les crée une seule
+ * fois, à la première demande, puis elles sont lues depuis les métadonnées.
+ * En cas d'échec de l'éditeur d'image, on ne retente pas avant 24 h.
+ */
+if (!function_exists('wamv1_stage_image_ensure_sizes')):
+    function wamv1_stage_image_ensure_sizes(int $attachment_id): void
+    {
+        if (!$attachment_id) {
+            return;
+        }
+
+        $meta = wp_get_attachment_metadata($attachment_id);
+        if (!is_array($meta) || empty($meta['width']) || empty($meta['height'])) {
+            return;
+        }
+
+        $tailles  = ['wam-stage-square' => 1200, 'wam-stage-square-md' => 600];
+        $manquant = array_diff_key($tailles, $meta['sizes'] ?? []);
+        if (!$manquant) {
+            return;
+        }
+
+        $verrou = 'wamv1_stage_sq_fail_' . $attachment_id;
+        if (get_transient($verrou)) {
+            return;
+        }
+
+        $fichier = get_attached_file($attachment_id);
+        if (!$fichier || !file_exists($fichier)) {
+            return;
+        }
+
+        // Un original plus petit que la cible donnerait un recadrage non carré.
+        $cote_max = min((int) $meta['width'], (int) $meta['height']);
+        $modifie  = false;
+
+        foreach ($manquant as $nom => $cote) {
+            $cote   = min($cote, $cote_max);
+            $taille = image_make_intermediate_size($fichier, $cote, $cote, true);
+            if ($taille) {
+                $meta['sizes'][$nom] = $taille;
+                $modifie = true;
+            }
+        }
+
+        if ($modifie) {
+            wp_update_attachment_metadata($attachment_id, $meta);
+        } else {
+            set_transient($verrou, 1, DAY_IN_SECONDS);
+        }
+    }
+endif;
+
+// Pré-génère les carrés dès l'enregistrement du stage dans l'admin.
+add_action('save_post_stages', function ($post_id) {
+    if (wp_is_post_autosave($post_id) || wp_is_post_revision($post_id)) {
+        return;
+    }
+    wamv1_stage_image_ensure_sizes((int) get_post_thumbnail_id($post_id));
+});
 
 if (!function_exists('wamv1_get_reading_time')):
     /**

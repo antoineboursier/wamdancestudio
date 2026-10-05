@@ -1751,7 +1751,7 @@
 }
 
 /* =====================================================
-   CARD STAGE — Vignette verticale portrait
+   CARD STAGE — Vignette verticale, visuel carré 1:1
    Hover : élévation légère.
    ===================================================== */
 
@@ -1839,12 +1839,12 @@
     border-radius: inherit;
 }
 
-/* ---- Media (portrait) ---- */
+/* ---- Media (carré 1:1) ---- */
 
 .card-stage__media {
     position: relative;
     width: 100%;
-    aspect-ratio: 405 / 568;
+    aspect-ratio: 1 / 1;
     border-radius: var(--wam-radius-lg);
     overflow: hidden;
     flex-shrink: 0;

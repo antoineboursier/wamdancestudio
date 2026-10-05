@@ -214,7 +214,18 @@ function wamv1_preload_lcp() {
         if (is_singular('cours')) {
             $image_size = 'wam-card';
         } elseif (is_singular('stages')) {
-            $image_size = 'wam-stage-portrait';
+            // Visuel carré responsive : on précharge le même candidat que celui
+            // que le navigateur choisira dans le srcset, sinon double téléchargement.
+            $thumb_id = (int) get_post_thumbnail_id();
+            wamv1_stage_image_ensure_sizes($thumb_id);
+            $image_src = wp_get_attachment_image_src($thumb_id, 'wam-stage-square');
+            $srcset    = wp_get_attachment_image_srcset($thumb_id, 'wam-stage-square');
+            if ($image_src) {
+                echo '<link rel="preload" as="image" href="' . esc_url($image_src[0]) . '"'
+                    . ($srcset ? ' imagesrcset="' . esc_attr($srcset) . '" imagesizes="' . esc_attr(wamv1_stage_image_sizes_attr('hero')) . '"' : '')
+                    . ' fetchpriority="high">';
+            }
+            return;
         } elseif (is_singular('wam_membre')) {
             $image_size = 'wam-portrait';
         } elseif (is_singular('post')) {

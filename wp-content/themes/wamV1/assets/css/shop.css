@@ -2662,6 +2662,7 @@ p:has(label[for="mailpoet_woocommerce_checkout_optin"]) {
 .wam-commande--inactive .wam-commande__total,
 .wam-commande--inactive .wam-commande-item__price,
 .wam-commande--inactive .color-green,
+.wam-commande--inactive .color-orange,
 .wam-commande--inactive .color-text,
 .wam-commande--inactive strong {
     color: var(--wam-color-subtext);

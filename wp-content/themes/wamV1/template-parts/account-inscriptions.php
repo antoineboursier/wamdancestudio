@@ -91,7 +91,7 @@ $commandes = wamv1_inscriptions_commandes($user_id);
                         <div class="wam-commande-item__body">
                             <div class="wam-commande-item__info">
                                 <?php if ($libelles['nature'] !== $libelles['titre']) : ?>
-                                    <span class="text-xs color-green"><?php echo esc_html($libelles['nature']); ?></span>
+                                    <span class="text-xs <?php echo esc_attr($essai ? 'color-orange' : 'color-green'); ?>"><?php echo esc_html($libelles['nature']); ?></span>
                                 <?php endif; ?>
                                 <h3 class="wam-commande-item__title"><?php echo esc_html($libelles['titre']); ?></h3>
                                 <?php if ($libelles['precision']) : ?>

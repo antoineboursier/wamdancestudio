@@ -1,6 +1,6 @@
 <?php
 /**
- * Template part: Card stage (verticale portrait)
+ * Template part: Card stage (verticale, visuel carré 1:1)
  *
  * Réutilisable dans page-stages-tous.php.
  * Doit être appelé dans une WP_Query loop (the_post() requis).
@@ -104,13 +104,17 @@ if (isset($current_type['class'])) $card_classes[] = $current_type['class'];
         <!-- Lien cliquable sur toute la zone de l'image -->
         <a href="<?php the_permalink(); ?>" style="position: absolute; inset: 0; z-index: 1;" aria-hidden="true" tabindex="-1"></a>
 
-        <?php if (has_post_thumbnail()) : ?>
+        <?php if (has_post_thumbnail()) :
+            $thumb_id = get_post_thumbnail_id();
+            wamv1_stage_image_ensure_sizes((int) $thumb_id);
+        ?>
             <?php echo wp_get_attachment_image(
-                get_post_thumbnail_id(),
-                'wam-stage-card',
+                $thumb_id,
+                'wam-stage-square-md',
                 false,
                 [
                     'class' => 'card-stage__img',
+                    'sizes' => wamv1_stage_image_sizes_attr('card'),
                     'data-no-overlay' => 'true'
                 ]
             ); ?>

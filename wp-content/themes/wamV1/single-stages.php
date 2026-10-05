@@ -389,9 +389,12 @@ get_header();
                 <?php if ($has_sidebar): ?>
                     <div class="page-hero__image">
 
-                        <?php if ($has_photo): ?>
-                            <?php the_post_thumbnail('wam-stage-portrait', [
+                        <?php if ($has_photo):
+                            wamv1_stage_image_ensure_sizes((int) get_post_thumbnail_id());
+                        ?>
+                            <?php the_post_thumbnail('wam-stage-square', [
                                 'class' => 'page-hero__image-img',
+                                'sizes' => wamv1_stage_image_sizes_attr('hero'),
                                 'fetchpriority' => 'high',
                                 'loading' => 'eager',
                                 'data-no-overlay' => 'true',

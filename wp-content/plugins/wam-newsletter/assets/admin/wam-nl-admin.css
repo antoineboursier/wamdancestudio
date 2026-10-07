@@ -1,0 +1,13 @@
+/* Réglages du plugin WAM Newsletter. Préfixe wam-nl- obligatoire. */
+
+.wam-nl-settings .notice.inline {
+	margin: 12px 0;
+}
+
+.wam-nl-settings h2 {
+	margin-top: 28px;
+}
+
+.wam-nl-settings .form-table th {
+	width: 260px;
+}

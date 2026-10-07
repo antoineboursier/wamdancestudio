@@ -14,6 +14,7 @@ class Plugin {
 
 		Admin\Menu::register_hooks();
 		Editor\NewsletterPostType::register_hooks();
+		Settings\SettingsPage::register_hooks();
 		Sending\Mailer::register_hooks();
 	}
 }

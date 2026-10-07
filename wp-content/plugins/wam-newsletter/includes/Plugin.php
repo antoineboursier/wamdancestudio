@@ -11,5 +11,8 @@ class Plugin {
 
 	public static function boot(): void {
 		add_action( 'admin_init', array( Install::class, 'maybe_upgrade' ) );
+
+		Admin\Menu::register_hooks();
+		Editor\NewsletterPostType::register_hooks();
 	}
 }

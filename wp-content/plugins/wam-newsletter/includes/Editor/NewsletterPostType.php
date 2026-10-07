@@ -44,6 +44,38 @@ class NewsletterPostType {
 		),
 	);
 
+	/**
+	 * Capacités primitives du CPT, toutes ramenées à wam_nl_manage.
+	 *
+	 * map_meta_cap => true traduit ensuite les capacités « méta » (edit_post,
+	 * delete_post, read_post sur un objet précis) vers celles-ci.
+	 *
+	 * @return array<string,string>
+	 */
+	public static function capabilities(): array {
+		$primitives = array(
+			'edit_posts',
+			'edit_others_posts',
+			'edit_published_posts',
+			'edit_private_posts',
+			'publish_posts',
+			'read_private_posts',
+			'delete_posts',
+			'delete_others_posts',
+			'delete_published_posts',
+			'delete_private_posts',
+			'create_posts',
+		);
+
+		$caps = array();
+		foreach ( $primitives as $primitive ) {
+			$caps[ $primitive ] = Install::CAPABILITY;
+		}
+		$caps['read'] = 'read';
+
+		return $caps;
+	}
+
 	public static function register_hooks(): void {
 		add_action( 'init', array( self::class, 'register' ) );
 		add_action( 'init', array( self::class, 'register_meta' ) );
@@ -66,8 +98,15 @@ class NewsletterPostType {
 				'show_in_menu'    => Menu::SLUG,
 				'show_in_rest'    => true,
 				'supports'        => array( 'title', 'editor', 'revisions' ),
+				// Toutes les capacités primitives renvoient sur wam_nl_manage.
+				// Avec le 'post' par défaut, le CPT retombait sur edit_posts /
+				// edit_others_posts — que portent professeur, editor, author et
+				// contributor : l'entrée de menu était masquée, mais l'URL
+				// edit.php?post_type=wam_newsletter et la route REST restaient
+				// ouvertes en création et en modification.
 				'capability_type' => 'post',
 				'map_meta_cap'    => true,
+				'capabilities'    => self::capabilities(),
 				'has_archive'     => false,
 				'rewrite'         => false,
 				'query_var'       => false,

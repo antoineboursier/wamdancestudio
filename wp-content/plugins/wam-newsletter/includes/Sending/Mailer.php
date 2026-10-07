@@ -14,22 +14,57 @@ defined( 'ABSPATH' ) || exit;
  * concurrent du thème pour éviter le doublon. On ne s'ajoute donc PAS en
  * troisième : quand son interrupteur est actif, on emprunte sa configuration
  * sans y toucher. Notre propre configuration ne sert que de repli, pour que le
- * plugin reste autonome si cette extension disparaît.
+ * plugin reste autonome si cette extension disparaît — d'où la copie locale des
+ * réglages (external_smtp_snapshot) qui permet de reprendre la main sans
+ * ressaisie.
+ *
+ * L'expéditeur n'est JAMAIS réécrit globalement : un plugin de newsletter n'a pas
+ * à décider de l'expéditeur des factures WooCommerce ou des notifications Bookly.
+ * Les filtres ne vivent que le temps d'un envoi du plugin (with_sender).
  */
 class Mailer {
 
 	/** Après les filtres usuels, mais sous le garde-fou local (PHP_INT_MAX). */
 	const HOOK_PRIORITY = 20;
 
+	/**
+	 * Options de wam-custom-plugin => clés de nos réglages.
+	 * Le mot de passe (`smtp_pass`) est volontairement absent : le cahier des
+	 * charges interdit de le stocker en base, il vit dans WAM_NL_SMTP_PASSWORD.
+	 */
+	const EXTERNAL_MAP = array(
+		'smtp_host'       => 'smtp_host',
+		'smtp_port'       => 'smtp_port',
+		'smtp_secure'     => 'smtp_secure',
+		'smtp_user'       => 'smtp_user',
+		'smtp_from_email' => 'from_email',
+		'smtp_from_name'  => 'from_name',
+	);
+
 	public static function register_hooks(): void {
 		add_action( 'phpmailer_init', array( self::class, 'configure' ), self::HOOK_PRIORITY );
-		add_filter( 'wp_mail_from', array( self::class, 'from_email' ), self::HOOK_PRIORITY );
-		add_filter( 'wp_mail_from_name', array( self::class, 'from_name' ), self::HOOK_PRIORITY );
 	}
 
 	/** Vrai si wam-custom-plugin pilote déjà PHPMailer. */
 	public static function external_smtp_active(): bool {
 		return (bool) get_option( 'coulisses_smtp_active', 0 );
+	}
+
+	/**
+	 * Vrai si c'est CE plugin qui configure réellement le transport.
+	 *
+	 * Sans hôte, sans utilisateur ou sans mot de passe, tenter une authentification
+	 * incomplète échouerait à chaque message et consommerait la limite horaire
+	 * d'échecs d'o2switch : on préfère mail(), qui fonctionne. C'est la même
+	 * exigence que celle de wam-custom-plugin (hôte + identifiant).
+	 */
+	public static function owns_transport(): bool {
+		if ( self::external_smtp_active() ) {
+			return false;
+		}
+		return '' !== (string) Settings::get( 'smtp_host' )
+			&& '' !== (string) Settings::get( 'smtp_user' )
+			&& '' !== Settings::smtp_password();
 	}
 
 	/**
@@ -43,18 +78,27 @@ class Mailer {
 		return defined( 'WPMU_PLUGIN_DIR' ) && file_exists( WPMU_PLUGIN_DIR . '/000-wam-local-guard.php' );
 	}
 
-	public static function configure( $phpmailer ): void {
-		if ( self::external_smtp_active() ) {
-			return;
+	/**
+	 * Copie des réglages SMTP d'une autre extension, pour préremplir les nôtres.
+	 *
+	 * Lecture seule sur ses options. Le mot de passe n'est jamais copié.
+	 *
+	 * @return array Clés de nos réglages => valeurs, limitées aux valeurs non vides.
+	 */
+	public static function external_smtp_snapshot(): array {
+		$copie = array();
+		foreach ( self::EXTERNAL_MAP as $source => $cible ) {
+			$valeur = get_option( $source, '' );
+			if ( ! is_scalar( $valeur ) || '' === (string) $valeur ) {
+				continue;
+			}
+			$copie[ $cible ] = $valeur;
 		}
+		return $copie;
+	}
 
-		$hote = (string) Settings::get( 'smtp_host' );
-		$pass = Settings::smtp_password();
-
-		// Sans hôte ou sans mot de passe, tenter une authentification vide
-		// échouerait à chaque message et consommerait la limite horaire d'échecs
-		// d'o2switch. On préfère mail(), qui fonctionne.
-		if ( '' === $hote || '' === $pass ) {
+	public static function configure( $phpmailer ): void {
+		if ( ! self::owns_transport() ) {
 			return;
 		}
 
@@ -62,11 +106,11 @@ class Mailer {
 		$utilisateur = (string) Settings::get( 'smtp_user' );
 
 		$phpmailer->isSMTP();
-		$phpmailer->Host        = $hote;
+		$phpmailer->Host        = (string) Settings::get( 'smtp_host' );
 		$phpmailer->Port        = (int) Settings::get( 'smtp_port' );
 		$phpmailer->SMTPAuth    = true;
 		$phpmailer->Username    = $utilisateur;
-		$phpmailer->Password    = $pass;
+		$phpmailer->Password    = Settings::smtp_password();
 		$phpmailer->SMTPSecure  = $securite;
 		$phpmailer->SMTPAutoTLS = ( 'ssl' !== $securite );
 
@@ -77,18 +121,32 @@ class Mailer {
 		}
 	}
 
-	public static function from_email( string $defaut ): string {
-		if ( self::external_smtp_active() ) {
-			return $defaut;
+	/**
+	 * Exécute un envoi du plugin avec SON expéditeur, puis retire les filtres.
+	 *
+	 * C'est ce qui garde l'autorité du plugin sur son propre courrier et seulement
+	 * sur lui : hors de cette fenêtre, l'expéditeur du site n'est pas touché.
+	 *
+	 * @param callable $envoi
+	 * @return mixed Ce que renvoie $envoi.
+	 */
+	public static function with_sender( callable $envoi ) {
+		add_filter( 'wp_mail_from', array( self::class, 'from_email' ), self::HOOK_PRIORITY );
+		add_filter( 'wp_mail_from_name', array( self::class, 'from_name' ), self::HOOK_PRIORITY );
+		try {
+			return $envoi();
+		} finally {
+			remove_filter( 'wp_mail_from', array( self::class, 'from_email' ), self::HOOK_PRIORITY );
+			remove_filter( 'wp_mail_from_name', array( self::class, 'from_name' ), self::HOOK_PRIORITY );
 		}
+	}
+
+	public static function from_email( string $defaut ): string {
 		$adresse = (string) Settings::get( 'from_email' );
 		return is_email( $adresse ) ? $adresse : $defaut;
 	}
 
 	public static function from_name( string $defaut ): string {
-		if ( self::external_smtp_active() ) {
-			return $defaut;
-		}
 		$nom = (string) Settings::get( 'from_name' );
 		return '' !== $nom ? $nom : $defaut;
 	}
@@ -139,11 +197,12 @@ class Mailer {
 			wp_date( 'd/m/Y H:i' )
 		);
 
-		$envoye = wp_mail(
-			$cibles,
-			'[TEST] ' . __( 'Newsletter WAM — vérification de la chaîne d’envoi', 'wam-newsletter' ),
-			$corps,
-			$entetes
+		$sujet = '[TEST] ' . __( 'Newsletter WAM — vérification de la chaîne d’envoi', 'wam-newsletter' );
+
+		$envoye = self::with_sender(
+			static function () use ( $cibles, $sujet, $corps, $entetes ) {
+				return wp_mail( $cibles, $sujet, $corps, $entetes );
+			}
 		);
 
 		remove_action( 'wp_mail_failed', $capture );

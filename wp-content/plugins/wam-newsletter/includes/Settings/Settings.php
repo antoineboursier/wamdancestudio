@@ -8,6 +8,9 @@ defined( 'ABSPATH' ) || exit;
  *
  * Une option unique plutôt qu'une par réglage : un seul point d'assainissement,
  * une seule lecture, et pas d'une vingtaine de lignes dans wp_options.
+ *
+ * Principe sur les valeurs invalides : on ne détruit pas un réglage en place.
+ * Une saisie refusée est signalée à l'appelant, et l'ancienne valeur survit.
  */
 class Settings {
 
@@ -15,6 +18,15 @@ class Settings {
 
 	/** Chiffrements admis par PHPMailer ; « » = aucun. */
 	const SECURE_VALUES = array( 'ssl', 'tls', '' );
+
+	/** Clés dont la valeur est une adresse e-mail unique. */
+	const EMAIL_KEYS = array( 'from_email', 'reply_to', 'smtp_user' );
+
+	/** Clés à valeur booléenne (cases à cocher). */
+	const BOOL_KEYS = array( 'welcome_email_enabled', 'track_opens', 'track_clicks', 'delete_data_on_uninstall' );
+
+	/** Clés à texte riche (HTML simple autorisé). */
+	const RICH_TEXT_KEYS = array( 'form_consent_text', 'welcome_email_body' );
 
 	/**
 	 * Bornes des réglages de débit.
@@ -33,15 +45,16 @@ class Settings {
 
 	public static function defaults(): array {
 		return array(
-			// Expéditeur
+			// Expéditeur des envois de CE plugin (pas du courrier transactionnel du site)
 			'from_name'                => 'WAM Dance Studio',
 			'from_email'               => 'contact@wamdancestudio.fr',
 			'reply_to'                 => 'contact@wamdancestudio.fr',
-			// SMTP de repli — inutilisé si wam-custom-plugin pilote déjà PHPMailer
+			// SMTP propre au plugin — copie locale, pour pouvoir reprendre la main
+			// si l'extension qui pilote aujourd'hui PHPMailer disparaît.
 			'smtp_host'                => '',
 			'smtp_port'                => 465,
 			'smtp_secure'              => 'ssl',
-			'smtp_user'                => 'contact@wamdancestudio.fr',
+			'smtp_user'                => '',
 			// Débit
 			'batch_size'               => 20,
 			'batch_interval'           => 60,
@@ -76,38 +89,123 @@ class Settings {
 		return array_key_exists( $cle, $tout ) ? $tout[ $cle ] : null;
 	}
 
-	public static function update( array $valeurs ): void {
-		update_option( self::OPTION, array_merge( self::all(), self::sanitize( $valeurs ) ) );
+	/**
+	 * Enregistre les valeurs valides et signale celles qui ont été refusées.
+	 *
+	 * @param array $valeurs
+	 * @return string[] Clés soumises mais non enregistrées (inconnues ou invalides).
+	 */
+	public static function update( array $valeurs ): array {
+		$rejetes = array();
+		$propres = self::sanitize( $valeurs, $rejetes );
+		update_option( self::OPTION, array_merge( self::all(), $propres ) );
+		return $rejetes;
+	}
+
+	/**
+	 * Préremplit les réglages encore à leur valeur par défaut.
+	 *
+	 * Sert à reprendre la configuration SMTP d'une autre extension sans écraser ce
+	 * qui a déjà été saisi ici. Jamais de mot de passe (il vit dans wp-config.php).
+	 *
+	 * @param array $copie        Clés de réglages => valeurs.
+	 * @param bool  $ecraser      true = remplace même une valeur déjà personnalisée.
+	 * @return string[] Clés effectivement appliquées.
+	 */
+	public static function seed( array $copie, bool $ecraser = false ): array {
+		$defauts  = self::defaults();
+		$actuels  = self::all();
+		$a_ecrire = array();
+
+		foreach ( $copie as $cle => $valeur ) {
+			if ( ! array_key_exists( $cle, $defauts ) ) {
+				continue;
+			}
+			// Sans écrasement, on ne touche qu'à ce qui n'a jamais été personnalisé.
+			if ( ! $ecraser && $actuels[ $cle ] !== $defauts[ $cle ] ) {
+				continue;
+			}
+			$a_ecrire[ $cle ] = $valeur;
+		}
+
+		if ( ! $a_ecrire ) {
+			return array();
+		}
+
+		$rejetes = array();
+		$propres = self::sanitize( $a_ecrire, $rejetes );
+		if ( $propres ) {
+			update_option( self::OPTION, array_merge( self::all(), $propres ) );
+		}
+		return array_keys( $propres );
 	}
 
 	/**
 	 * Assainit les seules clés connues. Une clé absente des defaults est ignorée :
 	 * un POST bricolé ne peut donc pas injecter de réglage fantôme.
+	 *
+	 * @param array      $entree
+	 * @param array|null $rejetes Reçoit les clés soumises mais non retenues.
+	 * @return array
 	 */
-	public static function sanitize( array $entree ): array {
+	public static function sanitize( array $entree, ?array &$rejetes = null ): array {
 		$defauts = self::defaults();
 		$sortie  = array();
+		$rejetes = array();
 
 		foreach ( $entree as $cle => $valeur ) {
 			if ( ! array_key_exists( $cle, $defauts ) ) {
+				$rejetes[] = (string) $cle;
+				continue;
+			}
+
+			// Un POST forgé peut envoyer wam_nl[from_email][]=x : un cast (string)
+			// sur un tableau émettrait un warning PHP et viderait le champ.
+			if ( ! is_scalar( $valeur ) ) {
+				$rejetes[] = $cle;
+				continue;
+			}
+
+			if ( in_array( $cle, self::EMAIL_KEYS, true ) ) {
+				$brut = trim( (string) $valeur );
+				if ( '' === $brut ) {
+					// Vider est une intention explicite, pas une erreur.
+					$sortie[ $cle ] = '';
+					continue;
+				}
+				$adresse = self::email( $brut );
+				if ( '' === $adresse ) {
+					// On ne détruit pas l'adresse en place sur une faute de frappe.
+					$rejetes[] = $cle;
+					continue;
+				}
+				$sortie[ $cle ] = $adresse;
+				continue;
+			}
+
+			if ( in_array( $cle, self::BOOL_KEYS, true ) ) {
+				$sortie[ $cle ] = (bool) $valeur;
+				continue;
+			}
+
+			if ( in_array( $cle, self::RICH_TEXT_KEYS, true ) ) {
+				$sortie[ $cle ] = wp_kses_post( (string) $valeur );
+				continue;
+			}
+
+			if ( isset( self::LIMITS[ $cle ] ) ) {
+				list( $min, $max ) = self::LIMITS[ $cle ];
+				$sortie[ $cle ]    = min( $max, max( $min, (int) $valeur ) );
 				continue;
 			}
 
 			switch ( $cle ) {
-				case 'from_email':
-				case 'reply_to':
-				case 'smtp_user':
-					$sortie[ $cle ] = self::email( $valeur );
-					break;
-
 				case 'test_recipients':
 					$sortie[ $cle ] = implode( ',', self::email_list( $valeur ) );
 					break;
 
 				case 'smtp_secure':
-					// 'x' comme valeur impossible : une entrée non-chaîne retombe
-					// ainsi sur le défaut au lieu de passer pour « aucun chiffrement ».
-					$v              = is_string( $valeur ) ? strtolower( trim( $valeur ) ) : 'x';
+					$v              = strtolower( trim( (string) $valeur ) );
 					$sortie[ $cle ] = in_array( $v, self::SECURE_VALUES, true ) ? $v : $defauts['smtp_secure'];
 					break;
 
@@ -120,24 +218,7 @@ class Settings {
 					$sortie[ $cle ] = max( 0, (int) $valeur );
 					break;
 
-				case 'form_consent_text':
-				case 'welcome_email_body':
-					$sortie[ $cle ] = wp_kses_post( (string) $valeur );
-					break;
-
-				case 'welcome_email_enabled':
-				case 'track_opens':
-				case 'track_clicks':
-				case 'delete_data_on_uninstall':
-					$sortie[ $cle ] = (bool) $valeur;
-					break;
-
 				default:
-					if ( isset( self::LIMITS[ $cle ] ) ) {
-						list( $min, $max ) = self::LIMITS[ $cle ];
-						$sortie[ $cle ]    = min( $max, max( $min, (int) $valeur ) );
-						break;
-					}
 					$sortie[ $cle ] = sanitize_text_field( (string) $valeur );
 			}
 		}
@@ -149,6 +230,9 @@ class Settings {
 	 * @return string Adresse normalisée en minuscules, ou '' si invalide.
 	 */
 	private static function email( $valeur ): string {
+		if ( ! is_scalar( $valeur ) ) {
+			return '';
+		}
 		$v = sanitize_email( strtolower( trim( (string) $valeur ) ) );
 		return is_email( $v ) ? $v : '';
 	}

@@ -107,15 +107,29 @@ class SettingsPage {
 			? wp_unslash( $_POST['wam_nl'] )
 			: array();
 
-		Settings::update( self::normalize_submission( $brut, $onglet ) );
+		$rejetes = Settings::update( self::normalize_submission( $brut, $onglet ) );
 
 		$avis = 'enregistre';
+
+		if ( $rejetes ) {
+			$avis = 'champs_rejetes';
+			set_transient( self::message_key(), implode( ', ', $rejetes ), 60 );
+		}
+
+		// Reprise de la configuration SMTP d'une autre extension, mot de passe exclu.
+		if ( isset( $_POST['wam_nl_import_smtp'] ) ) {
+			$appliques = Settings::seed( Mailer::external_smtp_snapshot(), true );
+			$avis      = $appliques ? 'smtp_importe' : 'smtp_rien_a_importer';
+			if ( $appliques ) {
+				set_transient( self::message_key(), implode( ', ', $appliques ), 60 );
+			}
+		}
 
 		if ( isset( $_POST['wam_nl_send_test'] ) ) {
 			$destinataire = sanitize_email( wp_unslash( (string) ( $_POST['wam_nl_test_to'] ?? '' ) ) );
 			$resultat     = Mailer::send_test( $destinataire );
 			$avis         = $resultat['ok'] ? 'test_ok' : 'test_ko';
-			set_transient( 'wam_nl_test_message', $resultat['message'], 60 );
+			set_transient( self::message_key(), $resultat['message'], 60 );
 		}
 
 		wp_safe_redirect( add_query_arg( 'wam_nl_notice', $avis, self::url( $onglet ) ) );
@@ -169,6 +183,14 @@ class SettingsPage {
 		echo '</form></div>';
 	}
 
+	/**
+	 * Clé de message propre à l'utilisatrice courante : deux personnes réglant
+	 * l'écran en même temps ne doivent pas lire le résultat de l'autre.
+	 */
+	private static function message_key(): string {
+		return 'wam_nl_message_' . get_current_user_id();
+	}
+
 	private static function render_notice(): void {
 		$avis = isset( $_GET['wam_nl_notice'] ) ? sanitize_key( wp_unslash( $_GET['wam_nl_notice'] ) ) : '';
 		if ( '' === $avis ) {
@@ -176,16 +198,19 @@ class SettingsPage {
 		}
 
 		$textes = array(
-			'enregistre' => array( 'success', __( 'Réglages enregistrés.', 'wam-newsletter' ) ),
-			'test_ok'    => array( 'success', __( 'E-mail de test envoyé.', 'wam-newsletter' ) ),
-			'test_ko'    => array( 'error', __( 'L’e-mail de test n’a pas pu être envoyé.', 'wam-newsletter' ) ),
+			'enregistre'           => array( 'success', __( 'Réglages enregistrés.', 'wam-newsletter' ) ),
+			'champs_rejetes'       => array( 'error', __( 'Enregistré, sauf ces champs dont la valeur a été refusée (l’ancienne valeur est conservée) :', 'wam-newsletter' ) ),
+			'test_ok'              => array( 'success', __( 'E-mail de test envoyé.', 'wam-newsletter' ) ),
+			'test_ko'              => array( 'error', __( 'L’e-mail de test n’a pas pu être envoyé.', 'wam-newsletter' ) ),
+			'smtp_importe'         => array( 'success', __( 'Configuration SMTP reprise. Le mot de passe n’est jamais copié : il doit être posé dans wp-config.php. Champs repris :', 'wam-newsletter' ) ),
+			'smtp_rien_a_importer' => array( 'warning', __( 'Aucune configuration SMTP à reprendre sur ce site.', 'wam-newsletter' ) ),
 		);
 		if ( ! isset( $textes[ $avis ] ) ) {
 			return;
 		}
 
-		$detail = (string) get_transient( 'wam_nl_test_message' );
-		delete_transient( 'wam_nl_test_message' );
+		$detail = (string) get_transient( self::message_key() );
+		delete_transient( self::message_key() );
 
 		printf(
 			'<div class="notice notice-%s is-dismissible"><p>%s%s</p></div>',
@@ -230,7 +255,11 @@ class SettingsPage {
 	}
 
 	private static function tab_expediteur( array $r ): void {
-		echo '<h2>' . esc_html__( 'Expéditeur', 'wam-newsletter' ) . '</h2><table class="form-table">';
+		echo '<h2>' . esc_html__( 'Expéditeur', 'wam-newsletter' ) . '</h2>';
+		echo '<p class="description">' . esc_html__(
+			'S’applique aux e-mails envoyés par ce plugin uniquement. Le courrier transactionnel du site (factures, notifications, mots de passe) n’est pas touché.',
+			'wam-newsletter'
+		) . '</p><table class="form-table">';
 		self::field_text( 'from_name', __( 'Nom affiché', 'wam-newsletter' ), $r['from_name'] );
 		self::field_text( 'from_email', __( 'Adresse d’expédition', 'wam-newsletter' ), $r['from_email'], 'email' );
 		self::field_text( 'reply_to', __( 'Répondre à', 'wam-newsletter' ), $r['reply_to'], 'email' );
@@ -239,26 +268,47 @@ class SettingsPage {
 		echo '<h2>' . esc_html__( 'SMTP', 'wam-newsletter' ) . '</h2>';
 		self::render_smtp_diagnostic();
 
-		if ( ! Mailer::external_smtp_active() ) {
-			echo '<table class="form-table">';
-			self::field_text( 'smtp_host', __( 'Hôte', 'wam-newsletter' ), $r['smtp_host'] );
-			self::field_text( 'smtp_port', __( 'Port', 'wam-newsletter' ), $r['smtp_port'], 'number' );
-			printf(
-				'<tr><th scope="row"><label for="wam_nl_smtp_secure">%s</label></th><td><select id="wam_nl_smtp_secure" name="wam_nl[smtp_secure]">',
-				esc_html__( 'Chiffrement', 'wam-newsletter' )
-			);
-			$choix = array(
-				'ssl' => 'SSL',
-				'tls' => 'TLS',
-				''    => __( 'Aucun', 'wam-newsletter' ),
-			);
-			foreach ( $choix as $v => $l ) {
-				printf( '<option value="%s"%s>%s</option>', esc_attr( $v ), selected( $r['smtp_secure'], $v, false ), esc_html( $l ) );
-			}
-			echo '</select></td></tr>';
-			self::field_text( 'smtp_user', __( 'Utilisateur', 'wam-newsletter' ), $r['smtp_user'], 'email' );
-			echo '</table>';
+		// Les champs sont toujours affichés, même quand une autre extension pilote
+		// le transport : c'est la copie locale du plugin, pour pouvoir reprendre la
+		// main sans ressaisie le jour où cette extension disparaît.
+		echo '<table class="form-table">';
+		self::field_text( 'smtp_host', __( 'Hôte', 'wam-newsletter' ), $r['smtp_host'] );
+		self::field_text( 'smtp_port', __( 'Port', 'wam-newsletter' ), $r['smtp_port'], 'number' );
+		printf(
+			'<tr><th scope="row"><label for="wam_nl_smtp_secure">%s</label></th><td><select id="wam_nl_smtp_secure" name="wam_nl[smtp_secure]">',
+			esc_html__( 'Chiffrement', 'wam-newsletter' )
+		);
+		$choix = array(
+			'ssl' => 'SSL',
+			'tls' => 'TLS',
+			''    => __( 'Aucun', 'wam-newsletter' ),
+		);
+		foreach ( $choix as $v => $l ) {
+			printf( '<option value="%s"%s>%s</option>', esc_attr( $v ), selected( $r['smtp_secure'], $v, false ), esc_html( $l ) );
 		}
+		echo '</select></td></tr>';
+		self::field_text( 'smtp_user', __( 'Utilisateur', 'wam-newsletter' ), $r['smtp_user'], 'email' );
+
+		printf(
+			'<tr><th scope="row">%1$s</th><td><p class="description">%2$s</p></td></tr>',
+			esc_html__( 'Mot de passe', 'wam-newsletter' ),
+			'' !== Settings::smtp_password()
+				? esc_html__( 'Lu dans la constante WAM_NL_SMTP_PASSWORD de wp-config.php. Jamais stocké en base, jamais affiché ici.', 'wam-newsletter' )
+				: esc_html__( 'Non défini. À poser dans wp-config.php : define( \'WAM_NL_SMTP_PASSWORD\', \'…\' ); — jamais en base.', 'wam-newsletter' )
+		);
+
+		if ( Mailer::external_smtp_snapshot() ) {
+			printf(
+				'<tr><th scope="row">%1$s</th><td>'
+				. '<button type="submit" name="wam_nl_import_smtp" value="1" class="button">%2$s</button>'
+				. '<p class="description">%3$s</p></td></tr>',
+				esc_html__( 'Reprendre la configuration existante', 'wam-newsletter' ),
+				esc_html__( 'Copier les réglages SMTP du site', 'wam-newsletter' ),
+				esc_html__( 'Recopie hôte, port, chiffrement, utilisateur et expéditeur depuis l’extension qui gère aujourd’hui le SMTP. Le mot de passe n’est jamais copié.', 'wam-newsletter' )
+			);
+		}
+
+		echo '</table>';
 
 		echo '<h2>' . esc_html__( 'Envoi de test', 'wam-newsletter' ) . '</h2><table class="form-table">';
 		self::field_text(
@@ -291,20 +341,20 @@ class SettingsPage {
 		if ( Mailer::external_smtp_active() ) {
 			$lignes[] = array(
 				'info',
-				__( 'SMTP géré par l’extension « Les coulisses du site WAM ». Le plugin newsletter emprunte cette configuration et n’y touche pas.', 'wam-newsletter' ),
+				__( 'Le transport est tenu par l’extension « Les coulisses du site WAM ». Ce plugin emprunte sa connexion et n’y touche pas. Les réglages ci-dessous sont la copie locale, prête à prendre le relais si cette extension est un jour désactivée.', 'wam-newsletter' ),
 			);
-		} elseif ( '' === (string) Settings::get( 'smtp_host' ) ) {
+		} elseif ( Mailer::owns_transport() ) {
+			$lignes[] = array( 'success', __( 'Le transport est tenu par ce plugin, avec les réglages ci-dessous.', 'wam-newsletter' ) );
+		} elseif ( '' === (string) Settings::get( 'smtp_host' ) || '' === (string) Settings::get( 'smtp_user' ) ) {
 			$lignes[] = array(
 				'warning',
-				__( 'Aucun hôte SMTP renseigné : les e-mails partiront par la fonction mail() du serveur.', 'wam-newsletter' ),
+				__( 'Hôte ou utilisateur SMTP manquant : les e-mails partiront par la fonction mail() du serveur.', 'wam-newsletter' ),
 			);
-		} elseif ( '' === Settings::smtp_password() ) {
+		} else {
 			$lignes[] = array(
 				'error',
 				__( 'La constante WAM_NL_SMTP_PASSWORD n’est pas définie dans wp-config.php : l’authentification SMTP est impossible, les e-mails partiront par mail().', 'wam-newsletter' ),
 			);
-		} else {
-			$lignes[] = array( 'success', __( 'SMTP propre au plugin configuré.', 'wam-newsletter' ) );
 		}
 
 		if ( Mailer::local_guard_active() ) {

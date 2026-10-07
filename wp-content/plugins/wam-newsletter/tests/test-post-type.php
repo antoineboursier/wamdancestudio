@@ -21,6 +21,47 @@ if ( $objet ) {
 
 wam_nl_assert_equals( false, get_post_type_archive_link( CPT::POST_TYPE ), 'aucune archive publique' );
 
+echo "== Capacités : seul wam_nl_manage ouvre le CPT ==\n";
+// Avec le capability_type « post » par défaut, le CPT retombait sur edit_posts /
+// edit_others_posts, que portent professeur, editor, author et contributor :
+// l'entrée de menu était masquée mais edit.php?post_type=wam_newsletter et la
+// route REST restaient ouvertes en création et en modification.
+if ( $objet ) {
+	foreach ( array( 'edit_posts', 'edit_others_posts', 'publish_posts', 'delete_posts', 'create_posts', 'read_private_posts' ) as $primitive ) {
+		wam_nl_assert_equals(
+			WamNewsletter\Install::CAPABILITY,
+			$objet->cap->$primitive ?? '',
+			"la capacité $primitive est ramenée à wam_nl_manage"
+		);
+	}
+	wam_nl_assert_equals( 'read', $objet->cap->read ?? '', 'la lecture reste la capacité standard' );
+}
+
+$utilisateur_avant = get_current_user_id();
+foreach ( array( 'professeur', 'editor', 'author', 'contributor', 'subscriber' ) as $role_nom ) {
+	if ( ! get_role( $role_nom ) ) {
+		echo "  SKIP rôle $role_nom absent de ce site\n";
+		continue;
+	}
+	$ids = get_users( array( 'role' => $role_nom, 'number' => 1, 'fields' => 'ID' ) );
+	if ( empty( $ids ) ) {
+		// Pas de compte réel : on teste la capacité du rôle, ce qui est le même verrou.
+		wam_nl_assert( ! get_role( $role_nom )->has_cap( WamNewsletter\Install::CAPABILITY ), "le rôle $role_nom n a pas wam_nl_manage" );
+		continue;
+	}
+	wp_set_current_user( (int) $ids[0] );
+	wam_nl_assert( ! current_user_can( $objet->cap->edit_posts ), "$role_nom ne peut pas lister/modifier les newsletters" );
+	wam_nl_assert( ! current_user_can( $objet->cap->create_posts ), "$role_nom ne peut pas en créer" );
+}
+
+$admins = get_users( array( 'role' => 'administrator', 'number' => 1, 'fields' => 'ID' ) );
+if ( ! empty( $admins ) ) {
+	wp_set_current_user( (int) $admins[0] );
+	wam_nl_assert( current_user_can( $objet->cap->edit_posts ), 'administrateur : accès aux newsletters' );
+	wam_nl_assert( current_user_can( $objet->cap->create_posts ), 'administrateur : création' );
+}
+wp_set_current_user( $utilisateur_avant );
+
 echo "== Metas enregistrées ==\n";
 $metas = get_registered_meta_keys( 'post', CPT::POST_TYPE );
 foreach ( array_keys( CPT::META ) as $cle ) {

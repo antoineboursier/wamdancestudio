@@ -28,7 +28,23 @@ class Install {
 	public static function activate(): void {
 		self::create_tables();
 		self::add_capability();
+		self::seed_smtp_settings();
 		update_option( self::DB_VERSION_OPTION, self::DB_VERSION );
+	}
+
+	/**
+	 * Recopie une fois la configuration SMTP déjà présente sur le site.
+	 *
+	 * Le transport est aujourd'hui piloté par wam-custom-plugin ; si cette
+	 * extension est un jour désactivée, le plugin doit pouvoir reprendre la main
+	 * sans ressaisie. On ne touche qu'aux réglages encore à leur valeur par
+	 * défaut, et JAMAIS au mot de passe : il vit dans WAM_NL_SMTP_PASSWORD.
+	 */
+	private static function seed_smtp_settings(): void {
+		$copie = Sending\Mailer::external_smtp_snapshot();
+		if ( $copie ) {
+			Settings\Settings::seed( $copie );
+		}
 	}
 
 	/**
@@ -42,6 +58,7 @@ class Install {
 		}
 		self::create_tables();
 		self::add_capability();
+		self::seed_smtp_settings();
 		update_option( self::DB_VERSION_OPTION, self::DB_VERSION );
 	}
 

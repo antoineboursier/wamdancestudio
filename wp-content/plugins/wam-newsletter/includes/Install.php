@@ -11,7 +11,7 @@ defined( 'ABSPATH' ) || exit;
 class Install {
 
 	/** Incrémenter à chaque changement de schéma : maybe_upgrade() rejoue alors dbDelta. */
-	const DB_VERSION = '1.0.0';
+	const DB_VERSION = '1.2.0';
 
 	const DB_VERSION_OPTION = 'wam_nl_db_version';
 
@@ -27,6 +27,7 @@ class Install {
 
 	public static function activate(): void {
 		self::create_tables();
+		self::migrate_schema();
 		self::add_capability();
 		self::seed_smtp_settings();
 		update_option( self::DB_VERSION_OPTION, self::DB_VERSION );
@@ -57,9 +58,36 @@ class Install {
 			return;
 		}
 		self::create_tables();
+		self::migrate_schema();
 		self::add_capability();
 		self::seed_smtp_settings();
 		update_option( self::DB_VERSION_OPTION, self::DB_VERSION );
+	}
+
+	/**
+	 * Changements de schéma que dbDelta ne sait pas faire.
+	 *
+	 * dbDelta compare les définitions de colonnes au texte près, mais il ne
+	 * produit JAMAIS d'ALTER pour un passage de NOT NULL à nullable : il faut
+	 * l'écrire soi-même. Chaque correctif vérifie l'état courant avant d'agir,
+	 * pour rester rejouable sans effet de bord.
+	 */
+	private static function migrate_schema(): void {
+		global $wpdb;
+
+		// token : NOT NULL DEFAULT '' -> nullable.
+		// La colonne porte un index UNIQUE. MySQL autorise plusieurs NULL dans un
+		// index unique, mais pas deux chaînes vides : avec l'ancienne définition,
+		// le deuxième abonné·e inséré sans token levait une erreur de clé
+		// dupliquée. Piège qui n'aurait sauté qu'au premier import de masse.
+		$table   = self::table( 'subscribers' );
+		$colonne = $wpdb->get_row( "SHOW COLUMNS FROM `$table` LIKE 'token'" );
+		if ( $colonne && 'NO' === $colonne->Null ) {
+			// Les tokens vides existants deviennent NULL, sinon l'ALTER échoue
+			// sur la contrainte d'unicité dès qu'il y en a plus d'un.
+			$wpdb->query( "UPDATE `$table` SET token = NULL WHERE token = ''" );
+			$wpdb->query( "ALTER TABLE `$table` MODIFY token char(64) DEFAULT NULL" );
+		}
 	}
 
 	/**
@@ -81,6 +109,12 @@ class Install {
 
 		// email en 190 et non 255 : au-delà, un index UNIQUE dépasse la limite
 		// de longueur de clé d'InnoDB en utf8mb4.
+		//
+		// token nullable et non NOT NULL DEFAULT '' : la colonne porte un index
+		// UNIQUE, or MySQL autorise plusieurs NULL dans un index unique mais pas
+		// plusieurs chaînes vides. Avec un défaut à '', le deuxième abonné·e
+		// inséré sans token aurait déclenché une erreur de clé dupliquée — piège
+		// qui n'aurait sauté qu'au premier import de masse.
 		dbDelta(
 			"CREATE TABLE $subscribers (
 			id bigint(20) unsigned NOT NULL AUTO_INCREMENT,
@@ -88,7 +122,7 @@ class Install {
 			first_name varchar(100) NOT NULL DEFAULT '',
 			last_name varchar(100) NOT NULL DEFAULT '',
 			status varchar(20) NOT NULL DEFAULT 'subscribed',
-			token char(64) NOT NULL DEFAULT '',
+			token char(64) DEFAULT NULL,
 			consent_at datetime DEFAULT NULL,
 			consent_source varchar(50) NOT NULL DEFAULT '',
 			created_at datetime NOT NULL,

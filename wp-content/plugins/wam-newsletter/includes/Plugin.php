@@ -16,6 +16,7 @@ class Plugin {
 		Editor\NewsletterPostType::register_hooks();
 		Subscribers\Screen::register_hooks();
 		Lists\Screen::register_hooks();
+		Form\Form::register_hooks();
 		Settings\SettingsPage::register_hooks();
 		Sending\Mailer::register_hooks();
 

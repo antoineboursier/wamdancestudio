@@ -254,6 +254,29 @@ class SettingsPage {
 		);
 	}
 
+	/**
+	 * @param array<int|string,string> $choix valeur => libellé
+	 */
+	private static function field_select( string $cle, string $libelle, $valeur, array $choix, string $aide = '' ): void {
+		$options = '';
+		foreach ( $choix as $v => $texte ) {
+			$options .= sprintf(
+				'<option value="%s"%s>%s</option>',
+				esc_attr( (string) $v ),
+				selected( (string) $valeur, (string) $v, false ),
+				esc_html( $texte )
+			);
+		}
+		printf(
+			'<tr><th scope="row"><label for="wam_nl_%1$s">%2$s</label></th><td>'
+			. '<select id="wam_nl_%1$s" name="wam_nl[%1$s]">%3$s</select>%4$s</td></tr>',
+			esc_attr( $cle ),
+			esc_html( $libelle ),
+			$options, // phpcs:ignore WordPress.Security.EscapeOutput -- options échappées ci-dessus.
+			'' !== $aide ? '<p class="description">' . esc_html( $aide ) . '</p>' : ''
+		);
+	}
+
 	private static function tab_expediteur( array $r ): void {
 		echo '<h2>' . esc_html__( 'Expéditeur', 'wam-newsletter' ) . '</h2>';
 		echo '<p class="description">' . esc_html__(
@@ -394,13 +417,24 @@ class SettingsPage {
 	}
 
 	private static function tab_formulaire( array $r ): void {
+		echo '<p class="description">';
+		printf(
+			/* translators: 1: shortcode, 2: nom du bloc */
+			esc_html__( 'Le formulaire s’insère avec le code court %1$s ou avec le bloc « %2$s » dans l’éditeur.', 'wam-newsletter' ),
+			'<code>[wam_newsletter_form]</code>',
+			esc_html__( 'Inscription newsletter', 'wam-newsletter' )
+		);
+		echo '</p>';
+
+		$listes = array( 0 => __( '— Aucune liste —', 'wam-newsletter' ) ) + \WamNewsletter\Lists\Repository::options();
+
 		echo '<table class="form-table">';
-		self::field_text(
+		self::field_select(
 			'form_list_id',
-			__( 'Liste par défaut (identifiant)', 'wam-newsletter' ),
+			__( 'Liste d’inscription', 'wam-newsletter' ),
 			$r['form_list_id'],
-			'number',
-			__( 'Sélection par nom dès que les listes existent (lot 2).', 'wam-newsletter' )
+			$listes,
+			__( 'Liste dans laquelle le formulaire inscrit. Sans liste, l’inscription est enregistrée mais ne recevra aucun envoi.', 'wam-newsletter' )
 		);
 		self::field_textarea(
 			'form_consent_text',

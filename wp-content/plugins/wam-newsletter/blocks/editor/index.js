@@ -368,12 +368,23 @@
 							});
 						})
 						.catch(function () {});
-				}, 10000);
+				}, 4000);
 				return function () {
 					window.clearInterval(minuteur);
 				};
 			},
 			[statut, n.postId]
+		);
+
+		// Une fois l'envoi terminé, le message « Envoi lancé… » est périmé : il
+		// laissait croire que ça tournait encore.
+		useEffect(
+			function () {
+				if ('sent' === statut) {
+					setMessage(null);
+				}
+			},
+			[statut]
 		);
 
 		function basculerListe(id, coche) {
@@ -538,7 +549,8 @@
 							'p',
 							{ className: 'wam-nl-astuce' },
 							__('Pour en refaire une semblable, utilisez « Dupliquer » depuis la liste des newsletters.', 'wam-newsletter')
-						)
+						),
+						el(Button, { variant: 'secondary', onClick: props.onClose }, __('Fermer', 'wam-newsletter'))
 					),
 					'envoyee'
 				)
@@ -554,9 +566,19 @@
 						null,
 						el(Progression, { progress: progression }),
 						el(
-							Button,
-							{ variant: 'secondary', isDestructive: true, isBusy: 'arret' === occupe, onClick: arreter },
-							__('Arrêter l’envoi', 'wam-newsletter')
+							'p',
+							{ className: 'wam-nl-astuce' },
+							__('Vous pouvez fermer cette fenêtre : l’envoi continue en arrière-plan, même si vous quittez la page. Le détail de chaque message est dans « Journal d’envoi », depuis la liste des newsletters.', 'wam-newsletter')
+						),
+						el(
+							'div',
+							{ className: 'wam-nl-actions' },
+							el(Button, { variant: 'primary', onClick: props.onClose }, __('Fermer, l’envoi continue', 'wam-newsletter')),
+							el(
+								Button,
+								{ variant: 'secondary', isDestructive: true, isBusy: 'arret' === occupe, onClick: arreter },
+								__('Arrêter l’envoi', 'wam-newsletter')
+							)
 						)
 					),
 					'encours'
@@ -840,12 +862,43 @@
 		var statut = statutEtat[0];
 		var setStatut = statutEtat[1];
 
-		// Une newsletter déjà lancée s'ouvre directement sur son suivi d'envoi.
+		var progresEtat = useState(null);
+		var progres = progresEtat[0];
+		var setProgres = progresEtat[1];
+
+		// Une pause demande une décision : on ouvre directement l'écran. Pour le
+		// reste (en cours, envoyée), l'état est lisible sur le bouton de l'en-tête.
 		useEffect(function () {
-			if ('draft' !== statut && estNewsletter(n.postType)) {
+			if ('paused' === statut && estNewsletter(n.postType)) {
 				setOuvert(true);
 			}
 		}, []);
+
+		// Suivi de l'envoi même fenêtre fermée : le bouton de l'en-tête reste juste.
+		useEffect(
+			function () {
+				var actif = 'sending' === statut || 'scheduled' === statut;
+				if (!n.postId || !actif) {
+					return undefined;
+				}
+				function lire() {
+					apiFetch({ path: ns + '/progress?postId=' + n.postId })
+						.then(function (p) {
+							setProgres(p);
+							if (p && p.status) {
+								setStatut(p.status);
+							}
+						})
+						.catch(function () {});
+				}
+				lire();
+				var minuteur = window.setInterval(lire, 5000);
+				return function () {
+					window.clearInterval(minuteur);
+				};
+			},
+			[statut, n.postId]
+		);
 
 		if (!estNewsletter(n.postType)) {
 			return null;
@@ -869,6 +922,24 @@
 			? __('Enregistrer le brouillon', 'wam-newsletter')
 			: __('Brouillon enregistré ✓', 'wam-newsletter');
 
+		var libelleVoir = __('Voir l’envoi', 'wam-newsletter');
+		if ('sending' === statut) {
+			libelleVoir = progres && progres.total
+				? sprintf(
+						/* translators: 1: envoyés, 2: total */
+						__('Envoi en cours : %1$s / %2$s', 'wam-newsletter'),
+						(progres.sent || 0).toLocaleString('fr-FR'),
+						progres.total.toLocaleString('fr-FR')
+				  )
+				: __('Envoi en cours…', 'wam-newsletter');
+		} else if ('sent' === statut) {
+			libelleVoir = __('Envoyée ✓', 'wam-newsletter');
+		} else if ('paused' === statut) {
+			libelleVoir = __('Envoi en pause', 'wam-newsletter');
+		} else if ('scheduled' === statut) {
+			libelleVoir = __('Envoi programmé', 'wam-newsletter');
+		}
+
 		var boutons = el(
 			'div',
 			{ className: 'wam-nl-entete__boutons' + (hote ? '' : ' is-flottante') },
@@ -889,7 +960,7 @@
 			el(
 				Button,
 				{ variant: 'primary', onClick: suivant },
-				brouillon ? __('Suivant : préparer l’envoi', 'wam-newsletter') + ' →' : __('Voir l’envoi', 'wam-newsletter')
+				brouillon ? __('Suivant : préparer l’envoi', 'wam-newsletter') + ' →' : libelleVoir
 			)
 		);
 

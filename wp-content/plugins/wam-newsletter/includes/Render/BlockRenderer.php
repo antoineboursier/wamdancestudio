@@ -21,9 +21,31 @@ class BlockRenderer {
 	 * @param array $blocs Sortie de parse_blocks().
 	 */
 	public static function render_list( array $blocs ): string {
-		$html = '';
+		// Seuls les blocs nommés comptent : le « bloc classique » entre deux blocs
+		// n'est qu'un saut de ligne et ne rend rien.
+		$nommes = array_values(
+			array_filter(
+				$blocs,
+				static function ( $bloc ) {
+					return '' !== (string) ( ( (array) $bloc )['blockName'] ?? '' );
+				}
+			)
+		);
+
+		$html   = '';
+		$indice = 0;
 		foreach ( $blocs as $bloc ) {
-			$html .= self::render( (array) $bloc );
+			$bloc = (array) $bloc;
+			if ( 'core/image' === ( $bloc['blockName'] ?? '' ) ) {
+				// Une image a besoin d'air du côté où il y a du contenu : 24px de
+				// plus que l'espacement courant, mais rien en tête ou en fin d'e-mail.
+				$html .= Core::image( $bloc, $indice > 0, $indice < count( $nommes ) - 1 );
+			} else {
+				$html .= self::render( $bloc );
+			}
+			if ( '' !== (string) ( $bloc['blockName'] ?? '' ) ) {
+				++$indice;
+			}
 		}
 		return $html;
 	}

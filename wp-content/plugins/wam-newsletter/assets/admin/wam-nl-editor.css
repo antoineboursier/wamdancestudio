@@ -428,3 +428,10 @@
 	font-size: 16px;
 	font-weight: 600;
 }
+
+.wam-nl-actions {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 8px;
+	margin-top: 12px;
+}

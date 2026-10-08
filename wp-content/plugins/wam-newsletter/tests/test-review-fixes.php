@@ -232,6 +232,31 @@ try {
 	wam_nl_assert_equals( 'publish', get_post_status( $envoi ), 'passée en « publiée » à l’envoi définitif' );
 	Scheduler::unschedule( $envoi );
 
+	// ---------------------------------------------------------------
+	echo "== Images : 24px d'air du côté où il y a du contenu ==
+";
+	$para  = "<!-- wp:paragraph --><p>Texte</p><!-- /wp:paragraph -->";
+	$image = '<!-- wp:image --><figure class="wp-block-image"><img src="https://exemple.test/a.jpg" alt="a"/></figure><!-- /wp:image -->';
+	$rendre = static function ( string $contenu ): string {
+		return \WamNewsletter\Render\BlockRenderer::render_list( parse_blocks( $contenu ) );
+	};
+	$au_milieu = $rendre( $para . "
+
+" . $image . "
+
+" . $para );
+	wam_nl_assert( false !== strpos( $au_milieu, 'padding:36px 20px 36px;' ), 'image entre deux blocs : 36px en haut et en bas' );
+	$en_tete = $rendre( $image . "
+
+" . $para );
+	wam_nl_assert( false !== strpos( $en_tete, 'padding:12px 20px 36px;' ), 'image en tête : rien en haut, 36px en bas' );
+	$en_fin = $rendre( $para . "
+
+" . $image );
+	wam_nl_assert( false !== strpos( $en_fin, 'padding:36px 20px 12px;' ), 'image en fin : 36px en haut, rien en bas' );
+	$seule = $rendre( $image );
+	wam_nl_assert( false !== strpos( $seule, 'padding:12px 20px 12px;' ), 'image seule : espacement de base' );
+
 } finally {
 	$nettoyer();
 	if ( false === $reglages_initiaux ) {

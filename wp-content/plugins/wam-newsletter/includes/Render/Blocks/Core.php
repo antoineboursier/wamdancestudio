@@ -183,7 +183,7 @@ class Core {
 	 * Passe systématiquement par Images::email_image() : une image du site est
 	 * en AVIF, invisible dans Outlook desktop (§7.6.4).
 	 */
-	public static function image( array $bloc ): string {
+	public static function image( array $bloc, bool $contenu_avant = false, bool $contenu_apres = false ): string {
 		$attrs = (array) ( $bloc['attrs'] ?? array() );
 		$id    = (int) ( $attrs['id'] ?? 0 );
 
@@ -227,7 +227,17 @@ class Core {
 
 		$align = in_array( $attrs['align'] ?? '', array( 'center', 'right' ), true ) ? $attrs['align'] : 'left';
 
-		return Html::row( $img, array( 'align' => $align ) );
+		// 12px d'espacement de base + 24px d'air du côté où il y a du contenu.
+		$haut = $contenu_avant ? 36 : 12;
+		$bas  = $contenu_apres ? 36 : 12;
+
+		return Html::row(
+			$img,
+			array(
+				'align'   => $align,
+				'padding' => $haut . 'px ' . Brand::GUTTER . 'px ' . $bas . 'px',
+			)
+		);
 	}
 
 	/**

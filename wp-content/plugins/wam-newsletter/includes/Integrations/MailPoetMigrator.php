@@ -97,6 +97,7 @@ class MailPoetMigrator {
 			'lists'   => array(),
 			'errors'  => array(),
 			'dry_run' => $a_blanc,
+			'suppressed' => 0,
 		);
 
 		if ( ! self::available() ) {
@@ -221,7 +222,69 @@ class MailPoetMigrator {
 			$offset += $taille;
 		} while ( count( $lignes ) === $taille );
 
+		$rapport['suppressed'] = self::import_suppressions( $a_blanc );
+
 		return $rapport;
+	}
+
+	/**
+	 * Reprend la liste de suppression de MailPoet : désabonné·es et rebonds.
+	 *
+	 * Ces personnes ne reçoivent rien, mais elles DOIVENT exister chez nous avec
+	 * leur statut. Sinon l'import WooCommerce, qui rattrape tout client absent de
+	 * la table, les recréerait comme abonné·es et la première newsletter partirait
+	 * vers quelqu'un qui s'était désinscrit·e (RGPD), ou vers une adresse en
+	 * rebond (qui pèse sur la limite d'échecs horaire d'o2switch).
+	 *
+	 * @return int Nombre de personnes ajoutées à la liste de suppression.
+	 */
+	private static function import_suppressions( bool $a_blanc ): int {
+		global $wpdb;
+		$t      = self::table( 'subscribers' );
+		$ajoute = 0;
+		$offset = 0;
+		$taille = 500;
+
+		do {
+			$lignes = (array) $wpdb->get_results(
+				$wpdb->prepare(
+					"SELECT email, first_name, last_name, status, created_at
+					 FROM `$t`
+					 WHERE status IN (%s, %s) AND deleted_at IS NULL
+					 ORDER BY id ASC LIMIT %d OFFSET %d",
+					'unsubscribed',
+					'bounced',
+					$taille,
+					$offset
+				),
+				ARRAY_A
+			);
+
+			foreach ( $lignes as $mp ) {
+				$email = Subscribers::normalize_email( $mp['email'] );
+				if ( '' === $email || Subscribers::find_by_email( $email ) ) {
+					continue;
+				}
+				++$ajoute;
+				if ( $a_blanc ) {
+					continue;
+				}
+				Subscribers::insert(
+					array(
+						'email'          => $email,
+						'first_name'     => (string) $mp['first_name'],
+						'last_name'      => (string) $mp['last_name'],
+						'status'         => 'bounced' === $mp['status'] ? Subscribers::STATUS_BOUNCED : Subscribers::STATUS_UNSUBSCRIBED,
+						'consent_source' => 'mailpoet',
+						'created_at'     => Subscribers::datetime( $mp['created_at'] ),
+					)
+				);
+			}
+
+			$offset += $taille;
+		} while ( count( $lignes ) === $taille );
+
+		return $ajoute;
 	}
 
 	/**

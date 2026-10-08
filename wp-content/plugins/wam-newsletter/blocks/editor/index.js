@@ -638,7 +638,7 @@
 					  )
 					: null,
 
-				!enCours && !envoyee && !programmee
+				!enCours && !envoyee && !programmee && !enPause
 					? el(
 							Fragment,
 							null,

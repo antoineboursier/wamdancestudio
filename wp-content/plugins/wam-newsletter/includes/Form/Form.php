@@ -194,7 +194,6 @@ class Form {
 			<form class="wam-contact-form wam-nl-form" id="<?php echo esc_attr( $uid ); ?>" method="post"
 				action="<?php echo esc_url( admin_url( 'admin-ajax.php' ) ); ?>" novalidate>
 
-				<?php wp_nonce_field( self::NONCE, 'wam_nl_nonce' ); ?>
 				<input type="hidden" name="action" value="<?php echo esc_attr( self::ACTION ); ?>">
 
 				<div class="wam-form-row form-row-2">
@@ -299,10 +298,12 @@ class Form {
 		}
 		self::rate_hit();
 
-		$nonce = isset( $_POST['wam_nl_nonce'] ) ? sanitize_text_field( wp_unslash( $_POST['wam_nl_nonce'] ) ) : '';
-		if ( ! wp_verify_nonce( $nonce, self::NONCE ) ) {
-			self::fail( __( 'Votre session a expiré. Rechargez la page et réessayez.', 'wam-newsletter' ), 403 );
-		}
+		// Pas de nonce : la page du formulaire est publique et mise en cache par
+		// LiteSpeed. Un nonce y serait périmé au bout de 12 à 24 h et le formulaire
+		// échouerait pour tout le monde jusqu'au prochain Purge All. Il ne protège
+		// de toute façon rien ici (inscription anonyme, sans session) : la défense
+		// est le honeypot, la limitation par IP et le lien de confirmation envoyé
+		// aux personnes déjà désinscrites.
 
 		if ( empty( $_POST['consentement'] ) ) {
 			self::fail( __( 'Merci de cocher la case de consentement pour vous inscrire.', 'wam-newsletter' ) );
@@ -344,6 +345,23 @@ class Form {
 		$existant = Subscribers::find_by_email( $email );
 		$etait_actif = $existant && Subscribers::STATUS_SUBSCRIBED === $existant['status'];
 
+		// ⚠️ Le formulaire est public : n'importe qui peut y saisir l'adresse d'un
+		// tiers. Une personne désinscrite (ou en rebond, ou retirée à la main) ne
+		// repasse donc JAMAIS abonnée sur la seule foi du formulaire. Pour une
+		// désinscrite, on envoie un lien de confirmation à l'adresse : seul·e son
+		// titulaire peut le cliquer. Réponse identique dans tous les cas, pour que
+		// le formulaire ne révèle pas qui figure dans la base.
+		if ( $existant && ! $etait_actif ) {
+			if ( Subscribers::STATUS_UNSUBSCRIBED === $existant['status'] ) {
+				self::send_reconfirmation( $email, $prenom, (string) $existant['token'] );
+			}
+			return array(
+				'message' => __( 'Merci ! Si cette adresse peut être inscrite, vous allez recevoir un e-mail de confirmation.', 'wam-newsletter' ),
+				'id'      => (int) $existant['id'],
+				'deja'    => false,
+			);
+		}
+
 		$resultat = Subscribers::upsert(
 			array(
 				'email'          => $email,
@@ -352,21 +370,11 @@ class Form {
 				'consent_source' => 'form',
 				'consent_at'     => current_time( 'mysql' ),
 				'list_ids'       => $liste ? array( $liste ) : array(),
-			),
-			// Seul chemin du plugin autorisé à réabonner : c'est la personne
-			// elle-même qui le demande, en cochant la case de consentement (§6).
-			array( 'allow_resubscribe' => true )
+			)
 		);
 
 		if ( is_wp_error( $resultat ) ) {
 			return $resultat;
-		}
-
-		// Une personne mise à la corbeille ou marquée en rebond qui s'inscrit à
-		// nouveau redevient abonnée : sa demande est explicite et datée.
-		$ligne = Subscribers::find( $resultat['id'] );
-		if ( $ligne && in_array( $ligne['status'], array( Subscribers::STATUS_TRASHED, Subscribers::STATUS_BOUNCED ), true ) ) {
-			Subscribers::set_status( $resultat['id'], Subscribers::STATUS_SUBSCRIBED );
 		}
 
 		// E-mail de bienvenue : seulement pour une vraie nouvelle inscription,
@@ -382,6 +390,34 @@ class Form {
 				: __( 'Merci, votre inscription est bien enregistrée.', 'wam-newsletter' ),
 			'id'      => (int) $resultat['id'],
 			'deja'    => $etait_actif,
+		);
+	}
+
+	/**
+	 * Lien de confirmation envoyé à une personne désinscrite qui se réinscrit.
+	 * Un seul envoi par adresse et par heure : le formulaire ne doit pas servir à
+	 * inonder la boîte de quelqu'un d'autre.
+	 */
+	public static function send_reconfirmation( string $email, string $prenom, string $token ): bool {
+		$cle = 'wam_nl_rc_' . md5( $email );
+		if ( get_transient( $cle ) ) {
+			return false;
+		}
+		set_transient( $cle, 1, HOUR_IN_SECONDS );
+
+		$lien  = \WamNewsletter\Tracking\Links::confirm_url( $token );
+		$sujet = __( 'Confirmez votre inscription à la newsletter WAM Dance Studio', 'wam-newsletter' );
+		$corps = sprintf(
+			/* translators: 1: prénom, 2: lien de confirmation */
+			__( "Bonjour %1\$s,\n\nVous avez demandé à recevoir à nouveau la newsletter de WAM Dance Studio. Pour confirmer, cliquez sur ce lien :\n\n%2\$s\n\nSi vous n'êtes pas à l'origine de cette demande, ignorez simplement ce message : rien ne sera modifié.", 'wam-newsletter' ),
+			'' !== $prenom ? $prenom : '',
+			$lien
+		);
+
+		return (bool) Mailer::with_sender(
+			static function () use ( $email, $sujet, $corps ) {
+				return wp_mail( $email, $sujet, $corps );
+			}
 		);
 	}
 

@@ -20,6 +20,7 @@ class Links {
 	const PARAM_VIEW  = 'wam_nl_view';
 	const PARAM_CLICK = 'wam_nl_click';
 	const PARAM_OPEN  = 'wam_nl_open';
+	const PARAM_CONFIRM = 'wam_nl_confirm';
 
 	/** Longueur de la signature conservée. 16 hexa = 64 bits, suffisant ici. */
 	const SIG_LENGTH = 16;
@@ -39,6 +40,16 @@ class Links {
 	 */
 	public static function unsubscribe_url( string $token ): string {
 		return add_query_arg( self::PARAM_UNSUB, $token, home_url( '/' ) );
+	}
+
+	/**
+	 * Confirmation d'un réabonnement demandé par le formulaire public.
+	 *
+	 * Quelqu'un qui s'était désinscrit ne repasse abonné qu'en prouvant qu'il
+	 * possède l'adresse : le lien part par e-mail, personne d'autre ne l'a.
+	 */
+	public static function confirm_url( string $token ): string {
+		return add_query_arg( self::PARAM_CONFIRM, $token, home_url( '/' ) );
 	}
 
 	/** Adresse mailto de repli des en-têtes List-Unsubscribe (§8.3). */

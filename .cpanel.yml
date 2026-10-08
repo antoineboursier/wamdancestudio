@@ -5,3 +5,4 @@ deployment:
     - /bin/cp -r wp-content/themes/wamV1/. /home/yuqo3097/public_html/wp-content/themes/wamV1/
     - /bin/mkdir -p /home/yuqo3097/public_html/wp-content/plugins/wam-newsletter/
     - /bin/cp -r wp-content/plugins/wam-newsletter/. /home/yuqo3097/public_html/wp-content/plugins/wam-newsletter/
+    - /bin/rm -rf /home/yuqo3097/public_html/wp-content/plugins/wam-newsletter/tests

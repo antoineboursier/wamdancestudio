@@ -20,6 +20,7 @@ class Queue {
 	const STATUS_PENDING = 'pending';
 	const STATUS_SENT    = 'sent';
 	const STATUS_FAILED  = 'failed';
+	const STATUS_SENDING = 'sending';
 
 	public static function table(): string {
 		return Install::table( 'queue' );
@@ -93,6 +94,78 @@ class Queue {
 		);
 	}
 
+	/**
+	 * Réserve une ligne avant l'envoi.
+	 *
+	 * La ligne passe de « pending » à « sending » en une seule requête : si deux
+	 * exécutions se chevauchent, une seule gagne et la personne ne reçoit pas
+	 * l'e-mail en double. Une ligne restée « sending » (processus tué en plein
+	 * envoi) n'est JAMAIS renvoyée d'office : on ne sait pas si le message est
+	 * parti, et un doublon est pire qu'un oubli signalé (cf. release_stale()).
+	 */
+	public static function claim( int $id ): bool {
+		global $wpdb;
+		$t = self::table();
+		$wpdb->query(
+			$wpdb->prepare(
+				"UPDATE `$t` SET status = %s, sent_at = %s WHERE id = %d AND status = %s",
+				self::STATUS_SENDING,
+				current_time( 'mysql' ),
+				$id,
+				self::STATUS_PENDING
+			)
+		);
+		return 1 === (int) $wpdb->rows_affected;
+	}
+
+	/**
+	 * Lignes restées « sending » depuis trop longtemps : le processus est mort
+	 * pendant l'envoi. Elles passent en échec avec 2 tentatives, donc la reprise
+	 * automatique ne les rejoue pas, et le journal montre l'adresse à vérifier.
+	 *
+	 * @return int Nombre de lignes libérées.
+	 */
+	public static function release_stale( int $newsletter_id, int $secondes = 600 ): int {
+		global $wpdb;
+		$t      = self::table();
+		$depuis = current_datetime()->modify( '-' . max( 60, $secondes ) . ' seconds' )->format( 'Y-m-d H:i:s' );
+
+		$wpdb->query(
+			$wpdb->prepare(
+				"UPDATE `$t` SET status = %s, attempts = 2, last_error = %s
+				 WHERE newsletter_id = %d AND status = %s AND sent_at < %s",
+				self::STATUS_FAILED,
+				__( 'Envoi interrompu : on ignore si le message est parti, à vérifier avant de renvoyer.', 'wam-newsletter' ),
+				$newsletter_id,
+				self::STATUS_SENDING,
+				$depuis
+			)
+		);
+		return (int) $wpdb->rows_affected;
+	}
+
+	/** Cette personne figure-t-elle dans la file de cet envoi ? */
+	public static function has( int $newsletter_id, int $subscriber_id ): bool {
+		global $wpdb;
+		$t = self::table();
+		return (bool) $wpdb->get_var(
+			$wpdb->prepare( "SELECT 1 FROM `$t` WHERE newsletter_id = %d AND subscriber_id = %d LIMIT 1", $newsletter_id, $subscriber_id )
+		);
+	}
+
+	/** Dernière newsletter réellement envoyée à cette personne (0 si aucune). */
+	public static function last_sent_newsletter( int $subscriber_id ): int {
+		global $wpdb;
+		$t = self::table();
+		return (int) $wpdb->get_var(
+			$wpdb->prepare(
+				"SELECT newsletter_id FROM `$t` WHERE subscriber_id = %d AND status = %s ORDER BY sent_at DESC, id DESC LIMIT 1",
+				$subscriber_id,
+				self::STATUS_SENT
+			)
+		);
+	}
+
 	public static function mark_sent( int $id ): void {
 		global $wpdb;
 		$wpdb->update(
@@ -101,6 +174,25 @@ class Queue {
 				'status'     => self::STATUS_SENT,
 				'sent_at'    => current_time( 'mysql' ),
 				'last_error' => null,
+			),
+			array( 'id' => $id )
+		);
+	}
+
+	/**
+	 * Ligne écartée sans tentative d'envoi (personne désabonnée entre-temps).
+	 * Sans horodatage, elle ne compte pas dans les échecs de l'heure, et deux
+	 * tentatives simulées la sortent de la reprise automatique.
+	 */
+	public static function mark_skipped( int $id, string $raison ): void {
+		global $wpdb;
+		$wpdb->update(
+			self::table(),
+			array(
+				'status'     => self::STATUS_FAILED,
+				'attempts'   => 2,
+				'sent_at'    => null,
+				'last_error' => mb_substr( $raison, 0, 500 ),
 			),
 			array( 'id' => $id )
 		);
@@ -167,7 +259,7 @@ class Queue {
 	 * Mesuré sur `sent_at` des lignes en échec : la colonne est renseignée à
 	 * chaque tentative, qu'elle réussisse ou non.
 	 */
-	public static function recent_failures( int $newsletter_id, int $secondes = 3600 ): int {
+	public static function recent_failures( int $newsletter_id, int $secondes = 3600, string $apres = '' ): int {
 		global $wpdb;
 		$t = self::table();
 
@@ -176,6 +268,13 @@ class Queue {
 		// gmdate() décalait la fenêtre de l'écart horaire (deux heures en été),
 		// ce qui élargissait silencieusement le seuil de pause automatique.
 		$depuis = current_datetime()->modify( '-' . max( 0, $secondes ) . ' seconds' )->format( 'Y-m-d H:i:s' );
+
+		// $apres : instant de la dernière reprise. Les échecs antérieurs ont déjà
+		// déclenché la pause ; les recompter remettrait l'envoi en pause dès le
+		// premier lot repris, même réussi.
+		if ( '' !== $apres && $apres > $depuis ) {
+			$depuis = $apres;
+		}
 
 		return (int) $wpdb->get_var(
 			$wpdb->prepare(

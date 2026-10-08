@@ -3,6 +3,7 @@ namespace WamNewsletter\Tracking;
 
 use WamNewsletter\Editor\NewsletterPostType;
 use WamNewsletter\Render\EmailRenderer;
+use WamNewsletter\Sending\Queue;
 use WamNewsletter\Settings\Settings;
 use WamNewsletter\Stats\Events;
 use WamNewsletter\Subscribers\Repository as Subscribers;
@@ -36,7 +37,7 @@ class Endpoints {
 
 	/** Vrai si la requête courante cible un endpoint du plugin. */
 	public static function is_endpoint(): bool {
-		foreach ( array( Links::PARAM_UNSUB, Links::PARAM_VIEW, Links::PARAM_OPEN, Links::PARAM_CLICK ) as $param ) {
+		foreach ( array( Links::PARAM_UNSUB, Links::PARAM_VIEW, Links::PARAM_OPEN, Links::PARAM_CLICK, Links::PARAM_CONFIRM ) as $param ) {
 			if ( isset( $_GET[ $param ] ) ) {
 				return true;
 			}
@@ -71,6 +72,9 @@ class Endpoints {
 		}
 		if ( isset( $_GET[ Links::PARAM_UNSUB ] ) ) {
 			self::handle_unsubscribe();
+		}
+		if ( isset( $_GET[ Links::PARAM_CONFIRM ] ) ) {
+			self::handle_confirm();
 		}
 		if ( isset( $_GET[ Links::PARAM_VIEW ] ) ) {
 			self::handle_view();
@@ -112,7 +116,10 @@ class Endpoints {
 	private static function handle_click(): void {
 		$newsletter_id = (int) $_GET[ Links::PARAM_CLICK ];
 		$token         = self::token_param();
-		$destination   = isset( $_GET['u'] ) ? rawurldecode( (string) wp_unslash( $_GET['u'] ) ) : '';
+		// PHP a déjà décodé le paramètre en remplissant $_GET : un second
+		// rawurldecode() altérerait toute URL contenant « %20 », « %26 » ou des
+		// accents encodés, et la signature ne correspondrait plus.
+		$destination   = isset( $_GET['u'] ) ? (string) wp_unslash( $_GET['u'] ) : '';
 		$signature     = isset( $_GET['s'] ) ? sanitize_text_field( wp_unslash( $_GET['s'] ) ) : '';
 
 		$valide = '' !== $destination
@@ -140,23 +147,36 @@ class Endpoints {
 	/**
 	 * Désinscription (§8.4).
 	 *
-	 * En POST : désinscription immédiate sans confirmation, c'est ce qu'exige
-	 * `List-Unsubscribe-Post: List-Unsubscribe=One-Click`.
-	 * En GET : même traitement puis page de confirmation — les clients qui
-	 * préchargent les liens le font en GET, mais une désinscription demandée est
-	 * une demande explicite, et la page offre le réabonnement.
+	 * Un GET ne modifie RIEN : il affiche une page avec un bouton. Les passerelles
+	 * de sécurité (Safe Links, Proofpoint, Mimecast…) et certains clients mail
+	 * suivent chaque lien d'un e-mail pour l'analyser ; si le GET désabonnait,
+	 * une partie de la liste disparaîtrait sans que personne l'ait demandé.
+	 *
+	 * Le POST désabonne : celui d'un client mail (`List-Unsubscribe=One-Click`,
+	 * réponse muette en 200) comme celui du bouton de la page.
 	 */
 	private static function handle_unsubscribe(): void {
-		$token  = sanitize_text_field( wp_unslash( (string) $_GET[ Links::PARAM_UNSUB ] ) );
-		$abonne = Subscribers::find_by_token( $token );
-		$un_clic = isset( $_SERVER['REQUEST_METHOD'] ) && 'POST' === strtoupper( (string) $_SERVER['REQUEST_METHOD'] );
+		$token   = sanitize_text_field( wp_unslash( (string) $_GET[ Links::PARAM_UNSUB ] ) );
+		$abonne  = Subscribers::find_by_token( $token );
+		$methode = isset( $_SERVER['REQUEST_METHOD'] ) ? strtoupper( (string) $_SERVER['REQUEST_METHOD'] ) : 'GET';
+
+		if ( 'POST' !== $methode ) {
+			self::render_confirm_page(
+				__( 'Désinscription', 'wam-newsletter' ),
+				__( 'Souhaites-tu ne plus recevoir la newsletter de WAM Dance Studio ?', 'wam-newsletter' ),
+				__( 'Me désinscrire', 'wam-newsletter' )
+			);
+		}
 
 		if ( $abonne && Subscribers::STATUS_UNSUBSCRIBED !== $abonne['status'] ) {
 			Subscribers::set_status( (int) $abonne['id'], Subscribers::STATUS_UNSUBSCRIBED );
-			Events::record( 0, (int) $abonne['id'], Events::TYPE_UNSUBSCRIBE );
+			// Le lien ne porte que le token : la désinscription est rattachée à
+			// la dernière newsletter reçue, sans quoi les statistiques ne la
+			// verraient jamais.
+			Events::record( Queue::last_sent_newsletter( (int) $abonne['id'] ), (int) $abonne['id'], Events::TYPE_UNSUBSCRIBE );
 		}
 
-		if ( $un_clic ) {
+		if ( isset( $_POST['List-Unsubscribe'] ) ) {
 			// Réponse volontairement muette et toujours 200 : le serveur de
 			// messagerie n'affiche rien, et un code d'erreur sur un token
 			// inconnu révélerait quelque chose.
@@ -167,6 +187,58 @@ class Endpoints {
 		}
 
 		self::render_unsubscribe_page( null !== $abonne );
+	}
+
+	/**
+	 * Réabonnement demandé par le formulaire public, après confirmation par e-mail.
+	 * Même principe que la désinscription : le GET n'écrit rien, le POST confirme.
+	 */
+	private static function handle_confirm(): void {
+		$token   = sanitize_text_field( wp_unslash( (string) $_GET[ Links::PARAM_CONFIRM ] ) );
+		$abonne  = Subscribers::find_by_token( $token );
+		$methode = isset( $_SERVER['REQUEST_METHOD'] ) ? strtoupper( (string) $_SERVER['REQUEST_METHOD'] ) : 'GET';
+
+		if ( 'POST' !== $methode ) {
+			self::render_confirm_page(
+				__( 'Réinscription', 'wam-newsletter' ),
+				__( 'Confirmes-tu vouloir recevoir à nouveau la newsletter de WAM Dance Studio ?', 'wam-newsletter' ),
+				__( 'Je confirme mon inscription', 'wam-newsletter' )
+			);
+		}
+
+		if ( $abonne && Subscribers::STATUS_UNSUBSCRIBED === $abonne['status'] ) {
+			Subscribers::resubscribe( (int) $abonne['id'], 'form' );
+		}
+
+		wp_die(
+			'<p>' . esc_html__( 'Merci, ton inscription à la newsletter est confirmée.', 'wam-newsletter' ) . '</p><p><a href="' . esc_url( home_url( '/' ) ) . '">' . esc_html__( 'Retour au site', 'wam-newsletter' ) . '</a></p>',
+			esc_html__( 'Réinscription', 'wam-newsletter' ),
+			array(
+				'response'  => 200,
+				'back_link' => false,
+			)
+		);
+	}
+
+	/** Page à un bouton : l'action n'a lieu qu'au POST. Ne rend pas la main. */
+	private static function render_confirm_page( string $titre, string $question, string $bouton ): void {
+		nocache_headers();
+		header( 'X-Robots-Tag: noindex, nofollow' );
+
+		$corps  = '<p>' . esc_html( $question ) . '</p>';
+		$corps .= '<form method="post" action=""><p><button type="submit" class="button button-primary">' . esc_html( $bouton ) . '</button></p></form>';
+		$corps .= '<p><a href="' . esc_url( home_url( '/' ) ) . '">' . esc_html__( 'Non, retour au site', 'wam-newsletter' ) . '</a></p>';
+
+		// Construit uniquement avec des valeurs échappées ci-dessus : pas de kses,
+		// qui retirerait le formulaire.
+		wp_die(
+			$corps, // phpcs:ignore WordPress.Security.EscapeOutput
+			esc_html( $titre ),
+			array(
+				'response'  => 200,
+				'back_link' => false,
+			)
+		);
 	}
 
 	/**
@@ -210,9 +282,16 @@ class Endpoints {
 		$abonne        = Subscribers::find_by_token( self::token_param() );
 		$post          = $newsletter_id ? get_post( $newsletter_id ) : null;
 
-		$autorise = $abonne
-			&& $post
-			&& NewsletterPostType::POST_TYPE === $post->post_type;
+		$est_admin = current_user_can( 'wam_nl_manage' );
+
+		// Un token d'abonné·e ne suffit pas : la personne doit figurer dans la file
+		// de CET envoi. Sinon n'importe quel abonné·e, en parcourant les
+		// identifiants, lirait les newsletters pas encore envoyées ou adressées aux
+		// autres. L'équipe (capacité wam_nl_manage) garde l'accès, pour ses tests.
+		$autorise = $post
+			&& NewsletterPostType::POST_TYPE === $post->post_type
+			&& $abonne
+			&& ( $est_admin || Queue::has( $newsletter_id, (int) $abonne['id'] ) );
 
 		if ( ! $autorise ) {
 			status_header( 404 );
@@ -229,6 +308,19 @@ class Endpoints {
 
 		$html = (string) get_post_meta( $newsletter_id, '_wam_nl_rendered_html', true );
 		if ( '' === $html ) {
+			// Pas de HTML figé = envoi jamais lancé : seule l'équipe voit le brouillon.
+			if ( ! $est_admin ) {
+				status_header( 404 );
+				nocache_headers();
+				wp_die(
+					esc_html__( 'Cette newsletter n’est pas disponible.', 'wam-newsletter' ),
+					esc_html__( 'Introuvable', 'wam-newsletter' ),
+					array(
+						'response'  => 404,
+						'back_link' => false,
+					)
+				);
+			}
 			$html = EmailRenderer::render( $newsletter_id );
 		}
 

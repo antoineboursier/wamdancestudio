@@ -368,6 +368,24 @@ class Repository {
 	}
 
 	/**
+	 * Réabonne une personne désinscrite. À n'appeler qu'après une preuve que la
+	 * personne possède l'adresse (clic sur le lien envoyé par e-mail).
+	 */
+	public static function resubscribe( int $id, string $source = 'form' ): bool {
+		global $wpdb;
+		$ligne = array(
+			'status'          => self::STATUS_SUBSCRIBED,
+			'unsubscribed_at' => null,
+			'consent_at'      => current_time( 'mysql' ),
+			'updated_at'      => current_time( 'mysql' ),
+		);
+		if ( in_array( $source, self::SOURCES, true ) ) {
+			$ligne['consent_source'] = $source;
+		}
+		return false !== $wpdb->update( self::table(), $ligne, array( 'id' => $id ) );
+	}
+
+	/**
 	 * Crée ou complète un·e abonné·e, sans jamais réabonner un désabonné·e.
 	 *
 	 * C'est le point d'entrée de tous les imports : la garantie « aucun

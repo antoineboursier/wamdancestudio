@@ -39,6 +39,13 @@ class Scheduler {
 	const META_SENT_AT  = '_wam_nl_sent_at';
 	const META_PAUSE    = '_wam_nl_pause_reason';
 	const META_RETRIED  = '_wam_nl_retried';
+	const META_RESUMED  = '_wam_nl_resumed_at';
+
+	/** Durée maximale d'un lot (secondes) : Action Scheduler coupe vers 30 s. */
+	const BATCH_BUDGET = 20;
+
+	/** Au-delà, un verrou est considéré comme abandonné par un processus mort. */
+	const LOCK_TTL = 600;
 
 	public static function register_hooks(): void {
 		add_action( self::HOOK, array( self::class, 'process' ), 10, 1 );
@@ -81,6 +88,22 @@ class Scheduler {
 			return new WP_Error( 'wam_nl_deja', __( 'Cette newsletter est déjà en cours d’envoi ou envoyée.', 'wam-newsletter' ) );
 		}
 
+		// ⚠️ Reconstruire la file efface qui a déjà reçu l'e-mail : relancer un
+		// envoi interrompu le renverrait à tout le monde. Une pause se reprend avec
+		// « Reprendre », jamais avec « Envoyer ».
+		if ( self::STATUS_PAUSED === $statut ) {
+			$deja = Queue::counts( $newsletter_id );
+			if ( $deja['sent'] > 0 || $deja['failed'] > 0 || ( $deja['sending'] ?? 0 ) > 0 ) {
+				return new WP_Error( 'wam_nl_en_pause', __( 'Cet envoi est en pause et a déjà commencé : utilisez « Reprendre l’envoi », sinon les personnes déjà servies le recevraient une seconde fois.', 'wam-newsletter' ) );
+			}
+		}
+
+		// Reprogrammer un envoi déjà programmé : l'ancienne action serait sinon
+		// conservée et deux chaînes tourneraient en parallèle.
+		if ( self::STATUS_SCHEDULED === $statut ) {
+			self::unschedule( $newsletter_id );
+		}
+
 		$sujet = trim( (string) get_post_meta( $newsletter_id, '_wam_nl_subject', true ) );
 		if ( '' === $sujet ) {
 			return new WP_Error( 'wam_nl_objet', __( 'L’objet est obligatoire avant tout envoi.', 'wam-newsletter' ) );
@@ -113,6 +136,7 @@ class Scheduler {
 
 		delete_post_meta( $newsletter_id, self::META_PAUSE );
 		delete_post_meta( $newsletter_id, self::META_RETRIED );
+		delete_post_meta( $newsletter_id, self::META_RESUMED );
 
 		$horodatage = self::timestamp( $quand );
 
@@ -209,6 +233,43 @@ class Scheduler {
 			return;
 		}
 
+		// Une seule exécution à la fois par newsletter : sinon deux lots lisent les
+		// mêmes lignes « pending » et les mêmes personnes reçoivent l'e-mail deux fois.
+		if ( ! self::lock( $newsletter_id ) ) {
+			return;
+		}
+
+		try {
+			self::run_batch( $newsletter_id );
+		} finally {
+			self::unlock( $newsletter_id );
+		}
+	}
+
+	/**
+	 * Verrou atomique : add_option échoue si l'option existe déjà. Un verrou plus
+	 * vieux que LOCK_TTL appartient à un processus mort et est repris.
+	 */
+	private static function lock( int $newsletter_id ): bool {
+		$cle = 'wam_nl_lock_' . $newsletter_id;
+		if ( add_option( $cle, time(), '', 'no' ) ) {
+			return true;
+		}
+		wp_cache_delete( $cle, 'options' );
+		wp_cache_delete( 'alloptions', 'options' );
+		$pris_depuis = (int) get_option( $cle, 0 );
+		if ( $pris_depuis > 0 && ( time() - $pris_depuis ) > self::LOCK_TTL ) {
+			delete_option( $cle );
+			return add_option( $cle, time(), '', 'no' );
+		}
+		return false;
+	}
+
+	private static function unlock( int $newsletter_id ): void {
+		delete_option( 'wam_nl_lock_' . $newsletter_id );
+	}
+
+	private static function run_batch( int $newsletter_id ): void {
 		$reglages = Settings::all();
 		$taille   = max( 1, (int) $reglages['batch_size'] );
 		$seuil_k  = max( 1, (int) $reglages['fail_threshold_batch'] );
@@ -222,6 +283,31 @@ class Scheduler {
 			return;
 		}
 
+		$intervalle = max( 10, (int) $reglages['batch_interval'] );
+
+		// Lignes laissées « sending » par un processus mort : on les sort du jeu
+		// (sans les renvoyer) pour que l'envoi puisse se terminer.
+		$orphelines = Queue::release_stale( $newsletter_id );
+		if ( $orphelines > 0 ) {
+			Log::record(
+				$newsletter_id,
+				Log::TYPE_BATCH,
+				sprintf(
+					/* translators: %d nombre d'adresses */
+					__( '%d adresse(s) restée(s) en cours d’envoi après une interruption : non renvoyées, à vérifier dans le journal.', 'wam-newsletter' ),
+					$orphelines
+				),
+				Queue::counts( $newsletter_id )
+			);
+		}
+
+		// Filet de sécurité : si PHP meurt en plein lot (délai dépassé, mémoire),
+		// la fin de cette fonction n'est jamais atteinte et la chaîne s'arrêterait
+		// sans bruit. On planifie donc d'emblée un passage de rattrapage, que le
+		// déroulé normal remplace à la fin du lot.
+		self::unschedule( $newsletter_id );
+		self::schedule( $newsletter_id, time() + $intervalle + 180 );
+
 		$lot = Queue::next_batch( $newsletter_id, $taille );
 
 		if ( ! $lot ) {
@@ -231,21 +317,40 @@ class Scheduler {
 
 		$echecs  = 0;
 		$envoyes = 0;
+		$traites = 0;
 		$debut   = microtime( true );
+		$depuis_reprise = (string) get_post_meta( $newsletter_id, self::META_RESUMED, true );
 
 		foreach ( $lot as $entree ) {
-			$abonne = Subscribers::find( $entree['subscriber_id'] );
-
-			// Désabonné·e entre la construction de la file et l'envoi : on ne lui
-			// écrit pas. La file garde la trace, sans rien envoyer.
-			if ( ! $abonne || Subscribers::STATUS_SUBSCRIBED !== $abonne['status'] ) {
-				Queue::mark_failed( $entree['id'], __( 'Destinataire non abonné·e au moment de l’envoi.', 'wam-newsletter' ), $entree['attempts'] + 1 );
-				Queue::touch_attempt( $entree['id'] );
-				continue;
+			// Budget de temps : mieux vaut un lot plus court qu'un lot tué à mi-chemin.
+			if ( ( microtime( true ) - $debut ) > self::BATCH_BUDGET ) {
+				break;
 			}
 
-			$resultat = Sender::send_one( $abonne, $newsletter_id, $html, $sujet );
-			Queue::touch_attempt( $entree['id'] );
+			// Réservation atomique : si une autre exécution a déjà pris la ligne, on passe.
+			if ( ! Queue::claim( $entree['id'] ) ) {
+				continue;
+			}
+			++$traites;
+
+			try {
+				$abonne = Subscribers::find( $entree['subscriber_id'] );
+
+				// Désabonné·e entre la construction de la file et l'envoi : on ne lui
+				// écrit pas. La file garde la trace, sans rien envoyer, et ce n'est pas
+				// un échec SMTP (il ne compte pas dans les seuils).
+				if ( ! $abonne || Subscribers::STATUS_SUBSCRIBED !== $abonne['status'] ) {
+					Queue::mark_skipped( $entree['id'], __( 'Destinataire non abonné·e au moment de l’envoi.', 'wam-newsletter' ) );
+					continue;
+				}
+
+				$resultat = Sender::send_one( $abonne, $newsletter_id, $html, $sujet );
+			} catch ( \Throwable $e ) {
+				$resultat = array(
+					'ok'    => false,
+					'error' => 'Exception : ' . $e->getMessage(),
+				);
+			}
 
 			if ( $resultat['ok'] ) {
 				Queue::mark_sent( $entree['id'] );
@@ -256,7 +361,7 @@ class Scheduler {
 			// Un échec SMTP n'est JAMAIS un rebond (§8.2) : une limite serveur
 			// côté WAM ne dit rien de la validité de l'adresse. Le statut
 			// « bounced » reste posé à la main en V1.
-			Queue::mark_failed( $entree['id'], $resultat['error'], $entree['attempts'] + 1 );
+			Queue::mark_failed( $entree['id'], (string) $resultat['error'], $entree['attempts'] + 1 );
 			++$echecs;
 		}
 
@@ -269,7 +374,7 @@ class Scheduler {
 			sprintf(
 				/* translators: 1: taille du lot, 2: envoyés, 3: échecs, 4: durée en secondes */
 				__( 'Lot de %1$d traité : %2$d envoyé(s), %3$d échec(s), en %4$s s.', 'wam-newsletter' ),
-				count( $lot ),
+				$traites,
 				$envoyes,
 				$echecs,
 				number_format_i18n( round( microtime( true ) - $debut, 1 ), 1 )
@@ -290,7 +395,7 @@ class Scheduler {
 			return;
 		}
 
-		if ( Queue::recent_failures( $newsletter_id ) >= $seuil_m ) {
+		if ( Queue::recent_failures( $newsletter_id, 3600, $depuis_reprise ) >= $seuil_m ) {
 			self::pause(
 				$newsletter_id,
 				sprintf(
@@ -302,7 +407,8 @@ class Scheduler {
 			return;
 		}
 
-		$intervalle = max( 10, (int) $reglages['batch_interval'] );
+		// Remplace le passage de rattrapage posé en début de lot.
+		self::unschedule( $newsletter_id );
 		self::schedule( $newsletter_id, time() + $intervalle );
 	}
 
@@ -317,6 +423,7 @@ class Scheduler {
 			update_post_meta( $newsletter_id, self::META_RETRIED, 1 );
 			if ( $remis > 0 ) {
 				$intervalle = max( 10, (int) Settings::get( 'batch_interval' ) );
+				self::unschedule( $newsletter_id );
 				self::schedule( $newsletter_id, time() + $intervalle );
 				Log::record(
 					$newsletter_id,
@@ -402,7 +509,11 @@ class Scheduler {
 		}
 
 		delete_post_meta( $newsletter_id, self::META_PAUSE );
+		// Les échecs d'avant la reprise ont déjà provoqué la pause : le seuil
+		// horaire ne doit compter que ce qui arrive après.
+		update_post_meta( $newsletter_id, self::META_RESUMED, current_time( 'mysql' ) );
 		self::set_status( $newsletter_id, self::STATUS_SENDING );
+		self::unschedule( $newsletter_id );
 		self::schedule( $newsletter_id, time() + 5 );
 		Log::record( $newsletter_id, Log::TYPE_RESUME, __( 'Envoi repris depuis l’administration.', 'wam-newsletter' ), Queue::counts( $newsletter_id ) );
 

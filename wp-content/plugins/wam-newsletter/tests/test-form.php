@@ -46,7 +46,7 @@ try {
 
 	echo "== Rendu du formulaire ==\n";
 	$html = Form::render();
-	wam_nl_assert( false !== strpos( $html, 'name="wam_nl_nonce"' ), 'le nonce est présent' );
+	wam_nl_assert( false === strpos( $html, 'wam_nl_nonce' ), 'aucun nonce dans le HTML : la page est mise en cache (LiteSpeed), il serait périmé en 24 h' );
 	wam_nl_assert( false !== strpos( $html, 'name="action" value="' . Form::ACTION . '"' ), 'action AJAX posée' );
 	wam_nl_assert( false !== strpos( $html, 'name="wam_nl_hp"' ), 'champ honeypot présent' );
 	wam_nl_assert( false !== strpos( $html, 'wam-hp-field' ), 'le honeypot utilise la classe masquée du thème' );
@@ -104,24 +104,31 @@ try {
 	wam_nl_assert_equals( $avant, Subs::count( array( 'search' => $domaine, 'include_trashed' => true ) ), 'aucun doublon créé' );
 	wam_nl_assert_equals( 'Ada', Subs::find_by_email( 'nouveau' . $domaine )['first_name'], 'le prénom d’origine n’est pas écrasé' );
 
-	echo "== Inscription : un·e désabonné·e qui redemande est réabonné·e (§6) ==\n";
-	// Seul chemin du plugin autorisé à réabonner : la personne le demande
-	// elle-même, en cochant la case.
+	echo "== Inscription : un·e désabonné·e n'est PAS réabonné·e par le formulaire seul ==\n";
+	// Le formulaire est public : n'importe qui peut y saisir l'adresse d'un tiers.
 	$id = (int) Subs::find_by_email( 'nouveau' . $domaine )['id'];
 	Subs::set_status( $id, Subs::STATUS_UNSUBSCRIBED );
+	delete_transient( 'wam_nl_rc_' . md5( 'nouveau' . $domaine ) );
 	$r = Form::subscribe( 'nouveau' . $domaine, 'Ada' );
-	wam_nl_assert( ! is_wp_error( $r ), 'réinscription acceptée' );
-	wam_nl_assert( ! $r['deja'], 'traitée comme une nouvelle inscription' );
+	wam_nl_assert( ! is_wp_error( $r ), 'la demande est acceptée sans erreur' );
+	wam_nl_assert_equals( 'unsubscribed', Subs::find( $id )['status'], 'toujours désabonné·e tant que le lien n’a pas été cliqué' );
+	wam_nl_assert( false !== get_transient( 'wam_nl_rc_' . md5( 'nouveau' . $domaine ) ), 'un e-mail de confirmation est parti (une fois par heure)' );
+
+	echo "== Réabonnement après confirmation par lien ==\n";
+	Subs::resubscribe( $id, 'form' );
 	$abonne = Subs::find( $id );
-	wam_nl_assert_equals( 'subscribed', $abonne['status'], 'repassé·e en abonné·e' );
+	wam_nl_assert_equals( 'subscribed', $abonne['status'], 'repassé·e en abonné·e après confirmation' );
 	wam_nl_assert_equals( null, $abonne['unsubscribed_at'], 'la date de désinscription est effacée' );
 
-	echo "== Inscription : corbeille et rebond repassent en abonné·e ==\n";
+	echo "== Corbeille et rebond ne sont pas rétablis par le formulaire ==\n";
 	foreach ( array( Subs::STATUS_TRASHED, Subs::STATUS_BOUNCED ) as $statut ) {
 		Subs::set_status( $id, $statut );
-		Form::subscribe( 'nouveau' . $domaine, 'Ada' );
-		wam_nl_assert_equals( 'subscribed', Subs::find( $id )['status'], "depuis le statut $statut, l’inscription rétablit l’abonnement" );
+		$r = Form::subscribe( 'nouveau' . $domaine, 'Ada' );
+		wam_nl_assert( ! is_wp_error( $r ), "demande depuis $statut acceptée sans erreur" );
+		wam_nl_assert_equals( $statut, Subs::find( $id )['status'], "le statut $statut est conservé" );
 	}
+	Subs::set_status( $id, Subs::STATUS_SUBSCRIBED );
+	delete_transient( 'wam_nl_rc_' . md5( 'nouveau' . $domaine ) );
 
 	echo "== Sans liste configurée, l'inscription est enregistrée quand même ==\n";
 	Settings::update( array( 'form_list_id' => 0 ) );

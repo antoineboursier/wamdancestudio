@@ -244,5 +244,8 @@ class Commands {
 				$rapport['invalid']
 			)
 		);
+		if ( ! empty( $rapport['suppressed'] ) ) {
+			WP_CLI::log( sprintf( 'Liste de suppression reprise (désabonné·es, rebonds) : %d', $rapport['suppressed'] ) );
+		}
 	}
 }

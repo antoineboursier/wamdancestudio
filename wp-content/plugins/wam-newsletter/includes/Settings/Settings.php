@@ -62,6 +62,9 @@ class Settings {
 			'fail_threshold_hour'      => 20,
 			// Tests
 			'test_recipients'          => '',
+			// Rendu de l'e-mail
+			// 0 = la bannière est retrouvée par son slug (voir Render\Brand).
+			'banner_attachment_id'     => 0,
 			// Formulaire
 			'form_list_id'             => 0,
 			'form_consent_text'        => "J'accepte de recevoir la newsletter de WAM Dance Studio et je peux me désinscrire à tout moment.",
@@ -215,6 +218,7 @@ class Settings {
 					break;
 
 				case 'form_list_id':
+				case 'banner_attachment_id':
 					$sortie[ $cle ] = max( 0, (int) $valeur );
 					break;
 

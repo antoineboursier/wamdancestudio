@@ -1,0 +1,325 @@
+/**
+ * Habillage de l'éditeur de newsletter.
+ *
+ * Deux rôles distincts :
+ *  - peindre le POURTOUR du canevas (barre d'outils, fond autour de l'e-mail).
+ *    L'intérieur du canevas, lui, est peint par EmailTheme::canvas_css(), que
+ *    WordPress injecte dans l'iframe d'édition : une feuille de style de l'admin
+ *    n'y a pas accès.
+ *  - styler les composants propres au plugin (étiquettes de bloc, checklist,
+ *    aperçu).
+ *
+ * Variables locales en tête : les jetons du thème wamV1 ne sont pas chargés dans
+ * wp-admin, on ne peut donc pas s'y référer. Un seul endroit à modifier.
+ */
+
+:root {
+	--wam-nl-fond: #131620;
+	--wam-nl-fond-clair: #1a1d28;
+	--wam-nl-texte: #f9f4eb;
+	--wam-nl-accent: #fbd150;
+	--wam-nl-turquoise: #00d6b2;
+	--wam-nl-gris: #8d8d8d;
+	--wam-nl-ok: #1e7b45;
+	--wam-nl-manque: #a8221f;
+}
+
+/* ------------------------------------------------------------------ */
+/* Pourtour du canevas : on sort de l'aspect « page de blog »          */
+/* ------------------------------------------------------------------ */
+
+.block-editor-editor-skeleton__content:has(.editor-styles-wrapper),
+.edit-post-visual-editor {
+	background-color: #2c3038;
+}
+
+/* ------------------------------------------------------------------ */
+/* Étiquettes de bloc : identifier un bloc dynamique sélectionné       */
+/* ------------------------------------------------------------------ */
+
+.wam-nl-bloc {
+	position: relative;
+}
+
+.wam-nl-bloc__etiquette {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 6px;
+	align-items: baseline;
+	margin-bottom: 4px;
+	padding: 2px 8px;
+	border-radius: 2px;
+	background: rgba(251, 209, 80, 0.14);
+	color: var(--wam-nl-accent);
+	font-size: 11px;
+	font-weight: 600;
+	letter-spacing: 0.02em;
+	text-transform: uppercase;
+}
+
+.wam-nl-bloc__aide {
+	color: var(--wam-nl-gris);
+	font-weight: 400;
+	text-transform: none;
+	letter-spacing: 0;
+}
+
+.wam-nl-bloc__rendu {
+	/* Le rendu renvoyé par le serveur est du HTML d'e-mail : on le laisse
+	   s'afficher tel quel, c'est tout l'intérêt de l'aperçu. */
+	overflow-x: auto;
+}
+
+.wam-nl-bloc__vide,
+.wam-nl-bloc__alerte {
+	margin: 8px 0 0;
+	padding: 8px 10px;
+	border-left: 3px solid var(--wam-nl-accent);
+	background: rgba(251, 209, 80, 0.1);
+	color: var(--wam-nl-texte);
+	font-size: 13px;
+}
+
+.wam-nl-bloc__chargement {
+	display: flex;
+	justify-content: center;
+	padding: 16px;
+}
+
+.wam-nl-espacement {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	border: 1px dashed rgba(249, 244, 235, 0.35);
+	border-radius: 2px;
+	color: var(--wam-nl-gris);
+	font-size: 11px;
+}
+
+/* ------------------------------------------------------------------ */
+/* Panneau d'envoi                                                     */
+/* ------------------------------------------------------------------ */
+
+.wam-nl-sidebar .wam-nl-astuce {
+	margin: 8px 0 0;
+	color: #50575e;
+	font-size: 12px;
+	font-style: italic;
+}
+
+.wam-nl-sidebar .wam-nl-destinataires {
+	margin: 12px 0 0;
+	padding: 8px 10px;
+	border-radius: 2px;
+	background: #f0f6fc;
+	font-size: 13px;
+	font-weight: 600;
+}
+
+.wam-nl-bouton-envoi {
+	justify-content: center;
+	width: 100%;
+	height: 40px;
+	font-size: 14px;
+}
+
+/* --- Checklist --- */
+
+.wam-nl-checklist {
+	margin: 0;
+	padding: 0;
+	list-style: none;
+}
+
+.wam-nl-checklist__item {
+	display: flex;
+	gap: 8px;
+	align-items: flex-start;
+	margin: 0 0 10px;
+	padding: 0 0 10px;
+	border-bottom: 1px solid #f0f0f1;
+}
+
+.wam-nl-checklist__item:last-child {
+	margin-bottom: 0;
+	padding-bottom: 0;
+	border-bottom: 0;
+}
+
+.wam-nl-checklist__marque {
+	flex: 0 0 18px;
+	width: 18px;
+	height: 18px;
+	border-radius: 50%;
+	color: #fff;
+	font-size: 12px;
+	font-weight: 700;
+	line-height: 18px;
+	text-align: center;
+}
+
+.is-ok .wam-nl-checklist__marque {
+	background: var(--wam-nl-ok);
+}
+
+.is-manquant .wam-nl-checklist__marque {
+	background: var(--wam-nl-manque);
+}
+
+.is-conseil .wam-nl-checklist__marque {
+	background: #8c8f94;
+}
+
+.wam-nl-checklist__texte {
+	display: flex;
+	flex-direction: column;
+	gap: 2px;
+	min-width: 0;
+	font-size: 13px;
+}
+
+.wam-nl-checklist__aide {
+	color: #50575e;
+	font-size: 12px;
+	/* Un objet long ou une liste d'adresses ne doit pas élargir le panneau. */
+	overflow-wrap: anywhere;
+}
+
+.wam-nl-checklist__chargement {
+	display: flex;
+	justify-content: center;
+	padding: 12px;
+}
+
+/* --- Progression --- */
+
+.wam-nl-progression__chiffres {
+	margin: 0 0 6px;
+	font-size: 13px;
+	font-weight: 600;
+}
+
+.wam-nl-progression__barre {
+	height: 8px;
+	overflow: hidden;
+	border-radius: 4px;
+	background: #f0f0f1;
+}
+
+.wam-nl-progression__jauge {
+	height: 100%;
+	background: var(--wam-nl-ok);
+	transition: width 0.4s ease;
+}
+
+.wam-nl-progression__echecs {
+	margin: 6px 0 0;
+	color: var(--wam-nl-manque);
+	font-size: 12px;
+}
+
+/* --- Sélection manuelle de contenus --- */
+
+.wam-nl-mode {
+	display: flex;
+	margin-bottom: 8px;
+}
+
+.wam-nl-mode .components-button {
+	flex: 1 1 auto;
+	justify-content: center;
+}
+
+.wam-nl-choisis {
+	margin-bottom: 12px;
+}
+
+.wam-nl-choisis__titre {
+	margin: 0 0 4px;
+	font-size: 12px;
+	font-weight: 600;
+}
+
+.wam-nl-choisis__item {
+	display: flex;
+	gap: 4px;
+	align-items: center;
+	justify-content: space-between;
+	padding: 4px 0;
+	border-bottom: 1px solid #f0f0f1;
+	font-size: 12px;
+}
+
+.wam-nl-choisis__actions {
+	display: flex;
+	flex: 0 0 auto;
+}
+
+.wam-nl-resultats {
+	display: flex;
+	flex-direction: column;
+	gap: 4px;
+	max-height: 220px;
+	overflow-y: auto;
+}
+
+.wam-nl-resultats .components-button {
+	height: auto;
+	min-height: 28px;
+	padding: 4px 8px;
+	text-align: left;
+	white-space: normal;
+}
+
+/* ------------------------------------------------------------------ */
+/* Modale d'aperçu                                                     */
+/* ------------------------------------------------------------------ */
+
+.wam-nl-modale-apercu .components-modal__content {
+	display: flex;
+	flex-direction: column;
+	background: #2c3038;
+}
+
+.wam-nl-apercu__barre {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 12px;
+	align-items: center;
+	justify-content: center;
+	padding: 8px 0 16px;
+}
+
+.wam-nl-apercu__largeur {
+	color: #c3c4c7;
+	font-size: 12px;
+}
+
+.wam-nl-apercu__cadre {
+	display: flex;
+	flex: 1 1 auto;
+	justify-content: center;
+	overflow: auto;
+}
+
+.wam-nl-apercu__iframe {
+	height: 100%;
+	min-height: 70vh;
+	border: 0;
+	background: var(--wam-nl-fond);
+}
+
+.wam-nl-apercu__chargement {
+	display: flex;
+	flex: 1 1 auto;
+	align-items: center;
+	justify-content: center;
+}
+
+/* ------------------------------------------------------------------ */
+/* Panneau « Objet », sous le titre                                    */
+/* ------------------------------------------------------------------ */
+
+.wam-nl-panneau-objet .components-base-control {
+	margin-bottom: 12px;
+}

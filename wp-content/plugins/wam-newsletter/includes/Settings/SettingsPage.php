@@ -20,6 +20,7 @@ class SettingsPage {
 		'expediteur' => 'Expéditeur et SMTP',
 		'debit'      => 'Débit d’envoi',
 		'formulaire' => 'Formulaire',
+		'contenus'   => 'Contenus',
 		'suivi'      => 'Suivi',
 	);
 
@@ -159,6 +160,16 @@ class SettingsPage {
 			);
 		}
 		echo '</nav>';
+
+		// L'onglet « Contenus » porte ses propres formulaires (enregistrement de
+		// la correspondance et rescan) : il ne doit donc PAS être enveloppé dans
+		// le formulaire des réglages, des formulaires imbriqués étant invalides
+		// en HTML — le navigateur ignorerait le plus intérieur.
+		if ( 'contenus' === $onglet ) {
+			ContentScreen::render_tab();
+			echo '</div>';
+			return;
+		}
 
 		echo '<form method="post" action="' . esc_url( admin_url( 'admin-post.php' ) ) . '">';
 		wp_nonce_field( 'wam_nl_save_settings' );

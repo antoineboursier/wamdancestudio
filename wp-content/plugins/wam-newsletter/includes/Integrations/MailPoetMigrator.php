@@ -262,7 +262,23 @@ class MailPoetMigrator {
 
 			foreach ( $lignes as $mp ) {
 				$email = Subscribers::normalize_email( $mp['email'] );
-				if ( '' === $email || Subscribers::find_by_email( $email ) ) {
+				if ( '' === $email ) {
+					continue;
+				}
+
+				// Déjà connu·e : si l'import WooCommerce est passé AVANT la migration,
+				// la personne a été recréée « abonnée » alors qu'elle s'était
+				// désinscrite de MailPoet. On la corrige, mais seulement quand son
+				// seul consentement vient de WooCommerce : celle qui s'est réinscrite
+				// depuis par le formulaire l'a demandé elle-même.
+				$existant = Subscribers::find_by_email( $email );
+				if ( $existant ) {
+					if ( Subscribers::STATUS_SUBSCRIBED === $existant['status'] && 'woocommerce' === $existant['consent_source'] ) {
+						++$ajoute;
+						if ( ! $a_blanc ) {
+							Subscribers::set_status( (int) $existant['id'], 'bounced' === $mp['status'] ? Subscribers::STATUS_BOUNCED : Subscribers::STATUS_UNSUBSCRIBED );
+						}
+					}
 					continue;
 				}
 				++$ajoute;

@@ -25,6 +25,7 @@ class Plugin {
 		Subscribers\Screen::register_hooks();
 		Lists\Screen::register_hooks();
 		Stats\Screen::register_hooks();
+		Stats\JournalScreen::register_hooks();
 		Settings\SettingsPage::register_hooks();
 		Settings\ContentScreen::register_hooks();
 

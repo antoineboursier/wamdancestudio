@@ -17,7 +17,7 @@ if ( empty( $wam_nl_reglages['delete_data_on_uninstall'] ) ) {
 global $wpdb;
 
 // Ordre inverse des dépendances logiques, par principe.
-foreach ( array( 'events', 'queue', 'list_subscriber', 'lists', 'subscribers' ) as $wam_nl_table ) {
+foreach ( array( 'log', 'events', 'queue', 'list_subscriber', 'lists', 'subscribers' ) as $wam_nl_table ) {
 	$wam_nl_nom = $wpdb->prefix . 'wam_nl_' . $wam_nl_table;
 	$wpdb->query( "DROP TABLE IF EXISTS `$wam_nl_nom`" );
 }

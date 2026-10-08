@@ -201,6 +201,18 @@ class NewsletterList {
 			);
 		}
 
+		// Le journal apparaît dès qu'il y a quelque chose à y lire — donc dès le
+		// premier e-mail de test, qui y laisse une ligne. C'est à ce moment-là
+		// qu'on se demande « est-ce que mon test est bien parti ? », et la
+		// réponse ne doit pas attendre le lancement d'un envoi réel.
+		if ( Queue::counts( $id )['total'] > 0 || \WamNewsletter\Sending\Log::count( $id ) > 0 ) {
+			$actions['wam_nl_journal'] = sprintf(
+				'<a href="%s">%s</a>',
+				esc_url( \WamNewsletter\Stats\JournalScreen::url( $id ) ),
+				esc_html__( 'Journal d’envoi', 'wam-newsletter' )
+			);
+		}
+
 		return $actions;
 	}
 

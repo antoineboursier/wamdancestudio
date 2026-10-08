@@ -261,6 +261,21 @@ class Sender {
 			}
 		}
 
+		// Les tests laissent aussi une trace : « est-ce que mon test est bien
+		// parti ? » est la première question qu'on se pose, et la réponse ne doit
+		// pas dépendre d'un message à l'écran qu'on a déjà fermé.
+		Log::record(
+			$newsletter_id,
+			Log::TYPE_TEST,
+			sprintf(
+				/* translators: 1: nombre envoyé, 2: adresses, 3: erreurs éventuelles */
+				__( '%1$d test(s) vers %2$s.%3$s', 'wam-newsletter' ),
+				$envoyes,
+				implode( ', ', $cibles ),
+				$erreurs ? ' ' . __( 'Échecs :', 'wam-newsletter' ) . ' ' . implode( ' / ', $erreurs ) : ''
+			)
+		);
+
 		if ( $envoyes > 0 && ! $erreurs ) {
 			return array(
 				'ok'      => true,

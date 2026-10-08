@@ -119,6 +119,17 @@ class Scheduler {
 		if ( $horodatage > time() + 30 ) {
 			self::set_status( $newsletter_id, self::STATUS_SCHEDULED );
 			self::schedule( $newsletter_id, $horodatage );
+			Log::record(
+				$newsletter_id,
+				Log::TYPE_SCHEDULED,
+				sprintf(
+					/* translators: 1: date, 2: nombre de destinataires */
+					__( 'Programmé le %1$s pour %2$d destinataire(s).', 'wam-newsletter' ),
+					wp_date( 'd/m/Y H:i', $horodatage ),
+					$total
+				),
+				array( 'pending' => $total )
+			);
 			return array(
 				'ok'      => true,
 				'message' => sprintf(
@@ -133,6 +144,18 @@ class Scheduler {
 
 		self::set_status( $newsletter_id, self::STATUS_SENDING );
 		self::schedule( $newsletter_id, time() + 5 );
+		Log::record(
+			$newsletter_id,
+			Log::TYPE_START,
+			sprintf(
+				/* translators: 1: nombre de destinataires, 2: taille de lot, 3: intervalle */
+				__( 'File construite : %1$d destinataire(s), par lots de %2$d toutes les %3$d secondes.', 'wam-newsletter' ),
+				$total,
+				max( 1, (int) Settings::get( 'batch_size' ) ),
+				max( 10, (int) Settings::get( 'batch_interval' ) )
+			),
+			array( 'pending' => $total )
+		);
 
 		return array(
 			'ok'      => true,
@@ -206,7 +229,9 @@ class Scheduler {
 			return;
 		}
 
-		$echecs = 0;
+		$echecs  = 0;
+		$envoyes = 0;
+		$debut   = microtime( true );
 
 		foreach ( $lot as $entree ) {
 			$abonne = Subscribers::find( $entree['subscriber_id'] );
@@ -224,6 +249,7 @@ class Scheduler {
 
 			if ( $resultat['ok'] ) {
 				Queue::mark_sent( $entree['id'] );
+				++$envoyes;
 				continue;
 			}
 
@@ -233,6 +259,23 @@ class Scheduler {
 			Queue::mark_failed( $entree['id'], $resultat['error'], $entree['attempts'] + 1 );
 			++$echecs;
 		}
+
+		// Une ligne par lot : c'est ce qui permet, après coup, de dire à quelle
+		// vitesse l'envoi est réellement parti et où il a commencé à dérailler.
+		$apres = Queue::counts( $newsletter_id );
+		Log::record(
+			$newsletter_id,
+			Log::TYPE_BATCH,
+			sprintf(
+				/* translators: 1: taille du lot, 2: envoyés, 3: échecs, 4: durée en secondes */
+				__( 'Lot de %1$d traité : %2$d envoyé(s), %3$d échec(s), en %4$s s.', 'wam-newsletter' ),
+				count( $lot ),
+				$envoyes,
+				$echecs,
+				number_format_i18n( round( microtime( true ) - $debut, 1 ), 1 )
+			),
+			$apres
+		);
 
 		if ( $echecs >= $seuil_k ) {
 			self::pause(
@@ -275,6 +318,16 @@ class Scheduler {
 			if ( $remis > 0 ) {
 				$intervalle = max( 10, (int) Settings::get( 'batch_interval' ) );
 				self::schedule( $newsletter_id, time() + $intervalle );
+				Log::record(
+					$newsletter_id,
+					Log::TYPE_RETRY,
+					sprintf(
+						/* translators: %d nombre d'adresses remises en file */
+						__( '%d adresse(s) en échec remise(s) en file pour une seule nouvelle tentative.', 'wam-newsletter' ),
+						$remis
+					),
+					Queue::counts( $newsletter_id )
+				);
 				return;
 			}
 		}
@@ -282,6 +335,19 @@ class Scheduler {
 		self::set_status( $newsletter_id, self::STATUS_SENT );
 		update_post_meta( $newsletter_id, self::META_SENT_AT, current_time( 'mysql' ) );
 		self::unschedule( $newsletter_id );
+
+		$counts = Queue::counts( $newsletter_id );
+		Log::record(
+			$newsletter_id,
+			Log::TYPE_FINISH,
+			sprintf(
+				/* translators: 1: envoyés, 2: échecs */
+				__( 'File terminée : %1$d envoyé(s), %2$d échec(s).', 'wam-newsletter' ),
+				$counts['sent'],
+				$counts['failed']
+			),
+			$counts
+		);
 	}
 
 	/**
@@ -293,6 +359,8 @@ class Scheduler {
 		self::unschedule( $newsletter_id );
 
 		$counts = Queue::counts( $newsletter_id );
+		Log::record( $newsletter_id, Log::TYPE_PAUSE, $raison, $counts );
+
 		$sujet  = sprintf(
 			/* translators: %s nom du site */
 			__( '[%s] Envoi de newsletter mis en pause', 'wam-newsletter' ),
@@ -336,6 +404,7 @@ class Scheduler {
 		delete_post_meta( $newsletter_id, self::META_PAUSE );
 		self::set_status( $newsletter_id, self::STATUS_SENDING );
 		self::schedule( $newsletter_id, time() + 5 );
+		Log::record( $newsletter_id, Log::TYPE_RESUME, __( 'Envoi repris depuis l’administration.', 'wam-newsletter' ), Queue::counts( $newsletter_id ) );
 
 		return array(
 			'ok'      => true,
@@ -348,6 +417,7 @@ class Scheduler {
 		self::unschedule( $newsletter_id );
 		self::set_status( $newsletter_id, self::STATUS_PAUSED );
 		update_post_meta( $newsletter_id, self::META_PAUSE, __( 'Arrêté manuellement.', 'wam-newsletter' ) );
+		Log::record( $newsletter_id, Log::TYPE_CANCEL, __( 'Arrêt demandé depuis l’administration.', 'wam-newsletter' ), Queue::counts( $newsletter_id ) );
 	}
 
 	/** Progression, pour l'écran des newsletters et le panneau latéral. */

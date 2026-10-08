@@ -11,7 +11,7 @@ defined( 'ABSPATH' ) || exit;
 class Install {
 
 	/** Incrémenter à chaque changement de schéma : maybe_upgrade() rejoue alors dbDelta. */
-	const DB_VERSION = '1.2.0';
+	const DB_VERSION = '1.3.0';
 
 	const DB_VERSION_OPTION = 'wam_nl_db_version';
 
@@ -106,6 +106,7 @@ class Install {
 		$list_subscriber = self::table( 'list_subscriber' );
 		$queue           = self::table( 'queue' );
 		$events          = self::table( 'events' );
+		$log             = self::table( 'log' );
 
 		// email en 190 et non 255 : au-delà, un index UNIQUE dépasse la limite
 		// de longueur de clé d'InnoDB en utf8mb4.
@@ -169,6 +170,24 @@ class Install {
 			PRIMARY KEY  (id),
 			UNIQUE KEY newsletter_subscriber (newsletter_id,subscriber_id),
 			KEY newsletter_status (newsletter_id,status)
+			) $collate;"
+		);
+
+		// Journal du déroulé de l'envoi (démarrage, lot, pause, reprise, fin).
+		// Les compteurs sont des colonnes et non du JSON : une ligne de journal
+		// doit se lire d'un coup d'œil pendant un incident.
+		dbDelta(
+			"CREATE TABLE $log (
+			id bigint(20) unsigned NOT NULL AUTO_INCREMENT,
+			newsletter_id bigint(20) unsigned NOT NULL,
+			type varchar(30) NOT NULL,
+			message text NULL,
+			sent int(10) unsigned NOT NULL DEFAULT 0,
+			failed int(10) unsigned NOT NULL DEFAULT 0,
+			pending int(10) unsigned NOT NULL DEFAULT 0,
+			created_at datetime NOT NULL,
+			PRIMARY KEY  (id),
+			KEY newsletter_created (newsletter_id,created_at)
 			) $collate;"
 		);
 

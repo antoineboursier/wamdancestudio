@@ -79,6 +79,29 @@ class NewsletterPostType {
 	public static function register_hooks(): void {
 		add_action( 'init', array( self::class, 'register' ) );
 		add_action( 'init', array( self::class, 'register_meta' ) );
+		add_action( 'before_delete_post', array( self::class, 'purge_data' ), 10, 2 );
+	}
+
+	/**
+	 * Supprime la file, les événements et le journal d'une newsletter effacée.
+	 *
+	 * Sans ça, ces trois tables gardaient indéfiniment les lignes de newsletters
+	 * disparues : elles ne sont rattachées au post que par un identifiant, aucune
+	 * clé étrangère ne fait le ménage.
+	 *
+	 * @param int           $post_id
+	 * @param \WP_Post|null $post
+	 */
+	public static function purge_data( $post_id, $post = null ): void {
+		$post_id = (int) $post_id;
+		$type    = $post instanceof \WP_Post ? $post->post_type : get_post_type( $post_id );
+		if ( self::POST_TYPE !== $type ) {
+			return;
+		}
+
+		\WamNewsletter\Sending\Queue::clear( $post_id );
+		\WamNewsletter\Stats\Events::purge_newsletter( $post_id );
+		\WamNewsletter\Sending\Log::purge_newsletter( $post_id );
 	}
 
 	public static function register(): void {

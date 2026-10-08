@@ -130,6 +130,50 @@
 		);
 	}
 
+	/**
+	 * Ajout de cours, stages ou articles du site, pour qui ne connaît pas le « / ».
+	 * Le bouton insère le bloc directement, à la suite du bloc sélectionné.
+	 */
+	function PanneauContenus() {
+		var n = useNewsletter();
+		var insertBlocks = useDispatch('core/block-editor').insertBlocks;
+		if (!estNewsletter(n.postType) || !PluginDocumentSettingPanel) {
+			return null;
+		}
+
+		function inserer() {
+			insertBlocks(wp.blocks.createBlock('wam-nl/posts'));
+		}
+
+		return el(
+			PluginDocumentSettingPanel,
+			{ name: 'wam-nl-contenus', title: __('Ajouter des cours ou des stages', 'wam-newsletter'), className: 'wam-nl-panneau-contenus' },
+			el(
+				'p',
+				{ className: 'components-base-control__help' },
+				__('Le bloc « Contenus WAM » reprend automatiquement des stages, cours ou articles du site : photo, titre, texte et bouton.', 'wam-newsletter')
+			),
+			el(
+				'ol',
+				{ className: 'wam-nl-etapes' },
+				el('li', null, __('Cliquez dans le texte, là où vous voulez l’ajouter.', 'wam-newsletter')),
+				el(
+					'li',
+					null,
+					__('Tapez ', 'wam-newsletter'),
+					el('code', null, '/'),
+					__(' puis « Contenus WAM », et validez avec Entrée.', 'wam-newsletter')
+				),
+				el('li', null, __('Choisissez ensuite le type de contenu dans les réglages du bloc, à droite.', 'wam-newsletter'))
+			),
+			el(
+				Button,
+				{ variant: 'secondary', onClick: inserer },
+				__('Ou insérer un bloc « Contenus WAM » ici', 'wam-newsletter')
+			)
+		);
+	}
+
 	/** Panneau d'aide dans la colonne de droite, pendant la rédaction. */
 	function PanneauVariables() {
 		var n = useNewsletter();
@@ -1066,7 +1110,7 @@
 
 	plugins.registerPlugin('wam-nl-editor', {
 		render: function () {
-			return el(Fragment, null, el(Parcours, null), el(PanneauVariables, null));
+			return el(Fragment, null, el(Parcours, null), el(PanneauContenus, null), el(PanneauVariables, null));
 		}
 	});
 

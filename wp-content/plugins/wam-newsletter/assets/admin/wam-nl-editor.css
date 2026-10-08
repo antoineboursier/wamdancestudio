@@ -472,3 +472,18 @@
 	gap: 8px;
 	margin-top: 12px;
 }
+
+.wam-nl-etapes {
+	margin: 8px 0 12px 18px;
+	padding: 0;
+	font-size: 12px;
+}
+
+.wam-nl-etapes li {
+	margin: 0 0 6px;
+}
+
+.wam-nl-etapes code {
+	padding: 2px 6px;
+	background: #f0f0f1;
+}

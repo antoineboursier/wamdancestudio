@@ -35,10 +35,10 @@ class Cutover {
 			'detail' => $mailpoet_present
 				? sprintf(
 					/* translators: %s nombre d'abonné·es */
-					__( 'oui — %s abonné·e(s) au statut « subscribed »', 'wam-newsletter' ),
+					__( 'oui - %s abonné·e(s) au statut « subscribed »', 'wam-newsletter' ),
 					number_format_i18n( $eligibles )
 				)
-				: __( 'non — déjà retirées', 'wam-newsletter' ),
+				: __( 'non - déjà retirées', 'wam-newsletter' ),
 		);
 
 		// 2. La migration a-t-elle tout repris ?
@@ -56,7 +56,7 @@ class Cutover {
 				)
 				: sprintf(
 					/* translators: %s nombre manquant */
-					__( '%s adresse(s) de MailPoet absente(s) du plugin — relancer la migration', 'wam-newsletter' ),
+					__( '%s adresse(s) de MailPoet absente(s) du plugin - relancer la migration', 'wam-newsletter' ),
 					number_format_i18n( $manque )
 				),
 		);
@@ -99,7 +99,7 @@ class Cutover {
 				// Découverte du lot 1 : MailPoet remplace l'objet $phpmailer de
 				// WordPress, et son send() surchargé ignore le mode d'envoi. Tant
 				// qu'il est actif, un envoi peut être annoncé réussi sans partir.
-				? __( 'encore actif — il remplace l’objet PHPMailer de WordPress et peut faire croire à un envoi réussi', 'wam-newsletter' )
+				? __( 'encore actif - il remplace l’objet PHPMailer de WordPress et peut faire croire à un envoi réussi', 'wam-newsletter' )
 				: __( 'désactivé', 'wam-newsletter' ),
 		);
 

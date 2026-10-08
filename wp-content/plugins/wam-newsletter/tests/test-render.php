@@ -367,6 +367,9 @@ try {
 	wam_nl_assert( false !== strpos( $rendu, '<h2' ), 'titre de l’item en h2' );
 	wam_nl_assert( false !== strpos( $rendu, get_permalink( $futur ) ), 'lien vers le contenu' );
 	wam_nl_assert( false === strpos( $rendu, '.avif' ), 'aucune image AVIF' );
+	// Un peu d'air entre le titre et la ligne sous-titre/date, qui collaient
+	// trop sans cette marge (retour d'Antoine après relecture de l'éditeur).
+	wam_nl_assert( false !== strpos( $rendu, 'padding:6px 20px 6px' ), 'espacement titre / sous-titre' );
 
 	echo "== Bloc Contenus : données structurées pour « Convertir en blocs modifiables » ==\n";
 	$resolu = Posts::resolve_items( array( 'postType' => 'stages', 'mode' => 'manual', 'postIds' => array( $futur, $passe ) ) );

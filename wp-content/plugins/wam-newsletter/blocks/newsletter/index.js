@@ -184,6 +184,76 @@
 		);
 	}
 
+	/**
+	 * Aperçu serveur SANS bandeau d'étiquette.
+	 *
+	 * Utilisé pour l'entête et le pied de page : le bandeau faisait doublon
+	 * avec le bouton de verrou (qui dit déjà « cette zone est verrouillée »),
+	 * et encombrait l'écran pour deux blocs qu'on ne modifie presque jamais.
+	 */
+	function apercuSansEtiquette(nom, attributs) {
+		return el(
+			'div',
+			{ className: 'wam-nl-bloc wam-nl-bloc--sans-etiquette' },
+			el(
+				'div',
+				{ className: 'wam-nl-bloc__rendu' },
+				el(ServerSideRender, {
+					block: nom,
+					attributes: attributs,
+					EmptyResponsePlaceholder: function () {
+						return el('p', { className: 'wam-nl-bloc__vide' }, __('Rien à afficher pour ce réglage.', 'wam-newsletter'));
+					},
+					LoadingResponsePlaceholder: function () {
+						return el('div', { className: 'wam-nl-bloc__chargement' }, el(Spinner, null));
+					}
+				})
+			)
+		);
+	}
+
+	/**
+	 * Bouton de verrou, visible directement dans la barre d'outils du bloc.
+	 *
+	 * Remplace le bandeau de texte « verrouillé en haut/bas » : l'icône seule
+	 * (cadenas fermé ou ouvert) dit déjà l'état, et un clic permet d'agir sans
+	 * passer par le menu « ... ». Déverrouiller demande une confirmation —
+	 * c'est ce qui retire la protection contre un déplacement ou une
+	 * suppression accidentelle ; reverrouiller n'en a pas besoin, c'est sans
+	 * risque.
+	 */
+	function BoutonVerrou(props) {
+		var verrouille = !!(props.lock && props.lock.move && props.lock.remove);
+
+		return el(
+			ToolbarGroup,
+			null,
+			el(ToolbarButton, {
+				icon: verrouille ? 'lock' : 'unlock',
+				label: verrouille
+					? __('Zone verrouillée - cliquer pour déverrouiller', 'wam-newsletter')
+					: __('Zone déverrouillée - cliquer pour verrouiller', 'wam-newsletter'),
+				onClick: function () {
+					if (verrouille) {
+						if (
+							!window.confirm(
+								__(
+									'Déverrouiller cette zone permet de la déplacer ou de la supprimer par erreur. Continuer ?',
+									'wam-newsletter'
+								)
+							)
+						) {
+							return;
+						}
+						props.onToggle({});
+					} else {
+						props.onToggle({ move: true, remove: true });
+					}
+				}
+			})
+		);
+	}
+
 	// ------------------------------------------------------------------
 	// Entête
 	// ------------------------------------------------------------------
@@ -196,6 +266,14 @@
 			return el(
 				'div',
 				blockProps,
+				BlockControls
+					? el(BlockControls, null, el(BoutonVerrou, {
+							lock: a.lock,
+							onToggle: function (valeur) {
+								props.setAttributes({ lock: valeur });
+							}
+					  }))
+					: null,
 				el(
 					InspectorControls,
 					null,
@@ -265,7 +343,7 @@
 						})
 					)
 				),
-				apercu('wam-nl/header', a, __('Entête', 'wam-newsletter'), __('verrouillé en haut', 'wam-newsletter'))
+				apercuSansEtiquette('wam-nl/header', a)
 			);
 		},
 		save: function () {
@@ -285,6 +363,14 @@
 			return el(
 				'div',
 				blockProps,
+				BlockControls
+					? el(BlockControls, null, el(BoutonVerrou, {
+							lock: a.lock,
+							onToggle: function (valeur) {
+								props.setAttributes({ lock: valeur });
+							}
+					  }))
+					: null,
 				el(
 					InspectorControls,
 					null,
@@ -306,7 +392,7 @@
 						})
 					)
 				),
-				apercu('wam-nl/footer', a, __('Pied de page', 'wam-newsletter'), __('verrouillé en bas', 'wam-newsletter'))
+				apercuSansEtiquette('wam-nl/footer', a)
 			);
 		},
 		save: function () {
@@ -691,7 +777,7 @@
 								basculer(p.id);
 							}
 						},
-						p.title + (p.date ? ' — ' + p.date : '')
+						p.title + (p.date ? ' - ' + p.date : '')
 					);
 				})
 			)
@@ -812,7 +898,7 @@
 								ToolbarGroup,
 								null,
 								el(ToolbarButton, {
-									icon: 'editor-unlink',
+									icon: 'edit',
 									label: __('Convertir en blocs modifiables', 'wam-newsletter'),
 									isBusy: enConversion,
 									onClick: convertirEnBlocs

@@ -80,7 +80,7 @@ class ContentScreen {
 			echo '</p><ul class="ul-disc" style="margin-left:2em">';
 			foreach ( $manquants as $manquant ) {
 				printf(
-					'<li>%s — %s : <code>%s</code></li>',
+					'<li>%s - %s : <code>%s</code></li>',
 					esc_html( ContentMap::post_type_label( $manquant['post_type'] ) ),
 					esc_html( ContentMap::role_label( $manquant['role'] ) ),
 					esc_html( $manquant['field'] )
@@ -91,7 +91,7 @@ class ContentScreen {
 
 		echo '<p class="description">';
 		esc_html_e(
-			'Indiquez quel champ ACF joue quel rôle dans les e-mails. Les champs sont lus sur le site : si vous en ajoutez un, cliquez sur « Rescanner les champs » — aucune modification de code n’est nécessaire.',
+			'Indiquez quel champ ACF joue quel rôle dans les e-mails. Les champs sont lus sur le site : si vous en ajoutez un, cliquez sur « Rescanner les champs » - aucune modification de code n’est nécessaire.',
 			'wam-newsletter'
 		);
 		echo '</p>';
@@ -187,7 +187,7 @@ class ContentScreen {
 					echo '<span class="description">';
 					echo '' !== $role_actuel
 						? esc_html( ContentMap::role_label( $role_actuel ) )
-						: esc_html__( '—', 'wam-newsletter' );
+						: esc_html__( '-', 'wam-newsletter' );
 					echo '</span>';
 				}
 				echo '</td></tr>';
@@ -198,7 +198,7 @@ class ContentScreen {
 			// --- Attribution des rôles ---
 			echo '<table class="form-table" role="presentation"><tbody>';
 			foreach ( ContentMap::ROLES as $role ) {
-				$choix   = array( '' => __( '— Aucun —', 'wam-newsletter' ) );
+				$choix   = array( '' => __( '- Aucun -', 'wam-newsletter' ) );
 				$accepte = ContentMap::ROLE_TYPES[ $role ];
 
 				foreach ( $champs as $champ ) {

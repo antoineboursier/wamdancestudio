@@ -348,7 +348,7 @@ class Screen {
 				}
 				Notices::success(
 					self::format_report( $rapport, $a_blanc )
-					. ( $detail ? ' — ' . __( 'Listes', 'wam-newsletter' ) . ' : ' . implode( ' ⏐ ', $detail ) : '' )
+					. ( $detail ? ' - ' . __( 'Listes', 'wam-newsletter' ) . ' : ' . implode( ' ⏐ ', $detail ) : '' )
 				);
 			}
 			self::redirect( array( 'vue' => 'outils' ) );
@@ -382,7 +382,7 @@ class Screen {
 		$prefixe = $a_blanc ? __( 'Simulation (rien n’a été écrit)', 'wam-newsletter' ) : __( 'Import terminé', 'wam-newsletter' );
 		return sprintf(
 			/* translators: 1: préfixe, 2: total, 3: créés, 4: mis à jour, 5: ignorés, 6: invalides */
-			__( '%1$s : %2$s ligne(s) traitée(s) — %3$s créé·e(s), %4$s mis·e(s) à jour, %5$s inchangé·e(s), %6$s invalide(s).', 'wam-newsletter' ),
+			__( '%1$s : %2$s ligne(s) traitée(s) - %3$s créé·e(s), %4$s mis·e(s) à jour, %5$s inchangé·e(s), %6$s invalide(s).', 'wam-newsletter' ),
 			$prefixe,
 			number_format_i18n( $rapport['total'] ),
 			number_format_i18n( $rapport['created'] ),
@@ -576,9 +576,9 @@ class Screen {
 				'<p class="description">' . esc_html(
 					sprintf(
 						/* translators: 1: source, 2: date */
-						__( 'Source : %1$s — enregistré le %2$s', 'wam-newsletter' ),
-						$source ?: '—',
-						$ts ? wp_date( 'd/m/Y H:i', $ts ) : '—'
+						__( 'Source : %1$s - enregistré le %2$s', 'wam-newsletter' ),
+						$source ?: '-',
+						$ts ? wp_date( 'd/m/Y H:i', $ts ) : '-'
 					)
 				) . '</p>'
 			);

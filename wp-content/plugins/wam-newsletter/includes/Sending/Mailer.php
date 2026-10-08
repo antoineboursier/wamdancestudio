@@ -197,7 +197,7 @@ class Mailer {
 			wp_date( 'd/m/Y H:i' )
 		);
 
-		$sujet = '[TEST] ' . __( 'Newsletter WAM — vérification de la chaîne d’envoi', 'wam-newsletter' );
+		$sujet = '[TEST] ' . __( 'Newsletter WAM - vérification de la chaîne d’envoi', 'wam-newsletter' );
 
 		$envoye = self::with_sender(
 			static function () use ( $cibles, $sujet, $corps, $entetes ) {

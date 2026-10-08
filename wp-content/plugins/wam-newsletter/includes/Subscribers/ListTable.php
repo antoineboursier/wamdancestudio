@@ -241,7 +241,7 @@ class ListTable extends WP_List_Table {
 	protected function column_lists( $item ): string {
 		$listes = $this->listes_par_abonne[ (int) $item['id'] ] ?? array();
 		if ( ! $listes ) {
-			return '<span aria-hidden="true">—</span><span class="screen-reader-text">' . esc_html__( 'Aucune liste', 'wam-newsletter' ) . '</span>';
+			return '<span aria-hidden="true">-</span><span class="screen-reader-text">' . esc_html__( 'Aucune liste', 'wam-newsletter' ) . '</span>';
 		}
 		$liens = array();
 		foreach ( $listes as $id => $nom ) {
@@ -262,7 +262,7 @@ class ListTable extends WP_List_Table {
 	protected function column_default( $item, $column_name ): string {
 		$valeur = $item[ $column_name ] ?? '';
 		return '' === $valeur
-			? '<span aria-hidden="true">—</span>'
+			? '<span aria-hidden="true">-</span>'
 			: esc_html( (string) $valeur );
 	}
 

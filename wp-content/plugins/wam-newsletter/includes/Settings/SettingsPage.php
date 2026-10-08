@@ -328,7 +328,7 @@ class SettingsPage {
 			esc_html__( 'Mot de passe', 'wam-newsletter' ),
 			'' !== Settings::smtp_password()
 				? esc_html__( 'Lu dans la constante WAM_NL_SMTP_PASSWORD de wp-config.php. Jamais stocké en base, jamais affiché ici.', 'wam-newsletter' )
-				: esc_html__( 'Non défini. À poser dans wp-config.php : define( \'WAM_NL_SMTP_PASSWORD\', \'…\' ); — jamais en base.', 'wam-newsletter' )
+				: esc_html__( 'Non défini. À poser dans wp-config.php : define( \'WAM_NL_SMTP_PASSWORD\', \'…\' ); - jamais en base.', 'wam-newsletter' )
 		);
 
 		if ( Mailer::external_smtp_snapshot() ) {
@@ -437,7 +437,7 @@ class SettingsPage {
 		);
 		echo '</p>';
 
-		$listes = array( 0 => __( '— Aucune liste —', 'wam-newsletter' ) ) + \WamNewsletter\Lists\Repository::options();
+		$listes = array( 0 => __( '- Aucune liste -', 'wam-newsletter' ) ) + \WamNewsletter\Lists\Repository::options();
 
 		echo '<table class="form-table">';
 		self::field_select(
@@ -467,7 +467,7 @@ class SettingsPage {
 
 	private static function tab_suivi( array $r ): void {
 		echo '<table class="form-table">';
-		self::field_checkbox( 'track_opens', __( 'Ouvertures', 'wam-newsletter' ), (bool) $r['track_opens'], __( 'Pixel de suivi — chiffre indicatif seulement', 'wam-newsletter' ) );
+		self::field_checkbox( 'track_opens', __( 'Ouvertures', 'wam-newsletter' ), (bool) $r['track_opens'], __( 'Pixel de suivi - chiffre indicatif seulement', 'wam-newsletter' ) );
 		self::field_checkbox( 'track_clicks', __( 'Clics', 'wam-newsletter' ), (bool) $r['track_clicks'], __( 'Réécriture signée des liens', 'wam-newsletter' ) );
 		echo '</table><h2>' . esc_html__( 'Désinstallation', 'wam-newsletter' ) . '</h2><table class="form-table">';
 		self::field_checkbox(

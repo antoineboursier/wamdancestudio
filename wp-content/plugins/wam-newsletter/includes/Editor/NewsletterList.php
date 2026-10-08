@@ -131,13 +131,13 @@ class NewsletterList {
 				}
 				echo $noms
 					? esc_html( implode( ', ', $noms ) )
-					: '<span aria-hidden="true">—</span>';
+					: '<span aria-hidden="true">-</span>';
 				break;
 
 			case 'wam_progress':
 				$counts = Queue::counts( $post_id );
 				if ( 0 === $counts['total'] ) {
-					echo '<span aria-hidden="true">—</span>';
+					echo '<span aria-hidden="true">-</span>';
 					break;
 				}
 				printf(

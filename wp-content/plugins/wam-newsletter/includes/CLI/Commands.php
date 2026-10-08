@@ -48,7 +48,7 @@ class Commands {
 
 		WP_CLI::log( 'Contrôles :' );
 		foreach ( $rapport['checks'] as $check ) {
-			WP_CLI::log( sprintf( '  [%s] %s — %s', $check['ok'] ? 'OK' : '!!', $check['label'], $check['detail'] ) );
+			WP_CLI::log( sprintf( '  [%s] %s - %s', $check['ok'] ? 'OK' : '!!', $check['label'], $check['detail'] ) );
 		}
 
 		WP_CLI::log( '' );
@@ -236,7 +236,7 @@ class Commands {
 	private static function print_report( array $rapport ): void {
 		WP_CLI::log(
 			sprintf(
-				'Traité·es : %d — créé·es : %d, mis·es à jour : %d, inchangé·es : %d, invalides : %d',
+				'Traité·es : %d - créé·es : %d, mis·es à jour : %d, inchangé·es : %d, invalides : %d',
 				$rapport['total'],
 				$rapport['created'],
 				$rapport['updated'],

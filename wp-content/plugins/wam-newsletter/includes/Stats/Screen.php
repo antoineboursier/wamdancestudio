@@ -93,7 +93,7 @@ class Screen {
 		echo '<h1>' . esc_html__( 'Statistiques', 'wam-newsletter' ) . '</h1>';
 		echo '<p class="description">' . esc_html( $post->post_title );
 		if ( '' !== $sujet ) {
-			echo ' — ' . esc_html( $sujet );
+			echo ' - ' . esc_html( $sujet );
 		}
 		echo '</p>';
 

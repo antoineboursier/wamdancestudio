@@ -138,7 +138,7 @@
 		}
 		return el(
 			PluginDocumentSettingPanel,
-			{ name: 'wam-nl-variables', title: __('Personnaliser avec le prénom', 'wam-newsletter'), className: 'wam-nl-panneau-variables' },
+			{ name: 'wam-nl-variables', title: __('Personnaliser les e-mails', 'wam-newsletter'), className: 'wam-nl-panneau-variables' },
 			el(
 				'p',
 				{ className: 'components-base-control__help' },

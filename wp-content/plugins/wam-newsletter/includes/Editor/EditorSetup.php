@@ -54,6 +54,7 @@ class EditorSetup {
 		add_filter( 'allowed_block_types_all', array( self::class, 'allowed_blocks' ), 10, 2 );
 		add_filter( 'block_editor_settings_all', array( self::class, 'editor_settings' ), 10, 2 );
 		add_filter( 'default_content', array( self::class, 'default_content' ), 10, 2 );
+		add_action( 'enqueue_block_editor_assets', array( self::class, 'strip_block_styles' ), 0 );
 		add_action( 'enqueue_block_editor_assets', array( self::class, 'enqueue' ) );
 
 		// Le champ titre est masqué dans l'éditeur (voir wam-nl-editor.css) :
@@ -235,6 +236,27 @@ class EditorSetup {
 		}
 
 		return $prepared;
+	}
+
+	/**
+	 * Retire les « Styles » de blocs du thème (Title Cool, Title Sign…) de cet
+	 * éditeur : ce sont des classes CSS du site, qu'aucune messagerie ne
+	 * connaît. Les proposer laisserait croire qu'elles s'appliquent à l'e-mail.
+	 */
+	public static function strip_block_styles(): void {
+		if ( ! self::is_newsletter_editor() || ! class_exists( '\WP_Block_Styles_Registry' ) ) {
+			return;
+		}
+		$registre = \WP_Block_Styles_Registry::get_instance();
+		foreach ( $registre->get_all_registered() as $bloc => $styles ) {
+			foreach ( array_keys( (array) $styles ) as $nom ) {
+				// $styles est indexé par nom de style (ou liste de tableaux selon la version).
+				$nom_style = is_string( $nom ) ? $nom : (string) ( $styles[ $nom ]['name'] ?? '' );
+				if ( '' !== $nom_style ) {
+					unregister_block_style( $bloc, $nom_style );
+				}
+			}
+		}
 	}
 
 	public static function enqueue(): void {

@@ -51,6 +51,17 @@ $preheader = (string) $wam_nl['preheader'];
 		.wam-nl-stack-space {
 			height: 16px !important;
 		}
+		/* Bannière : pleine largeur d'écran, puis agrandie à 140 % et centrée.
+		   Le logo est zoomé, les côtés sont rognés par overflow. */
+		.wam-nl-banner {
+			margin: 0 -20px !important;
+			overflow: hidden !important;
+		}
+		.wam-nl-banner__img {
+			width: 140% !important;
+			max-width: none !important;
+			margin-left: -20% !important;
+		}
 	}
 </style>
 </head>

@@ -56,15 +56,18 @@ class Custom {
 			);
 		}
 
+		// Classes `wam-nl-banner*` : sur mobile, la feuille du gabarit fait déborder
+		// l'image de l'écran (zoom sur le logo, côtés rognés). Sur ordinateur et
+		// dans les clients sans media queries (Outlook), elle reste telle quelle.
 		$img = sprintf(
-			'<img src="%s" alt="%s" width="%d" style="display:block;width:100%%;max-width:%dpx;height:auto;border:0;outline:none;text-decoration:none;" />',
+			'<img class="wam-nl-banner__img" src="%s" alt="%s" width="%d" style="display:block;width:100%%;max-width:%dpx;height:auto;border:0;outline:none;text-decoration:none;" />',
 			esc_url( $image['url'] ),
 			esc_attr( $alt ),
 			(int) Brand::WIDTH_CONTENT,
 			(int) Brand::WIDTH_CONTENT
 		);
 
-		$contenu = '<a href="' . esc_url( $lien ) . '" target="_blank" rel="noopener" style="text-decoration:none;">' . $img . '</a>';
+		$contenu = '<div class="wam-nl-banner" style="margin:0;padding:0;"><a href="' . esc_url( $lien ) . '" target="_blank" rel="noopener" style="text-decoration:none;">' . $img . '</a></div>';
 
 		return Html::row( $contenu, array( 'align' => 'center', 'padding' => '0 ' . Brand::GUTTER . 'px' ) );
 	}

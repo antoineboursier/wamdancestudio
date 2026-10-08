@@ -257,6 +257,15 @@ try {
 	$seule = $rendre( $image );
 	wam_nl_assert( false !== strpos( $seule, 'padding:12px 20px 12px;' ), 'image seule : espacement de base' );
 
+	// ---------------------------------------------------------------
+	echo "== Bannière : zoom sur mobile, inchangée sur ordinateur ==
+";
+	$entete = \WamNewsletter\Render\Blocks\Custom::header( array() );
+	wam_nl_assert( false !== strpos( $entete, 'class="wam-nl-banner"' ) && false !== strpos( $entete, 'class="wam-nl-banner__img"' ), 'l’en-tête porte les classes de zoom' );
+	wam_nl_assert( false !== strpos( $entete, 'width:100%;max-width:620px' ), 'en ligne : largeur normale (ordinateur, Outlook)' );
+	$gabarit = (string) file_get_contents( WAM_NL_DIR . 'templates/email/base.php' );
+	wam_nl_assert( 1 === preg_match( '/@media[^{]*max-width: 620px\)\s*\{.*\.wam-nl-banner__img\s*\{[^}]*width: 140% !important/s', $gabarit ), 'le zoom à 140 % n’existe que dans la media query mobile' );
+
 } finally {
 	$nettoyer();
 	if ( false === $reglages_initiaux ) {

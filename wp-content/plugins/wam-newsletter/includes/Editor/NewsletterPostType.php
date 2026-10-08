@@ -120,7 +120,9 @@ class NewsletterPostType {
 				'show_ui'         => true,
 				'show_in_menu'    => Menu::SLUG,
 				'show_in_rest'    => true,
-				'supports'        => array( 'title', 'editor', 'revisions' ),
+				// custom-fields : sans lui, WordPress retire le champ `meta` de l'API REST
+				// du type de contenu, et l'objet de l'e-mail n'est jamais enregistré.
+				'supports'        => array( 'title', 'editor', 'revisions', 'custom-fields' ),
 				// Toutes les capacités primitives renvoient sur wam_nl_manage.
 				// Avec le 'post' par défaut, le CPT retombait sur edit_posts /
 				// edit_others_posts — que portent professeur, editor, author et

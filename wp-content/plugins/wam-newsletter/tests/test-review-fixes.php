@@ -197,6 +197,28 @@ try {
 	wam_nl_assert( ! $bot( 'amelie@hotmail.fr', 'Amélie', 'Gottrand' ), 'vraie adhérente conservée' );
 	wam_nl_assert( ! $bot( 'a@laposte.net', 'Clémence', 'Joets' ), 'laposte.net conservé' );
 
+	// ---------------------------------------------------------------
+	echo "== L'objet et le texte d'aperçu survivent à l'enregistrement par l'API REST ==
+";
+	// Sans le support « custom-fields », WordPress retire le champ `meta` de l'API
+	// REST du type de contenu : l'éditeur croyait enregistrer l'objet, et rien
+	// n'arrivait en base. Le test passe par la même route que Gutenberg.
+	wam_nl_assert( post_type_supports( NewsletterPostType::POST_TYPE, 'custom-fields' ), 'le type de contenu déclare le support custom-fields' );
+	$ancien_user = get_current_user_id();
+	wp_set_current_user( 1 );
+	$brouillon           = wp_insert_post( array( 'post_type' => NewsletterPostType::POST_TYPE, 'post_status' => 'draft', 'post_title' => 'ZZTest rest' ) );
+	$posts_temporaires[] = $brouillon;
+	$requete             = new WP_REST_Request( 'POST', '/wp/v2/' . NewsletterPostType::POST_TYPE . '/' . $brouillon );
+	$requete->set_header( 'content-type', 'application/json' );
+	$requete->set_body( wp_json_encode( array( 'meta' => array( '_wam_nl_subject' => 'Mon objet', '_wam_nl_preheader' => 'Mon aperçu' ) ) ) );
+	$reponse = rest_do_request( $requete );
+	wam_nl_assert_equals( 200, $reponse->get_status(), 'la route REST répond 200' );
+	wam_nl_assert_equals( 'Mon objet', (string) get_post_meta( $brouillon, '_wam_nl_subject', true ), 'objet enregistré en base' );
+	wam_nl_assert_equals( 'Mon aperçu', (string) get_post_meta( $brouillon, '_wam_nl_preheader', true ), 'texte d’aperçu enregistré en base' );
+	$lecture = rest_do_request( new WP_REST_Request( 'GET', '/wp/v2/' . NewsletterPostType::POST_TYPE . '/' . $brouillon ) )->get_data();
+	wam_nl_assert( isset( $lecture['meta']['_wam_nl_subject'] ) && 'Mon objet' === $lecture['meta']['_wam_nl_subject'], 'l’éditeur relit l’objet par l’API' );
+	wp_set_current_user( $ancien_user );
+
 } finally {
 	$nettoyer();
 	if ( false === $reglages_initiaux ) {

@@ -68,6 +68,7 @@
 			return {
 				postId: editeur.getCurrentPostId(),
 				postType: editeur.getCurrentPostType(),
+				titre: editeur.getEditedPostAttribute('title') || '',
 				meta: editeur.getEditedPostAttribute('meta') || {},
 				content: editeur.getEditedPostContent(),
 				saving: editeur.isSavingPost(),
@@ -76,6 +77,10 @@
 		}, []);
 
 		var editPost = useDispatch('core/editor').editPost;
+
+		function setTitre(valeur) {
+			editPost({ title: valeur });
+		}
 
 		function setMeta(cle, valeur) {
 			var patch = {};
@@ -86,6 +91,8 @@
 		return {
 			postId: donnees.postId,
 			postType: donnees.postType,
+			titre: donnees.titre,
+			setTitre: setTitre,
 			meta: donnees.meta,
 			content: donnees.content,
 			saving: donnees.saving,
@@ -96,6 +103,54 @@
 
 	function estNewsletter(postType) {
 		return postType === reglages.postType;
+	}
+
+	var PluginDocumentSettingPanel = (wp.editor || {}).PluginDocumentSettingPanel || (wp.editPost || {}).PluginDocumentSettingPanel;
+
+	/** Variables de personnalisation, avec ce qu'elles donnent. */
+	var VARIABLES = [
+		{ code: '{prenom}', aide: 'Prénom de la personne' },
+		{ code: '{nom}', aide: 'Nom de famille' },
+		{ code: '{email}', aide: 'Son adresse e-mail' }
+	];
+
+	function ListeVariables() {
+		return el(
+			'ul',
+			{ className: 'wam-nl-variables' },
+			VARIABLES.map(function (v) {
+				return el(
+					'li',
+					{ key: v.code },
+					el('code', null, v.code),
+					' ',
+					el('span', null, __(v.aide, 'wam-newsletter'))
+				);
+			})
+		);
+	}
+
+	/** Panneau d'aide dans la colonne de droite, pendant la rédaction. */
+	function PanneauVariables() {
+		var n = useNewsletter();
+		if (!estNewsletter(n.postType) || !PluginDocumentSettingPanel) {
+			return null;
+		}
+		return el(
+			PluginDocumentSettingPanel,
+			{ name: 'wam-nl-variables', title: __('Personnaliser avec le prénom', 'wam-newsletter'), className: 'wam-nl-panneau-variables' },
+			el(
+				'p',
+				{ className: 'components-base-control__help' },
+				__('Écrivez ces mots tels quels dans le texte, l’objet ou le texte d’aperçu : chaque personne verra les siens.', 'wam-newsletter')
+			),
+			el(ListeVariables, null),
+			el(
+				'p',
+				{ className: 'components-base-control__help' },
+				__('Exemple : « Bonjour {prenom}, voici les nouvelles ». Si le prénom est inconnu, la formule est simplifiée automatiquement.', 'wam-newsletter')
+			)
+		);
 	}
 
 	// ------------------------------------------------------------------
@@ -614,6 +669,12 @@
 						Fragment,
 						null,
 						el(TextControl, {
+							label: __('Nom interne', 'wam-newsletter'),
+							help: __('Pour vous y retrouver dans la liste des newsletters. Les destinataires ne le voient jamais.', 'wam-newsletter'),
+							value: n.titre,
+							onChange: n.setTitre
+						}),
+						el(TextControl, {
 							label: __('Objet', 'wam-newsletter'),
 							help: __('La ligne que les gens voient dans leur boîte de réception.', 'wam-newsletter'),
 							value: objet,
@@ -631,9 +692,28 @@
 							}
 						}),
 						el(
-							'p',
-							{ className: 'wam-nl-astuce' },
-							__('Astuce : écrivez {prenom} dans l’objet ou le texte pour insérer le prénom de la personne.', 'wam-newsletter')
+							'div',
+							{ className: 'wam-nl-variables-bloc' },
+							el('strong', null, __('Variables disponibles', 'wam-newsletter')),
+							el(ListeVariables, null),
+							el(
+								'div',
+								{ className: 'wam-nl-actions' },
+								VARIABLES.map(function (v) {
+									return el(
+										Button,
+										{
+											key: v.code,
+											variant: 'tertiary',
+											isSmall: true,
+											onClick: function () {
+												n.setMeta(METAS.subject, objet + (objet && !/\s$/.test(objet) ? ' ' : '') + v.code);
+											}
+										},
+										__('Ajouter à l’objet', 'wam-newsletter') + ' ' + v.code
+									);
+								})
+							)
 						)
 					),
 					'email'
@@ -919,8 +999,8 @@
 		var libelleSauvegarde = n.saving
 			? __('Enregistrement…', 'wam-newsletter')
 			: n.dirty
-			? __('Enregistrer le brouillon', 'wam-newsletter')
-			: __('Brouillon enregistré ✓', 'wam-newsletter');
+			? __('Enregistrer', 'wam-newsletter')
+			: __('Enregistré ✓', 'wam-newsletter');
 
 		var libelleVoir = __('Voir l’envoi', 'wam-newsletter');
 		if ('sending' === statut) {
@@ -959,8 +1039,8 @@
 				: null,
 			el(
 				Button,
-				{ variant: 'primary', onClick: suivant },
-				brouillon ? __('Suivant : préparer l’envoi', 'wam-newsletter') + ' →' : libelleVoir
+				{ variant: 'primary', onClick: suivant, label: __('Passer à la préparation de l’envoi : objet, destinataires, test', 'wam-newsletter') },
+				brouillon ? __('Suivant : envoi', 'wam-newsletter') + ' →' : libelleVoir
 			)
 		);
 
@@ -986,7 +1066,7 @@
 
 	plugins.registerPlugin('wam-nl-editor', {
 		render: function () {
-			return el(Parcours, null);
+			return el(Fragment, null, el(Parcours, null), el(PanneauVariables, null));
 		}
 	});
 

@@ -1073,12 +1073,8 @@
 						  )
 						: null
 				),
-				apercu(
-					'wam-nl/posts',
-					a,
-					__('Contenus WAM', 'wam-newsletter'),
-					manuel ? __('choix manuel', 'wam-newsletter') : __('mis à jour à chaque envoi', 'wam-newsletter')
-				)
+				// Pas de bandeau d'étiquette : il n'apportait rien et gênait la lecture.
+				apercuSansEtiquette('wam-nl/posts', a)
 			);
 		},
 		save: function () {

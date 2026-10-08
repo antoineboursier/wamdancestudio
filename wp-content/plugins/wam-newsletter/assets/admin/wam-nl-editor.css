@@ -362,15 +362,52 @@
 
 .wam-nl-entete {
 	display: flex;
+	flex: 0 0 auto;
 	align-items: center;
 	margin-right: 8px;
 }
 
+/* Une seule ligne, jamais d'empilement : les boutons restent côte à côte
+   même quand la barre est étroite. */
 .wam-nl-entete__boutons {
 	display: flex;
-	flex-wrap: wrap;
+	flex-wrap: nowrap;
 	gap: 8px;
 	align-items: center;
+	white-space: nowrap;
+}
+
+.wam-nl-entete__boutons .components-button {
+	flex: 0 0 auto;
+	justify-content: center;
+}
+
+/* L'indicateur natif « Enregistré » fait doublon avec notre bouton. */
+.editor-post-saved-state {
+	display: none !important;
+}
+
+.wam-nl-variables {
+	margin: 8px 0;
+	padding: 0;
+	list-style: none;
+}
+
+.wam-nl-variables li {
+	margin: 0 0 4px;
+	font-size: 12px;
+}
+
+.wam-nl-variables code {
+	padding: 2px 6px;
+	background: #f0f0f1;
+}
+
+.wam-nl-variables-bloc {
+	margin-top: 16px;
+	padding: 12px;
+	border-left: 3px solid var(--wam-nl-accent);
+	background: #f6f7f7;
 }
 
 /* Repli si WordPress change les classes de son en-tête. */

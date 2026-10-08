@@ -273,14 +273,11 @@ class Posts {
 					'align' => 'center',
 				)
 			);
+			// Aucun padding sur mesure : cette ligne suit le défaut de Html::row
+			// comme toutes les autres zones, soit 24px d'écart avec le titre.
 			$html .= Html::row(
 				'<p style="' . esc_attr( $style_meta ) . '">' . implode( ' &#183; ', $meta_lignes ) . '</p>',
-				array(
-					'align'   => 'center',
-					// 6px et non 0 : un peu d'air entre le titre et cette ligne de
-					// sous-titre/date, qui collaient trop sans cette marge.
-					'padding' => '6px ' . Brand::GUTTER . 'px 6px',
-				)
+				array( 'align' => 'center' )
 			);
 		}
 

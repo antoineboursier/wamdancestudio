@@ -54,8 +54,13 @@ class EditorSetup {
 		add_filter( 'allowed_block_types_all', array( self::class, 'allowed_blocks' ), 10, 2 );
 		add_filter( 'block_editor_settings_all', array( self::class, 'editor_settings' ), 10, 2 );
 		add_filter( 'default_content', array( self::class, 'default_content' ), 10, 2 );
-		add_filter( 'enter_title_here', array( self::class, 'title_placeholder' ), 10, 2 );
 		add_action( 'enqueue_block_editor_assets', array( self::class, 'enqueue' ) );
+
+		// Le champ titre est masqué dans l'éditeur (voir wam-nl-editor.css) :
+		// l'objet de l'e-mail suffit, un « nom interne » distinct n'apportait
+		// rien. On le remplit donc depuis l'objet à l'enregistrement, pour que
+		// la liste des newsletters reste lisible.
+		add_filter( 'rest_pre_insert_' . NewsletterPostType::POST_TYPE, array( self::class, 'title_from_subject' ), 10, 2 );
 
 		// Les motifs et le catalogue distant n'ont aucun sens ici et ralentissent
 		// l'ouverture de l'éditeur.
@@ -195,17 +200,41 @@ class EditorSetup {
 	}
 
 	/**
-	 * @param string   $placeholder
-	 * @param \WP_Post $post
+	 * Donne au post son titre depuis l'objet de l'e-mail.
+	 *
+	 * Le champ titre n'est plus affiché : l'objet est la seule dénomination
+	 * utile. La colonne « Nom interne » de la liste et l'action « Dupliquer »
+	 * continuent pourtant de lire `post_title`, d'où ce report. On ne touche
+	 * jamais à un titre déjà saisi (newsletters créées avant ce changement,
+	 * copies nommées « … (copie) » par handle_duplicate()).
+	 *
+	 * @param \stdClass        $prepared
+	 * @param \WP_REST_Request $request
+	 * @return \stdClass
 	 */
-	public static function title_placeholder( $placeholder, $post = null ) {
-		if ( $post instanceof \WP_Post && NewsletterPostType::POST_TYPE === $post->post_type ) {
-			// Le titre est un repère interne : l'objet réel de l'e-mail est une
-			// méta, réglée dans le panneau latéral. Le dire ici évite qu'on
-			// cherche l'objet dans le titre.
-			return __( 'Nom interne de la newsletter (l’objet se règle à droite)', 'wam-newsletter' );
+	public static function title_from_subject( $prepared, $request ) {
+		$titre = isset( $prepared->post_title ) ? trim( (string) $prepared->post_title ) : '';
+		if ( '' !== $titre ) {
+			return $prepared;
 		}
-		return $placeholder;
+
+		// L'objet peut arriver dans la même requête que le contenu : on le lit
+		// d'abord dans la charge utile, et seulement ensuite en base.
+		$objet = '';
+		$metas = $request instanceof \WP_REST_Request ? $request->get_param( 'meta' ) : null;
+		if ( is_array( $metas ) && isset( $metas['_wam_nl_subject'] ) ) {
+			$objet = trim( (string) $metas['_wam_nl_subject'] );
+		}
+
+		if ( '' === $objet && ! empty( $prepared->ID ) ) {
+			$objet = trim( (string) get_post_meta( (int) $prepared->ID, '_wam_nl_subject', true ) );
+		}
+
+		if ( '' !== $objet ) {
+			$prepared->post_title = wp_strip_all_tags( $objet );
+		}
+
+		return $prepared;
 	}
 
 	public static function enqueue(): void {

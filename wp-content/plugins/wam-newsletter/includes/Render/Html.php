@@ -29,7 +29,10 @@ class Html {
 	 * @param array  $opts    padding, align, background
 	 */
 	public static function row( string $contenu, array $opts = array() ): string {
-		$padding = $opts['padding'] ?? ( '10px ' . Brand::GUTTER . 'px' );
+		// 12px haut + 12px bas = 24px entre deux zones par défaut (titre,
+		// image, paragraphe...), quelle que soit leur nature - demande
+		// d'Antoine après relecture, qui remplace l'ancien défaut à 10px.
+		$padding = $opts['padding'] ?? ( '12px ' . Brand::GUTTER . 'px' );
 		$align   = $opts['align'] ?? 'left';
 		$fond    = isset( $opts['background'] ) ? ' bgcolor="' . esc_attr( $opts['background'] ) . '"' : '';
 		$style   = 'padding:' . $padding . ';text-align:' . $align . ';';

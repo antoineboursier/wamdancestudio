@@ -323,3 +323,22 @@
 .wam-nl-panneau-objet .components-base-control {
 	margin-bottom: 12px;
 }
+
+/* ------------------------------------------------------------------ */
+/* Titre du post masqué                                                */
+/* ------------------------------------------------------------------ */
+
+/*
+ * Le nom interne de la newsletter n'apporte rien à côté de l'objet de
+ * l'e-mail : on le retire du contenu. Il reste rempli automatiquement
+ * depuis l'objet (EditorSetup::title_from_subject) pour que la liste des
+ * newsletters et la duplication continuent de fonctionner.
+ *
+ * Cette feuille n'est chargée que sur l'éditeur du CPT wam_newsletter
+ * (EditorSetup::enqueue sort immédiatement ailleurs) : aucun autre
+ * éditeur du site ne perd son titre.
+ */
+.editor-post-title,
+.edit-post-visual-editor__post-title-wrapper {
+	display: none;
+}

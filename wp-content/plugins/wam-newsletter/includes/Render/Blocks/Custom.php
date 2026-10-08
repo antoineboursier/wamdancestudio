@@ -151,7 +151,10 @@ class Custom {
 			esc_attr( $couleur )
 		);
 
-		return Html::row( $trait, array( 'padding' => '13px ' . Brand::GUTTER . 'px' ) );
+		// 40px autour du séparateur (demande d'Antoine) - plus large que la
+		// valeur de secours du §7.6.2 (13px), qui venait de l'e-mail de
+		// référence MailPoet et n'est donc pas une contrainte figée.
+		return Html::row( $trait, array( 'padding' => '40px ' . Brand::GUTTER . 'px' ) );
 	}
 
 	/**

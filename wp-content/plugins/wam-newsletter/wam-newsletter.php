@@ -1,6 +1,6 @@
 <?php
 /**
- * Plugin Name:       WAM Newsletter
+ * Plugin Name:       WAMletter
  * Description:       Newsletters WAM Dance Studio — abonné·es, listes, éditeur Gutenberg, envoi par lots.
  * Version:           0.1.0
  * Author:            WAM Dance Studio

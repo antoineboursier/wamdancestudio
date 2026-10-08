@@ -38,6 +38,50 @@ class WooCommerceImporter {
 	 */
 	const ORDER_STATUSES = array( 'wc-completed', 'wc-processing', 'wc-on-hold' );
 
+	/** @var array<string,bool> Adresses écartées comme robots par le dernier collect(). */
+	private static $bots = array();
+
+	/** Nombre d'adresses écartées comme robots lors du dernier collect(). */
+	public static function bots_skipped(): int {
+		return count( self::$bots );
+	}
+
+	/**
+	 * Commande probablement passée par un robot (test de cartes bancaires).
+	 *
+	 * WooCommerce garde ces commandes, avec des prénoms/noms aléatoires
+	 * (« OrahTIJZULWsAyzer ») et des adresses Gmail truffées de points. Les
+	 * importer ferait entrer des centaines de fausses adresses dans la liste :
+	 * rebonds, pièges à spam, et réputation du domaine d'envoi entamée.
+	 *
+	 * Volontairement prudent : mieux vaut laisser passer un robot qu'écarter un·e
+	 * vrai·e adhérent·e. Les comptes `customer` ne passent jamais par ce filtre.
+	 */
+	public static function is_probable_bot( string $email, string $first_name, string $last_name ): bool {
+		foreach ( array( $first_name, $last_name ) as $nom ) {
+			$nom = trim( $nom );
+			if ( strlen( $nom ) < 8 || preg_match( "/[\\s\\-'.]/u", $nom ) ) {
+				continue;
+			}
+			// Passages minuscule → majuscule au milieu d'un mot. « McDonald » en a
+			// un, « DeLaCruz » deux ; un nom aléatoire en a beaucoup plus.
+			$transitions = (int) preg_match_all( '/\p{Ll}\p{Lu}/u', $nom );
+			if ( $transitions >= 3 || ( $transitions >= 2 && strlen( $nom ) >= 12 ) ) {
+				return true;
+			}
+		}
+
+		// Technique du « point Gmail » : a.b.c.d.e@gmail.com est la même boîte que
+		// abcde@gmail.com. Quelqu'un qui écrit son adresse avec 4 points ou plus
+		// est presque toujours un robot.
+		$partie = strstr( $email, '@', true );
+		if ( false !== $partie && preg_match( '/@(gmail|googlemail)\.com$/i', $email ) && substr_count( $partie, '.' ) >= 4 ) {
+			return true;
+		}
+
+		return false;
+	}
+
 	public static function available(): bool {
 		return class_exists( 'WooCommerce' );
 	}
@@ -62,7 +106,8 @@ class WooCommerceImporter {
 	 */
 	public static function collect(): array {
 		global $wpdb;
-		$contacts = array();
+		$contacts   = array();
+		self::$bots = array();
 
 		// 1. E-mails de facturation des commandes.
 		if ( self::hpos_active() ) {
@@ -102,6 +147,10 @@ class WooCommerceImporter {
 			if ( '' === $email ) {
 				continue;
 			}
+			if ( self::is_probable_bot( $email, (string) ( $r['first_name'] ?? '' ), (string) ( $r['last_name'] ?? '' ) ) ) {
+				self::$bots[ $email ] = true;
+				continue;
+			}
 			// Commandes parcourues par identifiant croissant : la dernière
 			// commande gagne, ce qui donne le nom le plus récent.
 			$contacts[ $email ] = array(
@@ -126,6 +175,12 @@ class WooCommerceImporter {
 			}
 			$prenom = (string) get_user_meta( $compte->ID, 'first_name', true );
 			$nom    = (string) get_user_meta( $compte->ID, 'last_name', true );
+			// Les robots créent aussi un compte client à chaque commande.
+			if ( self::is_probable_bot( $email, $prenom, $nom ) ) {
+				self::$bots[ $email ] = true;
+				unset( $contacts[ $email ] );
+				continue;
+			}
 			$connu  = $contacts[ $email ] ?? array(
 				'email'      => $email,
 				'first_name' => '',
@@ -159,6 +214,7 @@ class WooCommerceImporter {
 			'list_id' => 0,
 			'errors'  => array(),
 			'dry_run' => $a_blanc,
+			'bots'    => 0,
 		);
 
 		if ( ! self::available() ) {
@@ -166,8 +222,9 @@ class WooCommerceImporter {
 			return $rapport;
 		}
 
-		$contacts         = self::collect();
-		$rapport['total'] = count( $contacts );
+		$contacts           = self::collect();
+		$rapport['total']   = count( $contacts );
+		$rapport['bots']    = self::bots_skipped();
 
 		if ( ! $contacts ) {
 			return $rapport;

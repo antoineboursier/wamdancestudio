@@ -181,6 +181,17 @@ try {
 		wam_nl_assert( array_key_exists( 'suppressed', $rapport ), 'le rapport annonce les personnes en liste de suppression' );
 	}
 
+	// ---------------------------------------------------------------
+	echo "== Import WooCommerce : les commandes de robots sont écartées ==
+";
+	$bot = array( 'WamNewsletter\Integrations\WooCommerceImporter', 'is_probable_bot' );
+	wam_nl_assert( $bot( 'x@exemple.test', 'OrahTIJZULWsAyzer', 'ZLADmKuaaMaXxtNhFnhgk' ), 'noms aléatoires détectés' );
+	wam_nl_assert( $bot( 'a.b.c.d.e@gmail.com', 'Jean', 'Dupont' ), 'adresse Gmail à 4 points détectée' );
+	foreach ( array( array( 'Marie', 'Dupont' ), array( 'Jean-Baptiste', 'McDonald' ), array( 'Anne Sophie', 'DeLaCruz' ), array( 'Élodie', 'Lefèvre-Martin' ) ) as $nom ) {
+		wam_nl_assert( ! $bot( 'vrai@exemple.test', $nom[0], $nom[1] ), 'vrai nom conservé : ' . $nom[0] . ' ' . $nom[1] );
+	}
+	wam_nl_assert( ! $bot( 'marie.dupont@gmail.com', 'Marie', 'Dupont' ), 'Gmail avec un seul point conservé' );
+
 } finally {
 	$nettoyer();
 	if ( false === $reglages_initiaux ) {

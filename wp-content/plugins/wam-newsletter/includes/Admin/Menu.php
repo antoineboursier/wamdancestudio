@@ -23,8 +23,8 @@ class Menu {
 
 	public static function register(): void {
 		add_menu_page(
-			__( 'Newsletter', 'wam-newsletter' ),
-			__( 'Newsletter', 'wam-newsletter' ),
+			__( 'WAMletter', 'wam-newsletter' ),
+			__( 'WAMletter', 'wam-newsletter' ),
 			Install::CAPABILITY,
 			self::SLUG,
 			array( self::class, 'render_placeholder' ),
@@ -42,7 +42,7 @@ class Menu {
 			wp_die( esc_html__( 'Accès refusé.', 'wam-newsletter' ) );
 		}
 		$url = admin_url( 'edit.php?post_type=' . NewsletterPostType::POST_TYPE );
-		echo '<div class="wrap"><h1>' . esc_html__( 'Newsletter', 'wam-newsletter' ) . '</h1>';
+		echo '<div class="wrap"><h1>' . esc_html__( 'WAMletter', 'wam-newsletter' ) . '</h1>';
 		echo '<p><a href="' . esc_url( $url ) . '">' . esc_html__( 'Voir les newsletters', 'wam-newsletter' ) . '</a></p></div>';
 	}
 }

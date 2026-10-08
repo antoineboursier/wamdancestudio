@@ -244,6 +244,9 @@ class Commands {
 				$rapport['invalid']
 			)
 		);
+		if ( ! empty( $rapport['bots'] ) ) {
+			WP_CLI::log( sprintf( 'Commandes de robots écartées (noms aléatoires, adresses Gmail à points) : %d', $rapport['bots'] ) );
+		}
 		if ( ! empty( $rapport['suppressed'] ) ) {
 			WP_CLI::log( sprintf( 'Liste de suppression reprise (désabonné·es, rebonds) : %d', $rapport['suppressed'] ) );
 		}

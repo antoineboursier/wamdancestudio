@@ -453,6 +453,94 @@ try {
 		}
 	}
 
+	echo "== Compositions prêtes à insérer ==\n";
+	// Elles servent à insérer une section déjà réglée au lieu d'assembler les
+	// blocs un par un : si l'une d'elles contenait un bloc hors liste blanche,
+	// l'insérer donnerait un bloc invalide dans l'éditeur.
+	\WamNewsletter\Blocks\Patterns::register();
+	$registre_motifs = WP_Block_Patterns_Registry::get_instance();
+
+	foreach ( \WamNewsletter\Blocks\Patterns::names() as $nom_motif ) {
+		$motif = $registre_motifs->get_registered( $nom_motif );
+		$court = str_replace( 'wam-newsletter/', '', $nom_motif );
+		wam_nl_assert( null !== $motif, "motif $court enregistré" );
+		if ( ! $motif ) {
+			continue;
+		}
+
+		wam_nl_assert_equals(
+			array( NewsletterPostType::POST_TYPE ),
+			$motif['postTypes'] ?? array(),
+			"  $court réservé aux newsletters"
+		);
+
+		$noms_blocs = array();
+		$aplatir    = static function ( array $liste ) use ( &$aplatir, &$noms_blocs ) {
+			foreach ( $liste as $bloc ) {
+				if ( ! empty( $bloc['blockName'] ) ) {
+					$noms_blocs[] = (string) $bloc['blockName'];
+				}
+				if ( ! empty( $bloc['innerBlocks'] ) ) {
+					$aplatir( (array) $bloc['innerBlocks'] );
+				}
+			}
+		};
+		$aplatir( parse_blocks( (string) $motif['content'] ) );
+
+		$hors_liste = array_values( array_diff( array_unique( $noms_blocs ), EditorSetup::ALLOWED_BLOCKS ) );
+		wam_nl_assert_equals( array(), $hors_liste, "  $court n’utilise que des blocs autorisés" );
+		wam_nl_assert( '' !== trim( BlockRenderer::preview( (string) $motif['content'] ) ), "  $court se rend sans erreur" );
+	}
+
+	echo "== Seuls nos motifs sont proposés dans l'éditeur de newsletter ==\n";
+	// Les motifs du cœur parlent de pages (couvertures, grilles de requête) et
+	// proposeraient des blocs qu'aucun client mail ne sait afficher.
+	$reglages_faux = array(
+		'__experimentalBlockPatterns'          => array(
+			array( 'name' => 'core/two-columns-of-text' ),
+			array( 'name' => 'wam-newsletter/appel-a-action' ),
+			array( 'name' => 'wamv1/un-motif-du-theme' ),
+		),
+		'__experimentalBlockPatternCategories' => array(
+			array( 'name' => 'featured' ),
+			array( 'name' => \WamNewsletter\Blocks\Patterns::CATEGORY ),
+		),
+	);
+
+	$nl_contexte = wp_insert_post(
+		array(
+			'post_type'   => NewsletterPostType::POST_TYPE,
+			'post_status' => 'draft',
+			'post_title'  => 'ZZTest contexte motifs',
+		)
+	);
+	$posts_temporaires[] = $nl_contexte;
+
+	$contexte_newsletter       = new stdClass();
+	$contexte_newsletter->post = get_post( $nl_contexte );
+	wam_nl_assert(
+		EditorSetup::is_newsletter_editor( $contexte_newsletter ),
+		'le contexte est bien reconnu comme un éditeur de newsletter'
+	);
+	$filtre = EditorSetup::editor_settings( $reglages_faux, $contexte_newsletter );
+
+	wam_nl_assert_equals(
+		array( 'wam-newsletter/appel-a-action' ),
+		wp_list_pluck( $filtre['__experimentalBlockPatterns'], 'name' ),
+		'seuls les motifs du plugin subsistent'
+	);
+	wam_nl_assert_equals(
+		array( \WamNewsletter\Blocks\Patterns::CATEGORY ),
+		wp_list_pluck( $filtre['__experimentalBlockPatternCategories'], 'name' ),
+		'seule la catégorie du plugin subsiste'
+	);
+
+	$contexte_stage       = new stdClass();
+	$contexte_stage->post = get_post( $futur );
+	$intacts              = EditorSetup::editor_settings( $reglages_faux, $contexte_stage );
+	wam_nl_assert_equals( 3, count( $intacts['__experimentalBlockPatterns'] ), 'les autres types de contenu gardent tous leurs motifs' );
+	wam_nl_assert( ! isset( $intacts['styles'] ), 'et ne reçoivent pas la peinture du canevas d’e-mail' );
+
 	echo "== L'aperçu d'un bloc ne pose aucun lien actif ==\n";
 	$apercu_pied = Blocks::definitions()['wam-nl/footer']['render']( array() );
 	wam_nl_assert( false === strpos( $apercu_pied, Placeholders::UNSUB_URL ), 'le marqueur est résolu dans l’aperçu' );

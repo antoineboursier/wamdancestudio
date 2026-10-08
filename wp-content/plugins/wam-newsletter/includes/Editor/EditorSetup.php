@@ -130,10 +130,31 @@ class EditorSetup {
 		);
 
 		// 3. Ménage de ce qui ne s'applique pas à un e-mail.
-		$settings['supportsLayout']           = true;
-		$settings['__experimentalBlockPatterns']          = array();
-		$settings['__experimentalBlockPatternCategories'] = array();
-		$settings['templateLock']             = false;
+		$settings['supportsLayout'] = true;
+		$settings['templateLock']   = false;
+
+		// Motifs : on garde les NÔTRES et on écarte ceux du cœur et du thème.
+		// Les motifs du cœur parlent de pages (couvertures, grilles de requête,
+		// média plein écran) et proposeraient des blocs qui ne savent pas se
+		// rendre dans une boîte de réception. Les nôtres sont des sections
+		// d'e-mail déjà réglées, à insérer puis à retoucher.
+		$settings['__experimentalBlockPatterns'] = array_values(
+			array_filter(
+				(array) ( $settings['__experimentalBlockPatterns'] ?? array() ),
+				static function ( $motif ) {
+					return isset( $motif['name'] ) && 0 === strpos( (string) $motif['name'], 'wam-newsletter/' );
+				}
+			)
+		);
+
+		$settings['__experimentalBlockPatternCategories'] = array_values(
+			array_filter(
+				(array) ( $settings['__experimentalBlockPatternCategories'] ?? array() ),
+				static function ( $categorie ) {
+					return \WamNewsletter\Blocks\Patterns::CATEGORY === ( $categorie['name'] ?? '' );
+				}
+			)
+		);
 
 		return $settings;
 	}

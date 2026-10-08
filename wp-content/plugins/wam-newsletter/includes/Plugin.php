@@ -16,6 +16,7 @@ class Plugin {
 		Editor\NewsletterPostType::register_hooks();
 		Render\Images::register_hooks();
 		Blocks\Blocks::register_hooks();
+		Blocks\Patterns::register_hooks();
 
 		// Administration
 		Admin\Menu::register_hooks();

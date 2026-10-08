@@ -92,7 +92,14 @@ class Html {
 		if ( '' === $couleur ) {
 			$couleur = Brand::color( 'accent' );
 		}
-		$align = in_array( $opts['align'] ?? 'left', array( 'left', 'center', 'right' ), true ) ? $opts['align'] : 'left';
+		// L'alignement est lu UNE fois : écrire `in_array( $opts['align'] ?? 'left', … ) ? $opts['align'] : 'left'`
+		// émettait « Undefined array key » quand la clé manquait — « left » étant
+		// dans la liste autorisée, c'est la branche vraie qui s'exécutait et qui
+		// relisait la clé absente.
+		$align = (string) ( $opts['align'] ?? 'left' );
+		if ( ! in_array( $align, array( 'left', 'center', 'right' ), true ) ) {
+			$align = 'left';
+		}
 
 		if ( 'contour' === $variante ) {
 			$fond        = 'transparent';

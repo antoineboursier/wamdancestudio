@@ -31,7 +31,16 @@ class Blocks {
 			return;
 		}
 
+		$registre = \WP_Block_Type_Registry::get_instance();
+
 		foreach ( self::definitions() as $nom => $def ) {
+			// Un bloc déjà enregistré ne doit pas l'être deux fois : WordPress
+			// émet sinon un avis « déjà enregistré » à chaque passage, et le
+			// debug.log se remplit. Arrive dès qu'un script rejoue `init`.
+			if ( $registre->is_registered( $nom ) ) {
+				continue;
+			}
+
 			register_block_type(
 				$nom,
 				array(

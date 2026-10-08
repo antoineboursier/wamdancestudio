@@ -551,6 +551,88 @@ try {
 	);
 	wam_nl_assert_equals( 'Bonjour, ça va ?', $sans_prenom, 'sans prénom : « Bonjour, » et non « Bonjour , »' );
 
+	echo "== Aucune alerte PHP sur des attributs absents ==\n";
+	// Régression du 08/10/2026 : `in_array( $opts['align'] ?? 'left', … ) ? $opts['align'] : 'left'`
+	// émettait « Undefined array key: align » quand la clé manquait — « left »
+	// étant dans la liste autorisée, c'est la branche vraie qui relisait la clé.
+	// Le défaut ne cassait rien à l'écran mais remplissait le debug.log à chaque
+	// rendu, ce qui noie les vraies erreurs.
+	$alertes = array();
+	set_error_handler(
+		static function ( $niveau, $message ) use ( &$alertes ) {
+			$alertes[] = $message;
+			return true;
+		},
+		E_ALL
+	);
+
+	Html::button( array( 'texte' => 'Sans align' ) );
+	Html::button( array() );
+	Html::row( 'contenu' );
+	Html::text_style();
+	Custom::button( array() );
+	Custom::header( array() );
+	Custom::footer( array() );
+	Custom::separator( array() );
+	Custom::spacer( array() );
+	Core::paragraph( array( 'blockName' => 'core/paragraph', 'innerHTML' => '<p>Minimal</p>' ) );
+	Core::heading( array( 'blockName' => 'core/heading', 'innerHTML' => '<h2>Minimal</h2>' ) );
+	Core::image( array( 'blockName' => 'core/image' ) );
+	Core::list_block( array( 'blockName' => 'core/list', 'innerHTML' => '<ul><li>x</li></ul>' ) );
+	Posts::render( array( 'postType' => 'stages', 'mode' => 'manual', 'postIds' => array( $futur ) ) );
+	BlockRenderer::render_list( parse_blocks( EditorSetup::default_blocks() ) );
+
+	restore_error_handler();
+	wam_nl_assert_equals( array(), $alertes, 'aucune alerte PHP sur des attributs de bloc absents' );
+
+	echo "== Les blocs ne sont jamais enregistrés deux fois ==\n";
+	// Un second appel à register() émettait un avis « déjà enregistré » par bloc.
+	$alertes = array();
+	set_error_handler(
+		static function ( $niveau, $message ) use ( &$alertes ) {
+			$alertes[] = $message;
+			return true;
+		},
+		E_ALL
+	);
+	Blocks::register();
+	\WamNewsletter\Form\Form::register_block();
+	restore_error_handler();
+	wam_nl_assert_equals( array(), $alertes, 'réenregistrer les blocs est silencieux' );
+
+	echo "== Messages d'administration : un transient absent n'est pas un tableau ==\n";
+	// `(array) false` donne `array( false )` et non un tableau vide : le premier
+	// message d'une série arrivait avec un `false` en tête, qui provoquait un
+	// « Trying to access array offset on value of type bool » à l'affichage.
+	// Les messages sont rangés dans un transient propre à l'utilisateur·rice :
+	// sans utilisateur courant, rien n'est empilé. En WP-CLI il n'y en a aucun.
+	$utilisateur_avant = get_current_user_id();
+	$admins            = get_users( array( 'role' => 'administrator', 'number' => 1, 'fields' => 'ID' ) );
+	if ( $admins ) {
+		wp_set_current_user( (int) $admins[0] );
+	}
+
+	$alertes = array();
+	set_error_handler(
+		static function ( $niveau, $message ) use ( &$alertes ) {
+			$alertes[] = $message;
+			return true;
+		},
+		E_ALL
+	);
+	\WamNewsletter\Admin\Notices::success( 'Message de test du harnais' );
+	ob_start();
+	\WamNewsletter\Admin\Notices::render();
+	$rendu_notice = (string) ob_get_clean();
+	restore_error_handler();
+
+	wam_nl_assert_equals( array(), $alertes, 'aucune alerte lors de l’empilement puis du rendu d’un message' );
+	wam_nl_assert( false !== strpos( $rendu_notice, 'Message de test du harnais' ), 'le message est bien affiché' );
+	ob_start();
+	\WamNewsletter\Admin\Notices::render();
+	wam_nl_assert_equals( '', trim( (string) ob_get_clean() ), 'un message n’est affiché qu’une fois' );
+	wp_set_current_user( $utilisateur_avant );
+
 	echo "== Un document sans gabarit reste valide ==\n";
 	$minimal = EmailRenderer::document( '<p>Test</p>', array( 'title' => 'T' ) );
 	wam_nl_assert( false !== strpos( $minimal, '<!DOCTYPE html>' ), 'document bien formé' );

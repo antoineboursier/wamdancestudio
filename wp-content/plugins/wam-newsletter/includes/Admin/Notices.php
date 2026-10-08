@@ -29,7 +29,15 @@ class Notices {
 		if ( '' === trim( $message ) || ! get_current_user_id() ) {
 			return;
 		}
-		$liste   = (array) get_transient( self::key() );
+
+		// ⚠️ Pas de `(array) get_transient(...)` : un transient absent rend
+		// `false`, et `(array) false` donne `array( false )` — pas un tableau
+		// vide. Le premier message d'une série arrivait donc avec un `false` en
+		// tête, qui provoquait un « Trying to access array offset on value of
+		// type bool » à l'affichage.
+		$liste = get_transient( self::key() );
+		$liste = is_array( $liste ) ? $liste : array();
+
 		$liste[] = array(
 			'type'    => $type,
 			'message' => $message,
@@ -51,13 +59,16 @@ class Notices {
 
 	/** Affiche puis consomme : un message ne doit apparaître qu'une fois. */
 	public static function render(): void {
-		$liste = (array) get_transient( self::key() );
-		if ( ! $liste ) {
+		$liste = get_transient( self::key() );
+		if ( ! is_array( $liste ) || ! $liste ) {
 			return;
 		}
 		delete_transient( self::key() );
 
 		foreach ( $liste as $notice ) {
+			if ( ! is_array( $notice ) ) {
+				continue;
+			}
 			$type = in_array( $notice['type'] ?? '', array( 'success', 'error', 'warning', 'info' ), true )
 				? $notice['type']
 				: 'info';

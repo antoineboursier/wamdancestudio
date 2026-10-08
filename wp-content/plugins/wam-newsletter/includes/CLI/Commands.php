@@ -1,6 +1,7 @@
 <?php
 namespace WamNewsletter\CLI;
 
+use WamNewsletter\Integrations\Cutover;
 use WamNewsletter\Integrations\MailPoetMigrator;
 use WamNewsletter\Integrations\WooCommerceImporter;
 use WamNewsletter\Lists\Repository as Lists;
@@ -27,7 +28,41 @@ class Commands {
 		WP_CLI::add_command( 'wam-nl import-woocommerce', array( self::class, 'import_woocommerce' ) );
 		WP_CLI::add_command( 'wam-nl export', array( self::class, 'export' ) );
 		WP_CLI::add_command( 'wam-nl backup-mailpoet', array( self::class, 'backup_mailpoet' ) );
+		WP_CLI::add_command( 'wam-nl cutover-check', array( self::class, 'cutover_check' ) );
 		WP_CLI::add_command( 'wam-nl stats', array( self::class, 'stats' ) );
+	}
+
+	/**
+	 * Vérifie qu'on peut retirer MailPoet sans rien perdre (lot 9).
+	 *
+	 * Ne désactive et ne supprime rien : la suppression d'un plugin de
+	 * production se décide à la main, sur la production, et n'est pas réversible
+	 * une fois ses tables effacées.
+	 *
+	 * ## EXAMPLES
+	 *
+	 *     wp wam-nl cutover-check
+	 */
+	public static function cutover_check(): void {
+		$rapport = Cutover::report();
+
+		WP_CLI::log( 'Contrôles :' );
+		foreach ( $rapport['checks'] as $check ) {
+			WP_CLI::log( sprintf( '  [%s] %s — %s', $check['ok'] ? 'OK' : '!!', $check['label'], $check['detail'] ) );
+		}
+
+		WP_CLI::log( '' );
+		WP_CLI::log( 'Marche à suivre :' );
+		foreach ( $rapport['steps'] as $etape ) {
+			WP_CLI::log( '  ' . $etape );
+		}
+
+		WP_CLI::log( '' );
+		if ( $rapport['ready'] ) {
+			WP_CLI::success( 'Tous les contrôles passent. La bascule peut être engagée à la main, en suivant les étapes ci-dessus.' );
+			return;
+		}
+		WP_CLI::warning( 'Des contrôles ne passent pas : ne retirez pas MailPoet en l’état.' );
 	}
 
 	/**

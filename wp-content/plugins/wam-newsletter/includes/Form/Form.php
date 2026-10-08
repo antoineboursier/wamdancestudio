@@ -81,6 +81,11 @@ class Form {
 		if ( ! function_exists( 'register_block_type' ) ) {
 			return;
 		}
+		// Même garde que pour les blocs de l'éditeur : réenregistrer un bloc
+		// remplit le debug.log d'avis « déjà enregistré ».
+		if ( \WP_Block_Type_Registry::get_instance()->is_registered( self::BLOCK ) ) {
+			return;
+		}
 
 		$rel = 'blocks/form/index.js';
 		if ( file_exists( WAM_NL_DIR . $rel ) ) {

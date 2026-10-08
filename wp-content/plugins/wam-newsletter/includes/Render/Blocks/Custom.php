@@ -130,7 +130,11 @@ class Custom {
 				'align'   => (string) ( $attrs['align'] ?? 'left' ),
 			)
 		);
-		$align = in_array( $attrs['align'] ?? 'left', array( 'left', 'center', 'right' ), true ) ? $attrs['align'] : 'left';
+		// Lecture unique, pour la même raison que dans Html::button().
+		$align = (string) ( $attrs['align'] ?? 'left' );
+		if ( ! in_array( $align, array( 'left', 'center', 'right' ), true ) ) {
+			$align = 'left';
+		}
 		return Html::row( $contenu, array( 'align' => $align ) );
 	}
 

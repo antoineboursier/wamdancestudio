@@ -161,7 +161,7 @@ class Posts {
 		if ( ! $ids ) {
 			return Html::row(
 				'<p style="' . esc_attr( Html::text_style( array( 'color' => Brand::color( 'muted' ), 'align' => 'center', 'size' => 13 ) ) ) . '">'
-				. esc_html__( 'Aucun contenu à afficher pour ce réglage.', 'wam-newsletter' )
+				. esc_html( self::empty_message( $a ) )
 				. '</p>',
 				array( 'align' => 'center' )
 			);
@@ -173,6 +173,55 @@ class Posts {
 			$html   .= self::item( (int) $id, $a, $inverse );
 		}
 		return $html;
+	}
+
+	/**
+	 * Message affiché quand la requête ne ramène rien.
+	 *
+	 * Dit POURQUOI, et quoi faire. « Aucun contenu à afficher » laisserait
+	 * croire à une panne : le cas le plus fréquent sur ce site est un tri « les
+	 * prochains » alors que tous les stages publiés sont déjà passés, et la
+	 * personne qui rédige doit pouvoir le comprendre seule.
+	 */
+	public static function empty_message( array $a ): string {
+		$post_type = (string) $a['postType'];
+		$libelle   = strtolower( ContentMap::post_type_label( $post_type ) );
+
+		if ( 'manual' === ( $a['mode'] ?? 'auto' ) ) {
+			return __( 'Aucun contenu choisi : ouvrez les réglages du bloc, à droite, et sélectionnez-en.', 'wam-newsletter' );
+		}
+
+		if ( ! post_type_exists( $post_type ) ) {
+			return __( 'Ce type de contenu n’existe plus sur le site. Choisissez-en un autre dans les réglages du bloc.', 'wam-newsletter' );
+		}
+
+		$publies = (int) wp_count_posts( $post_type )->publish;
+
+		if ( 0 === $publies ) {
+			/* translators: %s nom du type de contenu au pluriel */
+			return sprintf( __( 'Aucun contenu publié dans « %s » pour le moment.', 'wam-newsletter' ), $libelle );
+		}
+
+		if ( 'upcoming' === ( $a['order'] ?? 'recent' ) ) {
+			if ( ! ContentMap::supports_upcoming( $post_type ) ) {
+				/* translators: %s nom du type de contenu au pluriel */
+				return sprintf(
+					__( 'Les contenus « %s » n’ont pas de date : choisissez « Les plus récents » dans les réglages du bloc.', 'wam-newsletter' ),
+					$libelle
+				);
+			}
+			/* translators: %s nom du type de contenu au pluriel */
+			return sprintf(
+				__( 'Aucun contenu « %s » à venir : tous ceux qui sont publiés ont déjà eu lieu. Publiez-en un nouveau, ou choisissez « Les plus récents ».', 'wam-newsletter' ),
+				$libelle
+			);
+		}
+
+		if ( ! empty( $a['term'] ) ) {
+			return __( 'Aucun contenu dans cette catégorie. Essayez « Toutes les catégories ».', 'wam-newsletter' );
+		}
+
+		return __( 'Aucun contenu à afficher pour ce réglage.', 'wam-newsletter' );
 	}
 
 	/** Un contenu. */

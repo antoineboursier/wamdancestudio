@@ -376,9 +376,10 @@ class RestApi {
 		$sortie = array();
 		foreach ( $posts as $post ) {
 			$sortie[] = array(
-				'id'    => (int) $post->ID,
-				'title' => (string) get_the_title( $post ),
-				'date'  => \WamNewsletter\Render\Blocks\Posts::formatted_date( $post_type, (int) $post->ID ),
+				'id'       => (int) $post->ID,
+				'title'    => (string) get_the_title( $post ),
+				'subtitle' => \WamNewsletter\Render\Blocks\Posts::subtitle( $post_type, (int) $post->ID ),
+				'date'     => \WamNewsletter\Render\Blocks\Posts::formatted_date( $post_type, (int) $post->ID ),
 			);
 		}
 		return new WP_REST_Response( $sortie );

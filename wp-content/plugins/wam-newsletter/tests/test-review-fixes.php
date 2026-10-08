@@ -266,6 +266,14 @@ try {
 	$gabarit = (string) file_get_contents( WAM_NL_DIR . 'templates/email/base.php' );
 	wam_nl_assert( 1 === preg_match( '/@media[^{]*max-width: 620px\)\s*\{.*\.wam-nl-banner__img\s*\{[^}]*width: 140% !important/s', $gabarit ), 'le zoom à 140 % n’existe que dans la media query mobile' );
 
+	// ---------------------------------------------------------------
+	echo "== Recherche de contenus : le sous-titre distingue deux titres identiques ==
+";
+	$recherche = new WP_REST_Request( 'GET', '/x' );
+	$recherche->set_param( 'postType', 'cours' );
+	$resultats = \WamNewsletter\Editor\RestApi::content_search( $recherche )->get_data();
+	wam_nl_assert( ! $resultats || array_key_exists( 'subtitle', $resultats[0] ), 'chaque résultat porte une clé « subtitle »' );
+
 } finally {
 	$nettoyer();
 	if ( false === $reglages_initiaux ) {

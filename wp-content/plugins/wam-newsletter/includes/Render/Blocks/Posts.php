@@ -509,6 +509,20 @@ class Posts {
 	}
 
 	/** @return array<string,mixed> */
+	/**
+	 * Sous-titre d'un contenu, ou chaîne vide s'il n'existe pas.
+	 *
+	 * Sert à distinguer, dans la liste de choix manuel de l'éditeur, deux
+	 * contenus de même titre (« Danses de couple » existe deux fois).
+	 */
+	public static function subtitle( string $post_type, int $id ): string {
+		$champ = ContentMap::field( $post_type, 'subtitle' );
+		if ( '' === $champ ) {
+			return '';
+		}
+		return trim( ContentMap::stringify( self::field_value( $champ, $id ) ) );
+	}
+
 	private static function resolve_item( int $id, string $post_type ): array {
 		$titre = trim( (string) get_the_title( $id ) );
 

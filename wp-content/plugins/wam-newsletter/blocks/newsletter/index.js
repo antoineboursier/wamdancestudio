@@ -655,10 +655,10 @@
 					.then(function (tous) {
 						var connus = {};
 						(tous || []).forEach(function (p) {
-							connus[p.id] = p.title;
+							connus[p.id] = libelleContenu(p, false);
 						});
 						(liste || []).forEach(function (p) {
-							connus[p.id] = p.title;
+							connus[p.id] = libelleContenu(p, false);
 						});
 						setTitres(
 							ids.map(function (id) {
@@ -777,11 +777,23 @@
 								basculer(p.id);
 							}
 						},
-						p.title + (p.date ? ' - ' + p.date : '')
+						libelleContenu(p, true)
 					);
 				})
 			)
 		);
+	}
+
+	/** « Titre · sous-titre », avec la date en plus pour la liste de recherche. */
+	function libelleContenu(p, avecDate) {
+		var texte = p.title;
+		if (p.subtitle) {
+			texte += ' · ' + p.subtitle;
+		}
+		if (avecDate && p.date) {
+			texte += ' - ' + p.date;
+		}
+		return texte;
 	}
 
 	function TermesFiltre(props) {

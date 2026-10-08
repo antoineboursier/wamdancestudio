@@ -38,6 +38,9 @@ class WooCommerceImporter {
 	 */
 	const ORDER_STATUSES = array( 'wc-completed', 'wc-processing', 'wc-on-hold' );
 
+	/** Domaines de spam constatés dans les commandes. À compléter au besoin. */
+	const SPAM_DOMAINS = array( 'topcrush.org', 'privbibl.ru' );
+
 	/** @var array<string,bool> Adresses écartées comme robots par le dernier collect(). */
 	private static $bots = array();
 
@@ -71,6 +74,26 @@ class WooCommerceImporter {
 			}
 		}
 
+		// Alphabet cyrillique : les robots de spam russophones y mettent noms et
+		// prénoms, avec des adresses en .ru. Un·e vrai·e adhérent·e écrivant son
+		// nom en cyrillique reste possible mais très rare ; il suffit de l'ajouter
+		// à la main.
+		if ( preg_match( '/\p{Cyrillic}/u', $first_name . $last_name ) ) {
+			return true;
+		}
+
+		$domaine = strtolower( (string) substr( (string) strrchr( $email, '@' ), 1 ) );
+		if ( '' !== $domaine ) {
+			// Domaines de spam constatés dans les commandes, et extensions qu'aucun
+			// client réel du studio n'utilise.
+			if ( in_array( $domaine, self::SPAM_DOMAINS, true ) ) {
+				return true;
+			}
+			if ( preg_match( '/\.(top|ru|su|xyz|icu|click|pw|cfd|sbs|monster|buzz|bz)$/', $domaine ) ) {
+				return true;
+			}
+		}
+
 		// Technique du « point Gmail » : a.b.c.d.e@gmail.com est la même boîte que
 		// abcde@gmail.com. Quelqu'un qui écrit son adresse avec 4 points ou plus
 		// est presque toujours un robot.
@@ -80,6 +103,46 @@ class WooCommerceImporter {
 		}
 
 		return false;
+	}
+
+	/**
+	 * Met à la corbeille les contacts déjà importés qui ressemblent à des robots.
+	 *
+	 * Corbeille et non suppression : c'est réversible depuis l'écran des
+	 * abonné·es. Ne touche que les contacts dont le seul consentement vient de
+	 * WooCommerce et qui sont encore abonné·es.
+	 *
+	 * @return array{found:int,trashed:int,dry_run:bool}
+	 */
+	public static function purge_bots( bool $a_blanc = true ): array {
+		global $wpdb;
+		$t       = Subscribers::table();
+		$rapport = array(
+			'found'   => 0,
+			'trashed' => 0,
+			'dry_run' => $a_blanc,
+		);
+
+		$lignes = (array) $wpdb->get_results(
+			$wpdb->prepare(
+				"SELECT id, email, first_name, last_name FROM `$t` WHERE consent_source = %s AND status = %s",
+				'woocommerce',
+				Subscribers::STATUS_SUBSCRIBED
+			),
+			ARRAY_A
+		);
+
+		foreach ( $lignes as $r ) {
+			if ( ! self::is_probable_bot( (string) $r['email'], (string) $r['first_name'], (string) $r['last_name'] ) ) {
+				continue;
+			}
+			++$rapport['found'];
+			if ( ! $a_blanc && Subscribers::set_status( (int) $r['id'], Subscribers::STATUS_TRASHED ) ) {
+				++$rapport['trashed'];
+			}
+		}
+
+		return $rapport;
 	}
 
 	public static function available(): bool {

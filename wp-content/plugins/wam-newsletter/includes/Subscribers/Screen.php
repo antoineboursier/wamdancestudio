@@ -365,6 +365,24 @@ class Screen {
 			self::redirect( array( 'vue' => 'outils' ) );
 		}
 
+		if ( 'purge_bots' === $outil ) {
+			$rapport = WooCommerceImporter::purge_bots( $a_blanc );
+			Notices::success(
+				$a_blanc
+					? sprintf(
+						/* translators: %s nombre de contacts */
+						__( 'Simulation : %s contact(s) ressemblent à des robots et seraient mis à la corbeille.', 'wam-newsletter' ),
+						number_format_i18n( $rapport['found'] )
+					)
+					: sprintf(
+						/* translators: %s nombre de contacts */
+						__( '%s contact(s) ressemblant à des robots ont été mis à la corbeille (récupérables depuis l’onglet Corbeille).', 'wam-newsletter' ),
+						number_format_i18n( $rapport['trashed'] )
+					)
+			);
+			self::redirect( array( 'vue' => 'outils' ) );
+		}
+
 		if ( 'mailpoet_backup' === $outil ) {
 			$csv = MailPoetMigrator::export_backup();
 			if ( '' === $csv ) {
@@ -687,6 +705,10 @@ class Screen {
 				)
 			);
 			self::tool_form( 'woocommerce', __( 'Importer depuis WooCommerce', 'wam-newsletter' ) );
+
+			echo '<h3>' . esc_html__( 'Commandes de robots', 'wam-newsletter' ) . '</h3>';
+			echo '<p>' . esc_html__( 'WooCommerce garde des commandes de robots (test de cartes bancaires, spam) : noms aléatoires, adresses en .ru ou .top, alphabet cyrillique… Ce bouton met à la corbeille ceux déjà importés. Rien n’est supprimé définitivement.', 'wam-newsletter' ) . '</p>';
+			self::tool_form( 'purge_bots', __( 'Écarter les robots déjà importés', 'wam-newsletter' ) );
 		}
 
 		printf( '<p><a href="%s" class="button-link">%s</a></p>', esc_url( self::url() ), esc_html__( 'Retour à la liste', 'wam-newsletter' ) );

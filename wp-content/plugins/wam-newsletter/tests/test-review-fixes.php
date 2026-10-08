@@ -191,6 +191,11 @@ try {
 		wam_nl_assert( ! $bot( 'vrai@exemple.test', $nom[0], $nom[1] ), 'vrai nom conservé : ' . $nom[0] . ' ' . $nom[1] );
 	}
 	wam_nl_assert( ! $bot( 'marie.dupont@gmail.com', 'Marie', 'Dupont' ), 'Gmail avec un seul point conservé' );
+	wam_nl_assert( $bot( 'prime9@topcrush.org', 'Keesha', 'Owen' ), 'domaine de spam connu détecté' );
+	wam_nl_assert( $bot( 'u80e4dc6f@blogranks.top', 'Jada', 'Bainton' ), 'extension .top détectée' );
+	wam_nl_assert( $bot( 'x@privbibl.ru', 'Илана', 'Броня' ), 'noms cyrilliques détectés' );
+	wam_nl_assert( ! $bot( 'amelie@hotmail.fr', 'Amélie', 'Gottrand' ), 'vraie adhérente conservée' );
+	wam_nl_assert( ! $bot( 'a@laposte.net', 'Clémence', 'Joets' ), 'laposte.net conservé' );
 
 } finally {
 	$nettoyer();

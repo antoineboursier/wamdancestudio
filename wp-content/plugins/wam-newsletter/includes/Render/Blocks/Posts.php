@@ -480,6 +480,109 @@ class Posts {
 		return (string) wp_date( 'j F Y', $dt->getTimestamp() );
 	}
 
+	/**
+	 * Données structurées des contenus résolus — pour « Convertir en blocs
+	 * modifiables » (panneau latéral de l'éditeur).
+	 *
+	 * Contrairement à `render()`, qui produit du HTML d'e-mail, cette méthode
+	 * renvoie les données brutes de chaque contenu : c'est ce que le JavaScript
+	 * de l'éditeur utilise pour fabriquer de vrais blocs Gutenberg (titre,
+	 * colonnes, image, bouton), détachés de ce bloc dynamique et donc
+	 * librement réordonnables, supprimables, et intercalables avec n'importe
+	 * quel autre bloc.
+	 *
+	 * @return array{items:array<int,array<string,mixed>>,defaultButtonText:string}
+	 */
+	public static function resolve_items( array $attrs ): array {
+		$a         = array_merge( self::defaults(), $attrs );
+		$ids       = self::query( $a );
+		$post_type = (string) $a['postType'];
+
+		$items = array();
+		foreach ( $ids as $id ) {
+			$items[] = self::resolve_item( (int) $id, $post_type );
+		}
+
+		return array(
+			'items'             => $items,
+			'defaultButtonText' => self::default_button_text( $post_type ),
+		);
+	}
+
+	/** @return array<string,mixed> */
+	private static function resolve_item( int $id, string $post_type ): array {
+		$titre = trim( (string) get_the_title( $id ) );
+
+		$sous_titre       = '';
+		$champ_sous_titre = ContentMap::field( $post_type, 'subtitle' );
+		if ( '' !== $champ_sous_titre ) {
+			$sous_titre = ContentMap::stringify( self::field_value( $champ_sous_titre, $id ) );
+		}
+
+		$prix       = '';
+		$champ_prix = ContentMap::field( $post_type, 'price' );
+		if ( '' !== $champ_prix ) {
+			$prix = ContentMap::stringify( self::field_value( $champ_prix, $id ) );
+		}
+
+		return array(
+			'id'       => $id,
+			'title'    => $titre,
+			'link'     => (string) get_permalink( $id ),
+			'subtitle' => $sous_titre,
+			'date'     => self::formatted_date( $post_type, $id ),
+			'price'    => $prix,
+			'excerpt'  => self::excerpt( $id, $post_type ),
+			'image'    => self::resolve_image( $id, $post_type, $titre ),
+		);
+	}
+
+	/**
+	 * Image d'un contenu, en données brutes (pas le dérivé JPG de l'e-mail).
+	 *
+	 * Le dérivé e-mail est produit plus tard, au rendu : `Core::image()` le
+	 * fabrique à partir du seul identifiant de pièce jointe, quelle que soit la
+	 * taille utilisée ici pour l'aperçu dans l'éditeur.
+	 *
+	 * @return array{id:int,url:string,alt:string,width:int,height:int}|null
+	 */
+	private static function resolve_image( int $id, string $post_type, string $titre_repli ): ?array {
+		$attachment  = 0;
+		$champ_image = ContentMap::field( $post_type, 'image' );
+		if ( '' !== $champ_image ) {
+			$valeur = self::field_value( $champ_image, $id );
+			if ( is_array( $valeur ) && isset( $valeur['ID'] ) ) {
+				$attachment = (int) $valeur['ID'];
+			} elseif ( is_numeric( $valeur ) ) {
+				$attachment = (int) $valeur;
+			}
+		}
+		if ( ! $attachment ) {
+			$attachment = (int) get_post_thumbnail_id( $id );
+		}
+		if ( ! $attachment ) {
+			return null;
+		}
+
+		$src = wp_get_attachment_image_src( $attachment, 'medium' );
+		if ( ! $src ) {
+			return null;
+		}
+
+		$alt = trim( (string) get_post_meta( $attachment, '_wp_attachment_image_alt', true ) );
+		if ( '' === $alt ) {
+			$alt = '' !== $titre_repli ? $titre_repli : (string) get_the_title( $attachment );
+		}
+
+		return array(
+			'id'     => $attachment,
+			'url'    => (string) $src[0],
+			'width'  => (int) $src[1],
+			'height' => (int) $src[2],
+			'alt'    => $alt,
+		);
+	}
+
 	/** Lecture d'un champ ACF, avec repli sur la méta brute. */
 	private static function field_value( string $champ, int $id ) {
 		if ( function_exists( 'get_field' ) ) {

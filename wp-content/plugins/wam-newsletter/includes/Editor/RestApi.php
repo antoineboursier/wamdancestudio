@@ -5,6 +5,7 @@ use WamNewsletter\Install;
 use WamNewsletter\Integrations\ContentMap;
 use WamNewsletter\Lists\Repository as Lists;
 use WamNewsletter\Render\BlockRenderer;
+use WamNewsletter\Render\Blocks\Posts;
 use WamNewsletter\Render\EmailRenderer;
 use WamNewsletter\Sending\Scheduler;
 use WamNewsletter\Sending\Sender;
@@ -55,6 +56,7 @@ class RestApi {
 		register_rest_route( self::NAMESPACE_V1, '/checklist', array_merge( $ecriture, array( 'callback' => array( self::class, 'checklist_route' ) ) ) );
 		register_rest_route( self::NAMESPACE_V1, '/content-search', array_merge( $lecture, array( 'callback' => array( self::class, 'content_search' ) ) ) );
 		register_rest_route( self::NAMESPACE_V1, '/terms', array_merge( $lecture, array( 'callback' => array( self::class, 'terms' ) ) ) );
+		register_rest_route( self::NAMESPACE_V1, '/posts-resolve', array_merge( $ecriture, array( 'callback' => array( self::class, 'posts_resolve' ) ) ) );
 	}
 
 	// -----------------------------------------------------------------
@@ -406,5 +408,27 @@ class RestApi {
 			);
 		}
 		return new WP_REST_Response( $sortie );
+	}
+
+	/**
+	 * Résout les contenus courants du bloc Contenus en données structurées,
+	 * pour « Convertir en blocs modifiables ».
+	 *
+	 * Ne touche à rien : c'est une lecture, exactement comme `preview`. La
+	 * transformation en vrais blocs se fait côté JavaScript, à partir de ces
+	 * données.
+	 */
+	public static function posts_resolve( WP_REST_Request $requete ): WP_REST_Response {
+		$attrs = array(
+			'postType' => sanitize_key( (string) $requete->get_param( 'postType' ) ),
+			'mode'     => sanitize_key( (string) $requete->get_param( 'mode' ) ),
+			'count'    => (int) $requete->get_param( 'count' ),
+			'order'    => sanitize_key( (string) $requete->get_param( 'order' ) ),
+			'taxonomy' => sanitize_key( (string) $requete->get_param( 'taxonomy' ) ),
+			'term'     => (int) $requete->get_param( 'term' ),
+			'postIds'  => array_map( 'intval', (array) $requete->get_param( 'postIds' ) ),
+		);
+
+		return new WP_REST_Response( Posts::resolve_items( array_filter( $attrs, static fn( $v ) => '' !== $v ) ) );
 	}
 }

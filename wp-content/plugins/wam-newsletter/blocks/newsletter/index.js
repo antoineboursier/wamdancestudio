@@ -23,6 +23,7 @@
 
 	var blockEditor = wp.blockEditor || wp.editor;
 	var InspectorControls = blockEditor.InspectorControls;
+	var BlockControls = blockEditor.BlockControls;
 	var useBlockProps = blockEditor.useBlockProps;
 	var RichText = blockEditor.RichText;
 	var MediaUpload = blockEditor.MediaUpload;
@@ -39,6 +40,8 @@
 	var Notice = C.Notice;
 	var Spinner = C.Spinner;
 	var ButtonGroup = C.ButtonGroup;
+	var ToolbarGroup = C.ToolbarGroup;
+	var ToolbarButton = C.ToolbarButton;
 
 	var ServerSideRender = wp.serverSideRender || C.ServerSideRender;
 	var apiFetch = wp.apiFetch;
@@ -55,6 +58,97 @@
 			{ label: __('Turquoise WAM', 'wam-newsletter'), value: couleurs.separator || '#00D6B2' },
 			{ label: __('Crème', 'wam-newsletter'), value: couleurs.text || '#F9F4EB' }
 		];
+	}
+
+	/**
+	 * Construit une suite de vrais blocs Gutenberg à partir des contenus
+	 * résolus par /posts-resolve.
+	 *
+	 * Reproduit la mise en page du rendu dynamique (séparateur, titre centré,
+	 * colonnes image/texte, alternance gauche/droite) mais avec des blocs
+	 * natifs indépendants : chaque titre, chaque image, chaque paragraphe
+	 * devient modifiable, déplaçable, supprimable, et on peut intercaler
+	 * n'importe quel autre bloc entre deux contenus.
+	 *
+	 * Sans image, les blocs de texte sont posés à plat (pas de colonnes vides) —
+	 * c'est aussi ce que fait le rendu dynamique.
+	 */
+	function construireBlocsDepuisItems(items, a, texteBoutonDefaut) {
+		var createBlock = wp.blocks.createBlock;
+		var blocs = [];
+
+		items.forEach(function (item, index) {
+			blocs.push(createBlock('wam-nl/separator', {}));
+
+			var titreContenu = item.link
+				? '<a href="' + item.link + '">' + item.title + '</a>'
+				: item.title;
+			blocs.push(
+				createBlock('core/heading', {
+					level: 2,
+					textAlign: 'center',
+					content: titreContenu
+				})
+			);
+
+			var meta = [item.subtitle, a.showDate ? item.date : ''].filter(Boolean).join(' · ');
+			if (meta) {
+				blocs.push(
+					createBlock('core/paragraph', {
+						align: 'center',
+						fontSize: 'small',
+						content: meta
+					})
+				);
+			}
+
+			var blocsTexte = [];
+			if (a.showExcerpt && item.excerpt) {
+				blocsTexte.push(createBlock('core/paragraph', { content: item.excerpt }));
+			}
+			if (item.price) {
+				blocsTexte.push(
+					createBlock('core/paragraph', {
+						content: wp.i18n.sprintf(__('Dès %s €', 'wam-newsletter'), item.price)
+					})
+				);
+			}
+			if (a.showButton) {
+				blocsTexte.push(
+					createBlock('wam-nl/button', {
+						text: a.buttonText || texteBoutonDefaut,
+						url: item.link,
+						variant: a.buttonVariant || 'plein',
+						color: a.buttonColor || ''
+					})
+				);
+			}
+
+			if (a.showImage && item.image) {
+				var blocImage = createBlock('core/image', {
+					id: item.image.id,
+					url: item.image.url,
+					alt: item.image.alt,
+					linkDestination: 'custom',
+					href: item.link
+				});
+
+				// L'ordre des DEUX blocs colonne détermine gauche/droite : une fois
+				// détaché, on peut aussi les inverser à la main (glisser-déposer
+				// dans la vue Liste), sans repasser par ce bouton.
+				var colonneImage = createBlock('core/column', {}, [blocImage]);
+				var colonneTexte = createBlock('core/column', {}, blocsTexte);
+				var inverse = a.alternate && index % 2 === 1;
+
+				blocs.push(
+					createBlock('core/columns', {}, inverse ? [colonneTexte, colonneImage] : [colonneImage, colonneTexte])
+				);
+			} else {
+				blocs = blocs.concat(blocsTexte);
+			}
+		});
+
+		return blocs;
 	}
 
 	/**
@@ -654,15 +748,92 @@
 			var blockProps = useBlockProps ? useBlockProps() : {};
 			var manuel = 'manual' === a.mode;
 
+			var etatConversion = useState(false);
+			var enConversion = etatConversion[0];
+			var setEnConversion = etatConversion[1];
+
+			/**
+			 * Détache ce bloc : les contenus actuels deviennent de vrais blocs
+			 * Gutenberg, modifiables un par un, mais qui arrêtent de se mettre à
+			 * jour automatiquement. Irréversible pour ce bloc précis (on peut
+			 * toujours annuler avec Ctrl+Z juste après), d'où la confirmation.
+			 */
+			function convertirEnBlocs() {
+				if (
+					!window.confirm(
+						__(
+							'Cette section deviendra des blocs normaux, modifiables un par un (texte, image, ordre). Elle ne se mettra plus à jour automatiquement par la suite. Continuer ?',
+							'wam-newsletter'
+						)
+					)
+				) {
+					return;
+				}
+
+				setEnConversion(true);
+
+				apiFetch({
+					path: ns + '/posts-resolve',
+					method: 'POST',
+					data: {
+						postType: a.postType,
+						mode: a.mode,
+						count: a.count,
+						order: a.order,
+						taxonomy: a.taxonomy,
+						term: a.term,
+						postIds: a.postIds
+					}
+				})
+					.then(function (reponse) {
+						var items = reponse.items || [];
+						if (!items.length) {
+							window.alert(__('Aucun contenu à convertir pour le moment.', 'wam-newsletter'));
+							setEnConversion(false);
+							return;
+						}
+						var nouveauxBlocs = construireBlocsDepuisItems(items, a, reponse.defaultButtonText || '');
+						wp.data.dispatch('core/block-editor').replaceBlocks(props.clientId, nouveauxBlocs);
+					})
+					.catch(function () {
+						window.alert(__('La conversion a échoué. Réessayez.', 'wam-newsletter'));
+						setEnConversion(false);
+					});
+			}
+
 			return el(
 				'div',
 				blockProps,
+				BlockControls
+					? el(
+							BlockControls,
+							null,
+							el(
+								ToolbarGroup,
+								null,
+								el(ToolbarButton, {
+									icon: 'editor-unlink',
+									label: __('Convertir en blocs modifiables', 'wam-newsletter'),
+									isBusy: enConversion,
+									onClick: convertirEnBlocs
+								})
+							)
+					  )
+					: null,
 				el(
 					InspectorControls,
 					null,
 					el(
 						PanelBody,
 						{ title: __('Quels contenus ?', 'wam-newsletter'), initialOpen: true },
+						el(
+							'p',
+							{ className: 'components-base-control__help' },
+							__(
+								'Besoin de modifier le texte, l’image ou l’ordre d’un contenu précis ? Utilisez « Convertir en blocs modifiables » dans la barre d’outils ci-dessus (icône ⛓️‍💥).',
+								'wam-newsletter'
+							)
+						),
 						el(SelectControl, {
 							label: __('Type de contenu', 'wam-newsletter'),
 							value: a.postType,

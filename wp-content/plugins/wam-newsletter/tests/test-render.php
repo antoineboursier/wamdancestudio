@@ -13,6 +13,7 @@ use WamNewsletter\Blocks\Blocks;
 use WamNewsletter\Editor\EditorSetup;
 use WamNewsletter\Editor\EmailTheme;
 use WamNewsletter\Editor\NewsletterPostType;
+use WamNewsletter\Editor\RestApi;
 use WamNewsletter\Integrations\ContentMap;
 use WamNewsletter\Render\BlockRenderer;
 use WamNewsletter\Render\Blocks\Core;
@@ -366,6 +367,54 @@ try {
 	wam_nl_assert( false !== strpos( $rendu, '<h2' ), 'titre de l’item en h2' );
 	wam_nl_assert( false !== strpos( $rendu, get_permalink( $futur ) ), 'lien vers le contenu' );
 	wam_nl_assert( false === strpos( $rendu, '.avif' ), 'aucune image AVIF' );
+
+	echo "== Bloc Contenus : données structurées pour « Convertir en blocs modifiables » ==\n";
+	$resolu = Posts::resolve_items( array( 'postType' => 'stages', 'mode' => 'manual', 'postIds' => array( $futur, $passe ) ) );
+	wam_nl_assert( isset( $resolu['items'], $resolu['defaultButtonText'] ), 'la réponse porte les deux clés attendues' );
+	wam_nl_assert_equals( 2, count( $resolu['items'] ), 'les deux contenus demandés sont résolus' );
+	wam_nl_assert_equals( array( $futur, $passe ), wp_list_pluck( $resolu['items'], 'id' ), 'l’ordre du mode manuel est respecté' );
+
+	$item = $resolu['items'][0];
+	wam_nl_assert_equals( 'ZZTest stage futur', $item['title'], 'titre présent' );
+	wam_nl_assert_equals( get_permalink( $futur ), $item['link'], 'lien présent' );
+	wam_nl_assert( '' !== $item['date'], 'date formatée présente' );
+	wam_nl_assert( is_array( $item ) && array_key_exists( 'excerpt', $item ), 'clé extrait présente (même vide)' );
+	wam_nl_assert( array_key_exists( 'image', $item ), 'clé image présente' );
+
+	if ( null !== $item['image'] ) {
+		wam_nl_assert( $item['image']['id'] > 0, 'image : identifiant de pièce jointe' );
+		wam_nl_assert( false !== strpos( $item['image']['url'], 'http' ), 'image : URL exploitable par l’éditeur' );
+		wam_nl_assert( '' !== $item['image']['alt'], 'image : un alt est toujours fourni (repli sur le titre)' );
+		// L'image brute n'est volontairement pas le dérivé JPG de l'e-mail : ce
+		// dérivé n'existe qu'au moment du rendu final (Core::image), produit
+		// depuis le seul identifiant — pas depuis cette URL d'aperçu.
+		wam_nl_assert( false === strpos( $item['image']['url'], 'wam_nl_banner' ), 'URL d’aperçu distincte du dérivé e-mail' );
+	}
+
+	wam_nl_assert_equals(
+		Posts::default_button_text( 'stages' ),
+		$resolu['defaultButtonText'],
+		'le libellé de bouton par défaut est fourni, pour le repli côté JavaScript'
+	);
+
+	echo "== resolve_items() : aucun contenu, aucune erreur ==\n";
+	$vide_resolu = Posts::resolve_items( array( 'postType' => 'stages', 'mode' => 'manual', 'postIds' => array() ) );
+	wam_nl_assert_equals( array(), $vide_resolu['items'], 'liste vide plutôt qu’une erreur' );
+
+	echo "== Route REST posts-resolve ==\n";
+	$requete = new WP_REST_Request( 'POST', '/wam-nl/v1/posts-resolve' );
+	$requete->set_body_params(
+		array(
+			'postType' => 'stages',
+			'mode'     => 'manual',
+			'postIds'  => array( $futur ),
+		)
+	);
+	$reponse = RestApi::posts_resolve( $requete );
+	wam_nl_assert( $reponse instanceof WP_REST_Response, 'une réponse REST est renvoyée' );
+	$donnees = $reponse->get_data();
+	wam_nl_assert_equals( 1, count( $donnees['items'] ), 'un seul contenu résolu via la route' );
+	wam_nl_assert_equals( 'ZZTest stage futur', $donnees['items'][0]['title'], 'même donnée que l’appel direct' );
 
 	echo "== Bloc Contenus : alternance zigzag et empilement mobile ==\n";
 	$deux = Posts::render( array( 'postType' => 'stages', 'mode' => 'manual', 'postIds' => array( $futur, $passe ), 'alternate' => true ) );

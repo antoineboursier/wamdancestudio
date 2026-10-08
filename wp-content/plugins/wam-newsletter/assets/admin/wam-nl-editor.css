@@ -100,14 +100,16 @@
 /* Panneau d'envoi                                                     */
 /* ------------------------------------------------------------------ */
 
-.wam-nl-sidebar .wam-nl-astuce {
+.wam-nl-sidebar .wam-nl-astuce,
+.wam-nl-ecran .wam-nl-astuce {
 	margin: 8px 0 0;
 	color: #50575e;
 	font-size: 12px;
 	font-style: italic;
 }
 
-.wam-nl-sidebar .wam-nl-destinataires {
+.wam-nl-sidebar .wam-nl-destinataires,
+.wam-nl-ecran .wam-nl-destinataires {
 	margin: 12px 0 0;
 	padding: 8px 10px;
 	border-radius: 2px;
@@ -341,4 +343,88 @@
 .editor-post-title,
 .edit-post-visual-editor__post-title-wrapper {
 	display: none;
+}
+
+
+/* ------------------------------------------------------------------ */
+/* Parcours en deux étapes : rédiger, puis préparer l'envoi            */
+/* ------------------------------------------------------------------ */
+
+/* Les boutons « Publier » de WordPress ne veulent rien dire pour une
+   newsletter : elle ne passe de brouillon à publiée qu'à l'envoi définitif.
+   Cette feuille n'est chargée que sur l'éditeur de newsletter. */
+.editor-post-publish-button,
+.editor-post-publish-panel__toggle,
+.editor-post-save-draft,
+.editor-post-switch-to-draft {
+	display: none !important;
+}
+
+.wam-nl-entete {
+	display: flex;
+	align-items: center;
+	margin-right: 8px;
+}
+
+.wam-nl-entete__boutons {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 8px;
+	align-items: center;
+}
+
+/* Repli si WordPress change les classes de son en-tête. */
+.wam-nl-entete__boutons.is-flottante {
+	position: fixed;
+	top: 8px;
+	right: 16px;
+	z-index: 100000;
+	padding: 6px 8px;
+	border-radius: 2px;
+	background: #fff;
+	box-shadow: 0 1px 6px rgba(0, 0, 0, 0.3);
+}
+
+.wam-nl-ecran__haut {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 12px;
+	align-items: center;
+	margin-bottom: 16px;
+}
+
+.wam-nl-ecran__etat {
+	color: #50575e;
+	font-size: 12px;
+	font-style: italic;
+}
+
+/* Mobile d'abord : une colonne, puis deux dès que la place le permet. */
+.wam-nl-ecran__colonnes {
+	display: grid;
+	gap: 24px;
+	grid-template-columns: minmax(0, 1fr);
+	max-width: 1100px;
+	margin: 0 auto;
+}
+
+@media (min-width: 960px) {
+	.wam-nl-ecran__colonnes {
+		grid-template-columns: repeat(2, minmax(0, 1fr));
+		align-items: start;
+	}
+}
+
+.wam-nl-section {
+	margin-bottom: 24px;
+	padding: 20px;
+	border: 1px solid #dcdcde;
+	border-radius: 2px;
+	background: #fff;
+}
+
+.wam-nl-section__titre {
+	margin: 0 0 16px;
+	font-size: 16px;
+	font-weight: 600;
 }

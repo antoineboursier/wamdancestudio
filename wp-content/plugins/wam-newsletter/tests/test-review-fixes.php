@@ -219,6 +219,19 @@ try {
 	wam_nl_assert( isset( $lecture['meta']['_wam_nl_subject'] ) && 'Mon objet' === $lecture['meta']['_wam_nl_subject'], 'l’éditeur relit l’objet par l’API' );
 	wp_set_current_user( $ancien_user );
 
+	// ---------------------------------------------------------------
+	echo "== Brouillon jusqu'à l'envoi définitif, publiée ensuite ==
+";
+	$envoi = wp_insert_post( array( 'post_type' => NewsletterPostType::POST_TYPE, 'post_status' => 'draft', 'post_title' => 'ZZTest publication', 'post_content' => EditorSetup::default_blocks() ) );
+	$posts_temporaires[] = $envoi;
+	update_post_meta( $envoi, '_wam_nl_subject', 'Test publication' );
+	update_post_meta( $envoi, '_wam_nl_list_ids', array( $liste ) );
+	wam_nl_assert_equals( 'draft', get_post_status( $envoi ), 'brouillon tant que rien n’est envoyé' );
+	$r = Scheduler::start( $envoi, wp_date( 'Y-m-d H:i:s', time() + DAY_IN_SECONDS ) );
+	wam_nl_assert( ! is_wp_error( $r ), 'l’envoi programmé est accepté' );
+	wam_nl_assert_equals( 'publish', get_post_status( $envoi ), 'passée en « publiée » à l’envoi définitif' );
+	Scheduler::unschedule( $envoi );
+
 } finally {
 	$nettoyer();
 	if ( false === $reglages_initiaux ) {

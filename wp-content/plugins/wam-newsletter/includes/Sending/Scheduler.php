@@ -138,6 +138,10 @@ class Scheduler {
 		delete_post_meta( $newsletter_id, self::META_RETRIED );
 		delete_post_meta( $newsletter_id, self::META_RESUMED );
 
+		// L'envoi est définitif : la newsletter quitte l'état « brouillon » et
+		// devient « publiée ». Avant ce point, rien n'est public ni verrouillé.
+		self::publish( $newsletter_id );
+
 		$horodatage = self::timestamp( $quand );
 
 		if ( $horodatage > time() + 30 ) {
@@ -190,6 +194,18 @@ class Scheduler {
 			),
 			'total'   => $total,
 		);
+	}
+
+	/** Passe l'article en « publié » (sans effet s'il l'est déjà). */
+	private static function publish( int $newsletter_id ): void {
+		if ( 'publish' !== get_post_status( $newsletter_id ) ) {
+			wp_update_post(
+				array(
+					'ID'          => $newsletter_id,
+					'post_status' => 'publish',
+				)
+			);
+		}
 	}
 
 	private static function timestamp( ?string $quand ): int {

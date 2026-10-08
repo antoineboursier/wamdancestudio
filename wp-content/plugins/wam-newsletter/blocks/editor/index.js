@@ -15,6 +15,12 @@
  *     « Programmer l'envoi » — et non le « Publier » de WordPress, qui ne veut
  *     rien dire pour une newsletter.
  *
+ * Parcours en deux étapes : (1) rédiger, avec « Enregistrer le brouillon » et
+ * « Suivant » dans l'en-tête de l'éditeur ; (2) un écran plein format
+ * « Préparer l'envoi » (objet, destinataires, vérifications, test, envoi). Les
+ * boutons « Publier » de WordPress sont masqués : la newsletter ne passe de
+ * « brouillon » à « publiée » qu'à l'envoi définitif.
+ *
  * ES5 avec createElement, sans étape de build (convention du projet).
  */
 (function () {
@@ -36,15 +42,6 @@
 	var __ = wp.i18n.__;
 	var sprintf = wp.i18n.sprintf;
 
-	// Les composants d'extension ont migré de @wordpress/edit-post vers
-	// @wordpress/editor : on prend ce qui existe, pour ne pas dépendre d'une
-	// version précise de WordPress.
-	var editorPkg = wp.editor || {};
-	var editPostPkg = wp.editPost || {};
-	var PluginSidebar = editorPkg.PluginSidebar || editPostPkg.PluginSidebar;
-	var PluginSidebarMoreMenuItem = editorPkg.PluginSidebarMoreMenuItem || editPostPkg.PluginSidebarMoreMenuItem;
-	var PluginDocumentSettingPanel = editorPkg.PluginDocumentSettingPanel || editPostPkg.PluginDocumentSettingPanel;
-
 	var C = wp.components;
 	var PanelBody = C.PanelBody;
 	var TextControl = C.TextControl;
@@ -59,7 +56,6 @@
 
 	var ns = reglages.restNamespace;
 	var METAS = reglages.metaKeys;
-	var SIDEBAR = 'wam-nl-envoi';
 
 	// ------------------------------------------------------------------
 	// Petits utilitaires
@@ -100,51 +96,6 @@
 
 	function estNewsletter(postType) {
 		return postType === reglages.postType;
-	}
-
-	// ------------------------------------------------------------------
-	// Panneau « Objet et aperçu », juste sous le titre
-	// ------------------------------------------------------------------
-
-	function PanneauObjet() {
-		var n = useNewsletter();
-		if (!estNewsletter(n.postType) || !PluginDocumentSettingPanel) {
-			return null;
-		}
-
-		var objet = n.meta[METAS.subject] || '';
-		var apercu = n.meta[METAS.preheader] || '';
-
-		return el(
-			PluginDocumentSettingPanel,
-			{
-				name: 'wam-nl-objet',
-				title: __('Objet de l’e-mail', 'wam-newsletter'),
-				className: 'wam-nl-panneau-objet'
-			},
-			el(TextControl, {
-				label: __('Objet', 'wam-newsletter'),
-				help: __('La ligne que les gens voient dans leur boîte de réception.', 'wam-newsletter'),
-				value: objet,
-				onChange: function (v) {
-					n.setMeta(METAS.subject, v);
-				}
-			}),
-			el(TextareaControl, {
-				label: __('Texte d’aperçu', 'wam-newsletter'),
-				help: __('Facultatif. S’affiche après l’objet, en gris, dans la boîte de réception.', 'wam-newsletter'),
-				rows: 2,
-				value: apercu,
-				onChange: function (v) {
-					n.setMeta(METAS.preheader, v);
-				}
-			}),
-			el(
-				'p',
-				{ className: 'wam-nl-astuce' },
-				__('Astuce : écrivez {prenom} dans l’objet ou le texte pour insérer le prénom de la personne.', 'wam-newsletter')
-			)
-		);
 	}
 
 	// ------------------------------------------------------------------
@@ -300,10 +251,10 @@
 	}
 
 	// ------------------------------------------------------------------
-	// Panneau latéral d'envoi
+	// Étape 2 : « Préparer l'envoi », en écran plein format
 	// ------------------------------------------------------------------
 
-	function PanneauEnvoi() {
+	function EcranEnvoi(props) {
 		var n = useNewsletter();
 
 		var listesEtat = useState([]);
@@ -339,6 +290,8 @@
 		var setDateEnvoi = dateEtat[1];
 
 		var selection = (n.meta[METAS.listIds] || []).map(Number);
+		var objet = n.meta[METAS.subject] || '';
+		var texteApercu = n.meta[METAS.preheader] || '';
 
 		// Listes, une fois.
 		useEffect(function () {
@@ -359,8 +312,8 @@
 				method: 'POST',
 				data: {
 					postId: n.postId,
-					subject: n.meta[METAS.subject] || '',
-					preheader: n.meta[METAS.preheader] || '',
+					subject: objet,
+					preheader: texteApercu,
 					listIds: selection,
 					content: n.content || ''
 				}
@@ -372,7 +325,7 @@
 		}
 
 		// La checklist suit l'objet, les listes et le contenu, sans attendre un
-		// enregistrement : c'est ce qui la rend utile pendant la rédaction.
+		// enregistrement : elle reste juste pendant qu'on tape.
 		useEffect(
 			function () {
 				var minuteur = window.setTimeout(rafraichir, 400);
@@ -380,11 +333,22 @@
 					window.clearTimeout(minuteur);
 				};
 			},
-			[n.postId, n.meta[METAS.subject], n.meta[METAS.preheader], selection.join(','), n.content]
+			[n.postId, objet, texteApercu, selection.join(','), n.content]
+		);
+
+		var statut = check && check.status ? check.status : props.statutInitial || 'draft';
+
+		// Le bouton de l'en-tête doit refléter le statut réel (envoi lancé, pause…).
+		useEffect(
+			function () {
+				if (check && check.status && props.onStatut) {
+					props.onStatut(check.status);
+				}
+			},
+			[check && check.status]
 		);
 
 		// Pendant un envoi, on suit la progression.
-		var statut = check && check.status ? check.status : 'draft';
 		useEffect(
 			function () {
 				if ('sending' !== statut || !n.postId) {
@@ -432,8 +396,8 @@
 				data: {
 					postId: n.postId,
 					content: n.content || '',
-					subject: n.meta[METAS.subject] || '',
-					preheader: n.meta[METAS.preheader] || ''
+					subject: objet,
+					preheader: texteApercu
 				}
 			})
 				.then(function (r) {
@@ -541,36 +505,252 @@
 			});
 		}
 
-		if (!estNewsletter(n.postType) || !PluginSidebar) {
-			return null;
-		}
-
 		var pret = check && check.ready;
 		var progression = check && check.progress ? check.progress : {};
 		var enCours = 'sending' === statut;
 		var enPause = 'paused' === statut;
 		var envoyee = 'sent' === statut;
 		var programmee = 'scheduled' === statut;
+		var enPreparation = !enCours && !envoyee && !programmee && !enPause;
+
+		/** Une section de l'écran : titre + contenu. */
+		function section(titre, enfants, cle) {
+			return el(
+				'section',
+				{ className: 'wam-nl-section', key: cle },
+				el('h2', { className: 'wam-nl-section__titre' }, titre),
+				enfants
+			);
+		}
+
+		var colonneGauche = [];
+		var colonneDroite = [];
+
+		if (envoyee) {
+			colonneGauche.push(
+				section(
+					__('Newsletter envoyée', 'wam-newsletter'),
+					el(
+						Fragment,
+						null,
+						el(Progression, { progress: progression }),
+						el(
+							'p',
+							{ className: 'wam-nl-astuce' },
+							__('Pour en refaire une semblable, utilisez « Dupliquer » depuis la liste des newsletters.', 'wam-newsletter')
+						)
+					),
+					'envoyee'
+				)
+			);
+		}
+
+		if (enCours || programmee) {
+			colonneGauche.push(
+				section(
+					programmee ? __('Envoi programmé', 'wam-newsletter') : __('Envoi en cours', 'wam-newsletter'),
+					el(
+						Fragment,
+						null,
+						el(Progression, { progress: progression }),
+						el(
+							Button,
+							{ variant: 'secondary', isDestructive: true, isBusy: 'arret' === occupe, onClick: arreter },
+							__('Arrêter l’envoi', 'wam-newsletter')
+						)
+					),
+					'encours'
+				)
+			);
+		}
+
+		if (enPause) {
+			colonneGauche.push(
+				section(
+					__('Envoi en pause', 'wam-newsletter'),
+					el(
+						Fragment,
+						null,
+						el(Notice, { status: 'warning', isDismissible: false }, progression.pause || __('Envoi interrompu.', 'wam-newsletter')),
+						el(Progression, { progress: progression }),
+						el(
+							Button,
+							{ variant: 'primary', isBusy: 'reprise' === occupe, onClick: reprendre },
+							__('Reprendre l’envoi', 'wam-newsletter')
+						)
+					),
+					'pause'
+				)
+			);
+		}
+
+		if (enPreparation) {
+			colonneGauche.push(
+				section(
+					__('1. L’e-mail', 'wam-newsletter'),
+					el(
+						Fragment,
+						null,
+						el(TextControl, {
+							label: __('Objet', 'wam-newsletter'),
+							help: __('La ligne que les gens voient dans leur boîte de réception.', 'wam-newsletter'),
+							value: objet,
+							onChange: function (v) {
+								n.setMeta(METAS.subject, v);
+							}
+						}),
+						el(TextareaControl, {
+							label: __('Texte d’aperçu', 'wam-newsletter'),
+							help: __('Facultatif. S’affiche après l’objet, en gris, dans la boîte de réception.', 'wam-newsletter'),
+							rows: 2,
+							value: texteApercu,
+							onChange: function (v) {
+								n.setMeta(METAS.preheader, v);
+							}
+						}),
+						el(
+							'p',
+							{ className: 'wam-nl-astuce' },
+							__('Astuce : écrivez {prenom} dans l’objet ou le texte pour insérer le prénom de la personne.', 'wam-newsletter')
+						)
+					),
+					'email'
+				),
+				section(
+					__('2. Qui va le recevoir ?', 'wam-newsletter'),
+					el(
+						Fragment,
+						null,
+						listes.length
+							? listes.map(function (liste) {
+									return el(CheckboxControl, {
+										key: liste.id,
+										label: liste.name + ' (' + liste.count.toLocaleString('fr-FR') + ')',
+										checked: selection.indexOf(liste.id) >= 0,
+										onChange: function (coche) {
+											basculerListe(liste.id, coche);
+										}
+									});
+							  })
+							: el(
+									'p',
+									{ className: 'components-base-control__help' },
+									el('a', { href: reglages.listsScreenUrl }, __('Aucune liste pour l’instant : en créer une', 'wam-newsletter'))
+							  ),
+						check
+							? el(
+									'p',
+									{ className: 'wam-nl-destinataires' },
+									sprintf(
+										/* translators: %s nombre de personnes */
+										__('%s personne(s) recevront cet e-mail.', 'wam-newsletter'),
+										(check.recipients || 0).toLocaleString('fr-FR')
+									)
+							  )
+							: null
+					),
+					'listes'
+				)
+			);
+
+			colonneDroite.push(
+				section(__('3. Vérifications', 'wam-newsletter'), el(Checklist, { items: check ? check.items : [] }), 'verif'),
+				section(
+					__('4. Tester', 'wam-newsletter'),
+					el(
+						Fragment,
+						null,
+						el(
+							Button,
+							{ variant: 'secondary', onClick: ouvrirApercu, style: { marginBottom: '12px' } },
+							__('Voir l’aperçu', 'wam-newsletter')
+						),
+						el(TextControl, {
+							label: __('Envoyer un test à', 'wam-newsletter'),
+							help: __('Plusieurs adresses séparées par des virgules.', 'wam-newsletter'),
+							value: destinatairesTest,
+							onChange: setDestinatairesTest
+						}),
+						el(
+							Button,
+							{
+								variant: 'secondary',
+								isBusy: 'test' === occupe,
+								disabled: !(check && check.items && check.items[0] && check.items[0].ok),
+								onClick: envoyerTest
+							},
+							__('Envoyer un test', 'wam-newsletter')
+						)
+					),
+					'test'
+				),
+				section(
+					__('5. Envoyer', 'wam-newsletter'),
+					el(
+						Fragment,
+						null,
+						el(ToggleControl, {
+							label: __('Programmer plus tard', 'wam-newsletter'),
+							checked: planifier,
+							onChange: setPlanifier
+						}),
+						planifier
+							? el(TextControl, {
+									label: __('Date et heure', 'wam-newsletter'),
+									type: 'datetime-local',
+									value: dateEnvoi,
+									onChange: setDateEnvoi
+							  })
+							: null,
+						el(
+							Button,
+							{
+								variant: 'primary',
+								className: 'wam-nl-bouton-envoi',
+								isBusy: 'envoi' === occupe,
+								disabled: !pret || (planifier && !dateEnvoi),
+								onClick: envoyer
+							},
+							planifier ? __('Programmer l’envoi', 'wam-newsletter') : __('Envoyer maintenant', 'wam-newsletter')
+						),
+						!pret
+							? el('p', { className: 'wam-nl-astuce' }, __('Il reste un point à régler dans les vérifications.', 'wam-newsletter'))
+							: null,
+						el(
+							'p',
+							{ className: 'wam-nl-astuce' },
+							__('L’envoi est définitif : la newsletter passe alors de « brouillon » à « publiée ».', 'wam-newsletter')
+						)
+					),
+					'envoi'
+				)
+			);
+		}
 
 		return el(
-			Fragment,
-			null,
-			PluginSidebarMoreMenuItem
-				? el(
-						PluginSidebarMoreMenuItem,
-						{ target: SIDEBAR, icon: 'email-alt' },
-						__('Envoi de la newsletter', 'wam-newsletter')
-				  )
-				: null,
+			Modal,
+			{
+				title: __('Préparer l’envoi', 'wam-newsletter'),
+				onRequestClose: props.onClose,
+				className: 'wam-nl-ecran-envoi',
+				isFullScreen: true,
+				shouldCloseOnClickOutside: false
+			},
 			el(
-				PluginSidebar,
-				{
-					name: SIDEBAR,
-					title: __('Envoi', 'wam-newsletter'),
-					icon: 'email-alt',
-					className: 'wam-nl-sidebar'
-				},
-
+				'div',
+				{ className: 'wam-nl-ecran' },
+				el(
+					'div',
+					{ className: 'wam-nl-ecran__haut' },
+					el(
+						Button,
+						{ variant: 'tertiary', onClick: props.onClose },
+						'← ' + __('Retour à la rédaction', 'wam-newsletter')
+					),
+					n.dirty
+						? el('span', { className: 'wam-nl-ecran__etat' }, __('Modifications pas encore enregistrées : elles le seront à l’envoi ou au retour.', 'wam-newsletter'))
+						: null
+				),
 				message
 					? el(
 							Notice,
@@ -584,171 +764,13 @@
 							message.texte
 					  )
 					: null,
-
-				envoyee
-					? el(
-							PanelBody,
-							{ title: __('Newsletter envoyée', 'wam-newsletter'), initialOpen: true },
-							el(Progression, { progress: progression }),
-							el(
-								'p',
-								{ className: 'wam-nl-astuce' },
-								__('Pour en refaire une semblable, utilisez « Dupliquer » depuis la liste des newsletters.', 'wam-newsletter')
-							)
-					  )
-					: null,
-
-				enCours || programmee
-					? el(
-							PanelBody,
-							{ title: programmee ? __('Envoi programmé', 'wam-newsletter') : __('Envoi en cours', 'wam-newsletter'), initialOpen: true },
-							el(Progression, { progress: progression }),
-							el(
-								Button,
-								{
-									variant: 'secondary',
-									isDestructive: true,
-									isBusy: 'arret' === occupe,
-									onClick: arreter
-								},
-								__('Arrêter l’envoi', 'wam-newsletter')
-							)
-					  )
-					: null,
-
-				enPause
-					? el(
-							PanelBody,
-							{ title: __('Envoi en pause', 'wam-newsletter'), initialOpen: true },
-							el(
-								Notice,
-								{ status: 'warning', isDismissible: false },
-								progression.pause || __('Envoi interrompu.', 'wam-newsletter')
-							),
-							el(Progression, { progress: progression }),
-							el(
-								Button,
-								{
-									variant: 'primary',
-									isBusy: 'reprise' === occupe,
-									onClick: reprendre
-								},
-								__('Reprendre l’envoi', 'wam-newsletter')
-							)
-					  )
-					: null,
-
-				!enCours && !envoyee && !programmee && !enPause
-					? el(
-							Fragment,
-							null,
-							el(
-								PanelBody,
-								{ title: __('Prêt à envoyer ?', 'wam-newsletter'), initialOpen: true },
-								el(Checklist, { items: check ? check.items : [] })
-							),
-
-							el(
-								PanelBody,
-								{ title: __('Qui va recevoir cet e-mail', 'wam-newsletter'), initialOpen: true },
-								listes.length
-									? listes.map(function (liste) {
-											return el(CheckboxControl, {
-												key: liste.id,
-												label: liste.name + ' (' + liste.count.toLocaleString('fr-FR') + ')',
-												checked: selection.indexOf(liste.id) >= 0,
-												onChange: function (coche) {
-													basculerListe(liste.id, coche);
-												}
-											});
-									  })
-									: el(
-											'p',
-											{ className: 'components-base-control__help' },
-											el(
-												'a',
-												{ href: reglages.listsScreenUrl },
-												__('Aucune liste pour l’instant : en créer une', 'wam-newsletter')
-											)
-									  ),
-								check
-									? el(
-											'p',
-											{ className: 'wam-nl-destinataires' },
-											sprintf(
-												/* translators: %s nombre de personnes */
-												__('%s personne(s) recevront cet e-mail.', 'wam-newsletter'),
-												(check.recipients || 0).toLocaleString('fr-FR')
-											)
-									  )
-									: null
-							),
-
-							el(
-								PanelBody,
-								{ title: __('Vérifier avant d’envoyer', 'wam-newsletter'), initialOpen: true },
-								el(
-									Button,
-									{ variant: 'secondary', onClick: ouvrirApercu, style: { marginBottom: '8px' } },
-									__('Voir l’aperçu', 'wam-newsletter')
-								),
-								el(TextControl, {
-									label: __('Envoyer un test à', 'wam-newsletter'),
-									help: __('Plusieurs adresses séparées par des virgules.', 'wam-newsletter'),
-									value: destinatairesTest,
-									onChange: setDestinatairesTest
-								}),
-								el(
-									Button,
-									{
-										variant: 'secondary',
-										isBusy: 'test' === occupe,
-										disabled: !(check && check.items && check.items[0] && check.items[0].ok),
-										onClick: envoyerTest
-									},
-									__('Envoyer un test', 'wam-newsletter')
-								)
-							),
-
-							el(
-								PanelBody,
-								{ title: __('Envoyer', 'wam-newsletter'), initialOpen: true },
-								el(ToggleControl, {
-									label: __('Programmer plus tard', 'wam-newsletter'),
-									checked: planifier,
-									onChange: setPlanifier
-								}),
-								planifier
-									? el(TextControl, {
-											label: __('Date et heure', 'wam-newsletter'),
-											type: 'datetime-local',
-											value: dateEnvoi,
-											onChange: setDateEnvoi
-									  })
-									: null,
-								el(
-									Button,
-									{
-										variant: 'primary',
-										className: 'wam-nl-bouton-envoi',
-										isBusy: 'envoi' === occupe,
-										disabled: !pret || (planifier && !dateEnvoi),
-										onClick: envoyer
-									},
-									planifier ? __('Programmer l’envoi', 'wam-newsletter') : __('Envoyer maintenant', 'wam-newsletter')
-								),
-								!pret
-									? el(
-											'p',
-											{ className: 'wam-nl-astuce' },
-											__('Il reste un point à régler dans la liste ci-dessus.', 'wam-newsletter')
-									  )
-									: null
-							)
-					  )
-					: null
+				el(
+					'div',
+					{ className: 'wam-nl-ecran__colonnes' },
+					el('div', { className: 'wam-nl-ecran__colonne' }, colonneGauche),
+					colonneDroite.length ? el('div', { className: 'wam-nl-ecran__colonne' }, colonneDroite) : null
+				)
 			),
-
 			apercu
 				? el(ModaleApercu, {
 						html: apercu.html,
@@ -762,21 +784,147 @@
 	}
 
 	// ------------------------------------------------------------------
+	// Étape 1 : rédaction. Boutons d'enregistrement et « Suivant » en en-tête
+	// ------------------------------------------------------------------
+
+	/**
+	 * Cherche la zone de boutons de l'en-tête de l'éditeur et y accroche un
+	 * conteneur. Si WordPress change ses classes, on retombe sur une barre
+	 * flottante : les boutons restent accessibles, juste moins bien rangés.
+	 */
+	function useHoteEntete() {
+		var etat = useState(null);
+		var hote = etat[0];
+		var setHote = etat[1];
+
+		useEffect(function () {
+			var arrete = false;
+
+			function chercher() {
+				var existant = document.getElementById('wam-nl-entete');
+				if (existant && existant.isConnected) {
+					return;
+				}
+				var zone = document.querySelector('.editor-header__settings');
+				if (!zone || arrete) {
+					return;
+				}
+				var conteneur = document.createElement('div');
+				conteneur.id = 'wam-nl-entete';
+				conteneur.className = 'wam-nl-entete';
+				zone.insertBefore(conteneur, zone.firstChild);
+				setHote(conteneur);
+			}
+
+			chercher();
+			var minuteur = window.setInterval(chercher, 1000);
+			return function () {
+				arrete = true;
+				window.clearInterval(minuteur);
+			};
+		}, []);
+
+		return hote;
+	}
+
+	function Parcours() {
+		var n = useNewsletter();
+		var hote = useHoteEntete();
+		var savePost = useDispatch('core/editor').savePost;
+
+		var ouvertEtat = useState(false);
+		var ouvert = ouvertEtat[0];
+		var setOuvert = ouvertEtat[1];
+
+		var statutEtat = useState(n.meta[METAS.status] || 'draft');
+		var statut = statutEtat[0];
+		var setStatut = statutEtat[1];
+
+		// Une newsletter déjà lancée s'ouvre directement sur son suivi d'envoi.
+		useEffect(function () {
+			if ('draft' !== statut && estNewsletter(n.postType)) {
+				setOuvert(true);
+			}
+		}, []);
+
+		if (!estNewsletter(n.postType)) {
+			return null;
+		}
+
+		var brouillon = 'draft' === statut;
+
+		function suivant() {
+			if (n.dirty) {
+				savePost().then(function () {
+					setOuvert(true);
+				});
+				return;
+			}
+			setOuvert(true);
+		}
+
+		var libelleSauvegarde = n.saving
+			? __('Enregistrement…', 'wam-newsletter')
+			: n.dirty
+			? __('Enregistrer le brouillon', 'wam-newsletter')
+			: __('Brouillon enregistré ✓', 'wam-newsletter');
+
+		var boutons = el(
+			'div',
+			{ className: 'wam-nl-entete__boutons' + (hote ? '' : ' is-flottante') },
+			brouillon
+				? el(
+						Button,
+						{
+							variant: 'secondary',
+							isBusy: n.saving,
+							disabled: !n.dirty || n.saving,
+							onClick: function () {
+								savePost();
+							}
+						},
+						libelleSauvegarde
+				  )
+				: null,
+			el(
+				Button,
+				{ variant: 'primary', onClick: suivant },
+				brouillon ? __('Suivant : préparer l’envoi', 'wam-newsletter') + ' →' : __('Voir l’envoi', 'wam-newsletter')
+			)
+		);
+
+		return el(
+			Fragment,
+			null,
+			wp.element.createPortal(boutons, hote || document.body),
+			ouvert
+				? el(EcranEnvoi, {
+						statutInitial: statut,
+						onStatut: setStatut,
+						onClose: function () {
+							setOuvert(false);
+						}
+				  })
+				: null
+		);
+	}
+
+	// ------------------------------------------------------------------
 	// Mise en route
 	// ------------------------------------------------------------------
 
 	plugins.registerPlugin('wam-nl-editor', {
 		render: function () {
-			return el(Fragment, null, el(PanneauObjet, null), el(PanneauEnvoi, null));
+			return el(Parcours, null);
 		}
 	});
 
 	/**
-	 * Plein écran et panneau d'envoi ouverts à la première visite.
+	 * Plein écran à la première visite.
 	 *
 	 * Une seule fois, mémorisé dans le navigateur : si la personne préfère
-	 * ensuite revenir à l'affichage normal ou fermer le panneau, son choix est
-	 * respecté — on ne le lui réimpose pas à chaque ouverture.
+	 * ensuite revenir à l'affichage normal, son choix est respecté — on ne le
+	 * lui réimpose pas à chaque ouverture.
 	 */
 	wp.domReady(function () {
 		var editeur = wp.data.select('core/editor');
@@ -795,19 +943,6 @@
 		} catch (e) {
 			// localStorage indisponible (navigation privée stricte) : sans
 			// incidence, on laisse l'affichage par défaut.
-		}
-
-		try {
-			var cle = 'wamNlPanneau-' + editeur.getCurrentPostId();
-			if (!window.sessionStorage.getItem(cle)) {
-				window.sessionStorage.setItem(cle, '1');
-				var dispatcher = wp.data.dispatch('core/edit-post');
-				if (dispatcher && dispatcher.openGeneralSidebar) {
-					dispatcher.openGeneralSidebar('wam-nl-editor/' + SIDEBAR);
-				}
-			}
-		} catch (e) {
-			// idem
 		}
 	});
 })();

@@ -16,6 +16,12 @@
 /wp-content/themes/*
 !/wp-content/themes/wamV1/
 
+# ...et notre plugin newsletter (les autres plugins restent hors dépôt :
+# ils sont installés côté prod et rapatriés par `ddev pull`)
+!/wp-content/plugins/
+/wp-content/plugins/*
+!/wp-content/plugins/wam-newsletter/
+
 # Identifiants FTP/MySQL de production : jamais versionnés
 /.ddev/o2switch.env
 

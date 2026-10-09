@@ -644,7 +644,13 @@ try {
 		// Les commentaires ne sont pas des règles : un client qui les ignore
 		// n'en est pas affecté.
 		$hors_media = preg_replace( '#/\*.*?\*/#s', '', (string) $hors_media );
-		wam_nl_assert_equals( '', trim( (string) $hors_media ), 'aucune règle en dehors des media queries' );
+		// Seule exception admise : neutraliser les liens que Gmail et Apple Mail
+		// fabriquent eux-mêmes (adresse, date) et qui n'ont pas de style en ligne.
+		$hors_media = preg_replace( '#(a\[x-apple-data-detectors\]|u \+ \#body a)\s*\{[^}]*\}#s', '', (string) $hors_media );
+		wam_nl_assert_equals( '', trim( (string) $hors_media ), 'aucune règle en dehors des media queries, hors neutralisation des liens automatiques' );
+		wam_nl_assert( false !== strpos( $css, 'a[x-apple-data-detectors]' ), 'les liens automatiques d’Apple Mail reprennent la couleur du texte' );
+		wam_nl_assert( false !== strpos( $css, 'u + #body a' ), 'les liens automatiques de Gmail aussi' );
+		wam_nl_assert( false !== strpos( $html, '<body id="body"' ), 'le corps porte l’identifiant visé par la règle Gmail' );
 		wam_nl_assert( false !== strpos( $css, 'wam-nl-col' ), 'l’empilement mobile des colonnes est prévu' );
 	} else {
 		wam_nl_assert( false, 'un bloc <style> est attendu' );

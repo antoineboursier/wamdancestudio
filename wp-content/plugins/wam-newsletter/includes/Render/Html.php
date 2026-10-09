@@ -139,6 +139,20 @@ class Html {
 	}
 
 	/**
+	 * Texte que les messageries ne doivent pas transformer en lien.
+	 *
+	 * Gmail et Apple Mail repèrent adresses postales, dates et numéros et en font
+	 * des liens bleus (vers Maps, l'agenda…), qui jurent sur le fond sombre. Un
+	 * caractère invisible (`&zwnj;`) après chaque chiffre casse la détection ;
+	 * la couleur posée en ligne et la règle `x-apple-data-detectors` du gabarit
+	 * rattrapent les cas qui passeraient quand même.
+	 */
+	public static function no_autolink( string $texte, string $couleur ): string {
+		$html = (string) preg_replace( '/(\d)/', '$1&zwnj;', esc_html( $texte ) );
+		return '<span style="color:' . esc_attr( $couleur ) . ';text-decoration:none;">' . $html . '</span>';
+	}
+
+	/**
 	 * Tronque un texte au mot, sans couper au milieu (§7.6.3).
 	 */
 	public static function excerpt( string $texte, int $max = 300 ): string {

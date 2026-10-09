@@ -37,7 +37,27 @@ $preheader = (string) $wam_nl['preheader'];
 <noscript><xml><o:OfficeDocumentSettings><o:PixelsPerInch>96</o:PixelsPerInch></o:OfficeDocumentSettings></xml></noscript>
 <![endif]-->
 <style type="text/css">
-	/* Media queries uniquement : tout le reste est en styles en ligne (§7.4). */
+	/* Seule exception aux styles en ligne : les liens que Gmail et Apple Mail
+	   fabriquent eux-mêmes (adresse, date, téléphone) n'existent pas dans notre
+	   HTML, on ne peut donc pas leur poser de style en ligne. Ils reprennent la
+	   couleur du texte qui les entoure. */
+	a[x-apple-data-detectors] {
+		color: inherit !important;
+		text-decoration: none !important;
+		font-size: inherit !important;
+		font-family: inherit !important;
+		font-weight: inherit !important;
+		line-height: inherit !important;
+	}
+	u + #body a {
+		color: inherit;
+		text-decoration: none;
+		font-size: inherit;
+		font-family: inherit;
+		font-weight: inherit;
+		line-height: inherit;
+	}
+	/* Media queries : tout le reste est en styles en ligne (§7.4). */
 	@media only screen and (max-width: 620px) {
 		.wam-nl-col {
 			display: block !important;
@@ -88,7 +108,7 @@ $preheader = (string) $wam_nl['preheader'];
 	}
 </style>
 </head>
-<body style="margin:0;padding:0;width:100%;background-color:<?php echo esc_attr( $c['background'] ); ?>;color:<?php echo esc_attr( $c['text'] ); ?>;font-family:<?php echo esc_attr( $police ); ?>;-webkit-text-size-adjust:100%;-ms-text-size-adjust:100%;">
+<body id="body" style="margin:0;padding:0;width:100%;background-color:<?php echo esc_attr( $c['background'] ); ?>;color:<?php echo esc_attr( $c['text'] ); ?>;font-family:<?php echo esc_attr( $police ); ?>;-webkit-text-size-adjust:100%;-ms-text-size-adjust:100%;">
 
 <?php if ( '' !== $preheader ) : ?>
 	<div style="display:none;max-height:0;overflow:hidden;opacity:0;font-size:1px;line-height:1px;color:<?php echo esc_attr( $c['background'] ); ?>;">

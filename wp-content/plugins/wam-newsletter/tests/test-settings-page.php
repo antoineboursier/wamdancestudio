@@ -87,13 +87,11 @@ wam_nl_assert( false !== strpos( $html, 'name="wam_nl_send_test"' ), 'bouton d e
 
 echo "== Diagnostic SMTP : il doit nommer le propriétaire réel du transport ==\n";
 if ( Mailer::external_smtp_active() ) {
-	wam_nl_assert( false !== strpos( $html, 'coulisses' ), 'le diagnostic nomme Les coulisses du site WAM' );
+	wam_nl_assert( false === strpos( $html, 'Le transport est tenu par l’extension' ), 'plus de message quand les coulisses tiennent le transport (retiré le 09/10)' );
 }
 wam_nl_assert( false !== strpos( $html, 'name="wam_nl[smtp_host]"' ), 'la copie locale des réglages SMTP est toujours affichée, prête à reprendre la main' );
 wam_nl_assert( false !== strpos( $html, 'name="wam_nl[smtp_user]"' ), 'utilisateur SMTP affiché' );
-if ( Mailer::local_guard_active() ) {
-	wam_nl_assert( false !== strpos( $html, 'Mailpit' ), 'le diagnostic signale l interception locale' );
-}
+wam_nl_assert( false === strpos( $html, 'Environnement local : les e-mails sont interceptés' ), 'plus de message sur l’interception locale (retiré le 09/10)' );
 
 echo "== Le mot de passe SMTP n est jamais rendu dans la page ==\n";
 wam_nl_assert( false === strpos( $html, 'name="wam_nl[smtp_password]"' ), 'aucun champ de mot de passe dans le formulaire' );

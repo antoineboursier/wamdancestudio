@@ -372,11 +372,10 @@ class SettingsPage {
 	private static function render_smtp_diagnostic(): void {
 		$lignes = array();
 
+		// Rien à dire quand une autre extension tient le transport : c'est le cas
+		// normal, le message n'apportait rien (retour d'Antoine du 09/10).
 		if ( Mailer::external_smtp_active() ) {
-			$lignes[] = array(
-				'info',
-				__( 'Le transport est tenu par l’extension « Les coulisses du site WAM ». Ce plugin emprunte sa connexion et n’y touche pas. Les réglages ci-dessous sont la copie locale, prête à prendre le relais si cette extension est un jour désactivée.', 'wam-newsletter' ),
-			);
+			$lignes = array();
 		} elseif ( Mailer::owns_transport() ) {
 			$lignes[] = array( 'success', __( 'Le transport est tenu par ce plugin, avec les réglages ci-dessous.', 'wam-newsletter' ) );
 		} elseif ( '' === (string) Settings::get( 'smtp_host' ) || '' === (string) Settings::get( 'smtp_user' ) ) {
@@ -388,13 +387,6 @@ class SettingsPage {
 			$lignes[] = array(
 				'error',
 				__( 'La constante WAM_NL_SMTP_PASSWORD n’est pas définie dans wp-config.php : l’authentification SMTP est impossible, les e-mails partiront par mail().', 'wam-newsletter' ),
-			);
-		}
-
-		if ( Mailer::local_guard_active() ) {
-			$lignes[] = array(
-				'warning',
-				__( 'Environnement local : les e-mails sont interceptés par Mailpit et ne partent pas réellement. La connexion SMTP ne peut être vérifiée qu’en production.', 'wam-newsletter' ),
 			);
 		}
 

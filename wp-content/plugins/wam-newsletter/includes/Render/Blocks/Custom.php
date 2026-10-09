@@ -138,7 +138,7 @@ class Custom {
 			'%s &#124; %s - %s - %s',
 			$desabo,
 			esc_html( Brand::site_name() ),
-			esc_html( Brand::address() ),
+			Html::no_autolink( Brand::address(), $c['muted'] ),
 			$site
 		);
 

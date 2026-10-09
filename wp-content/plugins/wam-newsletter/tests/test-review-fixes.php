@@ -348,6 +348,19 @@ try {
 	wam_nl_assert( false !== strpos( $r, 'max-width:186px' ), 'la largeur choisie dans l’éditeur (186px) est respectée' );
 	wam_nl_assert( false !== strpos( $r, 'margin:0 auto;' ), 'une image centrée plus étroite que la cellule se centre par ses marges' );
 
+	echo "== Liens : couleur choisie, sinon blanc ; adresse du pied jamais en lien bleu ==\n";
+	$lien_colore = '<!-- wp:paragraph {"style":{"elements":{"link":{"color":{"text":"var:preset|color|accent-green"}}}}} --><p>Voir <a href="https://exemple.test/x">le lien</a></p><!-- /wp:paragraph -->';
+	$r = $rendre_blocs( $lien_colore );
+	wam_nl_assert( 1 === preg_match( '/<a [^>]*style="color:' . preg_quote( \WamNewsletter\Render\Brand::color_from_slug( 'accent-green' ), '/' ) . ';text-decoration:underline;"/', $r ), 'la couleur de lien choisie dans l’éditeur est appliquée' );
+	$lien_simple = '<!-- wp:paragraph --><p>Voir <a href="https://exemple.test/x">le lien</a></p><!-- /wp:paragraph -->';
+	$r = $rendre_blocs( $lien_simple );
+	wam_nl_assert( 1 === preg_match( '/<a [^>]*style="color:' . preg_quote( \WamNewsletter\Render\Brand::color( 'text' ), '/' ) . ';/', $r ), 'sans choix, le lien est blanc (crème), jamais bleu' );
+	$titre_lien = '<!-- wp:heading {"style":{"elements":{"link":{"color":{"text":"var:preset|color|accent-pink"}}}}} --><h2 class="wp-block-heading"><a href="https://exemple.test/y">Titre lié</a></h2><!-- /wp:heading -->';
+	wam_nl_assert( false !== strpos( $rendre_blocs( $titre_lien ), 'color:' . \WamNewsletter\Render\Brand::color_from_slug( 'accent-pink' ) . ';text-decoration:underline;' ), 'la couleur de lien vaut aussi pour un titre' );
+	$pied = \WamNewsletter\Render\Blocks\Custom::footer( array() );
+	wam_nl_assert( false !== strpos( $pied, '&zwnj;' ), 'l’adresse porte des caractères invisibles qui cassent la détection automatique' );
+	wam_nl_assert( 1 === preg_match( '/<span style="color:' . preg_quote( \WamNewsletter\Render\Brand::color( 'muted' ), '/' ) . ';text-decoration:none;">2&zwnj;0&zwnj;2&zwnj;/', $pied ), 'l’adresse a sa couleur posée en ligne' );
+
 	echo "== Contenus WAM : sous-titre vert, date et horaire du stage ==\n";
 	$stage = wp_insert_post( array( 'post_type' => 'stages', 'post_status' => 'publish', 'post_title' => 'ZZTest stage retours' ) );
 	$posts_temporaires[] = $stage;

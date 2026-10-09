@@ -40,10 +40,12 @@ class Core {
 	 * (Gmail, Outlook) appliquent sinon un bleu par défaut, illisible sur le
 	 * fond sombre de l'e-mail.
 	 */
-	public static function inline_text( string $html ): string {
+	public static function inline_text( string $html, string $couleur_lien = '' ): string {
 		$html = wp_kses( $html, self::INLINE_TAGS );
 
-		$style = 'color:' . Brand::color( 'text' ) . ';text-decoration:underline;';
+		// Couleur des liens choisie dans l'éditeur, sinon le blanc (crème) du
+		// texte : jamais le bleu par défaut des clients de messagerie.
+		$style = 'color:' . ( '' !== $couleur_lien ? $couleur_lien : Brand::color( 'text' ) ) . ';text-decoration:underline;';
 		$html  = (string) preg_replace_callback(
 			'/<a\s+([^>]*)>/i',
 			static function ( $m ) use ( $style ) {
@@ -74,12 +76,12 @@ class Core {
 	}
 
 	public static function paragraph( array $bloc ): string {
-		$contenu = self::inline_text( self::inner( $bloc ) );
+		$attrs   = (array) ( $bloc['attrs'] ?? array() );
+		$contenu = self::inline_text( self::inner( $bloc ), self::link_color( $attrs ) );
 		if ( '' === $contenu ) {
 			return '';
 		}
 
-		$attrs = (array) ( $bloc['attrs'] ?? array() );
 		$align = in_array( $attrs['align'] ?? '', array( 'center', 'right' ), true ) ? $attrs['align'] : 'left';
 
 		// Sur un fond coloré, le texte par défaut est celui qui reste lisible dessus.
@@ -105,12 +107,12 @@ class Core {
 	 * réservé à un éventuel titre unique en tête d'e-mail.
 	 */
 	public static function heading( array $bloc ): string {
-		$contenu = self::inline_text( self::inner( $bloc ) );
+		$attrs   = (array) ( $bloc['attrs'] ?? array() );
+		$contenu = self::inline_text( self::inner( $bloc ), self::link_color( $attrs ) );
 		if ( '' === $contenu ) {
 			return '';
 		}
 
-		$attrs  = (array) ( $bloc['attrs'] ?? array() );
 		$niveau = (int) ( $attrs['level'] ?? 2 );
 		$niveau = max( 2, min( 4, $niveau ) );
 
@@ -162,7 +164,7 @@ class Core {
 			$elements = '';
 			$style_li = Html::text_style( array( 'size' => self::font_size( $attrs, 16 ) ) ) . 'margin:0 0 8px;';
 			foreach ( $m[1] as $texte ) {
-				$propre = self::inline_text( $texte );
+				$propre = self::inline_text( $texte, self::link_color( $attrs ) );
 				if ( '' === $propre ) {
 					continue;
 				}
@@ -404,6 +406,11 @@ class Core {
 		}
 		$couleur = self::color_value( (string) ( $attrs['style']['color']['text'] ?? '' ), (string) ( $attrs['textColor'] ?? '' ) );
 		return '' !== $couleur ? $couleur : $defaut;
+	}
+
+	/** Couleur des liens choisie pour le bloc (« Lien » dans le panneau Couleur), ou ''. */
+	private static function link_color( array $attrs ): string {
+		return self::color_value( (string) ( $attrs['style']['elements']['link']['color']['text'] ?? '' ), '' );
 	}
 
 	/** Couleur de fond demandée, ou '' si le bloc n'en a pas. */

@@ -2,6 +2,7 @@
 namespace WamNewsletter\Integrations;
 
 use WamNewsletter\Lists\Repository as Lists;
+use WamNewsletter\Subscribers\Quality;
 use WamNewsletter\Subscribers\Repository as Subscribers;
 
 defined( 'ABSPATH' ) || exit;
@@ -147,6 +148,23 @@ class MailPoetMigrator {
 					continue;
 				}
 
+				// Mêmes règles qu'à toute autre entrée : sans elles, relancer la
+				// migration recréerait les adresses fautives corrigées depuis
+				// (gmai.com, suffixe Brevo…), MailPoet les gardant telles quelles.
+				// Sans DNS : 1 850 adresses dans une requête d'admin, et l'outil
+				// « Contrôle qualité » traite les domaines morts à part.
+				$verdict = Quality::assess( $email, (string) $mp['first_name'], (string) $mp['last_name'], false );
+				if ( Quality::REJECT === $verdict['verdict'] ) {
+					++$rapport['invalid'];
+					continue;
+				}
+				// Corrigée seulement si la forme fautive n'est pas déjà chez nous :
+				// sinon on créerait un doublon à côté d'elle. La fusion des deux est
+				// le travail de l'outil « Contrôle qualité des adresses ».
+				if ( Quality::FIX === $verdict['verdict'] && ! Subscribers::find_by_email( $email ) ) {
+					$email = $verdict['email'];
+				}
+
 				// Segments de cette personne, limités à ceux qu'on recrée.
 				$segments_perso = array();
 				if ( self::table_exists( 'subscriber_segment' ) && $map ) {
@@ -266,14 +284,18 @@ class MailPoetMigrator {
 					continue;
 				}
 
-				// Déjà connu·e : si l'import WooCommerce est passé AVANT la migration,
-				// la personne a été recréée « abonnée » alors qu'elle s'était
-				// désinscrite de MailPoet. On la corrige, mais seulement quand son
-				// seul consentement vient de WooCommerce : celle qui s'est réinscrite
-				// depuis par le formulaire l'a demandé elle-même.
+				// Déjà connu·e et encore abonné·e chez nous, alors que MailPoet la dit
+				// désinscrite ou en rebond. Deux cas :
+				//  - consentement venu de WooCommerce : l'import est passé avant la
+				//    migration et l'a recréée « abonnée » ;
+				//  - consentement venu de MailPoet : elle s'est désinscrite de MailPoet
+				//    APRÈS la migration (lien d'une ancienne newsletter MailPoet, page
+				//    de gestion MailPoet) tant que MailPoet restait actif.
+				// Celle qui s'est réinscrite par NOTRE formulaire l'a demandé elle-même :
+				// on n'y touche pas.
 				$existant = Subscribers::find_by_email( $email );
 				if ( $existant ) {
-					if ( Subscribers::STATUS_SUBSCRIBED === $existant['status'] && 'woocommerce' === $existant['consent_source'] ) {
+					if ( Subscribers::STATUS_SUBSCRIBED === $existant['status'] && in_array( $existant['consent_source'], array( 'woocommerce', 'mailpoet' ), true ) ) {
 						++$ajoute;
 						if ( ! $a_blanc ) {
 							Subscribers::set_status( (int) $existant['id'], 'bounced' === $mp['status'] ? Subscribers::STATUS_BOUNCED : Subscribers::STATUS_UNSUBSCRIBED );

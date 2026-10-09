@@ -335,17 +335,18 @@ class Delivery {
 		$c   = self::config();
 		$url = add_query_arg(
 			array(
-				'success'             => 1,
-				'defer'               => 1,
-				'failure'             => 1,
-				'inprogress'          => 0,
-				'deliverytype'        => 'remote',
-				'max_results_by_type' => 5000,
-				'api.filter_column_0' => 'sendunixtime',
-				'api.filter_type_0'   => 'gt',
-				'api.filter_term_0'   => max( 0, $depuis ),
+				'cpanel_jsonapi_user'       => $c['user'],
+				'cpanel_jsonapi_apiversion' => 2,
+				'cpanel_jsonapi_module'     => 'EmailTrack',
+				'cpanel_jsonapi_func'       => 'search',
+				'success'                   => 1,
+				'defer'                     => 1,
+				'failure'                   => 1,
+				'inprogress'                => 0,
+				'deliverytype'              => 'remote',
+				'max_results_by_type'       => 5000,
 			),
-			'https://' . $c['host'] . ':2083/execute/EmailTrack/search'
+			'https://' . $c['host'] . ':2083/json-api/cpanel'
 		);
 
 		$reponse = wp_remote_get(
@@ -371,11 +372,12 @@ class Delivery {
 		if ( ! is_array( $json ) ) {
 			return new WP_Error( 'wam_nl_cpanel', __( 'Réponse de cPanel illisible.', 'wam-newsletter' ) );
 		}
-		// UAPI renvoie { status, data, errors } ; certaines versions l'enveloppent dans « result ».
-		$resultat = isset( $json['result'] ) && is_array( $json['result'] ) ? $json['result'] : $json;
-		if ( empty( $resultat['status'] ) ) {
-			$erreurs = implode( ' ', array_map( 'strval', (array) ( $resultat['errors'] ?? array() ) ) );
-			return new WP_Error( 'wam_nl_cpanel', sprintf( /* translators: %s message */ __( 'cPanel a refusé la requête : %s', 'wam-newsletter' ), '' !== $erreurs ? $erreurs : __( 'sans précision', 'wam-newsletter' ) ) );
+		// API2 : { cpanelresult: { data: [...], event: { result: 1 }, error?: "…" } }.
+		$resultat = isset( $json['cpanelresult'] ) && is_array( $json['cpanelresult'] ) ? $json['cpanelresult'] : array();
+		$echec    = isset( $resultat['event']['result'] ) && ! $resultat['event']['result'];
+		if ( ! $resultat || $echec || ! empty( $resultat['error'] ) ) {
+			$erreur = (string) ( $resultat['error'] ?? ( $resultat['data'][0]['reason'] ?? '' ) );
+			return new WP_Error( 'wam_nl_cpanel', sprintf( /* translators: %s message */ __( 'cPanel a refusé la requête : %s', 'wam-newsletter' ), '' !== $erreur ? $erreur : __( 'sans précision', 'wam-newsletter' ) ) );
 		}
 
 		$traces = array();
@@ -387,12 +389,17 @@ class Delivery {
 			if ( '' === $statut ) {
 				continue;
 			}
+			$heure = (int) ( $r['actionunixtime'] ?? $r['sendunixtime'] ?? 0 );
+			// Pas de filtre côté cPanel : on écarte ici ce qui précède l'envoi.
+			if ( $heure && $heure < $depuis ) {
+				continue;
+			}
 			$traces[] = array(
-				'recipient' => strtolower( trim( (string) ( $r['recipient'] ?? $r['deliveredto'] ?? '' ) ) ),
-				'sender'    => strtolower( trim( (string) ( $r['email'] ?? $r['sender'] ?? '' ) ) ),
+				'recipient' => strtolower( trim( (string) ( $r['recipient'] ?? '' ) ) ),
+				'sender'    => strtolower( trim( (string) ( $r['sender'] ?? '' ) ) ),
 				'status'    => $statut,
 				'message'   => trim( (string) ( $r['message'] ?? '' ) ),
-				'time'      => (int) ( $r['actionunixtime'] ?? $r['sendunixtime'] ?? 0 ),
+				'time'      => $heure,
 			);
 		}
 		return self::only_our_sender( $traces );

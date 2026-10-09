@@ -26,7 +26,7 @@ $config = static function () {
 	);
 };
 $mock = static function ( $pre, $args, $url ) use ( &$requetes, &$reponse ) {
-	if ( false === strpos( $url, '/execute/EmailTrack/search' ) ) {
+	if ( false === strpos( $url, '/json-api/cpanel' ) ) {
 		return $pre;
 	}
 	$requetes[] = array( 'url' => $url, 'args' => $args );
@@ -129,14 +129,15 @@ try {
 
 	$reponse = $json(
 		array(
-			'status' => 1,
-			'errors' => null,
+			'cpanelresult' => array(
+			'event'  => array( 'result' => 1 ),
 			'data'   => array(
-				array( 'type' => 'success', 'recipient' => 'remise-remis' . $domaine, 'email' => '', 'message' => 'Accepted', 'actionunixtime' => time() ),
-				array( 'type' => 'failure', 'recipient' => 'REMISE-REFUSE' . $domaine, 'email' => '', 'message' => '550 5.1.1 user unknown', 'actionunixtime' => time() ),
-				array( 'type' => 'defer', 'recipient' => 'remise-attente' . $domaine, 'email' => '', 'message' => '451 4.7.1 try again later', 'actionunixtime' => time() ),
-				array( 'type' => 'failure', 'recipient' => 'remise-spam' . $domaine, 'email' => '', 'message' => '550 5.7.1 rejected as spam', 'actionunixtime' => time() ),
-				array( 'type' => 'success', 'recipient' => 'quelquun@ailleurs.test', 'email' => 'facture@autre-expediteur.test', 'message' => '', 'actionunixtime' => time() ),
+				array( 'type' => 'success', 'recipient' => 'remise-remis' . $domaine, 'sender' => '', 'message' => 'Accepted', 'actionunixtime' => time() ),
+				array( 'type' => 'failure', 'recipient' => 'REMISE-REFUSE' . $domaine, 'sender' => '', 'message' => '550 5.1.1 user unknown', 'actionunixtime' => time() ),
+				array( 'type' => 'defer', 'recipient' => 'remise-attente' . $domaine, 'sender' => '', 'message' => '451 4.7.1 try again later', 'actionunixtime' => time() ),
+				array( 'type' => 'failure', 'recipient' => 'remise-spam' . $domaine, 'sender' => '', 'message' => '550 5.7.1 rejected as spam', 'actionunixtime' => time() ),
+				array( 'type' => 'success', 'recipient' => 'quelquun@ailleurs.test', 'sender' => 'facture@autre-expediteur.test', 'message' => '', 'actionunixtime' => time() ),
+			),
 			),
 		)
 	);
@@ -144,8 +145,8 @@ try {
 	wam_nl_assert( is_array( $rapport ), 'sync réussit' );
 	wam_nl_assert_equals( 1, count( $requetes ), 'un seul appel à cPanel' );
 	wam_nl_assert_equals( 'cpanel utilisateur:JETON-DE-TEST', $requetes[0]['args']['headers']['Authorization'] ?? '', 'en-tête d’authentification cPanel' );
-	wam_nl_assert( 0 === strpos( $requetes[0]['url'], 'https://cpanel.exemple.invalid:2083/execute/EmailTrack/search' ), 'bonne adresse UAPI' );
-	wam_nl_assert( false !== strpos( $requetes[0]['url'], 'api.filter_column_0=sendunixtime' ), 'filtré depuis le premier envoi' );
+	wam_nl_assert( 0 === strpos( $requetes[0]['url'], 'https://cpanel.exemple.invalid:2083/json-api/cpanel' ), 'bonne adresse API2' );
+	wam_nl_assert( false !== strpos( $requetes[0]['url'], 'cpanel_jsonapi_module=EmailTrack' ) && false !== strpos( $requetes[0]['url'], 'cpanel_jsonapi_apiversion=2' ), 'module EmailTrack en API2' );
 	wam_nl_assert_equals( 1, $rapport['delivered'], '1 remis' );
 	wam_nl_assert_equals( 1, $rapport['deferred'], '1 en attente' );
 	wam_nl_assert_equals( 2, $rapport['failed'], '2 refusés' );
@@ -164,7 +165,7 @@ try {
 	wam_nl_assert( (bool) array_filter( $journal, static function ( $l ) { return Log::TYPE_DELIVERY === $l['type']; } ), 'relevé inscrit au journal d’envoi' );
 
 	echo "== Réponses d'erreur de cPanel ==\n";
-	$reponse = $json( array( 'status' => 0, 'errors' => array( 'You do not have the feature “emailtrack”.' ) ) );
+	$reponse = $json( array( 'cpanelresult' => array( 'event' => array( 'result' => 0 ), 'error' => 'You do not have the feature “emailtrack”.' ) ) );
 	$err     = Delivery::fetch( time() - 3600 );
 	wam_nl_assert( is_wp_error( $err ) && false !== strpos( $err->get_error_message(), 'emailtrack' ), 'erreur UAPI relayée' );
 	$reponse = $json( array(), 401 );
@@ -173,8 +174,13 @@ try {
 	wam_nl_assert( false === strpos( $err->get_error_message(), 'JETON-DE-TEST' ), 'le jeton n’apparaît jamais dans un message' );
 	$reponse = new WP_Error( 'http_request_failed', 'cURL error 28' );
 	wam_nl_assert( is_wp_error( Delivery::fetch( time() ) ), 'cPanel injoignable : erreur, pas d’exception' );
-	$reponse = $json( array( 'result' => array( 'status' => 1, 'data' => array() ) ) );
-	wam_nl_assert_equals( array(), Delivery::fetch( time() ), 'réponse enveloppée dans « result » acceptée' );
+	$reponse = $json( array( 'cpanelresult' => array( 'event' => array( 'result' => 1 ), 'data' => array() ) ) );
+	wam_nl_assert_equals( array(), Delivery::fetch( time() ), 'réponse vide acceptée' );
+	$reponse = $json( array( 'cpanelresult' => array( 'event' => array( 'result' => 1 ), 'data' => array(
+		array( 'type' => 'success', 'recipient' => 'ancien@x.test', 'sender' => '', 'message' => 'Accepté', 'actionunixtime' => 1000 ),
+		array( 'type' => 'success', 'recipient' => 'recent@x.test', 'sender' => '', 'message' => 'Accepté', 'actionunixtime' => time() ),
+	) ) ) );
+	wam_nl_assert_equals( 1, count( Delivery::fetch( time() - 3600 ) ), 'ce qui précède l’envoi est écarté côté plugin' );
 
 	echo "== Écran de statistiques : tuile et liste des refus ==\n";
 	$_GET['newsletter'] = $nl;

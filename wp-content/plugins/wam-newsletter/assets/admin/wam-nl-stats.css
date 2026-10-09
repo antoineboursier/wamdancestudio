@@ -1,0 +1,388 @@
+/**
+ * Écran de statistiques d'une newsletter.
+ *
+ * Fond clair de l'administration. Les couleurs de séries (bleu, orange) ne
+ * servent qu'aux marques ; les textes restent en couleurs de texte.
+ */
+
+.wam-nl-stats {
+	--wam-st-surface: #ffffff;
+	--wam-st-texte: #1d2327;
+	--wam-st-texte-2: #50575e;
+	--wam-st-discret: #8c8f94;
+	--wam-st-grille: #e8e8e8;
+	--wam-st-bordure: #dcdcde;
+	--wam-st-serie-1: #2a78d6;
+	--wam-st-alerte: #b32d2e;
+	max-width: 1100px;
+}
+
+/* --- En-tête ------------------------------------------------------- */
+
+.wam-nl-stats__entete {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 12px 24px;
+	align-items: flex-end;
+	justify-content: space-between;
+	margin: 8px 0 20px;
+}
+
+.wam-nl-stats__entete h1 {
+	margin: 0 0 6px;
+	padding: 0;
+	font-size: 23px;
+	line-height: 1.3;
+}
+
+.wam-nl-stats__meta {
+	margin: 0;
+	color: var(--wam-st-texte-2);
+}
+
+.wam-nl-stats__actions {
+	margin: 0;
+}
+
+/* --- Chiffres clés ------------------------------------------------- */
+
+.wam-nl-kpis {
+	display: grid;
+	grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+	gap: 12px;
+	margin-bottom: 20px;
+}
+
+.wam-nl-kpi {
+	display: flex;
+	flex-direction: column;
+	gap: 4px;
+	padding: 16px 18px;
+	border: 1px solid var(--wam-st-bordure);
+	border-radius: 8px;
+	background: var(--wam-st-surface);
+}
+
+.wam-nl-kpi__libelle {
+	color: var(--wam-st-texte-2);
+	font-size: 13px;
+	font-weight: 600;
+}
+
+.wam-nl-kpi__valeur {
+	color: var(--wam-st-texte);
+	font-size: 30px;
+	font-weight: 700;
+	line-height: 1.15;
+	font-variant-numeric: tabular-nums;
+}
+
+.wam-nl-kpi__detail {
+	color: var(--wam-st-discret);
+	font-size: 12px;
+}
+
+.wam-nl-kpi.is-alerte .wam-nl-kpi__valeur {
+	color: var(--wam-st-alerte);
+}
+
+/* --- Cartes de section --------------------------------------------- */
+
+.wam-nl-card {
+	margin-bottom: 20px;
+	padding: 18px 20px 20px;
+	border: 1px solid var(--wam-st-bordure);
+	border-radius: 8px;
+	background: var(--wam-st-surface);
+}
+
+.wam-nl-card h2 {
+	margin: 0 0 4px;
+	font-size: 16px;
+}
+
+.wam-nl-card__aide {
+	margin: 0 0 16px;
+	color: var(--wam-st-texte-2);
+}
+
+/* --- Parcours (une seule série : la barre porte la couleur 1) ------ */
+
+.wam-nl-funnel {
+	display: grid;
+	gap: 12px;
+}
+
+.wam-nl-funnel__ligne {
+	display: grid;
+	grid-template-columns: 150px 1fr 130px;
+	gap: 12px;
+	align-items: center;
+}
+
+.wam-nl-funnel__libelle {
+	color: var(--wam-st-texte);
+	font-weight: 600;
+}
+
+.wam-nl-funnel__piste {
+	position: relative;
+	height: 24px;
+	border-radius: 0 4px 4px 0;
+	background: var(--wam-st-grille);
+}
+
+.wam-nl-funnel__barre {
+	position: absolute;
+	top: 0;
+	bottom: 0;
+	left: 0;
+	border-radius: 0 4px 4px 0;
+	background: var(--wam-st-serie-1);
+}
+
+.wam-nl-funnel__valeur {
+	color: var(--wam-st-texte);
+	font-weight: 700;
+	font-variant-numeric: tabular-nums;
+}
+
+.wam-nl-funnel__valeur span {
+	color: var(--wam-st-texte-2);
+	font-weight: 400;
+}
+
+@media (max-width: 600px) {
+	.wam-nl-funnel__ligne {
+		grid-template-columns: 1fr auto;
+	}
+	.wam-nl-funnel__piste {
+		grid-column: 1 / -1;
+		order: 3;
+	}
+}
+
+/* --- Courbe -------------------------------------------------------- */
+
+.wam-nl-legende {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 16px;
+	margin: 0 0 8px;
+	padding: 0;
+	list-style: none;
+	color: var(--wam-st-texte-2);
+}
+
+.wam-nl-legende li {
+	display: inline-flex;
+	gap: 6px;
+	align-items: center;
+	margin: 0;
+}
+
+.wam-nl-legende__trait {
+	display: inline-block;
+	width: 16px;
+	height: 3px;
+	border-radius: 2px;
+}
+
+.wam-nl-chart__cadre {
+	position: relative;
+}
+
+.wam-nl-chart__svg {
+	display: block;
+	width: 100%;
+	height: auto;
+	overflow: visible;
+}
+
+.wam-nl-chart__grille {
+	stroke: var(--wam-st-grille);
+	stroke-width: 1;
+}
+
+.wam-nl-chart__axe {
+	fill: var(--wam-st-discret);
+	font-size: 11px;
+}
+
+.wam-nl-chart__fin {
+	fill: var(--wam-st-texte);
+	font-size: 12px;
+	font-weight: 600;
+}
+
+.wam-nl-chart__zone {
+	fill: transparent;
+	cursor: crosshair;
+}
+
+.wam-nl-chart__repere {
+	stroke: var(--wam-st-discret);
+	stroke-width: 1;
+	opacity: 0;
+	pointer-events: none;
+}
+
+.wam-nl-chart__repere.is-visible {
+	opacity: 1;
+}
+
+.wam-nl-chart__bulle {
+	position: absolute;
+	top: 0;
+	z-index: 2;
+	min-width: 150px;
+	padding: 8px 10px;
+	border: 1px solid var(--wam-st-bordure);
+	border-radius: 6px;
+	background: var(--wam-st-surface);
+	box-shadow: 0 2px 8px rgba(0, 0, 0, 0.12);
+	color: var(--wam-st-texte);
+	font-size: 12px;
+	line-height: 1.6;
+	pointer-events: none;
+}
+
+.wam-nl-chart__bulle strong {
+	display: block;
+	margin-bottom: 2px;
+}
+
+.wam-nl-chart__bulle i {
+	display: inline-block;
+	width: 10px;
+	height: 3px;
+	margin-right: 6px;
+	vertical-align: middle;
+	border-radius: 2px;
+}
+
+.wam-nl-chart__table {
+	margin-top: 12px;
+}
+
+.wam-nl-chart__table summary {
+	color: var(--wam-st-texte-2);
+	cursor: pointer;
+}
+
+.wam-nl-chart__table table {
+	max-width: 520px;
+	margin-top: 8px;
+}
+
+/* --- Liens cliqués ------------------------------------------------- */
+
+.wam-nl-liens {
+	display: grid;
+	gap: 10px;
+	margin: 0;
+	padding: 0;
+	list-style: none;
+}
+
+.wam-nl-lien {
+	display: grid;
+	grid-template-columns: 64px 1fr auto;
+	gap: 14px;
+	align-items: center;
+	margin: 0;
+	padding: 10px;
+	border: 1px solid var(--wam-st-grille);
+	border-radius: 8px;
+}
+
+.wam-nl-lien__vignette {
+	width: 64px;
+	height: 64px;
+	border-radius: 6px;
+	object-fit: cover;
+	background: var(--wam-st-grille);
+}
+
+.wam-nl-lien__vignette--vide {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	color: var(--wam-st-discret);
+	font-size: 24px;
+}
+
+.wam-nl-lien__corps {
+	display: flex;
+	flex-direction: column;
+	gap: 4px;
+	min-width: 0;
+}
+
+.wam-nl-lien__titre {
+	color: var(--wam-st-texte);
+	font-weight: 600;
+	text-decoration: none;
+}
+
+.wam-nl-lien__titre:hover {
+	text-decoration: underline;
+}
+
+.wam-nl-lien__url {
+	overflow: hidden;
+	color: var(--wam-st-discret);
+	font-size: 12px;
+	white-space: nowrap;
+	text-overflow: ellipsis;
+}
+
+.wam-nl-lien__piste {
+	position: relative;
+	height: 8px;
+	margin-top: 2px;
+	border-radius: 0 4px 4px 0;
+	background: var(--wam-st-grille);
+}
+
+.wam-nl-lien__barre {
+	position: absolute;
+	top: 0;
+	bottom: 0;
+	left: 0;
+	border-radius: 0 4px 4px 0;
+	background: var(--wam-st-serie-1);
+}
+
+.wam-nl-lien__chiffres {
+	min-width: 90px;
+	color: var(--wam-st-texte);
+	text-align: right;
+	font-variant-numeric: tabular-nums;
+}
+
+.wam-nl-lien__chiffres strong {
+	font-size: 20px;
+}
+
+.wam-nl-lien__chiffres span {
+	color: var(--wam-st-texte-2);
+	font-size: 12px;
+}
+
+/* --- Carte des clics ----------------------------------------------- */
+
+.wam-nl-heatmap {
+	display: block;
+	width: 100%;
+	max-width: 700px;
+	height: 900px;
+	margin: 0 auto;
+	border: 1px solid var(--wam-st-bordure);
+	border-radius: 8px;
+	background: #131620;
+}
+
+.wam-nl-stats__note {
+	max-width: 760px;
+}

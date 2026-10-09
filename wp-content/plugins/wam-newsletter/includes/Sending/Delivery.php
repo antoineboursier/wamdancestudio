@@ -24,7 +24,13 @@ defined( 'ABSPATH' ) || exit;
  *  - ou dans wp-config.php, prioritaire s'il est renseigné :
  *      define( 'WAM_NL_CPANEL_USER',  'yuqo3097' );
  *      define( 'WAM_NL_CPANEL_TOKEN', '…' );
- *      define( 'WAM_NL_CPANEL_HOST',  'cpanel.wamdancestudio.fr' ); // facultatif
+ *      define( 'WAM_NL_CPANEL_HOST',  'mail.wamdancestudio.fr' ); // facultatif
+ *
+ * Hôte : `mail.wamdancestudio.fr` et non `cpanel.…`. Les deux pointent sur le serveur
+ * réel (109.234.167.117), mais le certificat TLS de cPanel ne couvre que `mail.`,
+ * `www.` et le domaine nu : avec `cpanel.…`, cURL refuse (erreur 60) et il faudrait
+ * désactiver la vérification du certificat, ce que l'on évite. Le domaine nu et
+ * `www.` pointent, eux, sur le frontal web où le port 2083 est fermé.
  *
  * Le chiffrement protège le jeton d'une fuite de la base seule (sauvegarde,
  * export, copie locale) ; il ne protège pas d'un accès aux fichiers ET à la
@@ -61,7 +67,7 @@ class Delivery {
 	public static function config(): array {
 		$enregistre = self::stored();
 		$config     = array(
-			'host'  => defined( 'WAM_NL_CPANEL_HOST' ) ? (string) WAM_NL_CPANEL_HOST : 'cpanel.wamdancestudio.fr',
+			'host'  => defined( 'WAM_NL_CPANEL_HOST' ) ? (string) WAM_NL_CPANEL_HOST : 'mail.wamdancestudio.fr',
 			'user'  => $enregistre['user'],
 			'token' => $enregistre['token'],
 		);

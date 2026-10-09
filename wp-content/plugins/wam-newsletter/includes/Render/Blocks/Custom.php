@@ -43,7 +43,15 @@ class Custom {
 			$alt = Brand::site_name();
 		}
 
-		$image = $id ? Images::email_image( $id, Images::SIZE_BANNER ) : null;
+		// Deux bannières dédiées (ordinateur + mobile) quand l'éditrice n'a pas
+		// imposé une image particulière à ce bloc et que la version mobile existe.
+		$mobile_id = 0;
+		if ( (int) ( $attrs['attachmentId'] ?? 0 ) <= 0 ) {
+			$mobile_id = Brand::banner_mobile_id();
+		}
+
+		$image   = $id ? Images::email_image( $id, Images::SIZE_BANNER_2X ) : null;
+		$mobile  = $mobile_id ? Images::email_image( $mobile_id, Images::SIZE_BANNER_2X ) : null;
 
 		if ( ! $image ) {
 			// Aucune bannière disponible : on le dit dans l'éditeur plutôt que
@@ -56,18 +64,39 @@ class Custom {
 			);
 		}
 
-		// Classes `wam-nl-banner*` : sur mobile, la feuille du gabarit fait déborder
-		// l'image de l'écran (zoom sur le logo, côtés rognés). Sur ordinateur et
-		// dans les clients sans media queries (Outlook), elle reste telle quelle.
-		$img = sprintf(
-			'<img class="wam-nl-banner__img" src="%s" alt="%s" width="%d" style="display:block;width:100%%;max-width:%dpx;height:auto;border:0;outline:none;text-decoration:none;" />',
-			esc_url( $image['url'] ),
-			esc_attr( $alt ),
-			(int) Brand::WIDTH_CONTENT,
-			(int) Brand::WIDTH_CONTENT
-		);
+		$base_style = 'border:0;outline:none;text-decoration:none;height:auto;';
 
-		$contenu = '<div class="wam-nl-banner" style="margin:0;padding:0;"><a href="' . esc_url( $lien ) . '" target="_blank" rel="noopener" style="text-decoration:none;">' . $img . '</a></div>';
+		if ( $mobile ) {
+			// Version ordinateur visible par défaut ; version mobile cachée. La
+			// feuille mobile (≤ 620 px) inverse les deux. Un client sans media
+			// queries (Outlook de bureau) affiche donc la version ordinateur.
+			$img = sprintf(
+				'<img class="wam-nl-banner-desktop" src="%1$s" alt="%2$s" width="%3$d" style="display:block;width:100%%;max-width:%3$dpx;%4$s" />',
+				esc_url( $image['url'] ),
+				esc_attr( $alt ),
+				(int) Brand::WIDTH_CONTENT,
+				$base_style
+			);
+			$img .= sprintf(
+				'<img class="wam-nl-banner-mobile" src="%1$s" alt="%2$s" width="390" style="display:none;width:100%%;max-width:0;max-height:0;overflow:hidden;mso-hide:all;%3$s" />',
+				esc_url( $mobile['url'] ),
+				esc_attr( $alt ),
+				$base_style
+			);
+			$classe = 'wam-nl-banner wam-nl-banner--duo';
+		} else {
+			// Une seule bannière : sur mobile, la feuille la zoome et la centre.
+			$img = sprintf(
+				'<img class="wam-nl-banner__img" src="%1$s" alt="%2$s" width="%3$d" style="display:block;width:100%%;max-width:%3$dpx;%4$s" />',
+				esc_url( $image['url'] ),
+				esc_attr( $alt ),
+				(int) Brand::WIDTH_CONTENT,
+				$base_style
+			);
+			$classe = 'wam-nl-banner';
+		}
+
+		$contenu = '<div class="' . esc_attr( $classe ) . '" style="margin:0;padding:0;"><a href="' . esc_url( $lien ) . '" target="_blank" rel="noopener" style="text-decoration:none;">' . $img . '</a></div>';
 
 		return Html::row( $contenu, array( 'align' => 'center', 'padding' => '0 ' . Brand::GUTTER . 'px' ) );
 	}

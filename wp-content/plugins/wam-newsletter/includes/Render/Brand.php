@@ -58,6 +58,13 @@ class Brand {
 	 */
 	const BANNER_SLUG = 'email-banner';
 
+	/**
+	 * Bannières dédiées (octobre 2026) : une version ordinateur, une version
+	 * mobile, retrouvées par le nom de fichier téléversé dans la médiathèque.
+	 */
+	const BANNER_DESKTOP_SLUG = 'template-head-desktop';
+	const BANNER_MOBILE_SLUG  = 'template-head-mobile';
+
 	/** @var array<string,string>|null */
 	private static ?array $cache = null;
 
@@ -284,6 +291,25 @@ class Brand {
 		return is_string( $host ) ? preg_replace( '/^www\./', '', $host ) : 'wamdancestudio.fr';
 	}
 
+	/** Pièce jointe la plus récente dont le slug commence par la base donnée. */
+	private static function attachment_by_slug( string $base ): int {
+		global $wpdb;
+		return (int) $wpdb->get_var(
+			$wpdb->prepare(
+				"SELECT ID FROM {$wpdb->posts} WHERE post_type = 'attachment' AND post_name LIKE %s ORDER BY ID DESC LIMIT 1",
+				$wpdb->esc_like( $base ) . '%'
+			)
+		);
+	}
+
+	/**
+	 * Bannière mobile dédiée, ou 0 s'il n'y en a pas : l'e-mail retombe alors sur
+	 * la seule bannière, zoomée par la feuille mobile.
+	 */
+	public static function banner_mobile_id(): int {
+		return self::attachment_by_slug( self::BANNER_MOBILE_SLUG );
+	}
+
 	/**
 	 * Pièce jointe de la bannière par défaut (§7.6.7).
 	 *
@@ -295,6 +321,12 @@ class Brand {
 		$reglage = (int) \WamNewsletter\Settings\Settings::get( 'banner_attachment_id' );
 		if ( $reglage > 0 && 'attachment' === get_post_type( $reglage ) ) {
 			return $reglage;
+		}
+
+		// Bannière ordinateur dédiée, si elle existe.
+		$dedie = self::attachment_by_slug( self::BANNER_DESKTOP_SLUG );
+		if ( $dedie > 0 ) {
+			return $dedie;
 		}
 
 		global $wpdb;

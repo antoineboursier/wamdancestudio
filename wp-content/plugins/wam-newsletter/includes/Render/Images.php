@@ -37,6 +37,13 @@ class Images {
 	 */
 	const SIZE_BANNER = 'wam_nl_banner';
 
+	/**
+	 * Bannière en double résolution (1240 px pour 620 affichés) : les nouvelles
+	 * bannières ordinateur et mobile (octobre 2026) sont assez grandes pour
+	 * l'exploiter, contrairement à l'ancienne source de 650 px.
+	 */
+	const SIZE_BANNER_2X = 'wam_nl_banner_2x';
+
 	/** Sous-dossier des dérivés, hors médiathèque pour rester purgeable. */
 	const SUBDIR = 'wam-newsletter';
 
@@ -49,6 +56,7 @@ class Images {
 	public static function register_sizes(): void {
 		add_image_size( self::SIZE_THUMB, 580, 435, true );
 		add_image_size( self::SIZE_BANNER, Brand::WIDTH_CONTENT, 0, false );
+		add_image_size( self::SIZE_BANNER_2X, Brand::WIDTH_CONTENT * 2, 0, false );
 	}
 
 	/** Extensions que les clients de messagerie n'affichent pas de façon fiable. */
@@ -184,6 +192,13 @@ class Images {
 				'width'  => 580,
 				'height' => 435,
 				'crop'   => true,
+			);
+		}
+		if ( self::SIZE_BANNER_2X === $taille ) {
+			return array(
+				'width'  => Brand::WIDTH_CONTENT * 2,
+				'height' => 0,
+				'crop'   => false,
 			);
 		}
 		if ( self::SIZE_BANNER === $taille ) {

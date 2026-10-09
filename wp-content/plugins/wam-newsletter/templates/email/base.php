@@ -74,6 +74,17 @@ $preheader = (string) $wam_nl['preheader'];
 			max-width: none !important;
 			margin-left: -20% !important;
 		}
+		/* Deux bannières dédiées : la version ordinateur s'efface, la version
+		   mobile prend toute la largeur d'écran. */
+		.wam-nl-banner-desktop {
+			display: none !important;
+		}
+		.wam-nl-banner-mobile {
+			display: block !important;
+			width: 100% !important;
+			max-width: none !important;
+			max-height: none !important;
+		}
 	}
 </style>
 </head>

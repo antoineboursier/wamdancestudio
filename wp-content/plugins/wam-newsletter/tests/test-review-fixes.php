@@ -258,13 +258,41 @@ try {
 	wam_nl_assert( false !== strpos( $seule, 'padding:12px 20px 12px;' ), 'image seule : espacement de base' );
 
 	// ---------------------------------------------------------------
-	echo "== Bannière : zoom sur mobile, inchangée sur ordinateur ==
-";
-	$entete = \WamNewsletter\Render\Blocks\Custom::header( array() );
-	wam_nl_assert( false !== strpos( $entete, 'class="wam-nl-banner"' ) && false !== strpos( $entete, 'class="wam-nl-banner__img"' ), 'l’en-tête porte les classes de zoom' );
-	wam_nl_assert( false !== strpos( $entete, 'width:100%;max-width:620px' ), 'en ligne : largeur normale (ordinateur, Outlook)' );
-	$gabarit = (string) file_get_contents( WAM_NL_DIR . 'templates/email/base.php' );
+	echo "== Bannières : deux versions dédiées, ou une seule zoomée en repli ==\n";
+	global $wpdb;
+	$id_desktop = (int) $wpdb->get_var( "SELECT ID FROM {$wpdb->posts} WHERE post_type = 'attachment' AND post_name LIKE 'template-head-desktop%' ORDER BY ID DESC LIMIT 1" );
+	$id_mobile  = (int) $wpdb->get_var( "SELECT ID FROM {$wpdb->posts} WHERE post_type = 'attachment' AND post_name LIKE 'template-head-mobile%' ORDER BY ID DESC LIMIT 1" );
+	$gabarit    = (string) file_get_contents( WAM_NL_DIR . 'templates/email/base.php' );
+
+	if ( $id_desktop && $id_mobile ) {
+		wam_nl_assert_equals( $id_desktop, \WamNewsletter\Render\Brand::banner_id(), 'la bannière ordinateur est celle nommée template-head-desktop' );
+		wam_nl_assert_equals( $id_mobile, \WamNewsletter\Render\Brand::banner_mobile_id(), 'la bannière mobile est celle nommée template-head-mobile' );
+
+		$entete = \WamNewsletter\Render\Blocks\Custom::header( array() );
+		wam_nl_assert( false !== strpos( $entete, 'class="wam-nl-banner-desktop"' ) && false !== strpos( $entete, 'class="wam-nl-banner-mobile"' ), 'les deux images sont dans l’en-tête' );
+		wam_nl_assert( false !== strpos( $entete, 'wam-nl-banner--duo' ), 'l’en-tête se déclare en mode « deux bannières »' );
+		wam_nl_assert( false === strpos( $entete, 'wam-nl-banner__img' ), 'pas de zoom quand une vraie bannière mobile existe' );
+		wam_nl_assert( 1 === preg_match( '/wam-nl-banner-mobile"[^>]*style="display:none;[^"]*mso-hide:all/', $entete ), 'la version mobile est cachée par défaut (et pour Outlook)' );
+		wam_nl_assert( 1 === preg_match( '/wam-nl-banner-desktop"[^>]*style="display:block;width:100%;max-width:620px/', $entete ), 'la version ordinateur est visible par défaut' );
+		wam_nl_assert( 1 === preg_match( '#src="[^"]*template-head-desktop[^"]*\.jpg"#', $entete ) && 1 === preg_match( '#src="[^"]*template-head-mobile[^"]*\.jpg"#', $entete ), 'chacune est servie en JPG (pas d’AVIF), avec son propre fichier' );
+		wam_nl_assert( 1 === preg_match( '/@media[^{]*max-width: 620px\)\s*\{.*\.wam-nl-banner-desktop\s*\{[^}]*display: none !important/s', $gabarit ), 'la media query mobile masque la version ordinateur' );
+		wam_nl_assert( 1 === preg_match( '/@media[^{]*max-width: 620px\)\s*\{.*\.wam-nl-banner-mobile\s*\{[^}]*display: block !important[^}]*width: 100% !important/s', $gabarit ), 'et affiche la version mobile pleine largeur' );
+
+		// Une image imposée dans le bloc ne se marie pas avec la bannière mobile par défaut.
+		$impose = \WamNewsletter\Render\Blocks\Custom::header( array( 'attachmentId' => $id_desktop ) );
+		wam_nl_assert( false === strpos( $impose, 'wam-nl-banner-mobile' ) && false !== strpos( $impose, 'wam-nl-banner__img' ), 'image imposée dans le bloc : une seule bannière, zoomée sur mobile' );
+	} else {
+		echo "  (bannières template-head-* absentes de cette base : cas ignoré)\n";
+	}
+
+	$ancienne = (int) $wpdb->get_var( "SELECT ID FROM {$wpdb->posts} WHERE post_type = 'attachment' AND post_name = 'email-banner' LIMIT 1" );
+	if ( $ancienne ) {
+		$seule = \WamNewsletter\Render\Blocks\Custom::header( array( 'attachmentId' => $ancienne ) );
+		wam_nl_assert( false !== strpos( $seule, 'class="wam-nl-banner"' ) && false !== strpos( $seule, 'class="wam-nl-banner__img"' ), 'repli : une seule bannière, avec ses classes de zoom' );
+		wam_nl_assert( false !== strpos( $seule, 'width:100%;max-width:620px' ), 'repli : largeur normale sur ordinateur et dans Outlook' );
+	}
 	wam_nl_assert( 1 === preg_match( '/@media[^{]*max-width: 620px\)\s*\{.*\.wam-nl-banner__img\s*\{[^}]*width: 140% !important/s', $gabarit ), 'le zoom à 140 % n’existe que dans la media query mobile' );
+
 
 	// ---------------------------------------------------------------
 	echo "== Recherche de contenus : le sous-titre distingue deux titres identiques ==

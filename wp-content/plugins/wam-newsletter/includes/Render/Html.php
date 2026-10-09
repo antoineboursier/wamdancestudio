@@ -32,7 +32,7 @@ class Html {
 		// 12px haut + 12px bas = 24px entre deux zones par défaut (titre,
 		// image, paragraphe...), quelle que soit leur nature - demande
 		// d'Antoine après relecture, qui remplace l'ancien défaut à 10px.
-		$padding = $opts['padding'] ?? ( '12px ' . Brand::GUTTER . 'px' );
+		$padding = $opts['padding'] ?? Spacing::row( Spacing::ROW_Y );
 		$align   = $opts['align'] ?? 'left';
 		$classe  = isset( $opts['class'] ) ? ' class="' . esc_attr( (string) $opts['class'] ) . '"' : '';
 		$fond    = isset( $opts['background'] ) ? ' bgcolor="' . esc_attr( $opts['background'] ) . '"' : '';
@@ -179,15 +179,16 @@ class Html {
 	 * Style de paragraphe standard du corps (§7.6.4 : 16 px et non 14).
 	 */
 	public static function text_style( array $opts = array() ): string {
-		$taille  = (int) ( $opts['size'] ?? 16 );
+		$taille  = (int) ( $opts['size'] ?? Spacing::TEXT_SIZE );
 		$couleur = (string) ( $opts['color'] ?? Brand::color( 'text' ) );
 		$align   = (string) ( $opts['align'] ?? 'left' );
 		$gras    = ! empty( $opts['bold'] ) ? 'font-weight:bold;' : '';
 
 		return sprintf(
-			'margin:0;font-family:%s;font-size:%dpx;line-height:1.5;color:%s;text-align:%s;%s',
+			'margin:0;font-family:%s;font-size:%dpx;line-height:%s;color:%s;text-align:%s;%s',
 			Brand::FONT_STACK,
 			$taille,
+			Spacing::TEXT_LINE,
 			$couleur,
 			$align,
 			$gras

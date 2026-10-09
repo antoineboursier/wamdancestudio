@@ -3,6 +3,7 @@ namespace WamNewsletter\Render\Blocks;
 
 use WamNewsletter\Render\Brand;
 use WamNewsletter\Render\Html;
+use WamNewsletter\Render\Spacing;
 use WamNewsletter\Render\Images;
 
 defined( 'ABSPATH' ) || exit;
@@ -91,7 +92,7 @@ class Core {
 		$style = Html::text_style(
 			array(
 				'align' => $align,
-				'size'  => self::font_size( $attrs, 16 ),
+				'size'  => self::font_size( $attrs, Spacing::TEXT_SIZE ),
 				'color' => $couleur,
 			)
 		);
@@ -116,20 +117,17 @@ class Core {
 		$niveau = (int) ( $attrs['level'] ?? 2 );
 		$niveau = max( 2, min( 4, $niveau ) );
 
-		$tailles = array(
-			2 => 30,
-			3 => 24,
-			4 => 20,
-		);
+		$tailles = Spacing::HEADING_SIZES;
 		$align = in_array( $attrs['textAlign'] ?? '', array( 'left', 'right' ), true ) ? $attrs['textAlign'] : 'center';
 
 		$fond    = self::background_of( $attrs );
 		$couleur = self::text_color( $attrs, '' !== $fond ? Brand::contrast_color( $fond ) : Brand::color( 'accent' ) );
 
 		$style = sprintf(
-			'margin:0;font-family:%s;font-size:%dpx;line-height:1.25;font-weight:bold;color:%s;text-align:%s;',
+			'margin:0;font-family:%s;font-size:%dpx;line-height:%s;font-weight:bold;color:%s;text-align:%s;',
 			Brand::FONT_STACK,
 			self::font_size( $attrs, $tailles[ $niveau ] ),
+			Spacing::HEADING_LINE,
 			$couleur,
 			$align
 		);
@@ -162,7 +160,7 @@ class Core {
 
 		if ( preg_match_all( '#<li\b[^>]*>(.*?)</li>#is', $rendu, $m ) ) {
 			$elements = '';
-			$style_li = Html::text_style( array( 'size' => self::font_size( $attrs, 16 ) ) ) . 'margin:0 0 8px;';
+			$style_li = Html::text_style( array( 'size' => self::font_size( $attrs, Spacing::TEXT_SIZE ) ) ) . 'margin:0 0 ' . Spacing::LIST_ITEM_GAP . 'px;';
 			foreach ( $m[1] as $texte ) {
 				$propre = self::inline_text( $texte, self::link_color( $attrs ) );
 				if ( '' === $propre ) {
@@ -175,7 +173,8 @@ class Core {
 			}
 
 			$style_liste = sprintf(
-				'margin:0;padding:0 0 0 24px;font-family:%s;color:%s;',
+				'margin:0;padding:0 0 0 %dpx;font-family:%s;color:%s;',
+				Spacing::LIST_INDENT,
 				Brand::FONT_STACK,
 				self::text_color( $attrs )
 			);
@@ -263,8 +262,8 @@ class Core {
 		// 12px d'espacement de base + 24px d'air au-dessus et 36px en dessous du
 		// côté où il y a du contenu (retour d'Antoine : l'image manquait d'air
 		// sous elle, surtout sur mobile, où la classe ajoute encore de la marge).
-		$haut = $contenu_avant ? 36 : 12;
-		$bas  = $contenu_apres ? 48 : 12;
+		$haut = $contenu_avant ? Spacing::IMAGE_BEFORE : Spacing::ROW_Y;
+		$bas  = $contenu_apres ? Spacing::IMAGE_AFTER : Spacing::ROW_Y;
 
 		return Html::row(
 			$img,
@@ -304,7 +303,7 @@ class Core {
 		}
 
 		$dispo    = Brand::WIDTH_CONTENT;
-		$gouttiere = 20;
+		$gouttiere = Spacing::COLUMN_GAP;
 		$utile    = $dispo - $gouttiere * ( $nombre - 1 );
 		$largeurs = array();
 
@@ -454,15 +453,15 @@ class Core {
 			return implode(
 				'px ',
 				array(
-					self::px( $padding['top'] ?? null, 80 ) ?? 14,
-					self::px( $padding['right'] ?? null, 80 ) ?? 20,
-					self::px( $padding['bottom'] ?? null, 80 ) ?? 14,
-					self::px( $padding['left'] ?? null, 80 ) ?? 20,
+					self::px( $padding['top'] ?? null, 80 ) ?? Spacing::BOX_PAD_Y,
+					self::px( $padding['right'] ?? null, 80 ) ?? Spacing::BOX_PAD_X,
+					self::px( $padding['bottom'] ?? null, 80 ) ?? Spacing::BOX_PAD_Y,
+					self::px( $padding['left'] ?? null, 80 ) ?? Spacing::BOX_PAD_X,
 				)
 			) . 'px';
 		}
 		$n = self::px( $padding, 80 );
-		return null !== $n && $n > 0 ? $n . 'px' : '14px 20px';
+		return null !== $n && $n > 0 ? $n . 'px' : Spacing::BOX_PAD_Y . 'px ' . Spacing::BOX_PAD_X . 'px';
 	}
 
 	/**
@@ -511,7 +510,7 @@ class Core {
 		return Html::row(
 			$boite,
 			array(
-				'padding' => '20px ' . Brand::GUTTER . 'px',
+				'padding' => Spacing::row( Spacing::BOX_ROW_Y ),
 				'class'   => 'wam-nl-row-box',
 			)
 		);

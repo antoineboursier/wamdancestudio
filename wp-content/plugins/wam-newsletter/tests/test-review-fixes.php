@@ -262,7 +262,7 @@ try {
 	global $wpdb;
 	$id_desktop = (int) $wpdb->get_var( "SELECT ID FROM {$wpdb->posts} WHERE post_type = 'attachment' AND post_name LIKE 'template-head-desktop%' ORDER BY ID DESC LIMIT 1" );
 	$id_mobile  = (int) $wpdb->get_var( "SELECT ID FROM {$wpdb->posts} WHERE post_type = 'attachment' AND post_name LIKE 'template-head-mobile%' ORDER BY ID DESC LIMIT 1" );
-	$gabarit    = (string) file_get_contents( WAM_NL_DIR . 'templates/email/base.php' );
+	$gabarit    = \WamNewsletter\Render\EmailRenderer::document( '' );
 
 	if ( $id_desktop && $id_mobile ) {
 		wam_nl_assert_equals( $id_desktop, \WamNewsletter\Render\Brand::banner_id(), 'la bannière ordinateur est celle nommée template-head-desktop' );
@@ -338,7 +338,7 @@ try {
 	wam_nl_assert( false !== strpos( $rendre_blocs( $image ), 'class="wam-nl-row-image"' ), 'l’image porte sa classe d’espacement mobile' );
 	$bouton = \WamNewsletter\Render\Blocks\Custom::button( array( 'text' => 'Go', 'url' => 'https://exemple.test' ) );
 	wam_nl_assert( false !== strpos( $bouton, 'padding:30px 20px' ) && false !== strpos( $bouton, 'class="wam-nl-row-bouton"' ), 'bouton : 30px en haut et en bas, classe mobile' );
-	$gabarit_mobile = (string) file_get_contents( WAM_NL_DIR . 'templates/email/base.php' );
+	$gabarit_mobile = \WamNewsletter\Render\EmailRenderer::document( '' );
 	foreach ( array( 'wam-nl-row-image', 'wam-nl-row-box', 'wam-nl-row-bouton' ) as $classe ) {
 		wam_nl_assert( 1 === preg_match( '/@media[^{]*max-width: 620px\)\s*\{.*\.' . $classe . '\s*\{[^}]*!important/s', $gabarit_mobile ), "la media query mobile règle .$classe" );
 	}

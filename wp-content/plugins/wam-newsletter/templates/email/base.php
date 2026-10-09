@@ -58,54 +58,7 @@ $preheader = (string) $wam_nl['preheader'];
 		line-height: inherit;
 	}
 	/* Media queries : tout le reste est en styles en ligne (§7.4). */
-	@media only screen and (max-width: 620px) {
-		.wam-nl-col {
-			display: block !important;
-			width: 100% !important;
-			max-width: 100% !important;
-		}
-		.wam-nl-gutter {
-			display: none !important;
-			width: 0 !important;
-		}
-		.wam-nl-stack-space {
-			height: 16px !important;
-		}
-		/* Plus d'air sur mobile, où les blocs s'empilent et se touchent vite. */
-		.wam-nl-row-image {
-			padding-bottom: 56px !important;
-		}
-		.wam-nl-row-box {
-			padding-top: 28px !important;
-			padding-bottom: 28px !important;
-		}
-		.wam-nl-row-bouton {
-			padding-top: 36px !important;
-			padding-bottom: 36px !important;
-		}
-		/* Bannière : pleine largeur d'écran, puis agrandie à 140 % et centrée.
-		   Le logo est zoomé, les côtés sont rognés par overflow. */
-		.wam-nl-banner {
-			margin: 0 -20px !important;
-			overflow: hidden !important;
-		}
-		.wam-nl-banner__img {
-			width: 140% !important;
-			max-width: none !important;
-			margin-left: -20% !important;
-		}
-		/* Deux bannières dédiées : la version ordinateur s'efface, la version
-		   mobile prend toute la largeur d'écran. */
-		.wam-nl-banner-desktop {
-			display: none !important;
-		}
-		.wam-nl-banner-mobile {
-			display: block !important;
-			width: 100% !important;
-			max-width: none !important;
-			max-height: none !important;
-		}
-	}
+	<?php echo \WamNewsletter\Render\Spacing::mobile_css(); // phpcs:ignore WordPress.Security.EscapeOutput -- CSS fixe, sans donnée saisie. ?>
 </style>
 </head>
 <body id="body" style="margin:0;padding:0;width:100%;background-color:<?php echo esc_attr( $c['background'] ); ?>;color:<?php echo esc_attr( $c['text'] ); ?>;font-family:<?php echo esc_attr( $police ); ?>;-webkit-text-size-adjust:100%;-ms-text-size-adjust:100%;">

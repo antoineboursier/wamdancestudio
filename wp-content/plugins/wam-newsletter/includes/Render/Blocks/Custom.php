@@ -3,6 +3,7 @@ namespace WamNewsletter\Render\Blocks;
 
 use WamNewsletter\Render\Brand;
 use WamNewsletter\Render\Html;
+use WamNewsletter\Render\Spacing;
 use WamNewsletter\Render\Images;
 use WamNewsletter\Render\Placeholders;
 
@@ -148,7 +149,7 @@ class Custom {
 			$bloc = '<p style="' . esc_attr( $style_p ) . '">' . esc_html( $extra ) . '</p>' . $bloc;
 		}
 
-		return Html::row( $bloc, array( 'align' => 'center', 'padding' => '24px ' . Brand::GUTTER . 'px' ) );
+		return Html::row( $bloc, array( 'align' => 'center', 'padding' => Spacing::row( Spacing::FOOTER_Y ) ) );
 	}
 
 	/** Bouton éditable (§7.1.1). */
@@ -173,7 +174,7 @@ class Custom {
 			$contenu,
 			array(
 				'align'   => $align,
-				'padding' => '30px ' . Brand::GUTTER . 'px',
+				'padding' => Spacing::row( Spacing::BUTTON_Y ),
 				'class'   => 'wam-nl-row-bouton',
 			)
 		);
@@ -196,7 +197,7 @@ class Custom {
 		// avec les 12px de la rangée suivante, 52px jusqu'au titre ; un cran de moins
 		// (retour du 09/10) donne 42px. Toujours plus large que la valeur de secours
 		// du §7.6.2 (13px), qui venait de l'e-mail de référence MailPoet.
-		return Html::row( $trait, array( 'padding' => '30px ' . Brand::GUTTER . 'px' ) );
+		return Html::row( $trait, array( 'padding' => Spacing::row( Spacing::SEPARATOR_Y ) ) );
 	}
 
 	/**
@@ -207,7 +208,7 @@ class Custom {
 	 * l'espacement ne descend jamais en dessous d'environ 18 px.
 	 */
 	public static function spacer( array $attrs = array() ): string {
-		$hauteur = (int) ( $attrs['height'] ?? 24 );
+		$hauteur = (int) ( $attrs['height'] ?? Spacing::SPACER );
 		$hauteur = max( 4, min( 120, $hauteur ) );
 
 		return sprintf(

@@ -51,6 +51,18 @@ $preheader = (string) $wam_nl['preheader'];
 		.wam-nl-stack-space {
 			height: 16px !important;
 		}
+		/* Plus d'air sur mobile, où les blocs s'empilent et se touchent vite. */
+		.wam-nl-row-image {
+			padding-bottom: 56px !important;
+		}
+		.wam-nl-row-box {
+			padding-top: 28px !important;
+			padding-bottom: 28px !important;
+		}
+		.wam-nl-row-bouton {
+			padding-top: 36px !important;
+			padding-bottom: 36px !important;
+		}
 		/* Bannière : pleine largeur d'écran, puis agrandie à 140 % et centrée.
 		   Le logo est zoomé, les côtés sont rognés par overflow. */
 		.wam-nl-banner {

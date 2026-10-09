@@ -245,11 +245,11 @@ try {
 " . $image . "
 
 " . $para );
-	wam_nl_assert( false !== strpos( $au_milieu, 'padding:36px 20px 36px;' ), 'image entre deux blocs : 36px en haut et en bas' );
+	wam_nl_assert( false !== strpos( $au_milieu, 'padding:36px 20px 48px;' ), 'image entre deux blocs : 36px en haut, 48px en bas' );
 	$en_tete = $rendre( $image . "
 
 " . $para );
-	wam_nl_assert( false !== strpos( $en_tete, 'padding:12px 20px 36px;' ), 'image en tête : rien en haut, 36px en bas' );
+	wam_nl_assert( false !== strpos( $en_tete, 'padding:12px 20px 48px;' ), 'image en tête : rien en haut, 48px en bas' );
 	$en_fin = $rendre( $para . "
 
 " . $image );
@@ -273,6 +273,72 @@ try {
 	$recherche->set_param( 'postType', 'cours' );
 	$resultats = \WamNewsletter\Editor\RestApi::content_search( $recherche )->get_data();
 	wam_nl_assert( ! $resultats || array_key_exists( 'subtitle', $resultats[0] ), 'chaque résultat porte une clé « subtitle »' );
+
+	// ---------------------------------------------------------------
+	echo "== Retours du 09/10 : couleurs de la palette ==\n";
+	foreach ( array( 'accent-pink', 'accent-orange', 'accent-green' ) as $slug ) {
+		wam_nl_assert( 1 === preg_match( '/^#[0-9A-F]{6}$/', \WamNewsletter\Render\Brand::color_from_slug( $slug ) ), "le slug $slug de la palette du thème est résolu en hexadécimal" );
+	}
+	wam_nl_assert_equals( \WamNewsletter\Render\Brand::color( 'separator' ), \WamNewsletter\Render\Brand::color_from_slug( 'separator' ), 'le slug « separator » est le turquoise WAM' );
+	wam_nl_assert_equals( \WamNewsletter\Render\Brand::color_from_slug( 'accent-orange' ), \WamNewsletter\Render\Brand::color_from_slug( 'var:preset|color|accent-orange' ), 'écriture var:preset|color|… résolue comme le slug' );
+	wam_nl_assert_equals( '', \WamNewsletter\Render\Brand::color_from_slug( 'inconnue-xyz' ), 'slug inconnu : chaîne vide' );
+
+	echo "== Titres et paragraphes à fond, bordure, arrondi ==\n";
+	$rendre_blocs = static function ( string $contenu ): string {
+		return \WamNewsletter\Render\BlockRenderer::render_list( parse_blocks( $contenu ) );
+	};
+	$titre_pilule = '<!-- wp:heading {"level":4,"style":{"typography":{"textAlign":"center"},"border":{"radius":{"topLeft":"39px","topRight":"39px","bottomLeft":"39px","bottomRight":"39px"},"width":"4px"}},"backgroundColor":"separator","textColor":"accent-orange"} --><h4 class="wp-block-heading">Retest</h4><!-- /wp:heading -->';
+	$r = $rendre_blocs( $titre_pilule );
+	wam_nl_assert( false !== strpos( $r, 'border-radius:39px 39px 39px 39px' ), 'arrondi des quatre coins rendu' );
+	wam_nl_assert( 1 === preg_match( '/border:4px solid #[0-9A-F]{6}/', $r ), 'bordure de 4px rendue' );
+	wam_nl_assert( false !== strpos( $r, 'background-color:' . \WamNewsletter\Render\Brand::color( 'separator' ) ), 'fond turquoise rendu' );
+	wam_nl_assert( false !== strpos( $r, 'border-collapse:separate' ), 'table en border-collapse:separate (condition de l’arrondi)' );
+	wam_nl_assert( false !== strpos( $r, 'class="wam-nl-row-box"' ), 'classe de la rangée, cible de l’espacement mobile' );
+	wam_nl_assert( false !== strpos( $r, 'color:' . \WamNewsletter\Render\Brand::color_from_slug( 'accent-orange' ) ), 'couleur de texte choisie rendue' );
+
+	$titre_simple = '<!-- wp:heading --><h2 class="wp-block-heading">Simple</h2><!-- /wp:heading -->';
+	wam_nl_assert( false === strpos( $rendre_blocs( $titre_simple ), 'border-collapse:separate' ), 'un titre sans fond ni bordure reste une rangée ordinaire' );
+
+	$para_fond = '<!-- wp:paragraph {"backgroundColor":"accent"} --><p>Sur fond jaune</p><!-- /wp:paragraph -->';
+	$r = $rendre_blocs( $para_fond );
+	wam_nl_assert( false !== strpos( $r, 'background-color:' . \WamNewsletter\Render\Brand::color( 'accent' ) ), 'paragraphe à fond coloré' );
+	wam_nl_assert( false !== strpos( $r, 'color:' . \WamNewsletter\Render\Brand::contrast_color( \WamNewsletter\Render\Brand::color( 'accent' ) ) ), 'texte lisible sur le fond (contraste calculé)' );
+
+	echo "== Images, boutons et séparateurs : espacements ==\n";
+	$image_col = '<!-- wp:columns --><div class="wp-block-columns"><!-- wp:column --><div class="wp-block-column"><!-- wp:image --><figure class="wp-block-image"><img src="https://exemple.test/a.jpg" alt="a"/></figure><!-- /wp:image --></div><!-- /wp:column --><!-- wp:column --><div class="wp-block-column"><!-- wp:paragraph --><p>Texte</p><!-- /wp:paragraph --></div><!-- /wp:column --></div><!-- /wp:columns -->';
+	wam_nl_assert( false !== strpos( $rendre_blocs( $image_col ), 'padding:12px 20px 48px' ), 'une image de colonne garde 48px en dessous (les colonnes s’empilent sur mobile)' );
+	wam_nl_assert( false !== strpos( $rendre_blocs( $image ), 'class="wam-nl-row-image"' ), 'l’image porte sa classe d’espacement mobile' );
+	$bouton = \WamNewsletter\Render\Blocks\Custom::button( array( 'text' => 'Go', 'url' => 'https://exemple.test' ) );
+	wam_nl_assert( false !== strpos( $bouton, 'padding:30px 20px' ) && false !== strpos( $bouton, 'class="wam-nl-row-bouton"' ), 'bouton : 30px en haut et en bas, classe mobile' );
+	$gabarit_mobile = (string) file_get_contents( WAM_NL_DIR . 'templates/email/base.php' );
+	foreach ( array( 'wam-nl-row-image', 'wam-nl-row-box', 'wam-nl-row-bouton' ) as $classe ) {
+		wam_nl_assert( 1 === preg_match( '/@media[^{]*max-width: 620px\)\s*\{.*\.' . $classe . '\s*\{[^}]*!important/s', $gabarit_mobile ), "la media query mobile règle .$classe" );
+	}
+
+	$image_etroite = '<!-- wp:image {"width":"186px","align":"center"} --><figure class="wp-block-image aligncenter"><img src="https://exemple.test/a.jpg" alt="a"/></figure><!-- /wp:image -->';
+	$r = $rendre_blocs( $image_etroite );
+	wam_nl_assert( false !== strpos( $r, 'max-width:186px' ), 'la largeur choisie dans l’éditeur (186px) est respectée' );
+	wam_nl_assert( false !== strpos( $r, 'margin:0 auto;' ), 'une image centrée plus étroite que la cellule se centre par ses marges' );
+
+	echo "== Contenus WAM : sous-titre vert, date et horaire du stage ==\n";
+	$stage = wp_insert_post( array( 'post_type' => 'stages', 'post_status' => 'publish', 'post_title' => 'ZZTest stage retours' ) );
+	$posts_temporaires[] = $stage;
+	update_post_meta( $stage, 'sous_titre', 'Intermédiaires dès 16 ans' );
+	update_post_meta( $stage, 'date_stage', '20270927' );
+	update_post_meta( $stage, 'heure_debut', '15:30' );
+	update_post_meta( $stage, 'heure_de_fin', '17:30' );
+	wam_nl_assert_equals( '27/09/27 · 15h30-17h30', \WamNewsletter\Render\Blocks\Posts::formatted_when( 'stages', $stage ), 'stage : JJ/MM/AA puis horaire' );
+	update_post_meta( $stage, 'heure_debut', '18:00' );
+	update_post_meta( $stage, 'heure_de_fin', '' );
+	wam_nl_assert_equals( '27/09/27 · 18h', \WamNewsletter\Render\Blocks\Posts::formatted_when( 'stages', $stage ), 'horaire sans minutes ni fin : « 18h »' );
+	update_post_meta( $stage, 'heure_debut', '' );
+	wam_nl_assert_equals( '27/09/27', \WamNewsletter\Render\Blocks\Posts::formatted_when( 'stages', $stage ), 'sans horaire : la date seule' );
+	update_post_meta( $stage, 'heure_debut', '15:30' );
+	update_post_meta( $stage, 'heure_de_fin', '17:30' );
+	$rendu_stage = \WamNewsletter\Render\Blocks\Posts::render( array( 'postType' => 'stages', 'mode' => 'manual', 'postIds' => array( $stage ), 'showDate' => true ) );
+	wam_nl_assert( 1 === preg_match( '/font-size:22px[^"]*color:' . preg_quote( \WamNewsletter\Render\Brand::color( 'separator' ), '/' ) . '[^"]*"[^>]*>Intermédiaires dès 16 ans/iu', $rendu_stage ), 'sous-titre en 22px, vert WAM' );
+	wam_nl_assert( false !== strpos( $rendu_stage, '27/09/27 · 15h30-17h30' ), 'date et horaire rendus' );
+	wam_nl_assert( 1 === preg_match( '#Intermédiaires dès 16 ans</p></td></tr></table><table[^>]*><tr><td[^>]*><p[^>]*>27/09/27#u', $rendu_stage ), 'la date est sur sa propre ligne, sous le sous-titre' );
 
 } finally {
 	$nettoyer();

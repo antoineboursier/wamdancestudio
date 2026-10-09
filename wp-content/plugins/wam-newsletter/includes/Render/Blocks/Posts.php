@@ -247,38 +247,34 @@ class Posts {
 		);
 		$html .= Html::row( '<h2 style="' . esc_attr( $style_titre ) . '">' . $titre_html . '</h2>', array( 'align' => 'center' ) );
 
-		// --- Sous-titre et date, s'ils existent ---
-		$meta_lignes = array();
-
+		// --- Sous-titre : vert WAM, un cran sous le titre (30px -> 22px) ---
 		$champ_sous_titre = ContentMap::field( $post_type, 'subtitle' );
 		if ( '' !== $champ_sous_titre ) {
-			$sous_titre = ContentMap::stringify( self::field_value( $champ_sous_titre, $id ) );
+			$sous_titre = trim( ContentMap::stringify( self::field_value( $champ_sous_titre, $id ) ) );
 			if ( '' !== $sous_titre ) {
-				$meta_lignes[] = esc_html( $sous_titre );
+				$style_st = sprintf(
+					'margin:0;font-family:%s;font-size:22px;line-height:1.3;font-weight:bold;color:%s;text-align:center;',
+					Brand::FONT_STACK,
+					$c['separator']
+				);
+				$html .= Html::row( '<p style="' . esc_attr( $style_st ) . '">' . esc_html( $sous_titre ) . '</p>', array( 'align' => 'center' ) );
 			}
 		}
 
+		// --- Date (et horaire pour un stage), sur leur propre ligne ---
 		if ( ! empty( $a['showDate'] ) ) {
-			$date = self::formatted_date( $post_type, $id );
-			if ( '' !== $date ) {
-				$meta_lignes[] = esc_html( $date );
+			$quand = self::formatted_when( $post_type, $id );
+			if ( '' !== $quand ) {
+				$style_date = Html::text_style(
+					array(
+						'size'  => 16,
+						'color' => $c['text'],
+						'align' => 'center',
+						'bold'  => true,
+					)
+				);
+				$html .= Html::row( '<p style="' . esc_attr( $style_date ) . '">' . esc_html( $quand ) . '</p>', array( 'align' => 'center' ) );
 			}
-		}
-
-		if ( $meta_lignes ) {
-			$style_meta = Html::text_style(
-				array(
-					'size'  => 14,
-					'color' => $c['muted'],
-					'align' => 'center',
-				)
-			);
-			// Aucun padding sur mesure : cette ligne suit le défaut de Html::row
-			// comme toutes les autres zones, soit 24px d'écart avec le titre.
-			$html .= Html::row(
-				'<p style="' . esc_attr( $style_meta ) . '">' . implode( ' &#183; ', $meta_lignes ) . '</p>',
-				array( 'align' => 'center' )
-			);
 		}
 
 		// --- Deux colonnes : image | texte ---
@@ -398,7 +394,7 @@ class Posts {
 			if ( '' === $texte ) {
 				$texte = self::default_button_text( $post_type );
 			}
-			$html .= '<div style="margin-top:12px;">' . Html::button(
+			$html .= '<div style="margin:24px 0 12px;">' . Html::button(
 				array(
 					'texte'   => $texte,
 					'url'     => $lien,
@@ -447,14 +443,55 @@ class Posts {
 	 * du thème.
 	 */
 	public static function formatted_date( string $post_type, int $id ): string {
+		$ts = self::date_timestamp( $post_type, $id );
+		return null === $ts ? '' : (string) wp_date( 'j F Y', $ts );
+	}
+
+	/**
+	 * Date en JJ/MM/AA, suivie de l'horaire pour un stage (« 27/09/26 · 15h30-17h30 »).
+	 *
+	 * Les autres types de contenu gardent la date en toutes lettres.
+	 */
+	public static function formatted_when( string $post_type, int $id ): string {
+		if ( 'stages' !== $post_type ) {
+			return self::formatted_date( $post_type, $id );
+		}
+
+		$ts = self::date_timestamp( $post_type, $id );
+		if ( null === $ts ) {
+			return '';
+		}
+
+		$quand = (string) wp_date( 'd/m/y', $ts );
+
+		$debut = self::hour_label( (string) get_post_meta( $id, 'heure_debut', true ) );
+		$fin   = self::hour_label( (string) get_post_meta( $id, 'heure_de_fin', true ) );
+		if ( '' !== $debut ) {
+			$quand .= ' · ' . $debut . ( '' !== $fin ? '-' . $fin : '' );
+		}
+
+		return $quand;
+	}
+
+	/** « 15:30 » ou « 15h30 » → « 15h30 » ; « 18:00 » → « 18h ». */
+	private static function hour_label( string $brut ): string {
+		if ( ! preg_match( '/^\s*(\d{1,2})\s*[:h.]\s*(\d{2})?\s*$/i', $brut, $m ) ) {
+			return '';
+		}
+		$minutes = isset( $m[2] ) ? $m[2] : '00';
+		return (int) $m[1] . 'h' . ( '00' === $minutes ? '' : $minutes );
+	}
+
+	/** Horodatage de la date d'un contenu, depuis la méta brute ; null s'il n'y en a pas. */
+	private static function date_timestamp( string $post_type, int $id ): ?int {
 		$champ = ContentMap::field( $post_type, 'date' );
 		if ( '' === $champ ) {
-			return '';
+			return null;
 		}
 
 		$brut = trim( (string) get_post_meta( $id, $champ, true ) );
 		if ( '' === $brut ) {
-			return '';
+			return null;
 		}
 
 		$format = ContentMap::date_format( $post_type );
@@ -468,15 +505,12 @@ class Posts {
 			$dt = \DateTimeImmutable::createFromFormat( 'Y-m-d H:i:s', $brut, wp_timezone() );
 		}
 
-		if ( ! $dt ) {
-			$ts = strtotime( $brut );
-			if ( ! $ts ) {
-				return '';
-			}
-			return wp_date( 'j F Y', $ts );
+		if ( $dt ) {
+			return $dt->getTimestamp();
 		}
 
-		return (string) wp_date( 'j F Y', $dt->getTimestamp() );
+		$ts = strtotime( $brut );
+		return $ts ? (int) $ts : null;
 	}
 
 	/**
@@ -544,6 +578,7 @@ class Posts {
 			'link'     => (string) get_permalink( $id ),
 			'subtitle' => $sous_titre,
 			'date'     => self::formatted_date( $post_type, $id ),
+			'when'     => self::formatted_when( $post_type, $id ),
 			'price'    => $prix,
 			'excerpt'  => self::excerpt( $id, $post_type ),
 			'image'    => self::resolve_image( $id, $post_type, $titre ),

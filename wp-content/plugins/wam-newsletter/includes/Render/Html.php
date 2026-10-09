@@ -26,7 +26,7 @@ class Html {
 	 * ordre sans effet de bord.
 	 *
 	 * @param string $contenu HTML déjà échappé.
-	 * @param array  $opts    padding, align, background
+	 * @param array  $opts    padding, align, background, class (sur la cellule : cible des media queries)
 	 */
 	public static function row( string $contenu, array $opts = array() ): string {
 		// 12px haut + 12px bas = 24px entre deux zones par défaut (titre,
@@ -34,6 +34,7 @@ class Html {
 		// d'Antoine après relecture, qui remplace l'ancien défaut à 10px.
 		$padding = $opts['padding'] ?? ( '12px ' . Brand::GUTTER . 'px' );
 		$align   = $opts['align'] ?? 'left';
+		$classe  = isset( $opts['class'] ) ? ' class="' . esc_attr( (string) $opts['class'] ) . '"' : '';
 		$fond    = isset( $opts['background'] ) ? ' bgcolor="' . esc_attr( $opts['background'] ) . '"' : '';
 		$style   = 'padding:' . $padding . ';text-align:' . $align . ';';
 		if ( isset( $opts['background'] ) ) {
@@ -42,7 +43,7 @@ class Html {
 
 		return '<table role="presentation" border="0" cellpadding="0" cellspacing="0" width="100%"'
 			. ' style="border-collapse:collapse;width:100%;">'
-			. '<tr><td' . $fond . ' style="' . esc_attr( $style ) . '">'
+			. '<tr><td' . $classe . $fond . ' style="' . esc_attr( $style ) . '">'
 			. $contenu
 			. '</td></tr></table>';
 	}

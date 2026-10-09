@@ -138,7 +138,16 @@ class Custom {
 		if ( ! in_array( $align, array( 'left', 'center', 'right' ), true ) ) {
 			$align = 'left';
 		}
-		return Html::row( $contenu, array( 'align' => $align ) );
+		// 30px au-dessus et en dessous (12px avant) : un bouton collé au texte se
+		// lit mal au pouce. Encore augmenté sur mobile par la classe de la cellule.
+		return Html::row(
+			$contenu,
+			array(
+				'align'   => $align,
+				'padding' => '30px ' . Brand::GUTTER . 'px',
+				'class'   => 'wam-nl-row-bouton',
+			)
+		);
 	}
 
 	/** Séparateur pointillé turquoise (§7.6.2). */
@@ -154,10 +163,11 @@ class Custom {
 			esc_attr( $couleur )
 		);
 
-		// 40px autour du séparateur (demande d'Antoine) - plus large que la
-		// valeur de secours du §7.6.2 (13px), qui venait de l'e-mail de
-		// référence MailPoet et n'est donc pas une contrainte figée.
-		return Html::row( $trait, array( 'padding' => '40px ' . Brand::GUTTER . 'px' ) );
+		// 30px autour du séparateur : 40px (demande d'Antoine du 08/10) donnait,
+		// avec les 12px de la rangée suivante, 52px jusqu'au titre ; un cran de moins
+		// (retour du 09/10) donne 42px. Toujours plus large que la valeur de secours
+		// du §7.6.2 (13px), qui venait de l'e-mail de référence MailPoet.
+		return Html::row( $trait, array( 'padding' => '30px ' . Brand::GUTTER . 'px' ) );
 	}
 
 	/**

@@ -91,13 +91,24 @@
 				})
 			);
 
-			var meta = [item.subtitle, a.showDate ? item.date : ''].filter(Boolean).join(' · ');
-			if (meta) {
+			// Sous-titre en vert WAM (« Turquoise »), un cran sous le titre ; date et
+			// horaire sur leur propre ligne : comme le rendu dynamique.
+			if (item.subtitle) {
 				blocs.push(
 					createBlock('core/paragraph', {
 						align: 'center',
-						fontSize: 'small',
-						content: meta
+						textColor: 'separator',
+						fontSize: 'large',
+						content: '<strong>' + item.subtitle + '</strong>'
+					})
+				);
+			}
+			var quand = a.showDate ? item.when || item.date : '';
+			if (quand) {
+				blocs.push(
+					createBlock('core/paragraph', {
+						align: 'center',
+						content: '<strong>' + quand + '</strong>'
 					})
 				);
 			}

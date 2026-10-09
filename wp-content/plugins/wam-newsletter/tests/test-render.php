@@ -356,9 +356,12 @@ try {
 	wam_nl_assert( count( Posts::query( array( 'postType' => 'stages', 'count' => 999 ) ) ) <= 12, 'count plafonné à 12' );
 
 	echo "== Bloc Contenus : date formatée depuis la méta brute ==\n";
-	$date_affichee = Posts::formatted_date( 'stages', $futur );
+	$date_affichee = Posts::formatted_when( 'stages', $futur );
 	wam_nl_assert( '' !== $date_affichee, "une date lisible est produite ($date_affichee)" );
-	wam_nl_assert( false === strpos( $date_affichee, '/' ), 'date en français littéral, pas en jj/mm/aaaa' );
+	// Stage : JJ/MM/AA puis horaire (demande d'Antoine du 09/10). La date en
+	// toutes lettres reste celle des autres types et de la liste de l'éditeur.
+	wam_nl_assert( 1 === preg_match( '#^\d{2}/\d{2}/\d{2}( · \d{1,2}h(\d{2})?(-\d{1,2}h(\d{2})?)?)?$#u', $date_affichee ), 'date de stage en JJ/MM/AA, horaire facultatif' );
+	wam_nl_assert( false === strpos( Posts::formatted_date( 'stages', $futur ), '/' ), 'formatted_date() garde la date en français littéral' );
 
 	echo "== Bloc Contenus : rendu d'un item ==\n";
 	$rendu = Posts::render( array( 'postType' => 'stages', 'mode' => 'manual', 'postIds' => array( $futur ), 'alternate' => true ) );
@@ -372,7 +375,7 @@ try {
 	// sous-titre/date ne fait plus exception, il suit le défaut comme le reste.
 	wam_nl_assert( false !== strpos( $rendu, 'padding:12px 20px' ), 'espacement par défaut de 12px en haut et en bas' );
 	wam_nl_assert( false === strpos( $rendu, 'padding:6px 20px 6px' ), 'plus aucun espacement sur mesure autour du sous-titre' );
-	wam_nl_assert( false !== strpos( $rendu, 'padding:40px 20px' ), '40px autour du séparateur' );
+	wam_nl_assert( false !== strpos( $rendu, 'padding:30px 20px' ), '30px autour du séparateur (un cran de moins que 40px, retour du 09/10)' );
 
 	echo "== Bloc Contenus : données structurées pour « Convertir en blocs modifiables » ==\n";
 	$resolu = Posts::resolve_items( array( 'postType' => 'stages', 'mode' => 'manual', 'postIds' => array( $futur, $passe ) ) );

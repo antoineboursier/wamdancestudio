@@ -160,6 +160,40 @@ class Brand {
 	}
 
 	/**
+	 * Couleur d'un slug de palette, résolue en hexadécimal.
+	 *
+	 * Accepte le slug nu (`accent-pink`) et les deux écritures que Gutenberg
+	 * stocke dans les réglages libres (`var:preset|color|accent-pink`,
+	 * `var(--wp--preset--color--accent-pink)`). Cherche d'abord dans la palette
+	 * proposée par l'éditeur d'e-mail, puis dans celle du thème : une couleur
+	 * choisie à l'écran doit toujours arriver dans l'e-mail.
+	 *
+	 * @return string '' si le slug est inconnu.
+	 */
+	public static function color_from_slug( string $slug ): string {
+		$slug = trim( $slug );
+		if ( '' === $slug ) {
+			return '';
+		}
+		if ( preg_match( '/^var:preset\|color\|([a-z0-9-]+)$/i', $slug, $m ) || preg_match( '/--wp--preset--color--([a-z0-9-]+)/i', $slug, $m ) ) {
+			$slug = $m[1];
+		}
+
+		foreach ( self::palette() as $entree ) {
+			if ( $entree['slug'] === $slug ) {
+				return $entree['color'];
+			}
+		}
+
+		$theme = self::theme_palette();
+		if ( isset( $theme[ $slug ] ) ) {
+			return self::to_hex( $theme[ $slug ] );
+		}
+
+		return '';
+	}
+
+	/**
 	 * Couleur de texte lisible sur un fond donné (§7.1.1).
 	 *
 	 * Luminance relative WCAG plutôt qu'une moyenne des canaux : le jaune

@@ -84,7 +84,9 @@ class Placeholders {
 		$texte = preg_replace( '/\h+([,.])/u', '$1', $texte );
 
 		// Ponctuations qui se suivent après un remplacement vide (« Bonjour ,, »).
-		$texte = preg_replace( '/([,;:])\h*([,;:])/u', '$1', $texte );
+		// Les entités (&nbsp; &amp; &#039;…) finissent par « ; » : on les saute, sinon
+		// « heures&nbsp;: voici » perdait son deux-points.
+		$texte = preg_replace( '/&#?[a-z0-9]+;(*SKIP)(*FAIL)|([,;:])\h*([,;:])/iu', '$1', $texte );
 
 		return (string) preg_replace( '/\h{2,}/u', ' ', $texte );
 	}

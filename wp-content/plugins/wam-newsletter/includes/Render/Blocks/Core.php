@@ -63,6 +63,33 @@ class Core {
 		return trim( $html );
 	}
 
+	/**
+	 * Alignement du texte choisi dans l'éditeur.
+	 *
+	 * Selon la version de WordPress, il est rangé à trois endroits : `align`
+	 * (paragraphe, avant WP 6.x), `textAlign` (titre) et `style.typography.textAlign`
+	 * (WP 7, prod 7.0.2). La classe `has-text-align-*` du HTML enregistré le porte
+	 * toujours : dernier recours. Avant, seul l'ancien attribut était lu, donc
+	 * tout centrage fait dans l'éditeur partait aligné à gauche.
+	 */
+	private static function text_align( array $bloc, string $defaut ): string {
+		$attrs      = (array) ( $bloc['attrs'] ?? array() );
+		$candidates = array(
+			$attrs['style']['typography']['textAlign'] ?? '',
+			$attrs['textAlign'] ?? '',
+			$attrs['align'] ?? '',
+		);
+		if ( preg_match( '/has-text-align-(left|center|right)/', (string) ( $bloc['innerHTML'] ?? '' ), $m ) ) {
+			$candidates[] = $m[1];
+		}
+		foreach ( $candidates as $valeur ) {
+			if ( in_array( $valeur, array( 'left', 'center', 'right' ), true ) ) {
+				return $valeur;
+			}
+		}
+		return $defaut;
+	}
+
 	/** Contenu textuel d'un bloc, depuis son HTML enregistré. */
 	private static function inner( array $bloc ): string {
 		$html = (string) ( $bloc['innerHTML'] ?? '' );
@@ -83,7 +110,7 @@ class Core {
 			return '';
 		}
 
-		$align = in_array( $attrs['align'] ?? '', array( 'center', 'right' ), true ) ? $attrs['align'] : 'left';
+		$align = self::text_align( $bloc, 'left' );
 
 		// Sur un fond coloré, le texte par défaut est celui qui reste lisible dessus.
 		$fond    = self::background_of( $attrs );
@@ -118,7 +145,7 @@ class Core {
 		$niveau = max( 2, min( 4, $niveau ) );
 
 		$tailles = Spacing::HEADING_SIZES;
-		$align = in_array( $attrs['textAlign'] ?? '', array( 'left', 'right' ), true ) ? $attrs['textAlign'] : 'center';
+		$align = self::text_align( $bloc, 'center' );
 
 		$fond    = self::background_of( $attrs );
 		$couleur = self::text_color( $attrs, '' !== $fond ? Brand::contrast_color( $fond ) : Brand::color( 'accent' ) );

@@ -548,7 +548,7 @@
 				el('div', {
 					style: {
 						borderTop: '2px dotted ' + couleur,
-						margin: '13px 0'
+						margin: 0
 					}
 				})
 			);

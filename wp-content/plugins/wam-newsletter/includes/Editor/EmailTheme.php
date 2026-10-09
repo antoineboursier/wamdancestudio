@@ -182,6 +182,11 @@ class EmailTheme {
 		$mobile     = Spacing::MOBILE_MAX;
 		$m_img      = Spacing::MOBILE_IMAGE_AFTER;
 		$m_boite    = Spacing::MOBILE_BOX_ROW_Y;
+		$m_bouton   = Spacing::MOBILE_BUTTON_Y;
+		$bouton_y   = Spacing::BUTTON_Y;
+		$sep_y      = Spacing::SEPARATOR_Y;
+		$entre_box  = 2 * Spacing::BOX_ROW_Y;
+		$m_entre    = 2 * Spacing::MOBILE_BOX_ROW_Y;
 
 		// Un bloc à fond, à bordure ou arrondi devient une boîte dans l'e-mail.
 		$boites = implode(
@@ -302,6 +307,28 @@ class EmailTheme {
 			padding: {$boite_py}px {$boite_px}px;
 		}
 
+		/* Deux boîtes à la suite : dans l'e-mail leurs deux rangées s'additionnent
+		   ({$boite_y} + {$boite_y} = {$entre_box} px) ; dans l'éditeur, des marges voisines
+		   se fondent en une seule. On pose donc l'écart complet. */
+		:is({$boites}) + :is({$boites}) {
+			margin-top: {$entre_box}px !important;
+		}
+
+		/* Blocs WAM dessinés par l'éditeur : la rangée de l'e-mail (padding haut/bas
+		   et gouttières) qu'ils n'avaient pas. L'espacement, lui, est une simple
+		   hauteur dans l'e-mail : aucun padding, bordure comprise dans la hauteur. */
+		body .wp-block-wam-nl-button {
+			box-sizing: border-box;
+			padding: {$bouton_y}px {$g}px;
+		}
+		body .wp-block-wam-nl-separator {
+			box-sizing: border-box;
+			padding: {$sep_y}px {$g}px;
+		}
+		body .wp-block-wam-nl-spacer .wam-nl-espacement {
+			box-sizing: border-box;
+		}
+
 		/* Colonnes : une rangée, {$colonnes} px entre colonnes. Chaque bloc d'une
 		   colonne garde sa propre rangée, comme dans l'e-mail. */
 		body .wp-block-columns {
@@ -334,6 +361,13 @@ class EmailTheme {
 			{$boites} {
 				margin-top: {$m_boite}px !important;
 				margin-bottom: {$m_boite}px !important;
+			}
+			:is({$boites}) + :is({$boites}) {
+				margin-top: {$m_entre}px !important;
+			}
+			body .wp-block-wam-nl-button {
+				padding-top: {$m_bouton}px;
+				padding-bottom: {$m_bouton}px;
 			}
 		}
 		" . Spacing::mobile_css() . "

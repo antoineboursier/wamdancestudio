@@ -265,12 +265,12 @@ class Screen {
 			$q      = Queue::table();
 			$s      = \WamNewsletter\Subscribers\Repository::table();
 			$refus  = (array) $wpdb->get_results( $wpdb->prepare( "SELECT s.email, s.status, q.delivery_message FROM `$q` q JOIN `$s` s ON s.id = q.subscriber_id WHERE q.newsletter_id = %d AND q.delivery = %s ORDER BY q.id ASC LIMIT 200", $id, Delivery::FAILED ), ARRAY_A );
-			echo '<table class="widefat striped" style="margin-top:16px"><thead><tr><th style="width:22em">' . esc_html__( 'Adresse refusée', 'wam-newsletter' ) . '</th><th style="width:8em">' . esc_html__( 'Statut', 'wam-newsletter' ) . '</th><th>' . esc_html__( 'Réponse du serveur du destinataire', 'wam-newsletter' ) . '</th></tr></thead><tbody>';
+			echo '<table class="widefat striped wam-nl-refus"><thead><tr><th class="wam-nl-refus__adresse">' . esc_html__( 'Adresse refusée', 'wam-newsletter' ) . '</th><th class="wam-nl-refus__statut">' . esc_html__( 'Statut', 'wam-newsletter' ) . '</th><th>' . esc_html__( 'Réponse du serveur du destinataire', 'wam-newsletter' ) . '</th></tr></thead><tbody>';
 			foreach ( $refus as $r ) {
 				printf(
 					'<tr><td>%s</td><td>%s</td><td>%s</td></tr>',
 					esc_html( (string) $r['email'] ),
-					esc_html( 'bounced' === $r['status'] ? __( 'rebond', 'wam-newsletter' ) : (string) $r['status'] ),
+					esc_html( \WamNewsletter\Subscribers\Repository::status_label( (string) $r['status'] ) ),
 					esc_html( (string) $r['delivery_message'] )
 				);
 			}

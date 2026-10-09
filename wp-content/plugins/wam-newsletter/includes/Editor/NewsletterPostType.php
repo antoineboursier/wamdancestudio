@@ -102,6 +102,7 @@ class NewsletterPostType {
 		\WamNewsletter\Sending\Queue::clear( $post_id );
 		\WamNewsletter\Stats\Events::purge_newsletter( $post_id );
 		\WamNewsletter\Sending\Log::purge_newsletter( $post_id );
+		\WamNewsletter\Sending\Delivery::unschedule( $post_id );
 	}
 
 	public static function register(): void {

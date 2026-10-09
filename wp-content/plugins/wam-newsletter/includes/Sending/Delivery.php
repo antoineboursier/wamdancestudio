@@ -52,6 +52,15 @@ class Delivery {
 
 	const OPTION = 'wam_nl_cpanel';
 
+	/** Écart toléré entre notre envoi à une personne et le départ d'une trace cPanel. */
+	const MATCH_WINDOW = 600;
+
+	/** Plafond de lignes demandé à cPanel, par type (remis, différé, refusé). */
+	const MAX_RESULTS = 5000;
+
+	/** Vrai si la dernière réponse de cPanel a atteint le plafond. */
+	private static $capped = false;
+
 	const DELIVERED = 'delivered';
 	const DEFERRED  = 'deferred';
 	const FAILED    = 'failed';
@@ -125,13 +134,13 @@ class Delivery {
 		}
 		$o['user'] = $user;
 
-		if ( $forget ) {
+		$token = trim( $token );
+		if ( $forget && '' === $token ) {
 			$o['token'] = '';
 		} else {
-			$token = trim( $token );
 			if ( '' !== $token ) {
 				if ( ! preg_match( '/^[A-Za-z0-9]{16,128}$/', $token ) ) {
-					return new WP_Error( 'wam_nl_cpanel', __( 'Jeton d’API invalide : il ne contient que des lettres majuscules et des chiffres (32 caractères chez cPanel).', 'wam-newsletter' ) );
+					return new WP_Error( 'wam_nl_cpanel', __( 'Jeton d’API invalide : lettres et chiffres uniquement, au moins 16 caractères (cPanel en donne 32).', 'wam-newsletter' ) );
 				}
 				$chiffre = self::encrypt( $token );
 				if ( '' === $chiffre ) {
@@ -190,8 +199,16 @@ class Delivery {
 		if ( ! self::configured() || ! function_exists( 'as_schedule_single_action' ) ) {
 			return;
 		}
+		// finish() peut repasser (relance des échecs) : on remplace, on n'empile pas.
+		self::unschedule( $newsletter_id );
 		foreach ( array( 15 * MINUTE_IN_SECONDS, 2 * HOUR_IN_SECONDS, DAY_IN_SECONDS ) as $delai ) {
 			as_schedule_single_action( time() + $delai, self::HOOK, array( $newsletter_id ), self::GROUP );
+		}
+	}
+
+	public static function unschedule( int $newsletter_id ): void {
+		if ( function_exists( 'as_unschedule_all_actions' ) ) {
+			as_unschedule_all_actions( self::HOOK, array( $newsletter_id ), self::GROUP );
 		}
 	}
 
@@ -254,7 +271,7 @@ class Delivery {
 
 		$lignes = (array) $wpdb->get_results(
 			$wpdb->prepare(
-				"SELECT q.id, q.subscriber_id, q.sent_at, q.delivery, s.email, s.status AS subscriber_status
+				"SELECT q.id, q.subscriber_id, q.sent_at, q.delivery, q.delivery_message, s.email, s.status AS subscriber_status
 				 FROM `$q` q JOIN `$s` s ON s.id = q.subscriber_id
 				 WHERE q.newsletter_id = %d AND q.status = %s AND q.sent_at IS NOT NULL",
 				$newsletter_id,
@@ -274,40 +291,64 @@ class Delivery {
 			return $rapport;
 		}
 
-		// Fenêtre : depuis le premier envoi de la file, moins une marge de 5 minutes.
-		$premier = null;
-		foreach ( $lignes as $l ) {
-			$ts = self::local_timestamp( (string) $l['sent_at'] );
-			if ( $ts && ( null === $premier || $ts < $premier ) ) {
-				$premier = $ts;
+		// Heure d'envoi propre à chaque destinataire. Sans heure lisible, la ligne
+		// n'est rapprochée de rien : on ne devine jamais.
+		$premier = 0;
+		foreach ( $lignes as $i => $l ) {
+			$lignes[ $i ]['ts'] = self::local_timestamp( (string) $l['sent_at'] );
+			if ( $lignes[ $i ]['ts'] && ( ! $premier || $lignes[ $i ]['ts'] < $premier ) ) {
+				$premier = $lignes[ $i ]['ts'];
 			}
 		}
+		if ( ! $premier ) {
+			$rapport['unknown'] = count( $lignes );
+			return $rapport;
+		}
 
-		$traces = self::fetch( (int) $premier - 300 );
+		$traces = self::fetch( $premier - self::MATCH_WINDOW );
 		if ( is_wp_error( $traces ) ) {
 			return $traces;
 		}
 
-		$par_adresse = self::best_by_recipient( $traces );
+		// La même adresse reçoit d'autres messages de contact@ (factures, Bookly,
+		// tests, newsletters suivantes) : seule une trace partie à quelques minutes
+		// de NOTRE envoi à cette personne est la nôtre.
+		$par_adresse = array();
+		foreach ( $traces as $t ) {
+			$par_adresse[ $t['recipient'] ][] = $t;
+		}
 
 		foreach ( $lignes as $l ) {
-			$email = strtolower( (string) $l['email'] );
-			if ( ! isset( $par_adresse[ $email ] ) ) {
+			$email     = strtolower( (string) $l['email'] );
+			$candidats = array();
+			if ( $l['ts'] ) {
+				foreach ( $par_adresse[ $email ] ?? array() as $t ) {
+					$depart = $t['sent'] ? $t['sent'] : $t['time'];
+					if ( abs( $depart - $l['ts'] ) <= self::MATCH_WINDOW ) {
+						$candidats[] = $t;
+					}
+				}
+			}
+			$meilleure = self::best_by_recipient( $candidats );
+			if ( ! isset( $meilleure[ $email ] ) ) {
 				++$rapport['unknown'];
 				continue;
 			}
-			$trace = $par_adresse[ $email ];
+			$trace = $meilleure[ $email ];
 			++$rapport[ $trace['status'] ];
 
-			$wpdb->update(
-				$q,
-				array(
-					'delivery'         => $trace['status'],
-					'delivery_message' => '' !== $trace['message'] ? mb_substr( $trace['message'], 0, 500 ) : null,
-					'delivery_at'      => $trace['time'] ? wp_date( 'Y-m-d H:i:s', $trace['time'] ) : current_time( 'mysql' ),
-				),
-				array( 'id' => (int) $l['id'] )
-			);
+			$message = '' !== $trace['message'] ? mb_substr( $trace['message'], 0, 500 ) : null;
+			if ( $trace['status'] !== (string) $l['delivery'] || (string) $message !== (string) $l['delivery_message'] ) {
+				$wpdb->update(
+					$q,
+					array(
+						'delivery'         => $trace['status'],
+						'delivery_message' => $message,
+						'delivery_at'      => $trace['time'] ? wp_date( 'Y-m-d H:i:s', $trace['time'] ) : current_time( 'mysql' ),
+					),
+					array( 'id' => (int) $l['id'] )
+				);
+			}
 
 			if ( self::FAILED === $trace['status'] && self::is_hard_bounce( $trace['message'] ) && Subscribers::STATUS_SUBSCRIBED === $l['subscriber_status'] ) {
 				Subscribers::set_status( (int) $l['subscriber_id'], Subscribers::STATUS_BOUNCED );
@@ -315,7 +356,11 @@ class Delivery {
 			}
 		}
 
-		Log::record( $newsletter_id, Log::TYPE_DELIVERY, self::summary( $rapport ), Queue::counts( $newsletter_id ) );
+		$resume = self::summary( $rapport );
+		if ( self::$capped ) {
+			$resume .= ' ' . __( 'Attention : cPanel a plafonné sa réponse, certaines remises peuvent manquer.', 'wam-newsletter' );
+		}
+		Log::record( $newsletter_id, Log::TYPE_DELIVERY, $resume, Queue::counts( $newsletter_id ) );
 
 		return $rapport;
 	}
@@ -350,7 +395,7 @@ class Delivery {
 				'failure'                   => 1,
 				'inprogress'                => 0,
 				'deliverytype'              => 'remote',
-				'max_results_by_type'       => 5000,
+				'max_results_by_type'       => self::MAX_RESULTS,
 			),
 			'https://' . $c['host'] . ':2083/json-api/cpanel'
 		);
@@ -386,7 +431,9 @@ class Delivery {
 			return new WP_Error( 'wam_nl_cpanel', sprintf( /* translators: %s message */ __( 'cPanel a refusé la requête : %s', 'wam-newsletter' ), '' !== $erreur ? $erreur : __( 'sans précision', 'wam-newsletter' ) ) );
 		}
 
-		$traces = array();
+		$traces       = array();
+		$par_type     = array();
+		self::$capped = false;
 		foreach ( (array) ( $resultat['data'] ?? array() ) as $r ) {
 			if ( ! is_array( $r ) ) {
 				continue;
@@ -395,9 +442,11 @@ class Delivery {
 			if ( '' === $statut ) {
 				continue;
 			}
-			$heure = (int) ( $r['actionunixtime'] ?? $r['sendunixtime'] ?? 0 );
-			// Pas de filtre côté cPanel : on écarte ici ce qui précède l'envoi.
-			if ( $heure && $heure < $depuis ) {
+			$par_type[ $statut ] = ( $par_type[ $statut ] ?? 0 ) + 1;
+			$heure  = (int) ( $r['actionunixtime'] ?? $r['sendunixtime'] ?? 0 );
+			$depart = (int) ( $r['sendunixtime'] ?? 0 );
+			// Pas de filtre côté cPanel : on écarte ici ce qui est parti avant l'envoi.
+			if ( ( $depart ? $depart : $heure ) < $depuis ) {
 				continue;
 			}
 			$traces[] = array(
@@ -406,8 +455,10 @@ class Delivery {
 				'status'    => $statut,
 				'message'   => trim( (string) ( $r['message'] ?? '' ) ),
 				'time'      => $heure,
+				'sent'      => $depart,
 			);
 		}
+		self::$capped = $par_type && max( $par_type ) >= self::MAX_RESULTS;
 		return self::only_our_sender( $traces );
 	}
 
@@ -483,7 +534,11 @@ class Delivery {
 	 * Les refus pour spam ou réputation (5.7.x) et les boîtes pleines n'en sont pas.
 	 */
 	public static function is_hard_bounce( string $message ): bool {
-		if ( preg_match( '/\b5\.7\.\d+|spam|blocked|blacklist|reputation|policy|mailbox (is )?full|quota|over quota|4\.\d\.\d/i', $message ) ) {
+		// 5.7.x (refus de politique), spam, réputation, boîte pleine, et tout code
+		// temporaire 4xx / 4.x.x. Ancré : « 10.4.1.20 » dans une adresse IP ne doit
+		// pas passer pour un code 4.1.20, ni « 5.1.10 » pour un 1.10.
+		if ( preg_match( '/(?<![\d.])5\.7\.\d+|spam|blacklist|blocklist|reputation|mailbox (is )?full|quota/i', $message )
+			|| preg_match( '/^\s*4\d\d\b|(?<![\d.])4\.\d{1,3}\.\d{1,3}(?![\d.])/', $message ) ) {
 			return false;
 		}
 		return (bool) preg_match( '/\b5\.1\.(1|2|3|10)\b|user unknown|unknown user|no such (user|recipient|mailbox)|does not exist|doesn\'t exist|invalid recipient|mailbox not found|account (has been )?disabled|domain not found|host or domain name not found|unrouteable address|all relevant mx records point to non-existent hosts/i', $message );

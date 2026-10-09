@@ -182,6 +182,64 @@ try {
 	) ) ) );
 	wam_nl_assert_equals( 1, count( Delivery::fetch( time() - 3600 ) ), 'ce qui précède l’envoi est écarté côté plugin' );
 
+	echo "== Relecture : rebonds, rapprochement par heure, plafond ==\n";
+	wam_nl_assert( Delivery::is_hard_bounce( '550 5.1.10 RESOLVER.ADR.RecipientNotFound; Recipient not found by SMTP address lookup [10.4.1.20]' ), 'une IP « 10.4.1.20 » n’empêche pas le rebond franc' );
+	wam_nl_assert( ! Delivery::is_hard_bounce( '450 4.2.1 user unknown, try later' ), 'un code temporaire 4xx n’est jamais un rebond' );
+	wam_nl_assert( ! Delivery::is_hard_bounce( '550 5.7.1 user unknown at this policy' ), '5.7.x reste exclu' );
+
+	// Une facture partie de contact@ 2 h après la newsletter, vers la même adresse.
+	$wpdb->update( Queue::table(), array( 'delivery' => null, 'delivery_message' => null ), array( 'newsletter_id' => $nl ) );
+	Subs::set_status( $ids['refuse'], Subs::STATUS_SUBSCRIBED );
+	$heure_envoi = time();
+	$reponse     = $json( array( 'cpanelresult' => array( 'event' => array( 'result' => 1 ), 'data' => array(
+		array( 'type' => 'failure', 'recipient' => 'remise-remis' . $domaine, 'sender' => '', 'message' => '552 5.2.2 mailbox full', 'actionunixtime' => $heure_envoi, 'sendunixtime' => $heure_envoi ),
+		array( 'type' => 'success', 'recipient' => 'remise-remis' . $domaine, 'sender' => '', 'message' => 'Accepté (facture)', 'actionunixtime' => $heure_envoi + 7200, 'sendunixtime' => $heure_envoi + 7200 ),
+		array( 'type' => 'failure', 'recipient' => 'remise-refuse' . $domaine, 'sender' => '', 'message' => '550 5.1.1 user unknown', 'actionunixtime' => $heure_envoi + 86400, 'sendunixtime' => $heure_envoi + 86400 ),
+	) ) ) );
+	$rapport = Delivery::sync( $nl );
+	$remise  = $wpdb->get_results( $wpdb->prepare( 'SELECT subscriber_id, delivery, delivery_message FROM `' . Queue::table() . '` WHERE newsletter_id = %d', $nl ), OBJECT_K );
+	wam_nl_assert_equals( Delivery::FAILED, $remise[ $ids['remis'] ]->delivery, 'une facture remise 2 h plus tard ne masque pas l’échec de la newsletter' );
+	wam_nl_assert( null === $remise[ $ids['refuse'] ]->delivery, 'un refus du lendemain (autre message) n’est pas attribué à la newsletter' );
+	wam_nl_assert_equals( Subs::STATUS_SUBSCRIBED, Subs::find( $ids['refuse'] )['status'] ?? '', 'pas de rebond tiré d’un autre message' );
+	wam_nl_assert_equals( 0, $rapport['bounced'], 'aucun rebond compté' );
+
+	// Aucune heure d'envoi lisible : rien n'est rapproché.
+	$wpdb->query( $wpdb->prepare( 'UPDATE `' . Queue::table() . '` SET sent_at = %s WHERE newsletter_id = %d', '0000-00-00 00:00:00', $nl ) );
+	$avant   = count( $requetes );
+	$rapport = Delivery::sync( $nl );
+	wam_nl_assert_equals( count( $abonnes ), $rapport['unknown'], 'sans heure d’envoi : tout reste « sans trace »' );
+	$wpdb->query( $wpdb->prepare( 'UPDATE `' . Queue::table() . '` SET sent_at = %s WHERE newsletter_id = %d', current_time( 'mysql' ), $nl ) );
+
+	// Effacer + nouveau jeton dans le même envoi : le nouveau jeton gagne.
+	$avant_option = get_option( Delivery::OPTION, null );
+	remove_filter( 'wam_nl_cpanel_config', $config );
+	Delivery::store( 'yuqo3097', 'ABCDEFGHIJKLMNOPQRSTUVWXYZ012345' );
+	Delivery::store( 'yuqo3097', 'ZYXWVUTSRQPONMLKJIHGFEDCBA543210', true );
+	wam_nl_assert_equals( 'ZYXWVUTSRQPONMLKJIHGFEDCBA543210', Delivery::stored()['token'], 'cocher « effacer » ET coller un jeton : le nouveau jeton est gardé' );
+	null === $avant_option ? delete_option( Delivery::OPTION ) : update_option( Delivery::OPTION, $avant_option, false );
+	add_filter( 'wam_nl_cpanel_config', $config );
+
+	// Relevés planifiés : pas d'empilement si l'envoi se termine deux fois.
+	if ( function_exists( 'as_get_scheduled_actions' ) ) {
+		Delivery::schedule_followups( $nl );
+		Delivery::schedule_followups( $nl );
+		$planifies = as_get_scheduled_actions( array( 'hook' => Delivery::HOOK, 'args' => array( $nl ), 'status' => 'pending', 'per_page' => 50 ), 'ids' );
+		wam_nl_assert_equals( 3, count( $planifies ), 'deux fins d’envoi : toujours 3 relevés, pas 6' );
+		Delivery::unschedule( $nl );
+		$planifies = as_get_scheduled_actions( array( 'hook' => Delivery::HOOK, 'args' => array( $nl ), 'status' => 'pending', 'per_page' => 50 ), 'ids' );
+		wam_nl_assert_equals( 0, count( $planifies ), 'relevés retirés' );
+	}
+
+	// Plafond atteint : signalé au journal.
+	$lignes_max = array();
+	for ( $i = 0; $i < Delivery::MAX_RESULTS; $i++ ) {
+		$lignes_max[] = array( 'type' => 'success', 'recipient' => "x$i@x.test", 'sender' => '', 'message' => '', 'actionunixtime' => time(), 'sendunixtime' => time() );
+	}
+	$reponse = $json( array( 'cpanelresult' => array( 'event' => array( 'result' => 1 ), 'data' => $lignes_max ) ) );
+	Delivery::sync( $nl );
+	$journal = Log::query( $nl );
+	wam_nl_assert( false !== strpos( (string) $journal[0]['message'], 'plafonné' ), 'réponse plafonnée : avertissement au journal' );
+
 	echo "== Écran de statistiques : tuile et liste des refus ==\n";
 	$_GET['newsletter'] = $nl;
 	$ancien             = get_current_user_id();
@@ -191,7 +249,8 @@ try {
 	$ecran = (string) ob_get_clean();
 	wp_set_current_user( $ancien );
 	wam_nl_assert( false !== strpos( $ecran, 'Remise chez les destinataires' ), 'section remise rendue' );
-	wam_nl_assert( false !== strpos( $ecran, 'remise-refuse' . $domaine ) && false !== strpos( $ecran, '550 5.1.1 user unknown' ), 'adresse refusée listée avec la réponse du serveur' );
+	wam_nl_assert( false !== strpos( $ecran, 'remise-remis' . $domaine ) && false !== strpos( $ecran, '552 5.2.2 mailbox full' ), 'adresse refusée listée avec la réponse du serveur' );
+	wam_nl_assert( false !== strpos( $ecran, 'Abonné·e' ) && false === strpos( $ecran, '>subscribed<' ), 'statut de l’abonné·e traduit' );
 	wam_nl_assert( false !== strpos( $ecran, 'wam_nl_delivery_sync' ), 'bouton de vérification manuelle' );
 	wam_nl_assert( false === strpos( $ecran, 'JETON-DE-TEST' ), 'le jeton n’est pas affiché' );
 

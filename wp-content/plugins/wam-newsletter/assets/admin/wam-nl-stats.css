@@ -386,3 +386,16 @@
 .wam-nl-stats__note {
 	max-width: 760px;
 }
+
+/* Remise chez les destinataires : adresses refusées */
+.wam-nl-refus {
+	margin-top: 16px;
+}
+
+.wam-nl-refus__adresse {
+	width: 22em;
+}
+
+.wam-nl-refus__statut {
+	width: 8em;
+}

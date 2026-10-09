@@ -184,7 +184,7 @@ class Recipients {
 	}
 
 	public static function csv_header(): array {
-		return array( 'email', 'nom', 'statut_envoi', 'envoye_le', 'tentatives', 'erreur', 'ouvertures', 'clics', 'desinscrit', 'statut_abonne' );
+		return array( 'email', 'nom', 'statut_envoi', 'envoye_le', 'tentatives', 'erreur', 'ouvertures', 'clics', 'desinscrit', 'statut_abonne', 'remise', 'reponse_destinataire' );
 	}
 
 	/**
@@ -222,6 +222,8 @@ class Recipients {
 						$ligne['clicks'],
 						$ligne['unsubscribed'] ? 'oui' : 'non',
 						$ligne['subscriberStatus'],
+						$ligne['delivery'],
+						$ligne['deliveryMessage'],
 					),
 					';'
 				);

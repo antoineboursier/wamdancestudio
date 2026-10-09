@@ -459,6 +459,9 @@ class Scheduler {
 		update_post_meta( $newsletter_id, self::META_SENT_AT, current_time( 'mysql' ) );
 		self::unschedule( $newsletter_id );
 
+		// Relevés de remise réelle (cPanel) à +15 min, +2 h et +24 h, si configuré.
+		Delivery::schedule_followups( $newsletter_id );
+
 		$counts = Queue::counts( $newsletter_id );
 		Log::record(
 			$newsletter_id,

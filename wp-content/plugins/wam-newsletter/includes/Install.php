@@ -11,7 +11,7 @@ defined( 'ABSPATH' ) || exit;
 class Install {
 
 	/** Incrémenter à chaque changement de schéma : maybe_upgrade() rejoue alors dbDelta. */
-	const DB_VERSION = '1.3.0';
+	const DB_VERSION = '1.4.0';
 
 	const DB_VERSION_OPTION = 'wam_nl_db_version';
 
@@ -167,6 +167,9 @@ class Install {
 			attempts smallint(5) unsigned NOT NULL DEFAULT 0,
 			last_error text NULL,
 			sent_at datetime DEFAULT NULL,
+			delivery varchar(20) DEFAULT NULL,
+			delivery_message text NULL,
+			delivery_at datetime DEFAULT NULL,
 			PRIMARY KEY  (id),
 			UNIQUE KEY newsletter_subscriber (newsletter_id,subscriber_id),
 			KEY newsletter_status (newsletter_id,status)

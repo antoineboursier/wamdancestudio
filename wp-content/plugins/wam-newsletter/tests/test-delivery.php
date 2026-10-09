@@ -1,0 +1,176 @@
+<?php
+/**
+ * Suivi de remise cPanel (EmailTrack) : appel mocké, statuts, rebonds.
+ * Aucun appel réseau : `pre_http_request` répond à la place de cPanel.
+ */
+require_once __DIR__ . '/_harness.php';
+
+use WamNewsletter\Install;
+use WamNewsletter\Sending\Delivery;
+use WamNewsletter\Sending\Log;
+use WamNewsletter\Sending\Queue;
+use WamNewsletter\Stats\Events;
+use WamNewsletter\Subscribers\Repository as Subs;
+
+$domaine  = '@wam-nl-test.invalid';
+$posts    = array();
+$abonnes  = array();
+$requetes = array();
+$reponse  = null;
+
+$config = static function () {
+	return array(
+		'host'  => 'cpanel.exemple.invalid',
+		'user'  => 'utilisateur',
+		'token' => 'JETON-DE-TEST',
+	);
+};
+$mock = static function ( $pre, $args, $url ) use ( &$requetes, &$reponse ) {
+	if ( false === strpos( $url, '/execute/EmailTrack/search' ) ) {
+		return $pre;
+	}
+	$requetes[] = array( 'url' => $url, 'args' => $args );
+	return $reponse;
+};
+$json = static function ( array $corps, int $code = 200 ) {
+	return array(
+		'headers'  => array(),
+		'body'     => wp_json_encode( $corps ),
+		'response' => array( 'code' => $code, 'message' => 'OK' ),
+		'cookies'  => array(),
+	);
+};
+
+try {
+	Install::maybe_upgrade();
+
+	echo "== Schéma : colonnes de remise sur la file ==\n";
+	global $wpdb;
+	$colonnes = $wpdb->get_col( 'SHOW COLUMNS FROM `' . Queue::table() . '`' );
+	foreach ( array( 'delivery', 'delivery_message', 'delivery_at' ) as $c ) {
+		wam_nl_assert( in_array( $c, $colonnes, true ), "colonne $c présente" );
+	}
+
+	echo "== Non configuré : erreur claire, aucun appel ==\n";
+	add_filter( 'pre_http_request', $mock, 10, 3 );
+	if ( ! defined( 'WAM_NL_CPANEL_TOKEN' ) ) {
+		wam_nl_assert( ! Delivery::configured(), 'sans constantes : non configuré' );
+		wam_nl_assert( is_wp_error( Delivery::sync( 1 ) ), 'sync refuse sans configuration' );
+		wam_nl_assert_equals( 0, count( $requetes ), 'aucune requête envoyée' );
+	}
+	add_filter( 'wam_nl_cpanel_config', $config );
+	wam_nl_assert( Delivery::configured(), 'configuration fournie par filtre' );
+
+	echo "== Rebond franc : seulement l'adresse inexistante ==\n";
+	$durs  = array( '550 5.1.1 The email account that you tried to reach does not exist', 'SMTP error from remote mail server: 550 User unknown', '5.1.10 RESOLVER.ADR.RecipientNotFound' );
+	$mous  = array( '550 5.7.1 Message rejected as spam', '452 4.2.2 Mailbox full', '554 5.7.1 Service unavailable; client host blocked using Spamhaus', '550 Recipient address rejected: greylisted', '' );
+	foreach ( $durs as $m ) {
+		wam_nl_assert( Delivery::is_hard_bounce( $m ), "rebond franc : $m" );
+	}
+	foreach ( $mous as $m ) {
+		wam_nl_assert( ! Delivery::is_hard_bounce( $m ), 'pas un rebond : ' . ( '' === $m ? '(vide)' : $m ) );
+	}
+
+	echo "== Une seule issue par adresse ==\n";
+	$best = Delivery::best_by_recipient(
+		array(
+			array( 'recipient' => 'a@x.test', 'sender' => '', 'status' => Delivery::DEFERRED, 'message' => 'attente', 'time' => 10 ),
+			array( 'recipient' => 'a@x.test', 'sender' => '', 'status' => Delivery::DELIVERED, 'message' => '', 'time' => 20 ),
+			array( 'recipient' => 'b@x.test', 'sender' => '', 'status' => Delivery::DEFERRED, 'message' => 'premier', 'time' => 10 ),
+			array( 'recipient' => 'b@x.test', 'sender' => '', 'status' => Delivery::DEFERRED, 'message' => 'dernier', 'time' => 30 ),
+		)
+	);
+	wam_nl_assert_equals( Delivery::DELIVERED, $best['a@x.test']['status'], 'une remise après une attente : remis' );
+	wam_nl_assert_equals( 'dernier', $best['b@x.test']['message'], 'deux attentes : la plus récente' );
+
+	echo "== Appel cPanel : en-tête, filtres, réponse ==\n";
+	$nl      = wp_insert_post( array( 'post_type' => 'wam_newsletter', 'post_status' => 'publish', 'post_title' => 'ZZTest remise' ) );
+	$posts[] = $nl;
+	$ids     = array();
+	foreach ( array( 'remis', 'refuse', 'attente', 'spam', 'muet' ) as $nom ) {
+		$ids[ $nom ] = Subs::insert( array( 'email' => "remise-$nom" . $domaine, 'consent_source' => 'admin' ) );
+	}
+	$abonnes = array_values( $ids );
+	$envoi = current_time( 'mysql' );
+	foreach ( $abonnes as $sid ) {
+		$wpdb->insert( Queue::table(), array( 'newsletter_id' => $nl, 'subscriber_id' => $sid, 'status' => Queue::STATUS_SENT, 'sent_at' => $envoi ) );
+	}
+
+	$reponse = $json(
+		array(
+			'status' => 1,
+			'errors' => null,
+			'data'   => array(
+				array( 'type' => 'success', 'recipient' => 'remise-remis' . $domaine, 'email' => '', 'message' => 'Accepted', 'actionunixtime' => time() ),
+				array( 'type' => 'failure', 'recipient' => 'REMISE-REFUSE' . $domaine, 'email' => '', 'message' => '550 5.1.1 user unknown', 'actionunixtime' => time() ),
+				array( 'type' => 'defer', 'recipient' => 'remise-attente' . $domaine, 'email' => '', 'message' => '451 4.7.1 try again later', 'actionunixtime' => time() ),
+				array( 'type' => 'failure', 'recipient' => 'remise-spam' . $domaine, 'email' => '', 'message' => '550 5.7.1 rejected as spam', 'actionunixtime' => time() ),
+				array( 'type' => 'success', 'recipient' => 'quelquun@ailleurs.test', 'email' => 'facture@autre-expediteur.test', 'message' => '', 'actionunixtime' => time() ),
+			),
+		)
+	);
+	$rapport = Delivery::sync( $nl );
+	wam_nl_assert( is_array( $rapport ), 'sync réussit' );
+	wam_nl_assert_equals( 1, count( $requetes ), 'un seul appel à cPanel' );
+	wam_nl_assert_equals( 'cpanel utilisateur:JETON-DE-TEST', $requetes[0]['args']['headers']['Authorization'] ?? '', 'en-tête d’authentification cPanel' );
+	wam_nl_assert( 0 === strpos( $requetes[0]['url'], 'https://cpanel.exemple.invalid:2083/execute/EmailTrack/search' ), 'bonne adresse UAPI' );
+	wam_nl_assert( false !== strpos( $requetes[0]['url'], 'api.filter_column_0=sendunixtime' ), 'filtré depuis le premier envoi' );
+	wam_nl_assert_equals( 1, $rapport['delivered'], '1 remis' );
+	wam_nl_assert_equals( 1, $rapport['deferred'], '1 en attente' );
+	wam_nl_assert_equals( 2, $rapport['failed'], '2 refusés' );
+	wam_nl_assert_equals( 1, $rapport['bounced'], '1 seul rebond (l’adresse inexistante)' );
+	wam_nl_assert_equals( 1, $rapport['unknown'], '1 sans trace' );
+
+	$remise = $wpdb->get_results( $wpdb->prepare( 'SELECT subscriber_id, delivery, delivery_message FROM `' . Queue::table() . '` WHERE newsletter_id = %d', $nl ), OBJECT_K );
+	wam_nl_assert_equals( Delivery::DELIVERED, $remise[ $ids['remis'] ]->delivery, 'file : remis' );
+	wam_nl_assert_equals( Delivery::FAILED, $remise[ $ids['refuse'] ]->delivery, 'file : refusé (casse de l’adresse ignorée)' );
+	wam_nl_assert_equals( '550 5.1.1 user unknown', $remise[ $ids['refuse'] ]->delivery_message, 'message du serveur gardé' );
+	wam_nl_assert( null === $remise[ $ids['muet'] ]->delivery, 'sans trace : rien écrit' );
+	wam_nl_assert_equals( Subs::STATUS_BOUNCED, Subs::find( $ids['refuse'] )['status'] ?? '', 'adresse inexistante passée en rebond' );
+	wam_nl_assert_equals( Subs::STATUS_SUBSCRIBED, Subs::find( $ids['spam'] )['status'] ?? '', 'refus pour spam : reste abonné·e' );
+	wam_nl_assert_equals( Subs::STATUS_SUBSCRIBED, Subs::find( $ids['attente'] )['status'] ?? '', 'mise en attente : reste abonné·e' );
+	$journal = Log::query( $nl );
+	wam_nl_assert( (bool) array_filter( $journal, static function ( $l ) { return Log::TYPE_DELIVERY === $l['type']; } ), 'relevé inscrit au journal d’envoi' );
+
+	echo "== Réponses d'erreur de cPanel ==\n";
+	$reponse = $json( array( 'status' => 0, 'errors' => array( 'You do not have the feature “emailtrack”.' ) ) );
+	$err     = Delivery::fetch( time() - 3600 );
+	wam_nl_assert( is_wp_error( $err ) && false !== strpos( $err->get_error_message(), 'emailtrack' ), 'erreur UAPI relayée' );
+	$reponse = $json( array(), 401 );
+	$err     = Delivery::fetch( time() - 3600 );
+	wam_nl_assert( is_wp_error( $err ) && false !== strpos( $err->get_error_message(), 'jeton' ), '401 : jeton mis en cause' );
+	wam_nl_assert( false === strpos( $err->get_error_message(), 'JETON-DE-TEST' ), 'le jeton n’apparaît jamais dans un message' );
+	$reponse = new WP_Error( 'http_request_failed', 'cURL error 28' );
+	wam_nl_assert( is_wp_error( Delivery::fetch( time() ) ), 'cPanel injoignable : erreur, pas d’exception' );
+	$reponse = $json( array( 'result' => array( 'status' => 1, 'data' => array() ) ) );
+	wam_nl_assert_equals( array(), Delivery::fetch( time() ), 'réponse enveloppée dans « result » acceptée' );
+
+	echo "== Écran de statistiques : tuile et liste des refus ==\n";
+	$_GET['newsletter'] = $nl;
+	$ancien             = get_current_user_id();
+	wp_set_current_user( 1 );
+	ob_start();
+	\WamNewsletter\Stats\Screen::render();
+	$ecran = (string) ob_get_clean();
+	wp_set_current_user( $ancien );
+	wam_nl_assert( false !== strpos( $ecran, 'Remise chez les destinataires' ), 'section remise rendue' );
+	wam_nl_assert( false !== strpos( $ecran, 'remise-refuse' . $domaine ) && false !== strpos( $ecran, '550 5.1.1 user unknown' ), 'adresse refusée listée avec la réponse du serveur' );
+	wam_nl_assert( false !== strpos( $ecran, 'wam_nl_delivery_sync' ), 'bouton de vérification manuelle' );
+	wam_nl_assert( false === strpos( $ecran, 'JETON-DE-TEST' ), 'le jeton n’est pas affiché' );
+
+} finally {
+	remove_filter( 'pre_http_request', $mock, 10 );
+	remove_filter( 'wam_nl_cpanel_config', $config );
+	foreach ( $posts as $id ) {
+		Queue::clear( (int) $id );
+		Events::purge_newsletter( (int) $id );
+		Log::purge_newsletter( (int) $id );
+		wp_delete_post( (int) $id, true );
+	}
+	foreach ( $abonnes as $id ) {
+		Subs::delete( (int) $id );
+	}
+	unset( $_GET['newsletter'] );
+}
+
+wam_nl_test_report();

@@ -6,6 +6,8 @@ use WamNewsletter\Editor\NewsletterPostType;
 use WamNewsletter\Install;
 use WamNewsletter\Lists\Repository as Lists;
 use WamNewsletter\Render\Placeholders;
+use WamNewsletter\Admin\Notices;
+use WamNewsletter\Sending\Delivery;
 use WamNewsletter\Sending\Queue;
 use WamNewsletter\Sending\Scheduler;
 use WamNewsletter\Settings\Settings;
@@ -115,6 +117,7 @@ class Screen {
 		$suivi_ouv     = (bool) Settings::get( 'track_opens' );
 		$suivi_clics   = (bool) Settings::get( 'track_clicks' );
 
+		Notices::render();
 		self::render_header( $id, $post );
 
 		// --- Chiffres clés ---
@@ -130,6 +133,15 @@ class Screen {
 			$suivi_clics ? self::pct( $clics_uniques, $envoyes ) : '-',
 			$suivi_clics ? sprintf( /* translators: 1: personnes, 2: clics */ __( '%1$s personnes · %2$s clics', 'wam-newsletter' ), number_format_i18n( $clics_uniques ), number_format_i18n( $clics_total ) ) : __( 'suivi désactivé', 'wam-newsletter' )
 		);
+		$remise = self::delivery_counts( $id );
+		if ( $remise['checked'] > 0 ) {
+			self::tile(
+				__( 'Remis', 'wam-newsletter' ),
+				self::pct( $remise['delivered'], $envoyes ),
+				sprintf( /* translators: 1: refusés, 2: en attente */ __( '%1$s refusés · %2$s en attente', 'wam-newsletter' ), number_format_i18n( $remise['failed'] ), number_format_i18n( $remise['deferred'] ) ),
+				$remise['failed'] > 0
+			);
+		}
 		self::tile( __( 'Désinscriptions', 'wam-newsletter' ), number_format_i18n( $desinscrits ), self::pct( $desinscrits, $envoyes ) . ' ' . __( 'des envoyés', 'wam-newsletter' ) );
 		self::tile( __( 'Échecs', 'wam-newsletter' ), number_format_i18n( (int) $counts['failed'] ), (int) $counts['pending'] > 0 ? sprintf( /* translators: %s nombre */ __( '%s encore en attente', 'wam-newsletter' ), number_format_i18n( (int) $counts['pending'] ) ) : __( 'adresses à regarder', 'wam-newsletter' ), (int) $counts['failed'] > 0 );
 		echo '</div>';
@@ -179,6 +191,9 @@ class Screen {
 			echo '</section>';
 		}
 
+		// --- Remise réelle (suivi cPanel) ---
+		self::render_delivery( $id, $remise );
+
 		// --- Échecs ---
 		$echecs = Queue::failures( $id );
 		if ( $echecs ) {
@@ -202,6 +217,66 @@ class Screen {
 		echo '</p>';
 
 		echo '</div>';
+	}
+
+	// ------------------------------------------------------------------
+	// Remise réelle
+	// ------------------------------------------------------------------
+
+	/** @return array{delivered:int,deferred:int,failed:int,checked:int} */
+	private static function delivery_counts( int $id ): array {
+		global $wpdb;
+		$q      = Queue::table();
+		$sortie = array(
+			'delivered' => 0,
+			'deferred'  => 0,
+			'failed'    => 0,
+			'checked'   => 0,
+		);
+		foreach ( (array) $wpdb->get_results( $wpdb->prepare( "SELECT delivery, COUNT(*) c FROM `$q` WHERE newsletter_id = %d AND delivery IS NOT NULL GROUP BY delivery", $id ), ARRAY_A ) as $r ) {
+			if ( isset( $sortie[ $r['delivery'] ] ) ) {
+				$sortie[ $r['delivery'] ] = (int) $r['c'];
+				$sortie['checked']       += (int) $r['c'];
+			}
+		}
+		return $sortie;
+	}
+
+	private static function render_delivery( int $id, array $remise ): void {
+		echo '<section class="wam-nl-card"><h2>' . esc_html__( 'Remise chez les destinataires', 'wam-newsletter' ) . '</h2>';
+
+		if ( ! Delivery::configured() ) {
+			echo '<p class="wam-nl-card__aide">' . esc_html__( 'Non branché. Le suivi de livraison d’o2switch dit, pour chaque adresse, si le message a été remis, refusé ou mis en attente par le serveur du destinataire. Il suffit d’ajouter WAM_NL_CPANEL_USER et WAM_NL_CPANEL_TOKEN dans wp-config.php (voir Réglages → Suivi).', 'wam-newsletter' ) . '</p></section>';
+			return;
+		}
+
+		echo '<p class="wam-nl-card__aide">' . esc_html__( 'Relevé automatiquement 15 minutes, 2 heures et 24 heures après la fin de l’envoi, d’après le suivi de livraison d’o2switch. Une adresse refusée parce qu’elle n’existe pas passe en rebond et ne recevra plus rien.', 'wam-newsletter' ) . '</p>';
+
+		printf(
+			'<form method="post" action="%s"><input type="hidden" name="action" value="wam_nl_delivery_sync"><input type="hidden" name="newsletter" value="%d">%s<button type="submit" class="button">%s</button></form>',
+			esc_url( admin_url( 'admin-post.php' ) ),
+			(int) $id,
+			wp_nonce_field( 'wam_nl_delivery_sync_' . $id, '_wpnonce', true, false ),
+			esc_html__( 'Vérifier la remise maintenant', 'wam-newsletter' )
+		);
+
+		if ( $remise['failed'] > 0 ) {
+			global $wpdb;
+			$q      = Queue::table();
+			$s      = \WamNewsletter\Subscribers\Repository::table();
+			$refus  = (array) $wpdb->get_results( $wpdb->prepare( "SELECT s.email, s.status, q.delivery_message FROM `$q` q JOIN `$s` s ON s.id = q.subscriber_id WHERE q.newsletter_id = %d AND q.delivery = %s ORDER BY q.id ASC LIMIT 200", $id, Delivery::FAILED ), ARRAY_A );
+			echo '<table class="widefat striped" style="margin-top:16px"><thead><tr><th style="width:22em">' . esc_html__( 'Adresse refusée', 'wam-newsletter' ) . '</th><th style="width:8em">' . esc_html__( 'Statut', 'wam-newsletter' ) . '</th><th>' . esc_html__( 'Réponse du serveur du destinataire', 'wam-newsletter' ) . '</th></tr></thead><tbody>';
+			foreach ( $refus as $r ) {
+				printf(
+					'<tr><td>%s</td><td>%s</td><td>%s</td></tr>',
+					esc_html( (string) $r['email'] ),
+					esc_html( 'bounced' === $r['status'] ? __( 'rebond', 'wam-newsletter' ) : (string) $r['status'] ),
+					esc_html( (string) $r['delivery_message'] )
+				);
+			}
+			echo '</tbody></table>';
+		}
+		echo '</section>';
 	}
 
 	// ------------------------------------------------------------------

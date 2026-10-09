@@ -115,7 +115,7 @@ class Recipients {
 		// Tri sur q.id et non sur sent_at : les lignes en attente n'ont pas de
 		// date, et un ORDER BY sur une colonne NULL rendrait la pagination
 		// instable (une même ligne pourrait apparaître sur deux pages).
-		$sql = "SELECT q.id, q.subscriber_id, q.status, q.attempts, q.last_error, q.sent_at,
+		$sql = "SELECT q.id, q.subscriber_id, q.status, q.attempts, q.last_error, q.sent_at, q.delivery, q.delivery_message,
 				s.email, s.first_name, s.last_name, s.status AS subscriber_status,
 				( SELECT COUNT(*) FROM `$events` eo WHERE eo.newsletter_id = q.newsletter_id AND eo.subscriber_id = q.subscriber_id AND eo.type = '" . Events::TYPE_OPEN . "' ) AS opens,
 				( SELECT COUNT(*) FROM `$events` ec WHERE ec.newsletter_id = q.newsletter_id AND ec.subscriber_id = q.subscriber_id AND ec.type = '" . Events::TYPE_CLICK . "' ) AS clicks,
@@ -145,6 +145,8 @@ class Recipients {
 					'attempts'         => (int) $r['attempts'],
 					'error'            => (string) $r['last_error'],
 					'sent_at'          => (string) $r['sent_at'],
+					'delivery'         => (string) ( $r['delivery'] ?? '' ),
+					'deliveryMessage'  => (string) ( $r['delivery_message'] ?? '' ),
 					'opens'            => (int) $r['opens'],
 					'clicks'           => (int) $r['clicks'],
 					'opened'           => (int) $r['opens'] > 0,

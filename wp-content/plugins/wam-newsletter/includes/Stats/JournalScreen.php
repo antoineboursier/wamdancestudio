@@ -243,6 +243,7 @@ class JournalScreen {
 		echo '<th>' . esc_html__( 'Adresse', 'wam-newsletter' ) . '</th>';
 		echo '<th>' . esc_html__( 'Nom', 'wam-newsletter' ) . '</th>';
 		echo '<th style="width:8em">' . esc_html__( 'Envoi', 'wam-newsletter' ) . '</th>';
+		echo '<th style="width:9em">' . esc_html__( 'Remise', 'wam-newsletter' ) . '</th>';
 		echo '<th style="width:11em">' . esc_html__( 'Horodatage', 'wam-newsletter' ) . '</th>';
 		echo '<th style="width:7em">' . esc_html__( 'Réactions', 'wam-newsletter' ) . '</th>';
 		echo '<th>' . esc_html__( 'Message du serveur', 'wam-newsletter' ) . '</th>';
@@ -265,15 +266,28 @@ class JournalScreen {
 			echo '<td>' . esc_html( $ligne['email'] ) . '</td>';
 			echo '<td>' . esc_html( $ligne['name'] ) . '</td>';
 			echo '<td>' . esc_html( self::libelle_statut( $ligne ) ) . '</td>';
+			echo '<td>' . esc_html( self::libelle_remise( $ligne['delivery'] ) ) . '</td>';
 			echo '<td>' . esc_html( '' !== $ligne['sent_at'] ? mysql2date( 'd/m/Y H:i', $ligne['sent_at'] ) : '' ) . '</td>';
 			echo '<td>' . esc_html( $reactions ? implode( ', ', $reactions ) : '-' ) . '</td>';
-			echo '<td>' . esc_html( $ligne['error'] ) . '</td>';
+			// Message du serveur d'envoi, ou à défaut celui du serveur du destinataire
+			// (refus, mise en attente) relevé par le suivi de remise.
+			echo '<td>' . esc_html( '' !== $ligne['error'] ? $ligne['error'] : $ligne['deliveryMessage'] ) . '</td>';
 			echo '</tr>';
 		}
 
 		echo '</tbody></table>';
 
 		self::pagination( $newsletter_id, $filtre, $recherche, $page, $total );
+	}
+
+	/** Ce que le serveur du destinataire a fait du message (suivi cPanel). */
+	private static function libelle_remise( string $remise ): string {
+		$libelles = array(
+			\WamNewsletter\Sending\Delivery::DELIVERED => __( 'Remis', 'wam-newsletter' ),
+			\WamNewsletter\Sending\Delivery::DEFERRED  => __( 'En attente', 'wam-newsletter' ),
+			\WamNewsletter\Sending\Delivery::FAILED    => __( 'Refusé', 'wam-newsletter' ),
+		);
+		return $libelles[ $remise ] ?? '-';
 	}
 
 	private static function libelle_statut( array $ligne ): string {

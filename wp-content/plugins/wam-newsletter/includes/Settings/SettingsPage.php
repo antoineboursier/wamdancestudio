@@ -126,6 +126,20 @@ class SettingsPage {
 			}
 		}
 
+		if ( isset( $_POST['wam_nl_test_cpanel'] ) ) {
+			$traces = \WamNewsletter\Sending\Delivery::configured()
+				? \WamNewsletter\Sending\Delivery::fetch( time() - DAY_IN_SECONDS )
+				: new \WP_Error( 'wam_nl_cpanel', __( 'WAM_NL_CPANEL_USER ou WAM_NL_CPANEL_TOKEN manquant dans wp-config.php.', 'wam-newsletter' ) );
+			if ( is_wp_error( $traces ) ) {
+				$avis = 'cpanel_ko';
+				set_transient( self::message_key(), $traces->get_error_message(), 60 );
+			} else {
+				$avis = 'cpanel_ok';
+				/* translators: %s nombre */
+				set_transient( self::message_key(), sprintf( __( '%s remises lues sur les dernières 24 heures', 'wam-newsletter' ), number_format_i18n( count( $traces ) ) ), 60 );
+			}
+		}
+
 		if ( isset( $_POST['wam_nl_send_test'] ) ) {
 			$destinataire = sanitize_email( wp_unslash( (string) ( $_POST['wam_nl_test_to'] ?? '' ) ) );
 			$resultat     = Mailer::send_test( $destinataire );
@@ -215,6 +229,8 @@ class SettingsPage {
 			'test_ko'              => array( 'error', __( 'L’e-mail de test n’a pas pu être envoyé.', 'wam-newsletter' ) ),
 			'smtp_importe'         => array( 'success', __( 'Configuration SMTP reprise. Le mot de passe n’est jamais copié : il doit être posé dans wp-config.php. Champs repris :', 'wam-newsletter' ) ),
 			'smtp_rien_a_importer' => array( 'warning', __( 'Aucune configuration SMTP à reprendre sur ce site.', 'wam-newsletter' ) ),
+			'cpanel_ok'            => array( 'success', __( 'Connexion au suivi de livraison cPanel réussie :', 'wam-newsletter' ) ),
+			'cpanel_ko'            => array( 'error', __( 'Connexion au suivi de livraison cPanel impossible :', 'wam-newsletter' ) ),
 		);
 		if ( ! isset( $textes[ $avis ] ) ) {
 			return;
@@ -467,6 +483,20 @@ class SettingsPage {
 		echo '<table class="form-table">';
 		self::field_checkbox( 'track_opens', __( 'Ouvertures', 'wam-newsletter' ), (bool) $r['track_opens'], __( 'Pixel de suivi - chiffre indicatif seulement', 'wam-newsletter' ) );
 		self::field_checkbox( 'track_clicks', __( 'Clics', 'wam-newsletter' ), (bool) $r['track_clicks'], __( 'Réécriture signée des liens', 'wam-newsletter' ) );
+		echo '</table>';
+
+		$cpanel = \WamNewsletter\Sending\Delivery::config();
+		echo '<h2>' . esc_html__( 'Suivi de remise (o2switch)', 'wam-newsletter' ) . '</h2><table class="form-table">';
+		printf(
+			'<tr><th scope="row">%1$s</th><td><p>%2$s</p><p class="description">%3$s</p>'
+			. '<p><button type="submit" name="wam_nl_test_cpanel" value="1" class="button">%4$s</button></p></td></tr>',
+			esc_html__( 'Connexion cPanel', 'wam-newsletter' ),
+			\WamNewsletter\Sending\Delivery::configured()
+				? esc_html( sprintf( /* translators: 1: utilisateur, 2: hôte */ __( 'Configurée : %1$s sur %2$s (jeton lu dans wp-config.php, jamais affiché).', 'wam-newsletter' ), $cpanel['user'], $cpanel['host'] ) )
+				: esc_html__( 'Non configurée.', 'wam-newsletter' ),
+			esc_html__( 'Dit, pour chaque destinataire, si le serveur d’en face a accepté, refusé ou mis en attente le message. Créer un jeton dans cPanel → Sécurité → Gérer les jetons d’API, puis ajouter dans wp-config.php : define( \'WAM_NL_CPANEL_USER\', \'…\' ); et define( \'WAM_NL_CPANEL_TOKEN\', \'…\' );', 'wam-newsletter' ),
+			esc_html__( 'Tester la connexion', 'wam-newsletter' )
+		);
 		echo '</table><h2>' . esc_html__( 'Désinstallation', 'wam-newsletter' ) . '</h2><table class="form-table">';
 		self::field_checkbox(
 			'delete_data_on_uninstall',

@@ -28,6 +28,7 @@ class Log {
 	const TYPE_FINISH    = 'finish';
 	const TYPE_CANCEL    = 'cancel';
 	const TYPE_TEST      = 'test';
+	const TYPE_DELIVERY  = 'delivery';
 
 	const TYPES = array(
 		self::TYPE_START,
@@ -39,6 +40,7 @@ class Log {
 		self::TYPE_FINISH,
 		self::TYPE_CANCEL,
 		self::TYPE_TEST,
+		self::TYPE_DELIVERY,
 	);
 
 	public static function table(): string {
@@ -57,6 +59,7 @@ class Log {
 			self::TYPE_FINISH    => __( 'Envoi terminé', 'wam-newsletter' ),
 			self::TYPE_CANCEL    => __( 'Arrêt manuel', 'wam-newsletter' ),
 			self::TYPE_TEST      => __( 'E-mail de test', 'wam-newsletter' ),
+			self::TYPE_DELIVERY  => __( 'Remise vérifiée', 'wam-newsletter' ),
 		);
 		return $libelles[ $type ] ?? $type;
 	}

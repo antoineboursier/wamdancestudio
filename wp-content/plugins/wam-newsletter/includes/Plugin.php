@@ -37,6 +37,7 @@ class Plugin {
 		// Envoi
 		Sending\Mailer::register_hooks();
 		Sending\Scheduler::register_hooks();
+		Sending\Delivery::register_hooks();
 
 		// API et ligne de commande
 		Editor\RestApi::register_hooks();

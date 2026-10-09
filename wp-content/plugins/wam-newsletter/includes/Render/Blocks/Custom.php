@@ -109,6 +109,12 @@ class Custom {
 	 * l'abonnement » (une seule liste publique, la désinscription suffit).
 	 * L'adresse est du texte simple : laissée en lien, les clients de messagerie
 	 * la transforment en lien Google Maps automatique.
+	 *
+	 * Réseaux sociaux (09/10/2026) : une rangée d'icônes au-dessus de la ligne de
+	 * désinscription, une par réseau renseigné dans le thème (`Brand::social_links()`).
+	 * Le bloc étant rendu dynamiquement (§ render_callback), ajouter une icône ici
+	 * suffit à la faire apparaître dans toutes les newsletters pas encore parties
+	 * — y compris les brouillons déjà composés — sans rien retoucher à leur contenu.
 	 */
 	public static function footer( array $attrs = array() ): string {
 		$c       = Brand::colors();
@@ -149,7 +155,45 @@ class Custom {
 			$bloc = '<p style="' . esc_attr( $style_p ) . '">' . esc_html( $extra ) . '</p>' . $bloc;
 		}
 
+		$icones = self::social_icons();
+		if ( '' !== $icones ) {
+			$bloc = $icones . self::spacer( array( 'height' => 16 ) ) . $bloc;
+		}
+
 		return Html::row( $bloc, array( 'align' => 'center', 'padding' => Spacing::row( Spacing::FOOTER_Y ) ) );
+	}
+
+	/**
+	 * Rangée d'icônes de réseaux sociaux, une par réseau renseigné dans le thème.
+	 * Chaîne vide si aucun n'est configuré.
+	 */
+	private static function social_icons(): string {
+		$reseaux = Brand::social_links();
+		if ( ! $reseaux ) {
+			return '';
+		}
+
+		$cellules = '';
+		foreach ( $reseaux as $reseau ) {
+			$largeur = Brand::SOCIAL_ICON_WIDTHS[ $reseau['slug'] ] ?? Brand::SOCIAL_ICON_HEIGHT;
+			$alt     = sprintf(
+				/* translators: %s : nom du réseau social (Instagram, Facebook...) */
+				__( '%s sur %s', 'wam-newsletter' ),
+				Brand::site_name(),
+				$reseau['label']
+			);
+
+			$cellules .= sprintf(
+				'<td style="padding:0 8px;"><a href="%1$s" target="_blank" rel="noopener noreferrer" style="text-decoration:none;"><img src="%2$s" width="%3$d" height="%4$d" alt="%5$s" style="display:block;border:0;outline:none;" /></a></td>',
+				esc_url( $reseau['url'] ),
+				esc_url( Brand::social_icon_url( $reseau['slug'] ) ),
+				$largeur,
+				Brand::SOCIAL_ICON_HEIGHT,
+				esc_attr( $alt )
+			);
+		}
+
+		return '<table role="presentation" border="0" cellpadding="0" cellspacing="0" align="center" style="border-collapse:collapse;margin:0 auto;"><tr>' . $cellules . '</tr></table>';
 	}
 
 	/** Bouton éditable (§7.1.1). */

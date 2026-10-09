@@ -124,6 +124,31 @@ try {
 	wam_nl_assert( false !== strpos( $pied, $c['muted'] ), 'pied en gris discret' );
 	wam_nl_assert( false !== strpos( $pied, 'Jean Jaurès' ), 'adresse présente' );
 
+	echo "== Pied de page : icônes des réseaux sociaux (09/10/2026) ==\n";
+	// Reflète les réglages réels du thème (Admin > Configuration > Réseaux) :
+	// aucune donnée de test à fabriquer, la liste fait foi des deux côtés.
+	$reseaux = Brand::social_links();
+	foreach ( $reseaux as $reseau ) {
+		wam_nl_assert(
+			false !== strpos( $pied, Brand::social_icon_url( $reseau['slug'] ) ),
+			'icône ' . $reseau['slug'] . ' présente, avec son URL PNG'
+		);
+		wam_nl_assert(
+			false !== strpos( $pied, 'href="' . esc_url( $reseau['url'] ) . '"' ),
+			'icône ' . $reseau['slug'] . ' pointe vers son URL enregistrée'
+		);
+	}
+	wam_nl_assert( false === strpos( $pied, '.svg' ), 'jamais de SVG dans l’e-mail (non lu par Outlook/Gmail)' );
+	if ( $reseaux ) {
+		wam_nl_assert( substr_count( $pied, '<img' ) === count( $reseaux ), 'une icône par réseau renseigné, aucune de plus' );
+		wam_nl_assert( false !== strpos( $pied, 'width="' ), 'largeur figée en attribut HTML (filet si le CSS est ignoré)' );
+	}
+	// Un réseau non renseigné dans le thème (TikTok, LinkedIn en l'absence de
+	// réglage) ne doit jamais apparaître — même logique que le footer du site.
+	foreach ( array_diff( array_keys( Brand::SOCIAL_NETWORKS ), array_column( $reseaux, 'slug' ) ) as $absent ) {
+		wam_nl_assert( false === strpos( $pied, 'icon-' . $absent . '.png' ), $absent . ' absent tant qu’aucune URL n’est enregistrée' );
+	}
+
 	echo "== Pied de page : l'adresse est du texte, pas un lien ==\n";
 	// Laissée en lien, les clients la transforment en lien Google Maps.
 	$avant_adresse = substr( $pied, 0, strpos( $pied, 'Jean Jaurès' ) );

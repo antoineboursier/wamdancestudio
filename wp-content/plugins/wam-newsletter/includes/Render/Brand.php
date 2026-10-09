@@ -291,6 +291,67 @@ class Brand {
 		return is_string( $host ) ? preg_replace( '/^www\./', '', $host ) : 'wamdancestudio.fr';
 	}
 
+	/** Réseaux sociaux du pied de page e-mail : slug => libellé affiché (alt), même ordre que le footer du thème. */
+	const SOCIAL_NETWORKS = array(
+		'instagram' => 'Instagram',
+		'facebook'  => 'Facebook',
+		'tiktok'    => 'TikTok',
+		'linkedin'  => 'LinkedIn',
+		'youtube'   => 'YouTube',
+	);
+
+	/**
+	 * Largeur affichée (px) de chaque icône à hauteur fixe de 24 px : les SVG
+	 * source n'ont pas tous le même ratio, une largeur commune les déformerait.
+	 */
+	const SOCIAL_ICON_WIDTHS = array(
+		'instagram' => 25,
+		'facebook'  => 25,
+		'tiktok'    => 25,
+		'linkedin'  => 25,
+		'youtube'   => 23,
+	);
+	const SOCIAL_ICON_HEIGHT = 24;
+
+	/**
+	 * Réseaux sociaux renseignés, dans l'ordre du footer du thème.
+	 *
+	 * Lus comme `address()` : les fonctions `wam_url_*` vivent dans le thème
+	 * (`inc/admin-config.php`), jamais supposées présentes (tests, autre thème).
+	 * Un réseau sans URL enregistrée est simplement absent de la liste — même
+	 * logique que le `if ( wam_url_instagram() )` du footer du site.
+	 *
+	 * @return array<int,array{slug:string,label:string,url:string}>
+	 */
+	public static function social_links(): array {
+		$liens = array();
+		foreach ( self::SOCIAL_NETWORKS as $slug => $label ) {
+			$fonction = 'wam_url_' . $slug;
+			if ( ! function_exists( $fonction ) ) {
+				continue;
+			}
+			$url = trim( (string) $fonction() );
+			if ( '' === $url ) {
+				continue;
+			}
+			$liens[] = array(
+				'slug'  => $slug,
+				'label' => $label,
+				'url'   => $url,
+			);
+		}
+		return $liens;
+	}
+
+	/**
+	 * URL de l'icône PNG d'un réseau, rasterisée depuis le SVG du thème
+	 * (couleur crème figée, les clients de messagerie ne savent pas tous lire
+	 * un SVG ni une variable de couleur CSS dessus).
+	 */
+	public static function social_icon_url( string $slug ): string {
+		return WAM_NL_URL . 'assets/email/icon-' . $slug . '.png';
+	}
+
 	/** Pièce jointe la plus récente dont le slug commence par la base donnée. */
 	private static function attachment_by_slug( string $base ): int {
 		global $wpdb;

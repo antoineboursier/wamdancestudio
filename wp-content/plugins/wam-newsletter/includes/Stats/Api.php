@@ -168,7 +168,9 @@ class Api {
 			'recent'    => array(
 				'days'         => self::RECENT_DAYS,
 				'new'          => (int) $wpdb->get_var( $wpdb->prepare( "SELECT COUNT(*) FROM `$t` WHERE created_at >= %s AND status <> %s", $depuis, Subscribers::STATUS_TRASHED ) ),
-				'unsubscribed' => (int) $wpdb->get_var( $wpdb->prepare( "SELECT COUNT(*) FROM `$t` WHERE unsubscribed_at >= %s", $depuis ) ),
+				// Désinscriptions réellement faites (lien, en-tête one-click) : la date
+				// unsubscribed_at des personnes reprises de MailPoet est celle de l'import.
+				'unsubscribed' => (int) $wpdb->get_var( $wpdb->prepare( 'SELECT COUNT(DISTINCT subscriber_id) FROM `' . Events::table() . '` WHERE type = %s AND created_at >= %s', Events::TYPE_UNSUBSCRIBE, $depuis ) ),
 			),
 		);
 	}
@@ -225,7 +227,7 @@ class Api {
 		$par_type = (array) $wpdb->get_results(
 			"SELECT type, SUM(n) AS n FROM (
 				SELECT newsletter_id, type, COUNT(DISTINCT subscriber_id) AS n
-				FROM `$e` WHERE newsletter_id IN ($liste) AND type IN ('open','click')
+				FROM `$e` WHERE newsletter_id IN ($liste) AND type IN ('" . Events::TYPE_OPEN . "','" . Events::TYPE_CLICK . "')
 				GROUP BY newsletter_id, type
 			) x GROUP BY type", // phpcs:ignore WordPress.DB.PreparedSQL -- aucune donnée externe.
 			ARRAY_A
@@ -239,7 +241,7 @@ class Api {
 		}
 
 		$base['unsubscribes'] = (int) $wpdb->get_var(
-			$wpdb->prepare( "SELECT COUNT(*) FROM `$e` WHERE newsletter_id IN ($liste) AND type = %s", Events::TYPE_UNSUBSCRIBE ) // phpcs:ignore WordPress.DB.PreparedSQL -- liste d'entiers castés.
+			$wpdb->prepare( "SELECT SUM(n) FROM ( SELECT COUNT(DISTINCT subscriber_id) n FROM `$e` WHERE newsletter_id IN ($liste) AND type = %s GROUP BY newsletter_id ) x", Events::TYPE_UNSUBSCRIBE ) // phpcs:ignore WordPress.DB.PreparedSQL -- liste d'entiers castés.
 		);
 
 		$suivi = self::tracking();
@@ -257,12 +259,15 @@ class Api {
 		$ouvertures    = Events::count_unique( $id, Events::TYPE_OPEN );
 		$clics_uniques = Events::count_unique( $id, Events::TYPE_CLICK );
 		$clics_total   = Events::count( $id, Events::TYPE_CLICK );
-		$desinscrits   = Events::count( $id, Events::TYPE_UNSUBSCRIBE );
+		$desinscrits   = Events::count_unique( $id, Events::TYPE_UNSUBSCRIBE );
 		$suivi         = self::tracking();
 
-		$noms_listes = array();
-		foreach ( Lists::all() as $liste ) {
-			$noms_listes[ (int) $liste['id'] ] = (string) $liste['name'];
+		static $noms_listes = null;
+		if ( null === $noms_listes ) {
+			$noms_listes = array();
+			foreach ( Lists::all() as $liste ) {
+				$noms_listes[ (int) $liste['id'] ] = (string) $liste['name'];
+			}
 		}
 		$listes = array();
 		foreach ( Scheduler::list_ids( $id ) as $list_id ) {
@@ -287,6 +292,7 @@ class Api {
 				'sent'    => $envoyes,
 				'failed'  => (int) $counts['failed'],
 				'pending' => (int) $counts['pending'],
+				'sending' => (int) ( $counts['sending'] ?? 0 ),
 			),
 			'opens'      => array(
 				'unique' => $suivi['opens'] ? $ouvertures : null,

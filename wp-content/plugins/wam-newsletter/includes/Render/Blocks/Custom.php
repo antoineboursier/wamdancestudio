@@ -177,8 +177,8 @@ class Custom {
 		foreach ( $reseaux as $reseau ) {
 			$largeur = Brand::SOCIAL_ICON_WIDTHS[ $reseau['slug'] ] ?? Brand::SOCIAL_ICON_HEIGHT;
 			$alt     = sprintf(
-				/* translators: %s : nom du réseau social (Instagram, Facebook...) */
-				__( '%s sur %s', 'wam-newsletter' ),
+				/* translators: 1: nom du studio, 2: nom du réseau social (Instagram, Facebook...) */
+				__( '%1$s sur %2$s', 'wam-newsletter' ),
 				Brand::site_name(),
 				$reseau['label']
 			);

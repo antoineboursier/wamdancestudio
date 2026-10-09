@@ -77,11 +77,28 @@ class Placeholders {
 	 * orpheline plutôt que d'imposer un prénom obligatoire à l'inscription.
 	 */
 	public static function tidy( string $texte ): string {
+		// Le <style> de l'e-mail (media queries) n'est pas du texte : « \h+. » y
+		// collerait un sélecteur descendant (« #body .x » → « #body.x »).
+		$morceaux = preg_split( '#(<style\b[^>]*>.*?</style>)#is', $texte, -1, PREG_SPLIT_DELIM_CAPTURE );
+		if ( is_array( $morceaux ) && count( $morceaux ) > 1 ) {
+			foreach ( $morceaux as $i => $morceau ) {
+				if ( 1 !== $i % 2 ) {
+					$morceaux[ $i ] = self::tidy_text( $morceau );
+				}
+			}
+			return implode( '', $morceaux );
+		}
+		return self::tidy_text( $texte );
+	}
+
+	private static function tidy_text( string $texte ): string {
 		// Seules la virgule et le point ne prennent pas d'espace avant eux en
 		// français. Les ponctuations hautes (? ! ; :) en prennent une : les
 		// inclure ici produirait « ça va? », une faute de typographie sur chaque
 		// e-mail envoyé.
-		$texte = preg_replace( '/\h+([,.])/u', '$1', $texte );
+		// Espace insécable compris : « Bonjour {prenom}&nbsp;, » sans prénom
+		// laissait « Bonjour&nbsp;, ».
+		$texte = preg_replace( '/(?:\h|&nbsp;|&#160;)+([,.])/u', '$1', $texte );
 
 		// Ponctuations qui se suivent après un remplacement vide (« Bonjour ,, »).
 		// Les entités (&nbsp; &amp; &#039;…) finissent par « ; » : on les saute, sinon

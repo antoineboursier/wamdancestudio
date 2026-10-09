@@ -290,10 +290,13 @@ class EmailTheme {
 			max-width: {$largeur}px;
 			height: auto;
 		}
-		/* Dans une colonne : rien au-dessus, de l'air en dessous (empilement mobile). */
+		/* Dans une colonne : de l'air en dessous (empilement mobile), et au-dessus
+		   seulement si un bloc la précède dans la colonne, comme dans l'e-mail. */
 		body .wp-block-column .wp-block-image {
-			padding-top: {$rangee}px;
 			padding-bottom: {$img_apres}px;
+		}
+		body .wp-block-column > .wp-block-image:first-child {
+			padding-top: {$rangee}px;
 		}
 
 		/* Boîte (fond, bordure, arrondi) : {$boite_y} px d'air autour, {$boite_py} × {$boite_px} px

@@ -97,6 +97,11 @@ try {
 	$json = wp_json_encode( array( $data, $d ) );
 	wam_nl_assert( false === strpos( $json, $domaine ) && false === strpos( $json, 'Secret' ), 'ni e-mail ni prénom dans les réponses' );
 
+	echo "== Désinscriptions comptées en personnes ==\n";
+	Events::record( $nl, $abonnes[2], Events::TYPE_UNSUBSCRIBE ); // même personne : one-click puis bouton
+	$unsub = $appel( '/wam-nl/v1/kpis/newsletters/' . $nl )->get_data()['unsubscribes']['count'];
+	wam_nl_assert_equals( 1, (int) $unsub, 'deux événements de la même personne : 1 désinscription' );
+
 	echo "== Newsletter inconnue ==\n";
 	wam_nl_assert_equals( 404, $appel( '/wam-nl/v1/kpis/newsletters/999999999' )->get_status(), '404' );
 

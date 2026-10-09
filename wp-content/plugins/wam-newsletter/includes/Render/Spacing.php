@@ -59,6 +59,7 @@ class Spacing {
 	const MOBILE_IMAGE_AFTER  = 56;
 	const MOBILE_BOX_ROW_Y    = 28;
 	const MOBILE_BUTTON_Y     = 36;
+	const MOBILE_STACK        = 16;
 
 	/** Padding d'une rangée « haut/bas + gouttières ». */
 	public static function row( int $y ): string {
@@ -84,7 +85,7 @@ class Spacing {
 			width: 0 !important;
 		}
 		.wam-nl-stack-space {
-			height: 16px !important;
+			height: ' . self::MOBILE_STACK . 'px !important;
 		}
 		/* Plus d’air sur mobile, où les blocs s’empilent et se touchent vite. */
 		.wam-nl-row-image {
@@ -101,7 +102,7 @@ class Spacing {
 		/* Bannière : pleine largeur d’écran, puis agrandie à 140 % et centrée.
 		   Le logo est zoomé, les côtés sont rognés par overflow. */
 		.wam-nl-banner {
-			margin: 0 -20px !important;
+			margin: 0 -' . Brand::GUTTER . 'px !important;
 			overflow: hidden !important;
 		}
 		.wam-nl-banner__img {

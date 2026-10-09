@@ -32,11 +32,19 @@ wam_nl_assert_equals( 'd&#039;Ascq, Lille', Placeholders::tidy( 'd&#039;Ascq, Li
 wam_nl_assert_equals( 'Bonjour, ça va', Placeholders::tidy( 'Bonjour ,, ça va' ), 'virgules doublées toujours nettoyées' );
 wam_nl_assert_equals( 'Bonjour, ça va', Placeholders::tidy( 'Bonjour , ça va' ), 'espace avant la virgule toujours retirée' );
 
+wam_nl_assert_equals( 'Bonjour, voici', Placeholders::tidy( 'Bonjour &nbsp;, voici' ), 'prénom vide devant « &nbsp;, » : plus d’espace avant la virgule' );
+$avec_style = '<style>u + #body .x { color: red; } .a .b { margin: 0 }</style><p>Bonjour , ça va</p>';
+$propre     = Placeholders::tidy( $avec_style );
+wam_nl_assert( false !== strpos( $propre, 'u + #body .x' ) && false !== strpos( $propre, '.a .b' ), 'le <style> n’est jamais retouché (sélecteurs descendants intacts)' );
+wam_nl_assert( false !== strpos( $propre, '<p>Bonjour, ça va</p>' ), 'le texte autour l’est toujours' );
+
 echo "== Blocs WAM dessinés par l'éditeur : rangée de l'e-mail ==\n";
 $css = EmailTheme::canvas_css();
 wam_nl_assert( false !== strpos( $css, '.wp-block-wam-nl-button' ) && false !== strpos( $css, 'padding: 30px 20px;' ), 'bouton : 30 px en haut et en bas' );
 wam_nl_assert( false !== strpos( $css, '.wp-block-wam-nl-separator' ), 'séparateur : même padding que l’e-mail' );
 wam_nl_assert( 1 === preg_match( '/\+ :is\([^)]+\)\s*\{\s*margin-top: 40px !important;/', $css ), 'deux boîtes à la suite : 40 px, pas 20' );
+wam_nl_assert( false !== strpos( $css, '.wp-block-column > .wp-block-image:first-child' ), 'image de colonne : 12 px en tête de colonne seulement, comme l’e-mail' );
+wam_nl_assert( false === strpos( \WamNewsletter\Render\Spacing::mobile_css(), '-20px' ) || 20 === \WamNewsletter\Render\Brand::GUTTER, 'bannière mobile : gouttière lue dans Brand' );
 $js = (string) file_get_contents( WAM_NL_DIR . 'blocks/newsletter/index.js' );
 wam_nl_assert( false === strpos( $js, "margin: '13px 0'" ), 'séparateur : plus de marge de 13 px codée dans le JS' );
 

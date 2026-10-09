@@ -41,6 +41,7 @@ class Plugin {
 
 		// API et ligne de commande
 		Editor\RestApi::register_hooks();
+		Stats\Api::register_hooks();
 		CLI\Commands::register();
 	}
 }

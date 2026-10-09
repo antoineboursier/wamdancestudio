@@ -14,7 +14,7 @@ echo "== Valeurs par défaut ==\n";
 $d = Settings::defaults();
 wam_nl_assert_equals( 'WAM Dance Studio', $d['from_name'], 'expéditeur précalibré' );
 wam_nl_assert_equals( 'contact@wamdancestudio.fr', $d['from_email'], 'adresse d expédition' );
-wam_nl_assert_equals( 20, $d['batch_size'], 'taille de lot par défaut' );
+wam_nl_assert_equals( 10, $d['batch_size'], 'taille de lot par défaut' );
 wam_nl_assert_equals( 60, $d['batch_interval'], 'intervalle par défaut' );
 wam_nl_assert_equals( 5, $d['fail_threshold_batch'], 'seuil K' );
 wam_nl_assert_equals( 20, $d['fail_threshold_hour'], 'seuil M' );

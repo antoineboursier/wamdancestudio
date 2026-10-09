@@ -56,7 +56,7 @@ class Settings {
 			'smtp_secure'              => 'ssl',
 			'smtp_user'                => '',
 			// Débit
-			'batch_size'               => 20,
+			'batch_size'               => 10,
 			'batch_interval'           => 60,
 			'fail_threshold_batch'     => 5,
 			'fail_threshold_hour'      => 20,

@@ -248,7 +248,7 @@ try {
 	\WamNewsletter\Stats\Screen::render();
 	$ecran = (string) ob_get_clean();
 	wp_set_current_user( $ancien );
-	wam_nl_assert( false !== strpos( $ecran, 'Remise chez les destinataires' ), 'section remise rendue' );
+	wam_nl_assert( false !== strpos( $ecran, 'Prise en charge par le serveur d’envoi' ), 'section remise rendue' );
 	wam_nl_assert( false !== strpos( $ecran, 'remise-remis' . $domaine ) && false !== strpos( $ecran, '552 5.2.2 mailbox full' ), 'adresse refusée listée avec la réponse du serveur' );
 	wam_nl_assert( false !== strpos( $ecran, 'Abonné·e' ) && false === strpos( $ecran, '>subscribed<' ), 'statut de l’abonné·e traduit' );
 	wam_nl_assert( false !== strpos( $ecran, 'wam_nl_delivery_sync' ), 'bouton de vérification manuelle' );

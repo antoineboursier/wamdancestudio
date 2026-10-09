@@ -283,7 +283,7 @@ class JournalScreen {
 	/** Ce que le serveur du destinataire a fait du message (suivi cPanel). */
 	private static function libelle_remise( string $remise ): string {
 		$libelles = array(
-			\WamNewsletter\Sending\Delivery::DELIVERED => __( 'Remis', 'wam-newsletter' ),
+			\WamNewsletter\Sending\Delivery::DELIVERED => __( 'Pris en charge', 'wam-newsletter' ),
 			\WamNewsletter\Sending\Delivery::DEFERRED  => __( 'En attente', 'wam-newsletter' ),
 			\WamNewsletter\Sending\Delivery::FAILED    => __( 'Refusé', 'wam-newsletter' ),
 		);

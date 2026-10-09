@@ -68,6 +68,7 @@ class Delivery {
 	public static function register_hooks(): void {
 		add_action( self::HOOK, array( self::class, 'run' ), 10, 1 );
 		add_action( 'admin_post_wam_nl_delivery_sync', array( self::class, 'handle_manual_sync' ) );
+		add_action( 'admin_post_wam_nl_resend_undelivered', array( self::class, 'handle_resend' ) );
 	}
 
 	/**
@@ -237,6 +238,32 @@ class Delivery {
 			Notices::error( $resultat->get_error_message() );
 		} else {
 			Notices::success( self::summary( $resultat ) );
+		}
+		wp_safe_redirect( StatsScreen::url( $id ) );
+		exit;
+	}
+
+	/** Bouton « Renvoyer aux destinataires sans trace » de l'écran de statistiques. */
+	public static function handle_resend(): void {
+		if ( ! current_user_can( Install::CAPABILITY ) ) {
+			wp_die( esc_html__( 'Accès refusé.', 'wam-newsletter' ) );
+		}
+		$id = isset( $_POST['newsletter'] ) ? (int) $_POST['newsletter'] : 0;
+		check_admin_referer( 'wam_nl_resend_' . $id );
+
+		$resultat = Scheduler::resend_undelivered( $id );
+		if ( is_wp_error( $resultat ) ) {
+			Notices::error( $resultat->get_error_message() );
+		} elseif ( 0 === $resultat ) {
+			Notices::warning( __( 'Personne à qui renvoyer : chaque destinataire a une trace de remise ou une ouverture.', 'wam-newsletter' ) );
+		} else {
+			Notices::success(
+				sprintf(
+					/* translators: %d nombre de destinataires */
+					__( 'Renvoi lancé pour %d destinataire(s), au rythme du plafond horaire.', 'wam-newsletter' ),
+					$resultat
+				)
+			);
 		}
 		wp_safe_redirect( StatsScreen::url( $id ) );
 		exit;

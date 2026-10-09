@@ -324,6 +324,41 @@ class Scheduler {
 		self::unschedule( $newsletter_id );
 		self::schedule( $newsletter_id, time() + $intervalle + 180 );
 
+		// Plafond horaire du domaine (o2switch : 180/h tout compris). Au plafond,
+		// on n'envoie rien et on revient quand le plus ancien envoi de l'heure
+		// glissante en sort : dépasser, c'est voir les messages mis en attente
+		// puis jetés par le serveur, alors qu'ils ont été acceptés (donc
+		// invisibles pour la pause automatique).
+		$plafond = max( 1, (int) ( $reglages['hourly_cap'] ?? 120 ) );
+		$heure   = Queue::sent_in_last_hour();
+		$place   = $plafond - $heure['count'];
+		if ( $place <= 0 ) {
+			$reprise = time() + 60;
+			if ( '' !== $heure['oldest'] ) {
+				try {
+					$reprise = max( $reprise, ( new \DateTimeImmutable( $heure['oldest'], wp_timezone() ) )->getTimestamp() + 3600 + 15 );
+				} catch ( \Exception $e ) {
+					unset( $e );
+				}
+			}
+			Log::record(
+				$newsletter_id,
+				Log::TYPE_BATCH,
+				sprintf(
+					/* translators: 1: envois de l'heure, 2: plafond, 3: heure de reprise */
+					__( 'Plafond horaire atteint (%1$d/%2$d) : reprise vers %3$s.', 'wam-newsletter' ),
+					$heure['count'],
+					$plafond,
+					wp_date( 'H:i', $reprise )
+				),
+				Queue::counts( $newsletter_id )
+			);
+			self::unschedule( $newsletter_id );
+			self::schedule( $newsletter_id, $reprise );
+			return;
+		}
+		$taille = min( $taille, $place );
+
 		$lot = Queue::next_batch( $newsletter_id, $taille );
 
 		if ( ! $lot ) {
@@ -543,6 +578,48 @@ class Scheduler {
 	}
 
 	/** Arrête un envoi en cours ou programmé, sans vider la file. */
+	/**
+	 * Renvoie la newsletter aux seuls destinataires qui ne l'ont pas reçue
+	 * (« sans trace » au suivi de livraison, aucune ouverture ni clic).
+	 *
+	 * Exige un relevé de remise postérieur à la fin de l'envoi : sans lui, une
+	 * absence de trace ne prouve rien et le renvoi ferait des doublons.
+	 *
+	 * @return int|WP_Error Nombre de destinataires remis en file.
+	 */
+	public static function resend_undelivered( int $newsletter_id ) {
+		if ( self::STATUS_SENT !== self::status( $newsletter_id ) ) {
+			return new WP_Error( 'wam_nl_renvoi', __( 'Le renvoi n’est possible qu’une fois l’envoi terminé.', 'wam-newsletter' ) );
+		}
+		$fin    = (string) get_post_meta( $newsletter_id, self::META_SENT_AT, true );
+		$releve = Log::last_of_type( $newsletter_id, Log::TYPE_DELIVERY );
+		if ( '' === $fin || '' === $releve || $releve < $fin ) {
+			return new WP_Error( 'wam_nl_renvoi', __( 'Vérifiez d’abord la remise (bouton « Vérifier la remise maintenant ») : sans relevé postérieur à l’envoi, on ne sait pas qui n’a rien reçu.', 'wam-newsletter' ) );
+		}
+		$ids = Queue::undelivered_ids( $newsletter_id );
+		if ( ! $ids ) {
+			return 0;
+		}
+		$n = Queue::requeue_ids( $ids );
+		if ( $n > 0 ) {
+			delete_post_meta( $newsletter_id, self::META_RETRIED );
+			self::set_status( $newsletter_id, self::STATUS_SENDING );
+			Log::record(
+				$newsletter_id,
+				Log::TYPE_RESUME,
+				sprintf(
+					/* translators: %d nombre de destinataires */
+					__( 'Renvoi aux %d destinataire(s) sans trace de remise (jetés par le serveur d’envoi).', 'wam-newsletter' ),
+					$n
+				),
+				Queue::counts( $newsletter_id )
+			);
+			self::unschedule( $newsletter_id );
+			self::schedule( $newsletter_id, time() + 5 );
+		}
+		return $n;
+	}
+
 	public static function cancel( int $newsletter_id ): void {
 		self::unschedule( $newsletter_id );
 		self::set_status( $newsletter_id, self::STATUS_PAUSED );

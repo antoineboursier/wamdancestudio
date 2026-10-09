@@ -136,7 +136,7 @@ class Screen {
 		$remise = self::delivery_counts( $id );
 		if ( $remise['checked'] > 0 ) {
 			self::tile(
-				__( 'Remis', 'wam-newsletter' ),
+				__( 'Pris en charge', 'wam-newsletter' ),
 				self::pct( $remise['delivered'], $envoyes ),
 				sprintf( /* translators: 1: refusés, 2: en attente */ __( '%1$s refusés · %2$s en attente', 'wam-newsletter' ), number_format_i18n( $remise['failed'] ), number_format_i18n( $remise['deferred'] ) ),
 				$remise['failed'] > 0
@@ -243,14 +243,14 @@ class Screen {
 	}
 
 	private static function render_delivery( int $id, array $remise ): void {
-		echo '<section class="wam-nl-card"><h2>' . esc_html__( 'Remise chez les destinataires', 'wam-newsletter' ) . '</h2>';
+		echo '<section class="wam-nl-card"><h2>' . esc_html__( 'Prise en charge par le serveur d’envoi', 'wam-newsletter' ) . '</h2>';
 
 		if ( ! Delivery::configured() ) {
 			echo '<p class="wam-nl-card__aide">' . esc_html__( 'Non branché. Le suivi de livraison d’o2switch dit, pour chaque adresse, si le message a été remis, refusé ou mis en attente par le serveur du destinataire. Il suffit de renseigner l’identifiant et le jeton cPanel dans Réglages → Suivi.', 'wam-newsletter' ) . '</p></section>';
 			return;
 		}
 
-		echo '<p class="wam-nl-card__aide">' . esc_html__( 'Relevé automatiquement 15 minutes, 2 heures et 24 heures après la fin de l’envoi, d’après le suivi de livraison d’o2switch. Une adresse refusée parce qu’elle n’existe pas passe en rebond et ne recevra plus rien.', 'wam-newsletter' ) . '</p>';
+		echo '<p class="wam-nl-card__aide">' . esc_html__( 'Relevé automatiquement 15 minutes, 2 heures et 24 heures après la fin de l’envoi, d’après le suivi de livraison d’o2switch. « Pris en charge » veut dire accepté par le relais d’o2switch, pas encore par la messagerie du destinataire : un refus de Gmail ou d’Outlook revient ensuite sous forme d’e-mail d’échec dans la boîte contact@ et n’apparaît pas ici. « Sans trace » signale un message que le serveur d’envoi n’a jamais transmis (jeté au-delà de son plafond horaire) : il peut être renvoyé.', 'wam-newsletter' ) . '</p>';
 
 		printf(
 			'<form method="post" action="%s"><input type="hidden" name="action" value="wam_nl_delivery_sync"><input type="hidden" name="newsletter" value="%d">%s<button type="submit" class="button">%s</button></form>',
@@ -259,6 +259,32 @@ class Screen {
 			wp_nonce_field( 'wam_nl_delivery_sync_' . $id, '_wpnonce', true, false ),
 			esc_html__( 'Vérifier la remise maintenant', 'wam-newsletter' )
 		);
+
+		// Renvoi aux destinataires jetés par le serveur (aucune trace, aucune ouverture).
+		$sans_trace = Scheduler::STATUS_SENT === Scheduler::status( $id ) ? count( Queue::undelivered_ids( $id ) ) : 0;
+		if ( $remise['checked'] > 0 && $sans_trace > 0 ) {
+			printf(
+				'<p class="wam-nl-card__aide">%s</p><form method="post" action="%s" onsubmit="return confirm(%s);"><input type="hidden" name="action" value="wam_nl_resend_undelivered"><input type="hidden" name="newsletter" value="%d">%s<button type="submit" class="button">%s</button></form>',
+				esc_html(
+					sprintf(
+						/* translators: %d nombre de destinataires */
+						__( '%d destinataire(s) sans aucune trace de remise ni ouverture : le serveur d’envoi les a probablement jetés (plafond horaire d’o2switch). Le renvoi ne concerne qu’elles et eux, au rythme du plafond horaire.', 'wam-newsletter' ),
+						$sans_trace
+					)
+				),
+				esc_url( admin_url( 'admin-post.php' ) ),
+				esc_attr( wp_json_encode( __( 'Renvoyer cette newsletter aux destinataires sans trace de remise ?', 'wam-newsletter' ) ) ),
+				(int) $id,
+				wp_nonce_field( 'wam_nl_resend_' . $id, '_wpnonce', true, false ),
+				esc_html(
+					sprintf(
+						/* translators: %d nombre de destinataires */
+						__( 'Renvoyer aux %d destinataire(s) sans trace', 'wam-newsletter' ),
+						$sans_trace
+					)
+				)
+			);
+		}
 
 		if ( $remise['failed'] > 0 ) {
 			global $wpdb;

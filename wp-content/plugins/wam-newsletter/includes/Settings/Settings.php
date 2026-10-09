@@ -41,6 +41,7 @@ class Settings {
 		'batch_interval'       => array( 10, 3600 ),
 		'fail_threshold_batch' => array( 1, 1000 ),
 		'fail_threshold_hour'  => array( 1, 1000 ),
+		'hourly_cap'           => array( 10, 1000 ),
 	);
 
 	public static function defaults(): array {
@@ -60,6 +61,11 @@ class Settings {
 			'batch_interval'           => 60,
 			'fail_threshold_batch'     => 5,
 			'fail_threshold_hour'      => 20,
+			// o2switch plafonne le DOMAINE à 180 e-mails par heure, tout compris
+			// (factures, réservations, formulaires). Au-delà, il met en attente puis
+			// jette les messages (incident du 09/10/2026, 238 non remis). 120 laisse
+			// 60 par heure au courrier du site.
+			'hourly_cap'               => 120,
 			// Tests
 			'test_recipients'          => '',
 			// Rendu de l'e-mail

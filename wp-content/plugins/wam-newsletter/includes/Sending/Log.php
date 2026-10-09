@@ -138,6 +138,15 @@ class Log {
 		);
 	}
 
+	/** Horodatage (heure du site) de la dernière entrée d'un type, ou ''. */
+	public static function last_of_type( int $newsletter_id, string $type ): string {
+		global $wpdb;
+		$t = self::table();
+		return (string) $wpdb->get_var(
+			$wpdb->prepare( "SELECT MAX(created_at) FROM `$t` WHERE newsletter_id = %d AND type = %s", $newsletter_id, $type )
+		);
+	}
+
 	public static function count( int $newsletter_id ): int {
 		if ( $newsletter_id <= 0 ) {
 			return 0;

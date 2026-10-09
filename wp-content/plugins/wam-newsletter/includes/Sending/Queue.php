@@ -286,6 +286,73 @@ class Queue {
 		);
 	}
 
+	/**
+	 * Messages partis (ou tentés) sur l'heure glissante, TOUTES newsletters
+	 * confondues : c'est ce que compte o2switch pour son plafond horaire.
+	 *
+	 * @return array{count:int,oldest:string} oldest = plus ancien envoi de la fenêtre (heure du site)
+	 */
+	public static function sent_in_last_hour(): array {
+		global $wpdb;
+		$t      = self::table();
+		$depuis = current_datetime()->modify( '-3600 seconds' )->format( 'Y-m-d H:i:s' );
+		$ligne  = $wpdb->get_row(
+			$wpdb->prepare(
+				"SELECT COUNT(*) AS n, MIN(sent_at) AS oldest FROM `$t` WHERE status IN (%s, %s, %s) AND sent_at IS NOT NULL AND sent_at >= %s",
+				self::STATUS_SENT,
+				self::STATUS_FAILED,
+				self::STATUS_SENDING,
+				$depuis
+			),
+			ARRAY_A
+		);
+		return array(
+			'count'  => (int) ( $ligne['n'] ?? 0 ),
+			'oldest' => (string) ( $ligne['oldest'] ?? '' ),
+		);
+	}
+
+	/**
+	 * Destinataires « sans trace » : marqués envoyés, mais absents du suivi de
+	 * livraison d'o2switch (jetés par le serveur avant tout relais) et sans la
+	 * moindre ouverture ni clic. Ce sont ceux qui n'ont rien reçu.
+	 */
+	public static function undelivered_ids( int $newsletter_id ): array {
+		global $wpdb;
+		$t = self::table();
+		$e = \WamNewsletter\Stats\Events::table();
+		return array_map(
+			'intval',
+			(array) $wpdb->get_col(
+				$wpdb->prepare(
+					"SELECT q.id FROM `$t` q
+					 WHERE q.newsletter_id = %d AND q.status = %s AND q.delivery IS NULL
+					   AND NOT EXISTS ( SELECT 1 FROM `$e` ev WHERE ev.newsletter_id = q.newsletter_id AND ev.subscriber_id = q.subscriber_id AND ev.type IN ('open','click') )",
+					$newsletter_id,
+					self::STATUS_SENT
+				)
+			)
+		);
+	}
+
+	/** Remet en file les lignes données (renvoi des non-remis). */
+	public static function requeue_ids( array $ids ): int {
+		global $wpdb;
+		$ids = array_values( array_filter( array_map( 'intval', $ids ) ) );
+		if ( ! $ids ) {
+			return 0;
+		}
+		$t  = self::table();
+		$in = implode( ',', array_fill( 0, count( $ids ), '%d' ) );
+		$wpdb->query(
+			$wpdb->prepare(
+				"UPDATE `$t` SET status = %s, sent_at = NULL, attempts = 0, last_error = %s WHERE status = %s AND id IN ($in)",
+				array_merge( array( self::STATUS_PENDING, 'Renvoi : non remis au premier envoi.', self::STATUS_SENT ), $ids )
+			)
+		);
+		return (int) $wpdb->rows_affected;
+	}
+
 	/** Horodate une tentative, pour que recent_failures() puisse la compter. */
 	public static function touch_attempt( int $id ): void {
 		global $wpdb;

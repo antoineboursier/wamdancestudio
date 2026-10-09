@@ -26,6 +26,7 @@ class SettingsPage {
 
 	/** Cases à cocher de chaque onglet, pour la remise à false. */
 	const CHECKBOXES = array(
+		'debit'      => array( 'quiet_hours', 'auto_resend' ),
 		'formulaire' => array( 'welcome_email_enabled', 'woo_auto_sync' ),
 		'suivi'      => array( 'track_opens', 'track_clicks', 'delete_data_on_uninstall' ),
 	);
@@ -452,6 +453,20 @@ class SettingsPage {
 		self::field_text( 'batch_interval', __( 'Intervalle entre deux lots (secondes)', 'wam-newsletter' ), $r['batch_interval'], 'number', __( 'Entre 10 et 3600.', 'wam-newsletter' ) );
 		self::field_text( 'fail_threshold_batch', __( 'Pause après N échecs dans un lot', 'wam-newsletter' ), $r['fail_threshold_batch'], 'number' );
 		self::field_text( 'fail_threshold_hour', __( 'Pause après N échecs sur une heure', 'wam-newsletter' ), $r['fail_threshold_hour'], 'number' );
+		self::field_checkbox(
+			'quiet_hours',
+			__( 'Heures calmes', 'wam-newsletter' ),
+			(bool) $r['quiet_hours'],
+			__( 'Pas d’envoi la nuit : pendant la plage ci-dessous, l’envoi se met en veille et reprend tout seul à la fin de la plage.', 'wam-newsletter' )
+		);
+		self::field_text( 'quiet_start', __( 'Début des heures calmes (heure)', 'wam-newsletter' ), $r['quiet_start'], 'number', __( 'De 0 à 23. Par défaut 23 h.', 'wam-newsletter' ) );
+		self::field_text( 'quiet_end', __( 'Reprise de l’envoi (heure)', 'wam-newsletter' ), $r['quiet_end'], 'number', __( 'De 0 à 23. Par défaut 7 h.', 'wam-newsletter' ) );
+		self::field_checkbox(
+			'auto_resend',
+			__( 'Renvoi automatique des « sans trace »', 'wam-newsletter' ),
+			(bool) $r['auto_resend'],
+			__( 'Deux heures après la fin de l’envoi, les destinataires que le serveur d’envoi n’a jamais transmis (aucune trace de remise, aucune ouverture) reçoivent la newsletter une seconde fois, une seule. Rien n’est renvoyé si plus de la moitié des envois paraissent sans trace : c’est alors plus probablement le suivi qui est en panne. Nécessite le suivi de remise (Réglages → Suivi).', 'wam-newsletter' )
+		);
 		echo '</table>';
 	}
 

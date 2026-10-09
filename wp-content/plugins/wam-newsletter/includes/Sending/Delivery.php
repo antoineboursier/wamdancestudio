@@ -219,10 +219,64 @@ class Delivery {
 			$resultat = self::sync( (int) $newsletter_id );
 			if ( is_wp_error( $resultat ) ) {
 				error_log( 'wam-newsletter : relevé de remise impossible : ' . $resultat->get_error_message() ); // phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log
+			} else {
+				self::maybe_auto_resend( (int) $newsletter_id );
 			}
 		} catch ( \Throwable $e ) {
 			error_log( 'wam-newsletter : relevé de remise en échec : ' . $e->getMessage() ); // phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log
 		}
+	}
+
+	/** Délai après la fin de l'envoi avant tout renvoi automatique (relevé de +2 h). */
+	const AUTO_RESEND_AFTER = 90 * MINUTE_IN_SECONDS;
+
+	/** Âge minimum d'un envoi pour le considérer « sans trace ». */
+	const AUTO_RESEND_MIN_AGE = 30 * MINUTE_IN_SECONDS;
+
+	/** Au-delà de cette part de « sans trace », on suspecte le suivi et on ne renvoie rien. */
+	const AUTO_RESEND_MAX_SHARE = 0.5;
+
+	/**
+	 * Renvoi automatique, une seule fois par personne, aux destinataires que le
+	 * serveur d'envoi a jetés. Appelé après un relevé programmé réussi.
+	 *
+	 * @return int|string Nombre remis en file, ou raison du refus (pour les tests et le journal).
+	 */
+	public static function maybe_auto_resend( int $newsletter_id ) {
+		if ( empty( Settings::all()['auto_resend'] ) ) {
+			return 'off';
+		}
+		if ( Scheduler::STATUS_SENT !== Scheduler::status( $newsletter_id ) ) {
+			return 'not_sent';
+		}
+		$fin = self::local_timestamp( (string) get_post_meta( $newsletter_id, Scheduler::META_SENT_AT, true ) );
+		if ( ! $fin || Scheduler::now() - $fin < self::AUTO_RESEND_AFTER ) {
+			return 'too_early';
+		}
+		if ( self::$capped ) {
+			return 'capped';
+		}
+		$ids = Queue::undelivered_ids( $newsletter_id, self::AUTO_RESEND_MIN_AGE );
+		if ( ! $ids ) {
+			return 0;
+		}
+		$envoyes = (int) ( Queue::counts( $newsletter_id )['sent'] ?? 0 );
+		if ( $envoyes <= 0 || count( $ids ) > self::AUTO_RESEND_MAX_SHARE * $envoyes ) {
+			Log::record(
+				$newsletter_id,
+				Log::TYPE_DELIVERY,
+				sprintf(
+					/* translators: 1: sans trace, 2: envoyés */
+					__( 'Renvoi automatique annulé : %1$d destinataire(s) sans trace sur %2$d envoyés, c’est trop pour être des messages jetés. Le suivi de remise est peut-être en panne : vérifiez avant de renvoyer à la main.', 'wam-newsletter' ),
+					count( $ids ),
+					$envoyes
+				),
+				Queue::counts( $newsletter_id )
+			);
+			return 'too_many';
+		}
+		$n = Scheduler::resend_undelivered( $newsletter_id, self::AUTO_RESEND_MIN_AGE );
+		return is_wp_error( $n ) ? $n->get_error_code() : $n;
 	}
 
 	/** Bouton « Vérifier la remise » de l'écran de statistiques. */

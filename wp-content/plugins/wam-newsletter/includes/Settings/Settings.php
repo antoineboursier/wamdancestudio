@@ -23,7 +23,7 @@ class Settings {
 	const EMAIL_KEYS = array( 'from_email', 'reply_to', 'smtp_user' );
 
 	/** Clés à valeur booléenne (cases à cocher). */
-	const BOOL_KEYS = array( 'welcome_email_enabled', 'woo_auto_sync', 'track_opens', 'track_clicks', 'delete_data_on_uninstall' );
+	const BOOL_KEYS = array( 'welcome_email_enabled', 'woo_auto_sync', 'track_opens', 'track_clicks', 'delete_data_on_uninstall', 'quiet_hours', 'auto_resend' );
 
 	/** Clés à texte riche (HTML simple autorisé). */
 	const RICH_TEXT_KEYS = array( 'form_consent_text', 'welcome_email_body' );
@@ -42,6 +42,8 @@ class Settings {
 		'fail_threshold_batch' => array( 1, 1000 ),
 		'fail_threshold_hour'  => array( 1, 1000 ),
 		'hourly_cap'           => array( 10, 1000 ),
+		'quiet_start'          => array( 0, 23 ),
+		'quiet_end'            => array( 0, 23 ),
 	);
 
 	public static function defaults(): array {
@@ -66,6 +68,13 @@ class Settings {
 			// jette les messages (incident du 09/10/2026, 238 non remis). 120 laisse
 			// 60 par heure au courrier du site.
 			'hourly_cap'               => 120,
+			// Heures calmes : pas d'envoi la nuit, l'envoi reprend à la fin de la plage.
+			'quiet_hours'              => true,
+			'quiet_start'              => 23,
+			'quiet_end'                => 7,
+			// Renvoi automatique, une seule fois, aux destinataires « sans trace »
+			// (jetés par le serveur d'envoi), au relevé de remise de +2 h.
+			'auto_resend'              => true,
 			// Tests
 			'test_recipients'          => '',
 			// Rendu de l'e-mail

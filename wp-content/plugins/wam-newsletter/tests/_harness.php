@@ -16,6 +16,16 @@ defined( 'ABSPATH' ) || exit;
 // réactive explicitement pour tester ce cas précis.
 add_filter( 'wam_nl_quality_check_dns', '__return_false' );
 
+// Les tests d'envoi ne doivent pas dépendre de l'heure à laquelle on les joue :
+// sans ceci, une suite lancée après 23 h verrait l'envoi se mettre en veille.
+// Seules les heures calmes lisent cette horloge ; test-quiet-resend.php la déplace.
+add_filter(
+	'wam_nl_now',
+	static function () {
+		return current_datetime()->setTime( 12, 0, 0 )->getTimestamp();
+	}
+);
+
 $GLOBALS['wam_nl_test_pass'] = 0;
 $GLOBALS['wam_nl_test_fail'] = 0;
 

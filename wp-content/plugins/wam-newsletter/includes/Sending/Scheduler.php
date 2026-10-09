@@ -301,6 +301,25 @@ class Scheduler {
 
 		$intervalle = max( 10, (int) $reglages['batch_interval'] );
 
+		// Heures calmes : personne ne doit recevoir la newsletter en pleine nuit.
+		// On se met en veille jusqu'à la fin de la plage, sans rien envoyer.
+		$reveil = self::quiet_until( $reglages );
+		if ( $reveil > 0 ) {
+			Log::record(
+				$newsletter_id,
+				Log::TYPE_BATCH,
+				sprintf(
+					/* translators: %s heure de reprise */
+					__( 'Heures calmes : envoi en veille, reprise à %s.', 'wam-newsletter' ),
+					wp_date( 'H:i', $reveil )
+				),
+				Queue::counts( $newsletter_id )
+			);
+			self::unschedule( $newsletter_id );
+			self::schedule( $newsletter_id, $reveil );
+			return;
+		}
+
 		// Lignes laissées « sending » par un processus mort : on les sort du jeu
 		// (sans les renvoyer) pour que l'envoi puisse se terminer.
 		$orphelines = Queue::release_stale( $newsletter_id );
@@ -578,6 +597,38 @@ class Scheduler {
 	}
 
 	/** Arrête un envoi en cours ou programmé, sans vider la file. */
+	/** Heure courante (horodatage Unix), substituable par les tests. */
+	public static function now(): int {
+		return (int) apply_filters( 'wam_nl_now', time() );
+	}
+
+	/**
+	 * Si l'on est dans les heures calmes, horodatage de leur fin ; sinon 0.
+	 * La plage peut passer minuit (23 h → 7 h). Début = fin : désactivé.
+	 */
+	public static function quiet_until( ?array $reglages = null ): int {
+		$reglages = $reglages ?? Settings::all();
+		if ( empty( $reglages['quiet_hours'] ) ) {
+			return 0;
+		}
+		$debut = (int) ( $reglages['quiet_start'] ?? 23 );
+		$fin   = (int) ( $reglages['quiet_end'] ?? 7 );
+		if ( $debut === $fin ) {
+			return 0;
+		}
+		$maintenant = ( new \DateTimeImmutable( '@' . self::now() ) )->setTimezone( wp_timezone() );
+		$heure      = (int) $maintenant->format( 'G' );
+		$dedans     = $debut < $fin ? ( $heure >= $debut && $heure < $fin ) : ( $heure >= $debut || $heure < $fin );
+		if ( ! $dedans ) {
+			return 0;
+		}
+		$reveil = $maintenant->setTime( $fin, 0, 0 );
+		if ( $reveil <= $maintenant ) {
+			$reveil = $reveil->modify( '+1 day' );
+		}
+		return $reveil->getTimestamp();
+	}
+
 	/**
 	 * Renvoie la newsletter aux seuls destinataires qui ne l'ont pas reçue
 	 * (« sans trace » au suivi de livraison, aucune ouverture ni clic).
@@ -587,7 +638,7 @@ class Scheduler {
 	 *
 	 * @return int|WP_Error Nombre de destinataires remis en file.
 	 */
-	public static function resend_undelivered( int $newsletter_id ) {
+	public static function resend_undelivered( int $newsletter_id, int $min_age = 0 ) {
 		if ( self::STATUS_SENT !== self::status( $newsletter_id ) ) {
 			return new WP_Error( 'wam_nl_renvoi', __( 'Le renvoi n’est possible qu’une fois l’envoi terminé.', 'wam-newsletter' ) );
 		}
@@ -596,7 +647,7 @@ class Scheduler {
 		if ( '' === $fin || '' === $releve || $releve < $fin ) {
 			return new WP_Error( 'wam_nl_renvoi', __( 'Vérifiez d’abord la remise (bouton « Vérifier la remise maintenant ») : sans relevé postérieur à l’envoi, on ne sait pas qui n’a rien reçu.', 'wam-newsletter' ) );
 		}
-		$ids = Queue::undelivered_ids( $newsletter_id );
+		$ids = Queue::undelivered_ids( $newsletter_id, $min_age );
 		if ( ! $ids ) {
 			return 0;
 		}

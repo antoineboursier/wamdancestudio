@@ -316,26 +316,33 @@ class Queue {
 	 * Destinataires « sans trace » : marqués envoyés, mais absents du suivi de
 	 * livraison d'o2switch (jetés par le serveur avant tout relais) et sans la
 	 * moindre ouverture ni clic. Ce sont ceux qui n'ont rien reçu.
+	 *
+	 * Une ligne déjà renvoyée une fois (`resent`) n'est jamais reproposée.
+	 *
+	 * @param int $min_age Âge minimum de l'envoi, en secondes (laisse au suivi le temps de voir passer le message).
 	 */
-	public static function undelivered_ids( int $newsletter_id ): array {
+	public static function undelivered_ids( int $newsletter_id, int $min_age = 0 ): array {
 		global $wpdb;
-		$t = self::table();
-		$e = \WamNewsletter\Stats\Events::table();
+		$t      = self::table();
+		$e      = \WamNewsletter\Stats\Events::table();
+		$limite = current_datetime()->modify( '-' . max( 0, $min_age ) . ' seconds' )->format( 'Y-m-d H:i:s' );
 		return array_map(
 			'intval',
 			(array) $wpdb->get_col(
 				$wpdb->prepare(
 					"SELECT q.id FROM `$t` q
-					 WHERE q.newsletter_id = %d AND q.status = %s AND q.delivery IS NULL
+					 WHERE q.newsletter_id = %d AND q.status = %s AND q.delivery IS NULL AND q.resent = 0
+					   AND q.sent_at IS NOT NULL AND q.sent_at <= %s
 					   AND NOT EXISTS ( SELECT 1 FROM `$e` ev WHERE ev.newsletter_id = q.newsletter_id AND ev.subscriber_id = q.subscriber_id AND ev.type IN ('open','click') )",
 					$newsletter_id,
-					self::STATUS_SENT
+					self::STATUS_SENT,
+					$limite
 				)
 			)
 		);
 	}
 
-	/** Remet en file les lignes données (renvoi des non-remis). */
+	/** Remet en file les lignes données (renvoi des non-remis), une seule fois par ligne. */
 	public static function requeue_ids( array $ids ): int {
 		global $wpdb;
 		$ids = array_values( array_filter( array_map( 'intval', $ids ) ) );
@@ -346,7 +353,7 @@ class Queue {
 		$in = implode( ',', array_fill( 0, count( $ids ), '%d' ) );
 		$wpdb->query(
 			$wpdb->prepare(
-				"UPDATE `$t` SET status = %s, sent_at = NULL, attempts = 0, last_error = %s WHERE status = %s AND id IN ($in)",
+				"UPDATE `$t` SET status = %s, sent_at = NULL, attempts = 0, resent = 1, last_error = %s WHERE status = %s AND resent = 0 AND id IN ($in)",
 				array_merge( array( self::STATUS_PENDING, 'Renvoi : non remis au premier envoi.', self::STATUS_SENT ), $ids )
 			)
 		);

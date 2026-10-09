@@ -18,11 +18,18 @@ defined( 'ABSPATH' ) || exit;
  * boîte pleine) ou mis en attente. Le serveur d'o2switch le sait, lui : chaque
  * remise est consignée et lisible par l'API UAPI `EmailTrack::search`.
  *
- * Configuration dans wp-config.php, JAMAIS en base (même règle que le mot de
- * passe SMTP) :
- *   define( 'WAM_NL_CPANEL_USER',  'yuqo3097' );        // identifiant cPanel
- *   define( 'WAM_NL_CPANEL_TOKEN', '…' );               // cPanel → Gérer les jetons d'API
- *   define( 'WAM_NL_CPANEL_HOST',  'cpanel.wamdancestudio.fr' ); // facultatif
+ * Configuration, au choix :
+ *  - depuis Réglages → Suivi : identifiant en clair, jeton CHIFFRÉ en base
+ *    (AES-256-GCM, clé dérivée des clés secrètes de wp-config.php) ;
+ *  - ou dans wp-config.php, prioritaire s'il est renseigné :
+ *      define( 'WAM_NL_CPANEL_USER',  'yuqo3097' );
+ *      define( 'WAM_NL_CPANEL_TOKEN', '…' );
+ *      define( 'WAM_NL_CPANEL_HOST',  'cpanel.wamdancestudio.fr' ); // facultatif
+ *
+ * Le chiffrement protège le jeton d'une fuite de la base seule (sauvegarde,
+ * export, copie locale) ; il ne protège pas d'un accès aux fichiers ET à la
+ * base. Corollaire utile : la copie locale (autres clés secrètes) ne peut pas
+ * relire le jeton de la prod.
  *
  * Rebonds : un REFUS DÉFINITIF du serveur distant pour une adresse inexistante
  * (5.1.x, « user unknown »…) marque la personne en rebond — c'est une vraie
@@ -37,6 +44,8 @@ class Delivery {
 	const HOOK  = 'wam_nl_delivery_sync';
 	const GROUP = 'wam-newsletter';
 
+	const OPTION = 'wam_nl_cpanel';
+
 	const DELIVERED = 'delivered';
 	const DEFERRED  = 'deferred';
 	const FAILED    = 'failed';
@@ -50,17 +59,115 @@ class Delivery {
 	 * @return array{host:string,user:string,token:string}
 	 */
 	public static function config(): array {
-		$config = array(
+		$enregistre = self::stored();
+		$config     = array(
 			'host'  => defined( 'WAM_NL_CPANEL_HOST' ) ? (string) WAM_NL_CPANEL_HOST : 'cpanel.wamdancestudio.fr',
-			'user'  => defined( 'WAM_NL_CPANEL_USER' ) ? (string) WAM_NL_CPANEL_USER : '',
-			'token' => defined( 'WAM_NL_CPANEL_TOKEN' ) ? (string) WAM_NL_CPANEL_TOKEN : '',
+			'user'  => $enregistre['user'],
+			'token' => $enregistre['token'],
 		);
+		if ( defined( 'WAM_NL_CPANEL_USER' ) && defined( 'WAM_NL_CPANEL_TOKEN' ) && '' !== (string) WAM_NL_CPANEL_TOKEN ) {
+			$config['user']  = (string) WAM_NL_CPANEL_USER;
+			$config['token'] = (string) WAM_NL_CPANEL_TOKEN;
+		}
 		/**
 		 * Permet aux tests de fournir une configuration sans toucher aux constantes.
 		 *
 		 * @param array $config
 		 */
 		return (array) apply_filters( 'wam_nl_cpanel_config', $config );
+	}
+
+	/** D'où vient la configuration : 'constants', 'admin' ou ''. */
+	public static function source(): string {
+		if ( defined( 'WAM_NL_CPANEL_USER' ) && defined( 'WAM_NL_CPANEL_TOKEN' ) && '' !== (string) WAM_NL_CPANEL_TOKEN ) {
+			return 'constants';
+		}
+		$s = self::stored();
+		return ( '' !== $s['user'] && '' !== $s['token'] ) ? 'admin' : '';
+	}
+
+	/**
+	 * Identifiant et jeton enregistrés depuis l'admin, jeton déchiffré.
+	 *
+	 * @return array{user:string,token:string,has_token:bool,unreadable:bool}
+	 */
+	public static function stored(): array {
+		$o     = get_option( self::OPTION, array() );
+		$o     = is_array( $o ) ? $o : array();
+		$brut  = (string) ( $o['token'] ?? '' );
+		$jeton = '' !== $brut ? self::decrypt( $brut ) : '';
+		return array(
+			'user'       => (string) ( $o['user'] ?? '' ),
+			'token'      => $jeton,
+			'has_token'  => '' !== $brut,
+			'unreadable' => '' !== $brut && '' === $jeton,
+		);
+	}
+
+	/**
+	 * Enregistre l'identifiant, et le jeton s'il est fourni (vide = inchangé).
+	 *
+	 * @return true|WP_Error
+	 */
+	public static function store( string $user, string $token, bool $forget = false ) {
+		$o = get_option( self::OPTION, array() );
+		$o = is_array( $o ) ? $o : array();
+
+		$user = trim( $user );
+		if ( '' !== $user && ! preg_match( '/^[a-z0-9_.-]{1,64}$/i', $user ) ) {
+			return new WP_Error( 'wam_nl_cpanel', __( 'Identifiant cPanel invalide (lettres, chiffres, tiret, point, souligné).', 'wam-newsletter' ) );
+		}
+		$o['user'] = $user;
+
+		if ( $forget ) {
+			$o['token'] = '';
+		} else {
+			$token = trim( $token );
+			if ( '' !== $token ) {
+				if ( ! preg_match( '/^[A-Za-z0-9]{16,128}$/', $token ) ) {
+					return new WP_Error( 'wam_nl_cpanel', __( 'Jeton d’API invalide : il ne contient que des lettres majuscules et des chiffres (32 caractères chez cPanel).', 'wam-newsletter' ) );
+				}
+				$chiffre = self::encrypt( $token );
+				if ( '' === $chiffre ) {
+					return new WP_Error( 'wam_nl_cpanel', __( 'Chiffrement indisponible sur ce serveur (extension OpenSSL) : utilisez wp-config.php.', 'wam-newsletter' ) );
+				}
+				$o['token'] = $chiffre;
+			}
+		}
+
+		update_option( self::OPTION, $o, false );
+		return true;
+	}
+
+	/** Clé de 32 octets dérivée des clés secrètes du site (wp-config.php). */
+	private static function key(): string {
+		return hash_hmac( 'sha256', 'wam-newsletter|cpanel-token', wp_salt( 'secure_auth' ) . wp_salt( 'auth' ), true );
+	}
+
+	public static function encrypt( string $clair ): string {
+		if ( ! function_exists( 'openssl_encrypt' ) ) {
+			return '';
+		}
+		$iv     = random_bytes( 12 );
+		$tag    = '';
+		$chiffe = openssl_encrypt( $clair, 'aes-256-gcm', self::key(), OPENSSL_RAW_DATA, $iv, $tag );
+		if ( false === $chiffe ) {
+			return '';
+		}
+		return 'v1:' . base64_encode( $iv . $tag . $chiffe ); // phpcs:ignore WordPress.PHP.DiscouragedPHPFunctions.obfuscation_base64_encode
+	}
+
+	/** Chaîne vide si illisible (clés du site changées, valeur altérée). */
+	public static function decrypt( string $valeur ): string {
+		if ( 0 !== strpos( $valeur, 'v1:' ) || ! function_exists( 'openssl_decrypt' ) ) {
+			return '';
+		}
+		$brut = base64_decode( substr( $valeur, 3 ), true ); // phpcs:ignore WordPress.PHP.DiscouragedPHPFunctions.obfuscation_base64_decode
+		if ( false === $brut || strlen( $brut ) < 29 ) {
+			return '';
+		}
+		$clair = openssl_decrypt( substr( $brut, 28 ), 'aes-256-gcm', self::key(), OPENSSL_RAW_DATA, substr( $brut, 0, 12 ), substr( $brut, 12, 16 ) );
+		return false === $clair ? '' : $clair;
 	}
 
 	public static function configured(): bool {
@@ -132,7 +239,7 @@ class Delivery {
 	 */
 	public static function sync( int $newsletter_id ) {
 		if ( ! self::configured() ) {
-			return new WP_Error( 'wam_nl_cpanel', __( 'Suivi de remise non configuré : il manque WAM_NL_CPANEL_USER ou WAM_NL_CPANEL_TOKEN dans wp-config.php.', 'wam-newsletter' ) );
+			return new WP_Error( 'wam_nl_cpanel', __( 'Suivi de remise non configuré : renseignez l’identifiant et le jeton cPanel dans Réglages → Suivi.', 'wam-newsletter' ) );
 		}
 
 		global $wpdb;

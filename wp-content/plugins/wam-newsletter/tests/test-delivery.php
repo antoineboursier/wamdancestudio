@@ -41,8 +41,39 @@ $json = static function ( array $corps, int $code = 200 ) {
 	);
 };
 
+$option_avant = get_option( Delivery::OPTION, null );
+
 try {
 	Install::maybe_upgrade();
+
+	echo "== Jeton enregistré depuis l'admin : chiffré, relu, jamais en clair ==
+";
+	delete_option( Delivery::OPTION );
+	$jeton = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ012345';
+	wam_nl_assert( true === Delivery::store( 'yuqo3097', $jeton ), 'identifiant et jeton enregistrés' );
+	$brut = get_option( Delivery::OPTION );
+	wam_nl_assert( false === strpos( wp_json_encode( $brut ), $jeton ), 'le jeton n’apparaît pas en clair en base' );
+	wam_nl_assert( 0 === strpos( (string) $brut['token'], 'v1:' ), 'valeur chiffrée versionnée' );
+	wam_nl_assert_equals( $jeton, Delivery::stored()['token'], 'relu et déchiffré' );
+	wam_nl_assert( $brut['token'] !== Delivery::encrypt( $jeton ), 'deux chiffrements du même jeton diffèrent (IV aléatoire)' );
+	if ( ! defined( 'WAM_NL_CPANEL_TOKEN' ) ) {
+		wam_nl_assert_equals( 'admin', Delivery::source(), 'configuration venue de l’admin' );
+		wam_nl_assert_equals( 'yuqo3097', Delivery::config()['user'], 'config() lit l’identifiant enregistré' );
+		wam_nl_assert( Delivery::configured(), 'configuré sans wp-config.php' );
+	}
+	wam_nl_assert( true === Delivery::store( 'yuqo3097', '' ), 'jeton vide : enregistrement accepté' );
+	wam_nl_assert_equals( $jeton, Delivery::stored()['token'], 'jeton vide : l’ancien est gardé' );
+	wam_nl_assert( is_wp_error( Delivery::store( 'yuqo3097', 'pas un jeton !' ) ), 'jeton mal formé refusé' );
+	wam_nl_assert_equals( $jeton, Delivery::stored()['token'], 'refus : l’ancien jeton reste' );
+	wam_nl_assert( is_wp_error( Delivery::store( 'yuqo 3097', '' ) ), 'identifiant mal formé refusé' );
+	$altere          = get_option( Delivery::OPTION );
+	$altere['token'] = 'v1:' . base64_encode( str_repeat( 'x', 60 ) );
+	update_option( Delivery::OPTION, $altere, false );
+	wam_nl_assert( Delivery::stored()['unreadable'], 'valeur altérée ou clés changées : signalée illisible' );
+	wam_nl_assert_equals( '', Delivery::stored()['token'], 'jamais de jeton faux renvoyé' );
+	Delivery::store( 'yuqo3097', '', true );
+	wam_nl_assert( ! Delivery::stored()['has_token'], 'effacer le jeton' );
+	delete_option( Delivery::OPTION );
 
 	echo "== Schéma : colonnes de remise sur la file ==\n";
 	global $wpdb;
@@ -159,6 +190,11 @@ try {
 	wam_nl_assert( false === strpos( $ecran, 'JETON-DE-TEST' ), 'le jeton n’est pas affiché' );
 
 } finally {
+	if ( null === $option_avant ) {
+		delete_option( Delivery::OPTION );
+	} else {
+		update_option( Delivery::OPTION, $option_avant, false );
+	}
 	remove_filter( 'pre_http_request', $mock, 10 );
 	remove_filter( 'wam_nl_cpanel_config', $config );
 	foreach ( $posts as $id ) {

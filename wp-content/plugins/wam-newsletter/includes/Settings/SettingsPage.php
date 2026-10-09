@@ -126,10 +126,23 @@ class SettingsPage {
 			}
 		}
 
-		if ( isset( $_POST['wam_nl_test_cpanel'] ) ) {
+		// Identifiants cPanel : hors de l'option des réglages, jeton chiffré.
+		if ( 'suivi' === $onglet && isset( $_POST['wam_nl_cpanel_user'] ) ) {
+			$stocke = \WamNewsletter\Sending\Delivery::store(
+				sanitize_text_field( wp_unslash( (string) $_POST['wam_nl_cpanel_user'] ) ),
+				sanitize_text_field( wp_unslash( (string) ( $_POST['wam_nl_cpanel_token'] ?? '' ) ) ),
+				! empty( $_POST['wam_nl_cpanel_forget'] )
+			);
+			if ( is_wp_error( $stocke ) ) {
+				$avis = 'cpanel_ko';
+				set_transient( self::message_key(), $stocke->get_error_message(), 60 );
+			}
+		}
+
+		if ( isset( $_POST['wam_nl_test_cpanel'] ) && 'cpanel_ko' !== $avis ) {
 			$traces = \WamNewsletter\Sending\Delivery::configured()
 				? \WamNewsletter\Sending\Delivery::fetch( time() - DAY_IN_SECONDS )
-				: new \WP_Error( 'wam_nl_cpanel', __( 'WAM_NL_CPANEL_USER ou WAM_NL_CPANEL_TOKEN manquant dans wp-config.php.', 'wam-newsletter' ) );
+				: new \WP_Error( 'wam_nl_cpanel', __( 'identifiant ou jeton manquant.', 'wam-newsletter' ) );
 			if ( is_wp_error( $traces ) ) {
 				$avis = 'cpanel_ko';
 				set_transient( self::message_key(), $traces->get_error_message(), 60 );
@@ -479,25 +492,55 @@ class SettingsPage {
 		echo '</table>';
 	}
 
+	/** Bloc « Suivi de remise (o2switch) » : identifiant, jeton chiffré, test. */
+	private static function render_cpanel_fields(): void {
+		$cpanel = \WamNewsletter\Sending\Delivery::config();
+		$source = \WamNewsletter\Sending\Delivery::source();
+		$stocke = \WamNewsletter\Sending\Delivery::stored();
+
+		echo '<h2>' . esc_html__( 'Suivi de remise (o2switch)', 'wam-newsletter' ) . '</h2>';
+		echo '<p class="description">' . esc_html__( 'Dit, pour chaque destinataire, si le serveur d’en face a accepté, refusé ou mis en attente le message. Jeton à créer dans cPanel → Sécurité → Gérer les jetons d’API (le copier tout de suite, cPanel ne le montre qu’une fois).', 'wam-newsletter' ) . '</p>';
+
+		if ( 'constants' === $source ) {
+			printf( '<div class="notice notice-info inline"><p>%s</p></div>', esc_html( sprintf( /* translators: %s utilisateur */ __( 'Configuration lue dans wp-config.php (%s) : elle est prioritaire sur les champs ci-dessous.', 'wam-newsletter' ), $cpanel['user'] ) ) );
+		} elseif ( $stocke['unreadable'] ) {
+			printf( '<div class="notice notice-warning inline"><p>%s</p></div>', esc_html__( 'Le jeton enregistré ne peut plus être déchiffré (les clés secrètes du site ont changé, ou c’est une copie de la base) : saisissez-le à nouveau.', 'wam-newsletter' ) );
+		}
+
+		echo '<table class="form-table">';
+		printf(
+			'<tr><th scope="row"><label for="wam_nl_cpanel_user">%1$s</label></th><td><input type="text" class="regular-text" id="wam_nl_cpanel_user" name="wam_nl_cpanel_user" value="%2$s" autocomplete="off" placeholder="yuqo3097"><p class="description">%3$s</p></td></tr>',
+			esc_html__( 'Identifiant cPanel', 'wam-newsletter' ),
+			esc_attr( $stocke['user'] ),
+			esc_html__( 'Celui de la connexion à cPanel (pas une adresse e-mail).', 'wam-newsletter' )
+		);
+		printf(
+			'<tr><th scope="row"><label for="wam_nl_cpanel_token">%1$s</label></th><td><input type="password" class="regular-text" id="wam_nl_cpanel_token" name="wam_nl_cpanel_token" value="" autocomplete="new-password" placeholder="%2$s"><p class="description">%3$s</p>%4$s</td></tr>',
+			esc_html__( 'Jeton d’API', 'wam-newsletter' ),
+			esc_attr( $stocke['has_token'] && ! $stocke['unreadable'] ? __( '•••••••• (enregistré)', 'wam-newsletter' ) : '' ),
+			esc_html__( 'Enregistré chiffré, jamais réaffiché. Laisser vide pour garder le jeton actuel.', 'wam-newsletter' ),
+			$stocke['has_token'] ? '<label><input type="checkbox" name="wam_nl_cpanel_forget" value="1"> ' . esc_html__( 'Effacer le jeton enregistré', 'wam-newsletter' ) . '</label>' : ''
+		);
+		printf(
+			'<tr><th scope="row">%1$s</th><td><p>%2$s</p><p><button type="submit" name="wam_nl_test_cpanel" value="1" class="button">%3$s</button></p><p class="description">%4$s</p></td></tr>',
+			esc_html__( 'État', 'wam-newsletter' ),
+			\WamNewsletter\Sending\Delivery::configured()
+				? esc_html( sprintf( /* translators: 1: utilisateur, 2: hôte */ __( 'Configurée : %1$s sur %2$s.', 'wam-newsletter' ), $cpanel['user'], $cpanel['host'] ) )
+				: esc_html__( 'Non configurée.', 'wam-newsletter' ),
+			esc_html__( 'Enregistrer et tester la connexion', 'wam-newsletter' ),
+			esc_html__( 'Le test lit les remises des dernières 24 heures, sans rien modifier.', 'wam-newsletter' )
+		);
+		echo '</table>';
+	}
+
 	private static function tab_suivi( array $r ): void {
 		echo '<table class="form-table">';
 		self::field_checkbox( 'track_opens', __( 'Ouvertures', 'wam-newsletter' ), (bool) $r['track_opens'], __( 'Pixel de suivi - chiffre indicatif seulement', 'wam-newsletter' ) );
 		self::field_checkbox( 'track_clicks', __( 'Clics', 'wam-newsletter' ), (bool) $r['track_clicks'], __( 'Réécriture signée des liens', 'wam-newsletter' ) );
 		echo '</table>';
 
-		$cpanel = \WamNewsletter\Sending\Delivery::config();
-		echo '<h2>' . esc_html__( 'Suivi de remise (o2switch)', 'wam-newsletter' ) . '</h2><table class="form-table">';
-		printf(
-			'<tr><th scope="row">%1$s</th><td><p>%2$s</p><p class="description">%3$s</p>'
-			. '<p><button type="submit" name="wam_nl_test_cpanel" value="1" class="button">%4$s</button></p></td></tr>',
-			esc_html__( 'Connexion cPanel', 'wam-newsletter' ),
-			\WamNewsletter\Sending\Delivery::configured()
-				? esc_html( sprintf( /* translators: 1: utilisateur, 2: hôte */ __( 'Configurée : %1$s sur %2$s (jeton lu dans wp-config.php, jamais affiché).', 'wam-newsletter' ), $cpanel['user'], $cpanel['host'] ) )
-				: esc_html__( 'Non configurée.', 'wam-newsletter' ),
-			esc_html__( 'Dit, pour chaque destinataire, si le serveur d’en face a accepté, refusé ou mis en attente le message. Créer un jeton dans cPanel → Sécurité → Gérer les jetons d’API, puis ajouter dans wp-config.php : define( \'WAM_NL_CPANEL_USER\', \'…\' ); et define( \'WAM_NL_CPANEL_TOKEN\', \'…\' );', 'wam-newsletter' ),
-			esc_html__( 'Tester la connexion', 'wam-newsletter' )
-		);
-		echo '</table><h2>' . esc_html__( 'Désinstallation', 'wam-newsletter' ) . '</h2><table class="form-table">';
+		self::render_cpanel_fields();
+		echo '<h2>' . esc_html__( 'Désinstallation', 'wam-newsletter' ) . '</h2><table class="form-table">';
 		self::field_checkbox(
 			'delete_data_on_uninstall',
 			__( 'Tout effacer à la désinstallation', 'wam-newsletter' ),

@@ -246,7 +246,7 @@ class Screen {
 		echo '<section class="wam-nl-card"><h2>' . esc_html__( 'Remise chez les destinataires', 'wam-newsletter' ) . '</h2>';
 
 		if ( ! Delivery::configured() ) {
-			echo '<p class="wam-nl-card__aide">' . esc_html__( 'Non branché. Le suivi de livraison d’o2switch dit, pour chaque adresse, si le message a été remis, refusé ou mis en attente par le serveur du destinataire. Il suffit d’ajouter WAM_NL_CPANEL_USER et WAM_NL_CPANEL_TOKEN dans wp-config.php (voir Réglages → Suivi).', 'wam-newsletter' ) . '</p></section>';
+			echo '<p class="wam-nl-card__aide">' . esc_html__( 'Non branché. Le suivi de livraison d’o2switch dit, pour chaque adresse, si le message a été remis, refusé ou mis en attente par le serveur du destinataire. Il suffit de renseigner l’identifiant et le jeton cPanel dans Réglages → Suivi.', 'wam-newsletter' ) . '</p></section>';
 			return;
 		}
 

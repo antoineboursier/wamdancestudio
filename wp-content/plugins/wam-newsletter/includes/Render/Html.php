@@ -148,7 +148,10 @@ class Html {
 	 * rattrapent les cas qui passeraient quand même.
 	 */
 	public static function no_autolink( string $texte, string $couleur ): string {
-		$html = (string) preg_replace( '/(\d)/', '$1&zwnj;', esc_html( $texte ) );
+		// Les entités produites par esc_html() sont sautées : « d'Ascq » devient
+		// `d&#039;Ascq`, et un &zwnj; glissé entre ses chiffres l'affichait
+		// « d�39;Ascq » dans le pied de page.
+		$html = (string) preg_replace( '/&#?[a-z0-9]+;(*SKIP)(*FAIL)|(\d)/i', '$1&zwnj;', esc_html( $texte ) );
 		return '<span style="color:' . esc_attr( $couleur ) . ';text-decoration:none;">' . $html . '</span>';
 	}
 

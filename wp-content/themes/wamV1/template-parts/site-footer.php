@@ -14,7 +14,7 @@ $contact_url = home_url('/contact/');
 // Liens dynamiques vers les archives CPT
 $cours_url = home_url('/cours-collectifs/');
 $stages_url = home_url('/stages-workshop-ateliers/');
-$newsletter_url = home_url('/newsletter/');
+$newsletter_url = wamv1_newsletter_url();
 $icon_dir       = get_template_directory_uri() . '/assets/images/';
 ?>
 

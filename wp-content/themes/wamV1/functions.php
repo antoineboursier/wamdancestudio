@@ -1286,3 +1286,15 @@ function wamv1_remove_draft_menu_items($items, $menu, $args)
 
     return $items;
 }
+
+/**
+ * Adresse de la page d'inscription à la newsletter.
+ * Lue dans WAMletter (page qui porte réellement le formulaire), pour qu'un
+ * renommage de la page ne casse pas les liens ; repli sur /newsletter/.
+ */
+function wamv1_newsletter_url() {
+	if ( class_exists( '\WamNewsletter\Form\Form' ) ) {
+		return \WamNewsletter\Form\Form::page_url();
+	}
+	return home_url( '/newsletter/' );
+}

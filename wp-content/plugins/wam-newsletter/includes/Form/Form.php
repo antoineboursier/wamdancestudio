@@ -36,8 +36,13 @@ class Form {
 	const RATE_LIMIT_MAX    = 5;
 	const RATE_LIMIT_WINDOW = 600;
 
+	/** Identifiant de la page qui porte le formulaire (0 : aucune trouvée). */
+	const PAGE_CACHE = 'wam_nl_form_page';
+
 	public static function register_hooks(): void {
 		add_shortcode( self::SHORTCODE, array( self::class, 'shortcode' ) );
+		add_action( 'save_post_page', array( self::class, 'forget_page' ) );
+		add_action( 'deleted_post', array( self::class, 'forget_page' ) );
 		add_action( 'init', array( self::class, 'register_block' ) );
 		add_action( 'wp_enqueue_scripts', array( self::class, 'register_assets' ) );
 
@@ -130,6 +135,37 @@ class Form {
 	}
 
 	/** @param array|string $atts */
+	/**
+	 * Adresse de la page d'inscription : celle qui porte réellement le
+	 * formulaire (shortcode ou bloc), et non un slug écrit en dur. Renommer la
+	 * page (« newsletter » → « newsletter-wam ») ne casse donc aucun lien : ni la
+	 * page de désinscription, ni le pied de page du thème.
+	 */
+	public static function page_url(): string {
+		$id = get_transient( self::PAGE_CACHE );
+		if ( false === $id ) {
+			global $wpdb;
+			$id = (int) $wpdb->get_var(
+				$wpdb->prepare(
+					"SELECT ID FROM {$wpdb->posts}
+					 WHERE post_type = 'page' AND post_status = 'publish'
+					   AND ( post_content LIKE %s OR post_content LIKE %s )
+					 ORDER BY menu_order ASC, ID ASC LIMIT 1",
+					'%' . $wpdb->esc_like( '[' . self::SHORTCODE ) . '%',
+					'%' . $wpdb->esc_like( '<!-- wp:' . self::BLOCK ) . '%'
+				)
+			);
+			set_transient( self::PAGE_CACHE, $id, DAY_IN_SECONDS );
+		}
+		$url = $id ? get_permalink( (int) $id ) : '';
+		return $url ? (string) $url : home_url( '/newsletter/' );
+	}
+
+	/** Une page a changé : on recherchera de nouveau celle du formulaire. */
+	public static function forget_page(): void {
+		delete_transient( self::PAGE_CACHE );
+	}
+
 	public static function shortcode( $atts ): string {
 		$atts = shortcode_atts(
 			array(

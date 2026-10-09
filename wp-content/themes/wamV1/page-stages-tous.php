@@ -144,7 +144,7 @@ if (!empty($stages_passes)) {
          L'URL suit le domaine courant (home_url) : locale en DDEV,
          wamdancestudio.fr en prod — comme dans template-parts/site-footer.php.
          ============================================================ -->
-    <?php $newsletter_url = home_url('/newsletter/'); ?>
+    <?php $newsletter_url = wamv1_newsletter_url(); ?>
     <aside class="wam-container page-stages__newsletter">
         <div class="page-stages__newsletter-inner">
             <div class="page-stages__newsletter-body">

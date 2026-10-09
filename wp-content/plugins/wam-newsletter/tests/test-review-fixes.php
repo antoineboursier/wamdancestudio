@@ -381,6 +381,12 @@ try {
 	wam_nl_assert( false !== strpos( $rendu_stage, '27/09/27 · 15h30-17h30' ), 'date et horaire rendus' );
 	wam_nl_assert( 1 === preg_match( '#Intermédiaires dès 16 ans</p></td></tr></table><table[^>]*><tr><td[^>]*><p[^>]*>27/09/27#u', $rendu_stage ), 'la date est sur sa propre ligne, sous le sous-titre' );
 
+	// Adresse du pied de page : les chiffres sont cassés par &zwnj;, jamais les entités.
+	$adresse = \WamNewsletter\Render\Html::no_autolink( "202 rue Jean Jaurès à Villeneuve d'Ascq", '#000000' );
+	wam_nl_assert( false !== strpos( $adresse, 'd&#039;Ascq' ), "l'apostrophe reste une entité intacte" );
+	wam_nl_assert( false !== strpos( $adresse, '2&zwnj;0&zwnj;2&zwnj;' ), 'les chiffres du numéro restent cassés' );
+	wam_nl_assert( false === strpos( $adresse, '&#0&zwnj;' ), 'aucun &zwnj; à l’intérieur d’une entité' );
+
 } finally {
 	$nettoyer();
 	if ( false === $reglages_initiaux ) {

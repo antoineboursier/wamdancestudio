@@ -251,7 +251,7 @@ class Endpoints {
 		$titre   = __( 'Désinscription', 'wam-newsletter' );
 		$message = __( 'Tu as bien été désinscrit·e de la newsletter de WAM Dance Studio.', 'wam-newsletter' );
 
-		$page_newsletter = home_url( '/newsletter/' );
+		$page_newsletter = \WamNewsletter\Form\Form::page_url();
 
 		$corps  = '<p>' . esc_html( $message ) . '</p>';
 		$corps .= '<p>' . esc_html__( 'Tu peux te réabonner à tout moment :', 'wam-newsletter' ) . ' ';

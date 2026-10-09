@@ -64,10 +64,12 @@ class Api {
 				'callback'            => array( self::class, 'overview' ),
 				'args'                => array(
 					'limit'  => array(
+						'type'              => 'integer',
 						'required'          => false,
-						'sanitize_callback' => 'absint',
+						'minimum'           => 1,
 					),
 					'status' => array(
+						'type'     => 'string',
 						'required' => false,
 						'enum'     => array( 'sent', 'all' ),
 					),

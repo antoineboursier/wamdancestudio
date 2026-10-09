@@ -100,6 +100,17 @@ try {
 	echo "== Newsletter inconnue ==\n";
 	wam_nl_assert_equals( 404, $appel( '/wam-nl/v1/kpis/newsletters/999999999' )->get_status(), '404' );
 
+	echo "== Paramètres validés, rôles sans droit refusés ==\n";
+	wam_nl_assert_equals( 400, $appel( '/wam-nl/v1/kpis', array( 'status' => 'zzz' ) )->get_status(), 'status inconnu : refusé (400), pas ignoré' );
+	wam_nl_assert_equals( 400, $appel( '/wam-nl/v1/kpis', array( 'limit' => 'abc' ) )->get_status(), 'limit non numérique : refusé' );
+	wam_nl_assert_equals( 200, $appel( '/wam-nl/v1/kpis', array( 'status' => 'all' ) )->get_status(), 'status=all accepté' );
+	$profs = get_users( array( 'role' => 'professeur', 'number' => 1 ) );
+	if ( $profs ) {
+		wp_set_current_user( (int) $profs[0]->ID );
+		wam_nl_assert_equals( 403, $appel( '/wam-nl/v1/kpis' )->get_status(), 'professeur : refusé (403)' );
+		wp_set_current_user( 1 );
+	}
+
 } finally {
 	wp_set_current_user( $ancien );
 	foreach ( $posts as $id ) {

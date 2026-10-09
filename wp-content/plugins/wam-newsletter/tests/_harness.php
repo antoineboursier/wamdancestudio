@@ -11,6 +11,11 @@
 
 defined( 'ABSPATH' ) || exit;
 
+// Les adresses de test (@wam-nl-test.invalid) n'ont pas de domaine réel : la
+// vérification DNS du contrôle qualité les rejetterait. test-quality.php la
+// réactive explicitement pour tester ce cas précis.
+add_filter( 'wam_nl_quality_check_dns', '__return_false' );
+
 $GLOBALS['wam_nl_test_pass'] = 0;
 $GLOBALS['wam_nl_test_fail'] = 0;
 

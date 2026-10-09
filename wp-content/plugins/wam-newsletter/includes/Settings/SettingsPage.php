@@ -26,7 +26,7 @@ class SettingsPage {
 
 	/** Cases à cocher de chaque onglet, pour la remise à false. */
 	const CHECKBOXES = array(
-		'formulaire' => array( 'welcome_email_enabled' ),
+		'formulaire' => array( 'welcome_email_enabled', 'woo_auto_sync' ),
 		'suivi'      => array( 'track_opens', 'track_clicks', 'delete_data_on_uninstall' ),
 	);
 
@@ -459,6 +459,12 @@ class SettingsPage {
 			__( 'E-mail de bienvenue', 'wam-newsletter' ),
 			(bool) $r['welcome_email_enabled'],
 			__( 'Envoyer un e-mail après inscription', 'wam-newsletter' )
+		);
+		self::field_checkbox(
+			'woo_auto_sync',
+			__( 'Client·es WooCommerce', 'wam-newsletter' ),
+			(bool) $r['woo_auto_sync'],
+			__( 'Ajouter automatiquement à la liste « Adhérent·es » l’adresse de chaque commande payée (robots écartés, fautes de frappe corrigées, désinscrit·es jamais réabonné·es)', 'wam-newsletter' )
 		);
 		self::field_text( 'welcome_email_subject', __( 'Objet de l’e-mail de bienvenue', 'wam-newsletter' ), $r['welcome_email_subject'] );
 		self::field_textarea( 'welcome_email_body', __( 'Contenu de l’e-mail de bienvenue', 'wam-newsletter' ), (string) $r['welcome_email_body'], 6 );

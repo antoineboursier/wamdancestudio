@@ -365,6 +365,34 @@ class Screen {
 			self::redirect( array( 'vue' => 'outils' ) );
 		}
 
+		if ( 'quality' === $outil ) {
+			$rapport = Quality::scan( $a_blanc );
+			$detail  = array();
+			foreach ( array(
+				'fix'    => __( 'corrigées', 'wam-newsletter' ),
+				'merge'  => __( 'doublons', 'wam-newsletter' ),
+				'reject' => __( 'écartées', 'wam-newsletter' ),
+				'review' => __( 'à vérifier', 'wam-newsletter' ),
+			) as $cle => $libelle ) {
+				if ( $rapport['samples'][ $cle ] ) {
+					$detail[] = $libelle . ' : ' . implode( ' ; ', array_slice( $rapport['samples'][ $cle ], 0, 8 ) );
+				}
+			}
+			Notices::success(
+				sprintf(
+					/* translators: 1: préfixe, 2: analysées, 3: corrigées, 4: doublons, 5: écartées, 6: à vérifier */
+					__( '%1$s : %2$s adresse(s) analysée(s) - %3$s corrigée(s), %4$s doublon(s) fusionné(s), %5$s écartée(s) à la corbeille, %6$s à vérifier à la main.', 'wam-newsletter' ),
+					$a_blanc ? __( 'Simulation (rien n’a été écrit)', 'wam-newsletter' ) : __( 'Contrôle terminé', 'wam-newsletter' ),
+					number_format_i18n( $rapport['scanned'] ),
+					number_format_i18n( $rapport['fixed'] ),
+					number_format_i18n( $rapport['merged'] ),
+					number_format_i18n( $rapport['rejected'] ),
+					number_format_i18n( $rapport['review'] )
+				) . ( $detail ? ' - ' . implode( ' | ', $detail ) : '' )
+			);
+			self::redirect( array( 'vue' => 'outils' ) );
+		}
+
 		if ( 'purge_bots' === $outil ) {
 			$rapport = WooCommerceImporter::purge_bots( $a_blanc );
 			Notices::success(
@@ -705,6 +733,10 @@ class Screen {
 				)
 			);
 			self::tool_form( 'woocommerce', __( 'Importer depuis WooCommerce', 'wam-newsletter' ) );
+
+			echo '<h3>' . esc_html__( 'Contrôle qualité des adresses', 'wam-newsletter' ) . '</h3>';
+			echo '<p>' . esc_html__( 'Passe en revue les abonné·es actifs : corrige les fautes de domaine évidentes (gmai.com, hotmail.ff…), fusionne les doublons qui en résultent, met à la corbeille les robots, les adresses techniques et les domaines qui ne reçoivent pas de courrier, et signale les cas douteux sans y toucher. Les adresses ajoutées à la main ne sont jamais modifiées. Rien n’est supprimé définitivement.', 'wam-newsletter' ) . '</p>';
+			self::tool_form( 'quality', __( 'Lancer le contrôle qualité', 'wam-newsletter' ) );
 
 			echo '<h3>' . esc_html__( 'Commandes de robots', 'wam-newsletter' ) . '</h3>';
 			echo '<p>' . esc_html__( 'WooCommerce garde des commandes de robots (test de cartes bancaires, spam) : noms aléatoires, adresses en .ru ou .top, alphabet cyrillique… Ce bouton met à la corbeille ceux déjà importés. Rien n’est supprimé définitivement.', 'wam-newsletter' ) . '</p>';

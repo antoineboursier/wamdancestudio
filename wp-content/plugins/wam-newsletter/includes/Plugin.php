@@ -31,6 +31,7 @@ class Plugin {
 
 		// Public
 		Form\Form::register_hooks();
+		Integrations\WooCommerceSync::register_hooks();
 		Tracking\Endpoints::register_hooks();
 
 		// Envoi

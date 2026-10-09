@@ -4,6 +4,7 @@ namespace WamNewsletter\Form;
 use WamNewsletter\Lists\Repository as Lists;
 use WamNewsletter\Sending\Mailer;
 use WamNewsletter\Settings\Settings;
+use WamNewsletter\Subscribers\Quality;
 use WamNewsletter\Subscribers\Repository as Subscribers;
 
 defined( 'ABSPATH' ) || exit;
@@ -339,6 +340,31 @@ class Form {
 		$email = Subscribers::normalize_email( $email );
 		if ( '' === $email ) {
 			return new \WP_Error( 'wam_nl_email', __( 'Cette adresse e-mail ne semble pas valide.', 'wam-newsletter' ) );
+		}
+
+		// Contrôle qualité AVANT toute écriture. Un robot reçoit la même réponse
+		// qu'une vraie personne (inutile de lui apprendre ce qui l'a trahi) ; une
+		// vraie personne qui se trompe de domaine est prévenue, avec la correction.
+		$verdict = Quality::assess( $email, $prenom, $nom );
+		if ( Quality::REJECT === $verdict['verdict'] ) {
+			if ( 'bot' === $verdict['code'] ) {
+				return array(
+					'message' => __( 'Merci, votre inscription est bien enregistrée.', 'wam-newsletter' ),
+					'id'      => 0,
+					'deja'    => false,
+				);
+			}
+			return new \WP_Error( 'wam_nl_email', __( 'Cette adresse e-mail ne semble pas valide. Vérifiez-la, s’il vous plaît.', 'wam-newsletter' ) );
+		}
+		if ( Quality::FIX === $verdict['verdict'] ) {
+			return new \WP_Error(
+				'wam_nl_email',
+				sprintf(
+					/* translators: %s adresse corrigée */
+					__( 'Cette adresse semble comporter une faute de frappe. Vouliez-vous dire %s ?', 'wam-newsletter' ),
+					$verdict['email']
+				)
+			);
 		}
 
 		$liste    = (int) Settings::get( 'form_list_id' );

@@ -23,7 +23,7 @@ class Settings {
 	const EMAIL_KEYS = array( 'from_email', 'reply_to', 'smtp_user' );
 
 	/** Clés à valeur booléenne (cases à cocher). */
-	const BOOL_KEYS = array( 'welcome_email_enabled', 'track_opens', 'track_clicks', 'delete_data_on_uninstall' );
+	const BOOL_KEYS = array( 'welcome_email_enabled', 'woo_auto_sync', 'track_opens', 'track_clicks', 'delete_data_on_uninstall' );
 
 	/** Clés à texte riche (HTML simple autorisé). */
 	const RICH_TEXT_KEYS = array( 'form_consent_text', 'welcome_email_body' );
@@ -69,6 +69,7 @@ class Settings {
 			'form_list_id'             => 0,
 			'form_consent_text'        => "J'accepte de recevoir la newsletter de WAM Dance Studio et je peux me désinscrire à tout moment.",
 			'welcome_email_enabled'    => false,
+			'woo_auto_sync'            => true,
 			'welcome_email_subject'    => 'Bienvenue dans la newsletter WAM',
 			'welcome_email_body'       => '',
 			// Suivi

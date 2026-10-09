@@ -2,6 +2,7 @@
 namespace WamNewsletter\Integrations;
 
 use WamNewsletter\Lists\Repository as Lists;
+use WamNewsletter\Subscribers\Quality;
 use WamNewsletter\Subscribers\Repository as Subscribers;
 
 defined( 'ABSPATH' ) || exit;
@@ -38,9 +39,6 @@ class WooCommerceImporter {
 	 */
 	const ORDER_STATUSES = array( 'wc-completed', 'wc-processing', 'wc-on-hold' );
 
-	/** Domaines de spam constatés dans les commandes. À compléter au besoin. */
-	const SPAM_DOMAINS = array( 'topcrush.org', 'privbibl.ru' );
-
 	/** @var array<string,bool> Adresses écartées comme robots par le dernier collect(). */
 	private static $bots = array();
 
@@ -50,59 +48,12 @@ class WooCommerceImporter {
 	}
 
 	/**
-	 * Commande probablement passée par un robot (test de cartes bancaires).
-	 *
-	 * WooCommerce garde ces commandes, avec des prénoms/noms aléatoires
-	 * (« OrahTIJZULWsAyzer ») et des adresses Gmail truffées de points. Les
-	 * importer ferait entrer des centaines de fausses adresses dans la liste :
-	 * rebonds, pièges à spam, et réputation du domaine d'envoi entamée.
-	 *
-	 * Volontairement prudent : mieux vaut laisser passer un robot qu'écarter un·e
-	 * vrai·e adhérent·e. Les comptes `customer` ne passent jamais par ce filtre.
+	 * Commande probablement passée par un robot (test de cartes bancaires, spam).
+	 * La règle vit dans Subscribers\Quality, partagée avec le formulaire, la
+	 * synchronisation automatique et l'outil de contrôle qualité.
 	 */
 	public static function is_probable_bot( string $email, string $first_name, string $last_name ): bool {
-		foreach ( array( $first_name, $last_name ) as $nom ) {
-			$nom = trim( $nom );
-			if ( strlen( $nom ) < 8 || preg_match( "/[\\s\\-'.]/u", $nom ) ) {
-				continue;
-			}
-			// Passages minuscule → majuscule au milieu d'un mot. « McDonald » en a
-			// un, « DeLaCruz » deux ; un nom aléatoire en a beaucoup plus.
-			$transitions = (int) preg_match_all( '/\p{Ll}\p{Lu}/u', $nom );
-			if ( $transitions >= 3 || ( $transitions >= 2 && strlen( $nom ) >= 12 ) ) {
-				return true;
-			}
-		}
-
-		// Alphabet cyrillique : les robots de spam russophones y mettent noms et
-		// prénoms, avec des adresses en .ru. Un·e vrai·e adhérent·e écrivant son
-		// nom en cyrillique reste possible mais très rare ; il suffit de l'ajouter
-		// à la main.
-		if ( preg_match( '/\p{Cyrillic}/u', $first_name . $last_name ) ) {
-			return true;
-		}
-
-		$domaine = strtolower( (string) substr( (string) strrchr( $email, '@' ), 1 ) );
-		if ( '' !== $domaine ) {
-			// Domaines de spam constatés dans les commandes, et extensions qu'aucun
-			// client réel du studio n'utilise.
-			if ( in_array( $domaine, self::SPAM_DOMAINS, true ) ) {
-				return true;
-			}
-			if ( preg_match( '/\.(top|ru|su|xyz|icu|click|pw|cfd|sbs|monster|buzz|bz)$/', $domaine ) ) {
-				return true;
-			}
-		}
-
-		// Technique du « point Gmail » : a.b.c.d.e@gmail.com est la même boîte que
-		// abcde@gmail.com. Quelqu'un qui écrit son adresse avec 4 points ou plus
-		// est presque toujours un robot.
-		$partie = strstr( $email, '@', true );
-		if ( false !== $partie && preg_match( '/@(gmail|googlemail)\.com$/i', $email ) && substr_count( $partie, '.' ) >= 4 ) {
-			return true;
-		}
-
-		return false;
+		return Quality::is_probable_bot( $email, $first_name, $last_name );
 	}
 
 	/**
@@ -210,8 +161,14 @@ class WooCommerceImporter {
 			if ( '' === $email ) {
 				continue;
 			}
-			if ( self::is_probable_bot( $email, (string) ( $r['first_name'] ?? '' ), (string) ( $r['last_name'] ?? '' ) ) ) {
+			$verdict = Quality::assess( $email, (string) ( $r['first_name'] ?? '' ), (string) ( $r['last_name'] ?? '' ) );
+			if ( Quality::REJECT === $verdict['verdict'] ) {
 				self::$bots[ $email ] = true;
+				continue;
+			}
+			// Faute de frappe sûre (gmai.com, hotmail.ff…) : on importe l'adresse corrigée.
+			$email = Subscribers::normalize_email( $verdict['email'] );
+			if ( '' === $email ) {
 				continue;
 			}
 			// Commandes parcourues par identifiant croissant : la dernière
@@ -239,9 +196,14 @@ class WooCommerceImporter {
 			$prenom = (string) get_user_meta( $compte->ID, 'first_name', true );
 			$nom    = (string) get_user_meta( $compte->ID, 'last_name', true );
 			// Les robots créent aussi un compte client à chaque commande.
-			if ( self::is_probable_bot( $email, $prenom, $nom ) ) {
+			$verdict = Quality::assess( $email, $prenom, $nom );
+			if ( Quality::REJECT === $verdict['verdict'] ) {
 				self::$bots[ $email ] = true;
 				unset( $contacts[ $email ] );
+				continue;
+			}
+			$email = Subscribers::normalize_email( $verdict['email'] );
+			if ( '' === $email ) {
 				continue;
 			}
 			$connu  = $contacts[ $email ] ?? array(

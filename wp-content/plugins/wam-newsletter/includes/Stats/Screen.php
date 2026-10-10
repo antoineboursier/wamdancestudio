@@ -359,7 +359,7 @@ class Screen {
 		);
 	}
 
-	private static function pct( int $valeur, int $base ): string {
+	public static function pct( int $valeur, int $base ): string {
 		if ( $base <= 0 ) {
 			return '-';
 		}

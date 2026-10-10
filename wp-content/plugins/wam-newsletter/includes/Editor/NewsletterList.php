@@ -7,6 +7,9 @@ use WamNewsletter\Install;
 use WamNewsletter\Lists\Repository as Lists;
 use WamNewsletter\Sending\Queue;
 use WamNewsletter\Sending\Scheduler;
+use WamNewsletter\Settings\Settings;
+use WamNewsletter\Stats\Events;
+use WamNewsletter\Stats\Screen as StatsScreen;
 
 defined( 'ABSPATH' ) || exit;
 
@@ -93,6 +96,8 @@ class NewsletterList {
 			'wam_status'    => __( 'Statut', 'wam-newsletter' ),
 			'wam_lists'     => __( 'Listes', 'wam-newsletter' ),
 			'wam_progress'  => __( 'Progression', 'wam-newsletter' ),
+			'wam_opens'     => __( 'Ouvertures', 'wam-newsletter' ),
+			'wam_clicks'    => __( 'Clics', 'wam-newsletter' ),
 			'date'          => __( 'Date', 'wam-newsletter' ),
 		);
 	}
@@ -134,6 +139,11 @@ class NewsletterList {
 					: '<span aria-hidden="true">-</span>';
 				break;
 
+			case 'wam_opens':
+			case 'wam_clicks':
+				self::render_rate( $post_id, 'wam_opens' === $colonne );
+				break;
+
 			case 'wam_progress':
 				$counts = Queue::counts( $post_id );
 				if ( 0 === $counts['total'] ) {
@@ -159,6 +169,40 @@ class NewsletterList {
 				}
 				break;
 		}
+	}
+
+	/**
+	 * Taux d'ouverture ou de clic d'une newsletter lancée : personnes distinctes
+	 * rapportées aux messages envoyés (même calcul que l'écran de statistiques).
+	 * Rien pour un brouillon ou une newsletter programmée, ni sans envoi.
+	 */
+	private static function render_rate( int $post_id, bool $ouvertures ): void {
+		$statut = Scheduler::status( $post_id );
+		if ( ! in_array( $statut, array( Scheduler::STATUS_SENDING, Scheduler::STATUS_PAUSED, Scheduler::STATUS_SENT ), true ) ) {
+			echo '<span aria-hidden="true">-</span>';
+			return;
+		}
+		if ( ! Settings::get( $ouvertures ? 'track_opens' : 'track_clicks' ) ) {
+			echo '<span aria-hidden="true">-</span>';
+			return;
+		}
+		$envoyes = (int) Queue::counts( $post_id )['sent'];
+		if ( $envoyes <= 0 ) {
+			echo '<span aria-hidden="true">-</span>';
+			return;
+		}
+		$personnes = Events::count_unique( $post_id, $ouvertures ? Events::TYPE_OPEN : Events::TYPE_CLICK );
+		printf(
+			'<strong>%s</strong><br /><span class="wam-nl-raison">%s</span>',
+			esc_html( StatsScreen::pct( $personnes, $envoyes ) ),
+			esc_html(
+				sprintf(
+					/* translators: %s nombre de personnes */
+					_n( '%s personne', '%s personnes', $personnes, 'wam-newsletter' ),
+					number_format_i18n( $personnes )
+				)
+			)
+		);
 	}
 
 	public static function status_label( string $statut ): string {

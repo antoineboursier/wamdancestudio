@@ -217,17 +217,22 @@ class RestApi {
 			return new WP_Error( 'wam_nl_droits', __( 'Accès refusé.', 'wam-newsletter' ), array( 'status' => 403 ) );
 		}
 
-		return new WP_REST_Response(
-			self::checklist(
-				$post_id,
-				array(
-					'subject'   => (string) $requete->get_param( 'subject' ),
-					'preheader' => (string) $requete->get_param( 'preheader' ),
-					'listIds'   => (array) $requete->get_param( 'listIds' ),
-					'content'   => (string) $requete->get_param( 'content' ),
-				)
+		$donnees = self::checklist(
+			$post_id,
+			array(
+				'subject'   => (string) $requete->get_param( 'subject' ),
+				'preheader' => (string) $requete->get_param( 'preheader' ),
+				'listIds'   => (array) $requete->get_param( 'listIds' ),
+				'content'   => (string) $requete->get_param( 'content' ),
 			)
 		);
+		// Durée et fin estimées, pour le départ choisi (maintenant ou programmé).
+		$quand               = $requete->get_param( 'scheduleAt' );
+		$donnees['estimate'] = Scheduler::estimate(
+			(int) $donnees['recipients'],
+			Scheduler::parse_local( is_string( $quand ) ? $quand : null )
+		);
+		return new WP_REST_Response( $donnees );
 	}
 
 	/**

@@ -120,13 +120,17 @@ class Events {
 	/**
 	 * Ouvertures et clics dans le temps, pour la courbe de l'écran de statistiques.
 	 *
-	 * Par heure tant que l'activité tient en 72 heures (le gros des réactions
-	 * arrive dans les premières heures), par jour au-delà. Les créneaux vides
+	 * Par heure tant que l'activité tient en 5 jours (un envoi plafonné à
+	 * 150/h, en pause la nuit, s'étale sur deux jours ; les réactions suivent),
+	 * par jour au-delà. Les créneaux vides
 	 * sont présents, à zéro : une courbe qui saute les heures sans activité
 	 * mentirait sur le rythme.
 	 *
 	 * @return array{step:string,points:array<int,array{t:string,open:int,click:int}>}
 	 */
+	/** Au-delà de cette durée (en heures), la courbe passe au pas journalier. */
+	const HOURLY_SPAN = 120;
+
 	public static function timeline( int $newsletter_id ): array {
 		global $wpdb;
 		$t = self::table();
@@ -158,7 +162,7 @@ class Events {
 		$debut  = strtotime( (string) array_key_first( $par_heure ) );
 		$fin    = strtotime( (string) array_key_last( $par_heure ) );
 		$heures = (int) floor( ( $fin - $debut ) / HOUR_IN_SECONDS );
-		$pas    = $heures <= 72 ? 'hour' : 'day';
+		$pas    = $heures <= self::HOURLY_SPAN ? 'hour' : 'day';
 
 		$points = array();
 		if ( 'hour' === $pas ) {

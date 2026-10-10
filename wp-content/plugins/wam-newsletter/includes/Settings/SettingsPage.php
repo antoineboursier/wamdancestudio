@@ -447,7 +447,7 @@ class SettingsPage {
 			__( 'Plafond par heure (toutes newsletters)', 'wam-newsletter' ),
 			$r['hourly_cap'],
 			'number',
-			__( 'o2switch limite le domaine à 180 e-mails par heure, factures et réservations comprises : au-delà, les messages sont mis en attente puis jetés. Garder une marge (120 par défaut). Au plafond, l’envoi attend qu’une place se libère.', 'wam-newsletter' )
+			__( 'o2switch limite le domaine à 180 e-mails par heure, factures et réservations comprises : au-delà, les messages sont mis en attente puis jetés. Garder une marge pour le courrier du site (150 par défaut, qui lui laisse 30 par heure). Au plafond, l’envoi attend qu’une place se libère.', 'wam-newsletter' )
 		);
 		self::field_text( 'batch_size', __( 'E-mails par lot', 'wam-newsletter' ), $r['batch_size'], 'number', __( 'Entre 1 et 200.', 'wam-newsletter' ) );
 		self::field_text( 'batch_interval', __( 'Intervalle entre deux lots (secondes)', 'wam-newsletter' ), $r['batch_interval'], 'number', __( 'Entre 10 et 3600.', 'wam-newsletter' ) );

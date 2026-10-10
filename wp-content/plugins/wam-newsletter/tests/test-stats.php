@@ -39,10 +39,10 @@ try {
 	wam_nl_assert_equals( 0, $chrono['points'][1]['open'] + $chrono['points'][1]['click'], 'le créneau de 22h est à zéro' );
 	wam_nl_assert_equals( 1, $chrono['points'][2]['click'], 'le clic tombe à 23h' );
 
-	$wpdb->insert( Events::table(), array( 'newsletter_id' => $nl, 'subscriber_id' => $a, 'type' => 'click', 'url' => 'https://exemple.test/b', 'created_at' => '2026-10-13 10:00:00' ) );
+	$wpdb->insert( Events::table(), array( 'newsletter_id' => $nl, 'subscriber_id' => $a, 'type' => 'click', 'url' => 'https://exemple.test/b', 'created_at' => '2026-10-14 10:00:00' ) );
 	$chrono = Events::timeline( $nl );
-	wam_nl_assert_equals( 'day', $chrono['step'], 'au-delà de 72 heures : pas journalier' );
-	wam_nl_assert_equals( 6, count( $chrono['points'] ), 'du 8 au 13 octobre : six jours' );
+	wam_nl_assert_equals( 'day', $chrono['step'], 'au-delà de 5 jours : pas journalier' );
+	wam_nl_assert_equals( 7, count( $chrono['points'] ), 'du 8 au 14 octobre : sept jours' );
 
 	echo "== Carte des clics : pastilles sur les liens de l'e-mail ==\n";
 	$html = '<p><a href="https://exemple.test/a?x=1&#038;y=2" style="color:#fff">Lien A</a> <a href="https://exemple.test/c">Lien C</a> <a href="mailto:x@y.z">Mail</a></p>';

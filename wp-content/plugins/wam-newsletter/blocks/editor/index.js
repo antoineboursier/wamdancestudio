@@ -414,7 +414,8 @@
 					subject: objet,
 					preheader: texteApercu,
 					listIds: selection,
-					content: n.content || ''
+					content: n.content || '',
+					scheduleAt: planifier && dateEnvoi ? dateEnvoi.replace('T', ' ') + ':00' : ''
 				}
 			})
 				.then(setCheck)
@@ -432,7 +433,7 @@
 					window.clearTimeout(minuteur);
 				};
 			},
-			[n.postId, objet, texteApercu, selection.join(','), n.content]
+			[n.postId, objet, texteApercu, selection.join(','), n.content, planifier, dateEnvoi]
 		);
 
 		var statut = check && check.status ? check.status : props.statutInitial || 'draft';
@@ -861,6 +862,9 @@
 						),
 						!pret
 							? el('p', { className: 'wam-nl-astuce' }, __('Il reste un point à régler dans les vérifications.', 'wam-newsletter'))
+							: null,
+						check && check.estimate && check.estimate.text
+							? el('p', { className: 'wam-nl-estimation' }, check.estimate.text)
 							: null,
 						el(
 							'p',

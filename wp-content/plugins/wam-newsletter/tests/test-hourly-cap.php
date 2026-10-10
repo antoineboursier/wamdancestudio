@@ -25,7 +25,7 @@ $q         = Queue::table();
 
 try {
 	echo "== Réglage ==\n";
-	wam_nl_assert_equals( 120, (int) Settings::defaults()['hourly_cap'], 'plafond par défaut : 120 par heure' );
+	wam_nl_assert_equals( 150, (int) Settings::defaults()['hourly_cap'], 'plafond par défaut : 150 par heure' );
 
 	$liste = (int) Lists::ensure( 'ZZTest plafond' );
 	for ( $i = 0; $i < 6; $i++ ) {

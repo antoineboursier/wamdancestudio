@@ -606,7 +606,7 @@ class Scheduler {
 	 * Si l'on est dans les heures calmes, horodatage de leur fin ; sinon 0.
 	 * La plage peut passer minuit (23 h → 7 h). Début = fin : désactivé.
 	 */
-	public static function quiet_until( ?array $reglages = null ): int {
+	public static function quiet_until( ?array $reglages = null, ?int $instant = null ): int {
 		$reglages = $reglages ?? Settings::all();
 		if ( empty( $reglages['quiet_hours'] ) ) {
 			return 0;
@@ -616,7 +616,7 @@ class Scheduler {
 		if ( $debut === $fin ) {
 			return 0;
 		}
-		$maintenant = ( new \DateTimeImmutable( '@' . self::now() ) )->setTimezone( wp_timezone() );
+		$maintenant = ( new \DateTimeImmutable( '@' . ( $instant ?? self::now() ) ) )->setTimezone( wp_timezone() );
 		$heure      = (int) $maintenant->format( 'G' );
 		$dedans     = $debut < $fin ? ( $heure >= $debut && $heure < $fin ) : ( $heure >= $debut || $heure < $fin );
 		if ( ! $dedans ) {
@@ -627,6 +627,167 @@ class Scheduler {
 			$reveil = $reveil->modify( '+1 day' );
 		}
 		return $reveil->getTimestamp();
+	}
+
+	/**
+	 * Marge observée en prod entre deux lots : WP-Cron ne se déclenche qu'à la
+	 * visite suivante (lots espacés de ~100 à 145 s pour un intervalle de 60 s).
+	 */
+	const CRON_DELAY = 45;
+
+	/**
+	 * Durée et heure de fin d'un envoi, en rejouant les mêmes règles que
+	 * run_batch() : taille de lot, intervalle, plafond horaire glissant (toutes
+	 * newsletters) et heures calmes.
+	 *
+	 * @param int      $nombre Destinataires.
+	 * @param int|null $debut  Horodatage de départ (null : maintenant).
+	 * @return array{count:int,start:int,end:int,sending:int,quiet:bool,per_hour:int,text:string}
+	 */
+	public static function estimate( int $nombre, ?int $debut = null ): array {
+		$reglages = Settings::all();
+		$taille   = max( 1, (int) $reglages['batch_size'] );
+		$pas      = max( 10, (int) $reglages['batch_interval'] ) + self::CRON_DELAY;
+		$plafond  = max( 1, (int) ( $reglages['hourly_cap'] ?? 150 ) );
+		$debut    = $debut ?? self::now();
+		$t        = $debut;
+		$fenetre  = array(); // [ horodatage, nombre ] envoyés sur l'heure glissante.
+		$calme    = false;
+		$actif    = 0;       // Temps passé à envoyer, nuits exclues.
+
+		// L'heure en cours est déjà entamée par d'autres envois (si on part maintenant).
+		if ( abs( $debut - self::now() ) < HOUR_IN_SECONDS ) {
+			$deja = Queue::sent_in_last_hour();
+			if ( $deja['count'] > 0 && '' !== $deja['oldest'] ) {
+				try {
+					$fenetre[] = array( ( new \DateTimeImmutable( $deja['oldest'], wp_timezone() ) )->getTimestamp(), $deja['count'] );
+				} catch ( \Exception $e ) {
+					unset( $e );
+				}
+			}
+		}
+
+		$reste = max( 0, $nombre );
+		$fin   = $debut;
+		for ( $garde = 0; $reste > 0 && $garde < 100000; $garde++ ) {
+			$reveil = self::quiet_until( $reglages, $t );
+			if ( $reveil > 0 ) {
+				$calme = $calme || $t > $debut || $reste < $nombre;
+				$t     = $reveil;
+				continue;
+			}
+			$fenetre = array_values(
+				array_filter(
+					$fenetre,
+					static function ( $e ) use ( $t ) {
+						return $e[0] > $t - HOUR_IN_SECONDS;
+					}
+				)
+			);
+			$place = $plafond - array_sum( array_column( $fenetre, 1 ) );
+			if ( $place <= 0 ) {
+				$suivant = $fenetre[0][0] + HOUR_IN_SECONDS + 15;
+				$actif  += $suivant - $t;
+				$t       = $suivant;
+				continue;
+			}
+			$n         = min( $taille, $place, $reste );
+			$fenetre[] = array( $t, $n );
+			$reste    -= $n;
+			$fin       = $t;
+			if ( $reste > 0 ) {
+				$actif += $pas;
+				$t     += $pas;
+			}
+		}
+		// Un envoi lancé la nuit commence au réveil : ce n'est pas du temps d'envoi.
+		$premier_reveil = self::quiet_until( $reglages, $debut );
+		$calme          = $calme && $fin > ( $premier_reveil ?: $debut );
+
+		$par_heure = (int) min( $plafond, floor( HOUR_IN_SECONDS / $pas ) * $taille );
+
+		return array(
+			'count'    => $nombre,
+			'start'    => $premier_reveil ?: $debut,
+			'end'      => $fin,
+			'sending'  => $actif,
+			'quiet'    => $calme,
+			'per_hour' => $par_heure,
+			'text'     => self::estimate_text( $nombre, $premier_reveil, $actif, $calme, $fin, $par_heure, $reglages ),
+		);
+	}
+
+	/** La phrase affichée à l'étape « Envoyer ». */
+	private static function estimate_text( int $nombre, int $reveil, int $actif, bool $calme, int $fin, int $par_heure, array $reglages ): string {
+		if ( $nombre <= 0 ) {
+			return '';
+		}
+		$minutes = (int) max( 1, round( $actif / 60 ) );
+		if ( $minutes < 60 ) {
+			/* translators: %d minutes */
+			$duree = sprintf( __( 'environ %d min', 'wam-newsletter' ), max( 5, (int) ( ceil( $minutes / 5 ) * 5 ) ) );
+		} else {
+			$heures = $minutes / 60;
+			$duree  = $heures < 10
+				/* translators: %s heures, une décimale */
+				? sprintf( __( 'environ %s h', 'wam-newsletter' ), number_format_i18n( round( $heures * 2 ) / 2, fmod( round( $heures * 2 ) / 2, 1 ) ? 1 : 0 ) )
+				/* translators: %d heures */
+				: sprintf( __( 'environ %d h', 'wam-newsletter' ), (int) round( $heures ) );
+		}
+
+		$phrases = array();
+		$phrases[] = sprintf(
+			/* translators: 1: durée, 2: e-mails par heure */
+			__( 'Durée d’envoi : %1$s (%2$s e-mails par heure au plus).', 'wam-newsletter' ),
+			$duree,
+			number_format_i18n( $par_heure )
+		);
+		if ( $reveil > 0 ) {
+			$phrases[] = sprintf(
+				/* translators: %s date et heure */
+				__( 'Heures calmes en cours : le premier e-mail partira %s.', 'wam-newsletter' ),
+				self::when_label( $reveil )
+			);
+		}
+		if ( $calme ) {
+			$phrases[] = sprintf(
+				/* translators: 1: heure de début, 2: heure de fin */
+				__( 'Pas d’envoi entre %1$d h et %2$d h : l’envoi s’interrompt la nuit et reprend le matin.', 'wam-newsletter' ),
+				(int) $reglages['quiet_start'],
+				(int) $reglages['quiet_end']
+			);
+		}
+		/* translators: %s date et heure */
+		$phrases[] = sprintf( __( 'Fin estimée : %s.', 'wam-newsletter' ), self::when_label( (int) ( ceil( $fin / 300 ) * 300 ) ) );
+		return implode( ' ', $phrases );
+	}
+
+	/** « aujourd'hui vers 15 h 10 », « demain vers 8 h », « mardi 14/10 vers 15 h ». */
+	private static function when_label( int $ts ): string {
+		$tz     = wp_timezone();
+		$jour   = ( new \DateTimeImmutable( '@' . $ts ) )->setTimezone( $tz )->format( 'Y-m-d' );
+		$auj    = ( new \DateTimeImmutable( '@' . self::now() ) )->setTimezone( $tz );
+		$minute = (int) wp_date( 'i', $ts );
+		$heure  = 0 === $minute ? wp_date( 'G \h', $ts ) : wp_date( 'G \h i', $ts );
+		if ( $jour === $auj->format( 'Y-m-d' ) ) {
+			/* translators: %s heure */
+			return sprintf( __( 'aujourd’hui vers %s', 'wam-newsletter' ), $heure );
+		}
+		if ( $jour === $auj->modify( '+1 day' )->format( 'Y-m-d' ) ) {
+			/* translators: %s heure */
+			return sprintf( __( 'demain vers %s', 'wam-newsletter' ), $heure );
+		}
+		/* translators: 1: jour et date, 2: heure */
+		return sprintf( __( '%1$s vers %2$s', 'wam-newsletter' ), wp_date( 'l d/m', $ts ), $heure );
+	}
+
+	/** Horodatage d'une date « Y-m-d H:i:s » locale (null si vide ou illisible). */
+	public static function parse_local( ?string $quand ): ?int {
+		if ( ! $quand || '' === trim( $quand ) ) {
+			return null;
+		}
+		$ts = strtotime( trim( $quand ) . ' ' . wp_timezone_string() );
+		return $ts ?: null;
 	}
 
 	/**

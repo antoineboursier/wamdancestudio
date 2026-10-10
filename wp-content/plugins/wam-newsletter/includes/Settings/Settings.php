@@ -65,9 +65,9 @@ class Settings {
 			'fail_threshold_hour'      => 20,
 			// o2switch plafonne le DOMAINE à 180 e-mails par heure, tout compris
 			// (factures, réservations, formulaires). Au-delà, il met en attente puis
-			// jette les messages (incident du 09/10/2026, 238 non remis). 120 laisse
-			// 60 par heure au courrier du site.
-			'hourly_cap'               => 120,
+			// jette les messages (incident du 09/10/2026, 238 non remis). 150 laisse
+			// 30 par heure au courrier du site (factures, réservations : ~20/h au plus).
+			'hourly_cap'               => 150,
 			// Heures calmes : pas d'envoi la nuit, l'envoi reprend à la fin de la plage.
 			'quiet_hours'              => true,
 			'quiet_start'              => 23,

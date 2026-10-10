@@ -118,6 +118,16 @@
 	font-weight: 600;
 }
 
+/* Durée et fin estimées de l'envoi (étape 5). */
+.wam-nl-ecran .wam-nl-estimation {
+	margin: 12px 0 0;
+	padding: 8px 10px;
+	border-left: 3px solid #2271b1;
+	background: #f0f6fc;
+	font-size: 13px;
+	line-height: 1.5;
+}
+
 .wam-nl-bouton-envoi {
 	justify-content: center;
 	width: 100%;

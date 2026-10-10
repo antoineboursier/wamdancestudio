@@ -203,7 +203,7 @@ class ListTable extends WP_List_Table {
 			$liens['delete'] = sprintf(
 				'<a href="%s" class="submitdelete" onclick="return confirm(%s)">%s</a>',
 				esc_url( Screen::action_url( 'delete', $id ) ),
-				esc_js( wp_json_encode( __( 'Supprimer définitivement cet abonné·e et ses statistiques ?', 'wam-newsletter' ) ) ),
+				esc_attr( wp_json_encode( __( 'Supprimer définitivement cet abonné·e et ses statistiques ?', 'wam-newsletter' ) ) ),
 				esc_html__( 'Supprimer définitivement', 'wam-newsletter' )
 			);
 		} else {

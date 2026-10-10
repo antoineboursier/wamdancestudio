@@ -148,7 +148,7 @@ class Screen {
 				sprintf(
 					'<a href="%s" class="submitdelete" onclick="return confirm(%s)">%s</a>',
 					esc_url( self::action_url( 'delete', $lid ) ),
-					esc_js( wp_json_encode( __( 'Supprimer cette liste ? Les abonné·es sont conservé·es.', 'wam-newsletter' ) ) ),
+					esc_attr( wp_json_encode( __( 'Supprimer cette liste ? Les abonné·es sont conservé·es.', 'wam-newsletter' ) ) ),
 					esc_html__( 'Supprimer', 'wam-newsletter' )
 				),
 			);

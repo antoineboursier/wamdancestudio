@@ -151,7 +151,7 @@
 			el(
 				'p',
 				{ className: 'components-base-control__help' },
-				__('Le bloc « Contenus WAM » reprend automatiquement des stages, cours ou articles du site : photo, titre, texte et bouton.', 'wam-newsletter')
+				__('Le bloc « Contenus WAM » reprend automatiquement des stages, cours, événements ou articles du site : photo, titre, texte et bouton.', 'wam-newsletter')
 			),
 			el(
 				'ol',

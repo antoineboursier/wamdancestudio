@@ -55,6 +55,8 @@ class Posts {
 		switch ( $post_type ) {
 			case 'stages':
 				return __( 'Voir le stage', 'wam-newsletter' );
+			case 'evenements':
+				return __( 'Voir l’événement', 'wam-newsletter' );
 			case 'cours':
 				return __( 'Voir le cours', 'wam-newsletter' );
 			case 'page':
@@ -448,12 +450,16 @@ class Posts {
 	}
 
 	/**
-	 * Date en JJ/MM/AA, suivie de l'horaire pour un stage (« 27/09/26 · 15h30-17h30 »).
+	 * Date en JJ/MM/AA, suivie de l'horaire pour un stage ou un événement (« 27/09/26 · 15h30-17h30 »).
 	 *
 	 * Les autres types de contenu gardent la date en toutes lettres.
 	 */
 	public static function formatted_when( string $post_type, int $id ): string {
-		if ( 'stages' !== $post_type ) {
+		$metas_horaires = array(
+			'stages'     => array( 'heure_debut', 'heure_de_fin' ),
+			'evenements' => array( 'horaire_debut_event', 'horaire_fin_event' ),
+		);
+		if ( ! isset( $metas_horaires[ $post_type ] ) ) {
 			return self::formatted_date( $post_type, $id );
 		}
 
@@ -464,8 +470,8 @@ class Posts {
 
 		$quand = (string) wp_date( 'd/m/y', $ts );
 
-		$debut = self::hour_label( (string) get_post_meta( $id, 'heure_debut', true ) );
-		$fin   = self::hour_label( (string) get_post_meta( $id, 'heure_de_fin', true ) );
+		$debut = self::hour_label( (string) get_post_meta( $id, $metas_horaires[ $post_type ][0], true ) );
+		$fin   = self::hour_label( (string) get_post_meta( $id, $metas_horaires[ $post_type ][1], true ) );
 		if ( '' !== $debut ) {
 			$quand .= ' · ' . $debut . ( '' !== $fin ? '-' . $fin : '' );
 		}
@@ -475,7 +481,7 @@ class Posts {
 
 	/** « 15:30 » ou « 15h30 » → « 15h30 » ; « 18:00 » → « 18h ». */
 	private static function hour_label( string $brut ): string {
-		if ( ! preg_match( '/^\s*(\d{1,2})\s*[:h.]\s*(\d{2})?\s*$/i', $brut, $m ) ) {
+		if ( ! preg_match( '/^\s*(\d{1,2})\s*[:h.]\s*(\d{2})?(?:\s*:\s*\d{2})?\s*$/i', $brut, $m ) ) {
 			return '';
 		}
 		$minutes = isset( $m[2] ) ? $m[2] : '00';

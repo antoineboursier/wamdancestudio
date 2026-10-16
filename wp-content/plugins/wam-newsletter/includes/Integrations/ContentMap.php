@@ -22,7 +22,7 @@ class ContentMap {
 	const OPTION = 'wam_nl_content_map';
 
 	/** Types de contenu proposés dans le bloc Contenus. */
-	const POST_TYPES = array( 'post', 'cours', 'stages', 'page' );
+	const POST_TYPES = array( 'post', 'cours', 'stages', 'evenements', 'page' );
 
 	/** Rôles attribuables à un champ. */
 	const ROLES = array( 'image', 'date', 'subtitle', 'price', 'excerpt' );

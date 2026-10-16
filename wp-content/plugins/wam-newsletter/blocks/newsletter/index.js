@@ -612,6 +612,7 @@
 	var TYPES = [
 		{ label: __('Stages', 'wam-newsletter'), value: 'stages' },
 		{ label: __('Cours', 'wam-newsletter'), value: 'cours' },
+		{ label: __('Événements', 'wam-newsletter'), value: 'evenements' },
 		{ label: __('Articles du blog', 'wam-newsletter'), value: 'post' },
 		{ label: __('Pages', 'wam-newsletter'), value: 'page' }
 	];
@@ -1014,6 +1015,8 @@
 										help:
 											'stages' === a.postType
 												? __('« Les prochains » exclut les stages déjà passés.', 'wam-newsletter')
+											: 'evenements' === a.postType
+											? __('« Les prochains » exclut les événements déjà passés.', 'wam-newsletter')
 												: __('« Les prochains » n’a d’effet que sur les contenus qui ont une date.', 'wam-newsletter'),
 										onChange: function (v) {
 											setAttributes({ order: v });

@@ -203,7 +203,7 @@ class Blocks {
 
 			'wam-nl/posts'     => array(
 				'title'       => __( 'Contenus WAM', 'wam-newsletter' ),
-				'description' => __( 'Articles, cours ou stages, en automatique ou choisis à la main.', 'wam-newsletter' ),
+				'description' => __( 'Articles, cours, stages ou événements, en automatique ou choisis à la main.', 'wam-newsletter' ),
 				'icon'        => 'list-view',
 				'attributes'  => array(
 					'postType'      => array(

@@ -48,6 +48,8 @@
        ------------------------------------------------------- */
    --wam-product-image-max-width: 560px;
    --wam-product-image-max-height: 640px;
+   /* Largeur d'une card produit dans la liste « Produits WAM » (visuel carré) */
+   --wam-product-card-width: 300px;
 
    /* -------------------------------------------------------
        Ombres

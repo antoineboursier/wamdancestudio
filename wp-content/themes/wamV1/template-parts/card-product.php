@@ -24,7 +24,7 @@ $thumb_id = get_post_thumbnail_id();
             wamv1_square_image_ensure_sizes((int) $thumb_id);
             echo wp_get_attachment_image($thumb_id, 'wam-square-md', false, [
                 'class'           => 'card-product__img',
-                'sizes'           => '(max-width: 639px) 100vw, (max-width: 1023px) 50vw, 33vw',
+                'sizes'           => '(max-width: 331px) 100vw, 300px',
                 'data-no-overlay' => 'true',
             ]); ?>
             <span class="card-product__img-overlay" aria-hidden="true"></span>

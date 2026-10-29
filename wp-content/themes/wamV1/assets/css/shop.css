@@ -3054,20 +3054,9 @@ p:has(label[for="mailpoet_woocommerce_checkout_optin"]) {
 
 .page-products__grid {
     display: grid;
-    grid-template-columns: 1fr;
+    width: 100%;
+    grid-template-columns: repeat(auto-fill, minmax(min(100%, var(--wam-product-card-width)), var(--wam-product-card-width)));
     gap: var(--wam-spacing-xl);
-}
-
-@media (min-width: 640px) {
-    .page-products__grid {
-        grid-template-columns: repeat(2, 1fr);
-    }
-}
-
-@media (min-width: 1024px) {
-    .page-products__grid {
-        grid-template-columns: repeat(3, 1fr);
-    }
 }
 
 .card-product {
@@ -3115,6 +3104,7 @@ p:has(label[for="mailpoet_woocommerce_checkout_optin"]) {
 
 .card-product__body {
     display: flex;
+    flex: 1;
     flex-direction: column;
     align-items: flex-start;
     gap: var(--wam-spacing-sm);
@@ -3145,7 +3135,7 @@ p:has(label[for="mailpoet_woocommerce_checkout_optin"]) {
 }
 
 .card-product__cart {
-    margin: 0;
+    margin: auto 0 0;
 }
 
 .card-product__unavailable {

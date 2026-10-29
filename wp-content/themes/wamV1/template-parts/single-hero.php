@@ -12,7 +12,8 @@
  *   'show_date'        => bool    — afficher la date de publication (articles)
  *   'show_reading_time'=> bool    — afficher le temps de lecture
  *   'image_size'       => string  — taille WP de la miniature, ex: 'wam-page-thumbnail'
- *   'image_modifier'   => string  — modificateur BEM de l'image : 'sm' | 'lg' | ''
+ *   'image_modifier'   => string  — modificateur BEM de l'image : 'sm' | 'lg' | 'native' | ''
+ *   'image_sizes'      => string  — attribut "sizes" de l'image (optionnel, srcset responsive)
  *
  * Doit être appelé à l'intérieur de la boucle WP (have_posts / the_post).
  *
@@ -26,6 +27,7 @@ $show_date        = $args['show_date']         ?? false;
 $show_reading_time = $args['show_reading_time'] ?? false;
 $image_size       = $args['image_size']        ?? 'wam-page-thumbnail';
 $image_modifier   = $args['image_modifier']    ?? '';
+$image_sizes      = $args['image_sizes']       ?? '';
 
 $pre_title        = $args['pre_title']         ?? '';
 
@@ -82,11 +84,17 @@ $reading_time = ($show_reading_time && function_exists('wamv1_get_reading_time')
 
     <?php if (has_post_thumbnail()) : ?>
         <div class="<?php echo esc_attr($image_class); ?>">
-            <?php the_post_thumbnail($image_size, [
+            <?php
+            $image_attrs = [
                 'class' => 'page-hero__image-img',
                 'fetchpriority' => 'high',
                 'loading' => 'eager'
-            ]); ?>
+            ];
+            if ($image_sizes) {
+                $image_attrs['sizes'] = $image_sizes;
+            }
+            the_post_thumbnail($image_size, $image_attrs);
+            ?>
             <div class="page-hero__image-overlay"></div>
         </div>
     <?php endif; ?>

@@ -1298,6 +1298,14 @@ function wamv1_cart_has_only_stages() {
 }
 
 /**
+ * Produit de la catégorie « Produits WAM » (totebags…) : fiche, page liste et
+ * ligne de panier dédiées. Repère unique : le slug de la catégorie.
+ */
+function wamv1_is_wam_product($product_id) {
+    return $product_id && has_term('produits-wam', 'product_cat', (int) $product_id);
+}
+
+/**
  * Vérifie si un item spécifique est un stage
  */
 function wamv1_is_stage_item($cart_item) {

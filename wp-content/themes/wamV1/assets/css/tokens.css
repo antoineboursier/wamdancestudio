@@ -42,6 +42,14 @@
    --wam-embed-max-width-portrait: 600px;
 
    /* -------------------------------------------------------
+       Visuel produit (fiche produit WooCommerce)
+       Image au ratio natif, jamais recadrée : seuls ces plafonds
+       la bornent (hauteur surtout, pour les visuels très verticaux).
+       ------------------------------------------------------- */
+   --wam-product-image-max-width: 560px;
+   --wam-product-image-max-height: 640px;
+
+   /* -------------------------------------------------------
        Ombres
        ------------------------------------------------------- */
    --wam-shadow-sm: 0 4px 16px rgba(6, 8, 14, 0.3);

@@ -415,7 +415,7 @@ function wamv1_scripts()
     // -------------------------------------------------------
     // WooCommerce — shop.css
     // -------------------------------------------------------
-    if (class_exists('WooCommerce') && (is_woocommerce() || is_cart() || is_checkout() || is_account_page() || is_singular('stages') || is_singular('cours') || is_page_template('page-reinscription.php'))) {
+    if (class_exists('WooCommerce') && (is_woocommerce() || is_cart() || is_checkout() || is_account_page() || is_singular('stages') || is_singular('cours') || is_page_template('page-reinscription.php') || is_page('produits-wam'))) {
         wp_enqueue_style('wamv1-shop', $css . 'shop.css', array('wamv1-layout'), $get_ver('assets/css/shop.css'));
     }
 

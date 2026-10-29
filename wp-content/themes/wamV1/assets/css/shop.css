@@ -3043,3 +3043,131 @@ p:has(label[for="mailpoet_woocommerce_checkout_optin"]) {
         height: 160px;
     }
 }
+
+
+/* =====================================================
+   PRODUITS WAM — page liste + fiche
+   Markup : page-produits-wam.php, template-parts/card-product.php,
+   template-parts/single-product-wam.php
+   Visuel carré aux bords arrondis comme card-event (events.css).
+   ===================================================== */
+
+.page-products__grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: var(--wam-spacing-xl);
+}
+
+@media (min-width: 640px) {
+    .page-products__grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+@media (min-width: 1024px) {
+    .page-products__grid {
+        grid-template-columns: repeat(3, 1fr);
+    }
+}
+
+.card-product {
+    display: flex;
+    flex-direction: column;
+    gap: var(--wam-spacing-md);
+    min-width: 0;
+}
+
+.card-product__media {
+    position: relative;
+    display: block;
+    width: 100%;
+    aspect-ratio: 1 / 1;
+    overflow: hidden;
+    border-radius: var(--wam-radius-xl);
+    background: var(--wam-color-card-bg);
+}
+
+.card-product__img {
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform var(--wam-transition-slow);
+}
+
+.card-product:hover .card-product__img {
+    transform: scale(1.04);
+}
+
+.card-product__img-overlay {
+    position: absolute;
+    inset: 0;
+    background: var(--wam-color-page-bg);
+    mix-blend-mode: lighten;
+    pointer-events: none;
+}
+
+.card-product__img-placeholder {
+    display: block;
+    width: 100%;
+    height: 100%;
+}
+
+.card-product__body {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: var(--wam-spacing-sm);
+}
+
+.card-product__title {
+    margin: 0;
+    color: var(--wam-color-text);
+}
+
+/* Titre cliquable sans soulignement (le soulignement global des liens est neutralisé ici) */
+.card-product__title a {
+    color: inherit;
+    text-decoration: none;
+}
+
+.card-product__title a:hover,
+.card-product__title a:focus-visible {
+    color: var(--wam-color-pink);
+}
+
+.card-product__price {
+    margin: 0;
+    color: var(--wam-color-pink);
+    font-size: var(--wam-font-size-lg);
+    font-weight: bold;
+    line-height: 1.2;
+}
+
+.card-product__cart {
+    margin: 0;
+}
+
+.card-product__unavailable {
+    margin: 0;
+}
+
+/* Fiche produit WAM : catégorie discrète au-dessus du titre */
+.product-wam__content {
+    gap: var(--wam-spacing-md);
+}
+
+.product-wam__category {
+    margin: 0;
+}
+
+.product-wam__description {
+    width: 100%;
+}
+
+/* L'encart d'achat est dans la colonne de contenu : pas de collage au scroll */
+.product-wam__content .product-buy-card {
+    position: static;
+    width: 100%;
+    box-sizing: border-box;
+}

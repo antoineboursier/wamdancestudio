@@ -57,6 +57,8 @@ do_action('woocommerce_before_cart');
                         $course_id       = $cart_item['wam_course_id'] ?? null;
                         // Seuls les stages sont ajustables en quantité (on achète N places).
                         $is_stage        = function_exists('wamv1_is_stage_item') && wamv1_is_stage_item($cart_item);
+                        // Produits WAM (totebags…) : image produit, quantité ajustable, pas de badge.
+                        $is_wam_product  = function_exists('wamv1_is_wam_product') && wamv1_is_wam_product($product_id);
                         $course_title    = $course_id ? get_the_title($course_id) : null;
                         $course_subtitle = $course_id ? get_field('sous_titre', $course_id) : null;
                         $course_thumb    = $course_id ? get_the_post_thumbnail_url($course_id, 'medium') : null;
@@ -75,6 +77,13 @@ do_action('woocommerce_before_cart');
                         $image_html = $course_thumb
                             ? '<img src="' . esc_url($course_thumb) . '" alt="' . esc_attr($course_title ?: $product_name) . '" width="120" height="120" loading="lazy">'
                             : null;
+                        if (!$image_html && $is_wam_product && get_post_thumbnail_id($product_id)) {
+                            $image_html = wp_get_attachment_image(get_post_thumbnail_id($product_id), 'woocommerce_thumbnail', false, [
+                                'alt'             => $product_name,
+                                'loading'         => 'lazy',
+                                'data-no-overlay' => 'true',
+                            ]);
+                        }
                         ?>
 
                         <article
@@ -117,7 +126,9 @@ do_action('woocommerce_before_cart');
                                 ?>
 
                                 <!-- Badge -->
-                                <?php if ( isset( $cart_item['bookly'] ) && $tunnel_eleve ): ?>
+                                <?php if ( $is_wam_product ): ?>
+                                    <?php /* Produit WAM : le titre ci-dessous porte déjà le nom, pas de badge en doublon. */ ?>
+                                <?php elseif ( isset( $cart_item['bookly'] ) && $tunnel_eleve ): ?>
                                     <span class="wam-cart-card__badge text-xs"><?php echo esc_html( wamv1_bookly_badge_label( $cart_item, $tunnel_label ) ); ?></span>
                                 <?php else: ?>
                                     <span class="wam-cart-card__badge text-xs">
@@ -168,9 +179,13 @@ do_action('woocommerce_before_cart');
 
                                 <!-- Données via le filtre WC standard : Bookly, produits variables, etc.
                                      Pas pour les items WAM qui ont leur propre affichage (wam_course_id). -->
-                                <?php if (!$course_id): ?>
+                                <?php
+                                // Conteneur rendu seulement s'il y a des données : son ::before dessine
+                                // l'icône calendrier (shop.css), qui apparaîtrait sinon sur un conteneur vide.
+                                $donnees_item = !$course_id ? trim(wc_get_formatted_cart_item_data($cart_item)) : '';
+                                if ($donnees_item !== ''): ?>
                                     <div class="wam-cart-bookly-data">
-                                        <?php echo wc_get_formatted_cart_item_data($cart_item); ?>
+                                        <?php echo $donnees_item; ?>
                                     </div>
                                 <?php endif; ?>
 
@@ -186,10 +201,10 @@ do_action('woocommerce_before_cart');
                                 <div class="wam-cart-card__footer">
 
 
-                                    <!-- Quantité : stages uniquement (on achète N places).
-                                         Cours, réservations Bookly et produits hors WAM restent à
+                                    <!-- Quantité : stages (on achète N places) et produits WAM (totebags).
+                                         Cours, réservations Bookly et autres produits restent à
                                          quantité fixe et se retirent par la croix. -->
-                                    <?php if ($is_stage): ?>
+                                    <?php if ($is_stage || $is_wam_product): ?>
                                     <div class="wam-cart-card__qty product-quantity">
                                         <button type="button" class="wam-qty-btn minus" aria-label="<?php echo esc_attr(sprintf(__('Diminuer la quantité pour %s', 'wamv1'), $course_title ?: $product_name)); ?>">-</button>
                                         <?php
@@ -200,7 +215,7 @@ do_action('woocommerce_before_cart');
                                         // cours et stages, il ne peut pas porter une règle propre
                                         // au CPT lié.
                                         $min_quantity = 1;
-                                        $max_quantity = function_exists('wamv1_stage_places_restantes')
+                                        $max_quantity = ($is_stage && function_exists('wamv1_stage_places_restantes'))
                                             ? wamv1_stage_places_restantes(
                                                 (int) $course_id,
                                                 (int) ($cart_item['wam_tarif_index'] ?? 0),

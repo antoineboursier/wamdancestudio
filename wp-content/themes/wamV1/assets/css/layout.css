@@ -357,6 +357,37 @@ body.single-post #section-article-header.page-hero {
     height: auto;
 }
 
+/* Visuel au ratio natif — fiche produit.
+   Le cadre épouse l'image (fit-content) et ne la recadre jamais : seuls les
+   plafonds de largeur et de hauteur (tokens.css) la bornent. Le wrapper
+   repasse dans le flux pour donner sa taille au cadre. Mobile-first : sous
+   1024px la colonne est pleine largeur, le plafond de largeur ne joue que
+   sur les grands écrans. */
+.page-hero__image--native {
+    flex: 0 1 auto;
+    width: fit-content;
+    max-width: min(100%, var(--wam-product-image-max-width));
+    min-width: 0;
+    height: auto;
+    align-self: flex-start;
+}
+
+.page-hero__image--native>.photo-wrapper {
+    position: relative;
+    inset: auto;
+    display: block;
+    width: auto;
+    height: auto;
+}
+
+.page-hero__image--native .page-hero__image-img {
+    width: auto;
+    height: auto;
+    max-width: 100%;
+    max-height: var(--wam-product-image-max-height);
+    object-fit: contain;
+}
+
 /* Image — comportement par défaut : naturelle (cours/stages) */
 .page-hero__image-img {
     display: block;

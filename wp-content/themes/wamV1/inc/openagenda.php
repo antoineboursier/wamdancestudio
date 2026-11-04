@@ -421,3 +421,56 @@ foreach (WAMV1_OA_POST_TYPES as $type_oa) {
         }
     }, 10, 2);
 }
+
+/**
+ * Encadré "OpenAgenda" dans la fiche d'un stage ou d'un événement : état du dernier envoi.
+ * (Le plugin Admin Columns ignore les colonnes ajoutées par le code : l'encadré, lui, s'affiche toujours.)
+ */
+add_action('add_meta_boxes', static function () {
+    if (!wamv1_oa_config()) {
+        return;
+    }
+    foreach (WAMV1_OA_POST_TYPES as $type) {
+        add_meta_box('wamv1_oa', 'OpenAgenda', static function ($post) {
+            $statut = (string) get_post_meta($post->ID, '_wam_oa_status', true);
+            echo '<p>' . esc_html($statut !== '' ? $statut : 'Pas encore envoyé.') . '</p>';
+            echo '<p class="description">Envoi automatique à l\'enregistrement (publié = ajouté à l\'agenda, brouillon ou corbeille = retiré).</p>';
+        }, $type, 'side', 'default');
+    }
+});
+
+/**
+ * Action groupée "Envoyer à OpenAgenda" dans la liste des stages et des événements
+ * (utile pour les contenus déjà publiés avant la mise en place). Envois étalés par le cron.
+ */
+foreach (WAMV1_OA_POST_TYPES as $type_oa) {
+    add_filter("bulk_actions-edit-{$type_oa}", static function ($actions) {
+        if (wamv1_oa_config()) {
+            $actions['wamv1_oa_send'] = 'Envoyer à OpenAgenda';
+        }
+        return $actions;
+    });
+    add_filter("handle_bulk_actions-edit-{$type_oa}", static function ($redirect, $action, $ids) {
+        if ($action !== 'wamv1_oa_send' || !wamv1_oa_config()) {
+            return $redirect;
+        }
+        $n = 0;
+        foreach ((array) $ids as $i => $id) {
+            $id = (int) $id;
+            if (current_user_can('edit_post', $id) && !wp_next_scheduled('wamv1_oa_sync', [$id])) {
+                wp_schedule_single_event(time() + 5 + $n * 6, 'wamv1_oa_sync', [$id]);
+                $n++;
+            }
+        }
+        return add_query_arg('wamv1_oa_planifies', $n, $redirect);
+    }, 10, 3);
+}
+add_action('admin_notices', static function () {
+    if (isset($_GET['wamv1_oa_planifies'])) {
+        $n = (int) $_GET['wamv1_oa_planifies'];
+        echo '<div class="notice notice-success is-dismissible"><p>' . esc_html(sprintf(
+            '%d contenu(s) planifié(s) pour envoi à OpenAgenda (quelques secondes chacun). Le résultat s\'affiche dans l\'encadré OpenAgenda de chaque fiche.',
+            $n
+        )) . '</p></div>';
+    }
+});

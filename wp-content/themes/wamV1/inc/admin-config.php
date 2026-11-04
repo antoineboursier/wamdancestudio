@@ -71,6 +71,8 @@ function wam_get_settings_keys(): array
         'url_tiktok'                   => ['type' => 'string',  'default' => '', 'group' => 'socials'],
         'url_linkedin'                 => ['type' => 'string',  'default' => '', 'group' => 'socials'],
         'url_youtube'                  => ['type' => 'string',  'default' => '', 'group' => 'socials'],
+        'url_helloasso'                => ['type' => 'string',  'default' => '', 'group' => 'socials'],
+        'telephone'                    => ['type' => 'string',  'default' => '', 'group' => 'socials'],
     ];
 }
 
@@ -180,6 +182,8 @@ function wam_config_register_settings(): void
     add_settings_field('url_tiktok', 'Lien TikTok', 'wam_field_url_tiktok', 'wam-config-socials', 'wam_section_socials');
     add_settings_field('url_linkedin', 'Lien LinkedIn', 'wam_field_url_linkedin', 'wam-config-socials', 'wam_section_socials');
     add_settings_field('url_youtube', 'Lien YouTube', 'wam_field_url_youtube', 'wam-config-socials', 'wam_section_socials');
+    add_settings_field('url_helloasso', 'Lien HelloAsso', 'wam_field_url_helloasso', 'wam-config-socials', 'wam_section_socials');
+    add_settings_field('telephone', 'Téléphone', 'wam_field_telephone', 'wam-config-socials', 'wam_section_socials');
 
 }
 add_action('admin_init', 'wam_config_register_settings');
@@ -259,6 +263,16 @@ function wam_field_url_linkedin(): void {
 function wam_field_url_youtube(): void {
     $val = esc_attr(wam_get_setting('url_youtube', ''));
     echo '<input type="url" name="wam_setting_url_youtube" value="' . $val . '" class="regular-text">';
+}
+function wam_field_url_helloasso(): void {
+    $val = esc_attr(wam_get_setting('url_helloasso', ''));
+    echo '<input type="url" name="wam_setting_url_helloasso" value="' . $val . '" class="regular-text">';
+    echo '<p class="description">Page de l\'association sur HelloAsso. Utilisé dans les données structurées (pas affiché dans le menu).</p>';
+}
+function wam_field_telephone(): void {
+    $val = esc_attr(wam_get_setting('telephone', ''));
+    echo '<input type="tel" name="wam_setting_telephone" value="' . $val . '" class="regular-text" placeholder="+33 7 00 00 00 00">';
+    echo '<p class="description">Format international conseillé. Utilisé dans les données structurées et le llms.txt (pas affiché dans le menu).</p>';
 }
 
 function wam_field_inscriptions_actives(): void
@@ -870,6 +884,21 @@ if (!function_exists('wam_url_youtube')):
     function wam_url_youtube(): string
     {
         return esc_url(wam_get_setting('url_youtube', ''));
+    }
+endif;
+
+if (!function_exists('wam_url_helloasso')):
+    function wam_url_helloasso(): string
+    {
+        return esc_url(wam_get_setting('url_helloasso', ''));
+    }
+endif;
+
+if (!function_exists('wam_telephone')):
+    /** Téléphone tel que saisi (ex. "+33 7 69 43 61 90"), chaîne vide sinon. */
+    function wam_telephone(): string
+    {
+        return sanitize_text_field((string) wam_get_setting('telephone', ''));
     }
 endif;
 

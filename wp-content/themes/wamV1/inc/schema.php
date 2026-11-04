@@ -77,7 +77,71 @@ if ( ! function_exists( 'wamv1_schema_fix_organization_type' ) ) {
             }
         }
 
+        // telephone — réglage WAM > Réseaux sociaux (format international).
+        $tel = wamv1_schema_telephone();
+        if ( empty( $data['telephone'] ) && $tel ) {
+            $data['telephone'] = $tel;
+        }
+
+        // sameAs — on complète les profils de Yoast avec ceux réglés dans WAM
+        // > Réseaux sociaux (YouTube, HelloAsso…), sans doublon.
+        $same_as = isset( $data['sameAs'] ) ? (array) $data['sameAs'] : [];
+        foreach ( wamv1_schema_profils_sociaux() as $url ) {
+            $deja = false;
+            foreach ( $same_as as $existant ) {
+                if ( untrailingslashit( strtolower( (string) $existant ) ) === untrailingslashit( strtolower( $url ) ) ) {
+                    $deja = true;
+                    break;
+                }
+            }
+            if ( ! $deja ) {
+                $same_as[] = $url;
+            }
+        }
+        if ( $same_as ) {
+            $data['sameAs'] = array_values( $same_as );
+        }
+
+        // geo et horaires — mêmes valeurs que le lieu WAM.
+        $place = wamv1_schema_place_wam();
+        if ( empty( $data['geo'] ) ) {
+            $data['geo'] = $place['geo'];
+        }
+        if ( empty( $data['openingHoursSpecification'] ) ) {
+            $data['openingHoursSpecification'] = $place['openingHoursSpecification'];
+        }
+        if ( empty( $data['hasMap'] ) ) {
+            $data['hasMap'] = $place['hasMap'];
+        }
+
         return $data;
+    }
+}
+
+/**
+ * Téléphone du studio (réglage WAM > Réseaux sociaux), chaîne vide sinon.
+ */
+if ( ! function_exists( 'wamv1_schema_telephone' ) ) {
+    function wamv1_schema_telephone(): string {
+        return function_exists( 'wam_telephone' ) ? trim( wam_telephone() ) : '';
+    }
+}
+
+/**
+ * URLs des profils renseignés dans WAM > Réseaux sociaux.
+ */
+if ( ! function_exists( 'wamv1_schema_profils_sociaux' ) ) {
+    function wamv1_schema_profils_sociaux(): array {
+        $urls = [];
+        foreach ( [ 'wam_url_instagram', 'wam_url_facebook', 'wam_url_youtube', 'wam_url_tiktok', 'wam_url_linkedin', 'wam_url_helloasso' ] as $fn ) {
+            if ( function_exists( $fn ) ) {
+                $url = trim( (string) $fn() );
+                if ( $url !== '' ) {
+                    $urls[] = $url;
+                }
+            }
+        }
+        return $urls;
     }
 }
 
@@ -213,7 +277,7 @@ if ( ! function_exists( 'wamv1_schema_place_wam' ) ) {
         // Décodage des entités HTML pour un JSON-LD propre (ex: &#039; → ').
         $adresse_brute = function_exists('wam_adresse_lieu') ? wam_adresse_lieu() : "202 rue Jean Jaurès\nVilleneuve-d'Ascq";
         $adresse = html_entity_decode( trim( strtok( $adresse_brute, "\n" ) ), ENT_QUOTES, 'UTF-8' );
-        return [
+        $place = [
             '@type'   => 'Place',
             'name'    => $nom,
             'address' => [
@@ -230,6 +294,8 @@ if ( ! function_exists( 'wamv1_schema_place_wam' ) ) {
                 'longitude' => 3.141649,
             ],
             'hasMap' => 'https://www.google.com/maps/search/?api=1&query=WAM+Dance+Studio+Villeneuve+d\'Ascq',
+            // Horaires d'accueil (téléphone) donnés par l'équipe le 04/11/2026 :
+            // 9h30 - 23h tous les jours.
             'openingHoursSpecification' => [
                 [
                     '@type'     => 'OpeningHoursSpecification',
@@ -239,19 +305,19 @@ if ( ! function_exists( 'wamv1_schema_place_wam' ) ) {
                         'https://schema.org/Wednesday',
                         'https://schema.org/Thursday',
                         'https://schema.org/Friday',
-                        'https://schema.org/Saturday'
+                        'https://schema.org/Saturday',
+                        'https://schema.org/Sunday',
                     ],
-                    'opens'  => '09:00',
-                    'closes' => '22:00'
+                    'opens'  => '09:30',
+                    'closes' => '23:00',
                 ],
-                [
-                    '@type'     => 'OpeningHoursSpecification',
-                    'dayOfWeek' => 'https://schema.org/Sunday',
-                    'opens'  => '13:00',
-                    'closes' => '22:00'
-                ]
-            ]
+            ],
         ];
+        $tel = function_exists( 'wamv1_schema_telephone' ) ? wamv1_schema_telephone() : '';
+        if ( $tel ) {
+            $place['telephone'] = $tel;
+        }
+        return $place;
     }
 }
 

@@ -739,7 +739,10 @@ function wam_generate_llms_txt(): string
     $lines[] = "- Siège & Studio : {$adresse} (59650), Nord, France";
     $lines[] = '- Coordonnées GPS : 50.665313, 3.141649';
     $lines[] = '- Zones d\'intervention & Proximité : ' . implode(', ', $zones);
-    $lines[] = '- Horaires d\'ouverture : Lun-Sam (09:00 - 22:00), Dim (13:00 - 22:00)';
+    $lines[] = '- Horaires d\'accueil téléphonique : tous les jours, 09:30 - 23:00';
+    if (function_exists('wam_telephone') && wam_telephone()) {
+        $lines[] = '- Téléphone : ' . wam_telephone();
+    }
 
     // Identité juridique : utile pour qu'une IA rattache le studio à la bonne
     // entité (l'association porte encore son nom historique, Entre2Danses).
@@ -767,6 +770,7 @@ function wam_generate_llms_txt(): string
             'url_youtube' => 'YouTube',
             'url_tiktok' => 'TikTok',
             'url_linkedin' => 'LinkedIn',
+            'url_helloasso' => 'HelloAsso',
         ];
         foreach ($reseaux as $cle => $label) {
             $url = trim((string) wam_get_setting($cle));

@@ -26,6 +26,38 @@ add_action(
 );
 
 /**
+ * Bloque tout appel HTTP vers Odeya. `coulisses_odeya_active` est à 1 dans la
+ * copie de prod : une commande passée en « Terminée » en local enverrait sinon
+ * e-mail, prénom et nom d'un·e adhérent·e réel·le à video.odeya.fr.
+ * On bloque au niveau HTTP pour ne pas dépendre des noms de hooks du plugin.
+ */
+add_filter(
+	'pre_http_request',
+	function ( $pre, $args, $url ) {
+		$host = (string) wp_parse_url( $url, PHP_URL_HOST );
+		if ( 'odeya.fr' === $host || str_ends_with( $host, '.odeya.fr' ) ) {
+			error_log( '[wam-local-guard] appel Odeya bloqué : ' . $url );
+			return new WP_Error( 'wam_local_guard', 'Appel Odeya bloqué en local.' );
+		}
+		return $pre;
+	},
+	PHP_INT_MAX,
+	3
+);
+
+/**
+ * Pas de paiement réel depuis le local : seuls virement et chèque restent
+ * proposés (aucun appel externe, la commande se valide à la main).
+ */
+add_filter(
+	'woocommerce_available_payment_gateways',
+	function ( $gateways ) {
+		return array_intersect_key( (array) $gateways, array_flip( array( 'bacs', 'cheque' ) ) );
+	},
+	PHP_INT_MAX
+);
+
+/**
  * Coupe les tâches planifiées sortantes les plus bruyantes héritées de la prod.
  */
 add_filter( 'automatic_updater_disabled', '__return_true' );

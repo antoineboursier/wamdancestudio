@@ -325,11 +325,6 @@ function wamv1_oa_sync(int $post_id): void
             update_post_meta($post_id, '_wam_oa_status', 'ignoré : date manquante');
             return;
         }
-        // Un événement dont la date est passée n'est pas (re)publié.
-        if (strtotime($payload['timings'][0]['end']) < time()) {
-            update_post_meta($post_id, '_wam_oa_status', 'ignoré : date passée');
-            return;
-        }
         $image = wamv1_oa_image_jpeg($post_id);
         $rep = $image !== '' ? wamv1_oa_request('PUT', $chemin, $cfg, $payload, 'events', $image) : null;
         if ($image !== '') {

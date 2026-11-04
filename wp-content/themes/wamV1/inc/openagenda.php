@@ -159,6 +159,10 @@ function wamv1_oa_build_payload(int $post_id, int $location_uid = 0): ?array
     if ($location_uid) {
         $payload['locationUid'] = $location_uid;
     }
+    // Langue explicite : avec le seul en-tête "lang", les mots-clés sont rangés sous "en".
+    foreach (['title', 'description', 'longDescription', 'keywords'] as $champ) {
+        $payload[$champ] = ['fr' => $payload[$champ]];
+    }
     return apply_filters('wamv1_openagenda_payload', $payload, $post_id);
 }
 
@@ -208,19 +212,15 @@ function wamv1_oa_request(string $methode, string $chemin, array $cfg, ?array $c
         $limite = wp_generate_password(24, false);
         $json = wp_json_encode($corps, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
         $args['headers']['Content-Type'] = 'multipart/form-data; boundary=' . $limite;
-        $args['body'] = "--$limite
-Content-Disposition: form-data; name=\"data\"
-
-$json
-"
-            . "--$limite
-Content-Disposition: form-data; name=\"image\"; filename=\"image.jpg\"
-Content-Type: image/jpeg
-
-"
-            . file_get_contents($image) . "
---$limite--
-";
+        $crlf = "\r\n"; // le format multipart exige des CRLF
+        $args['body'] = '--' . $limite . $crlf
+            . 'Content-Disposition: form-data; name="data"' . $crlf . $crlf
+            . $json . $crlf
+            . '--' . $limite . $crlf
+            . 'Content-Disposition: form-data; name="image"; filename="image.jpg"' . $crlf
+            . 'Content-Type: image/jpeg' . $crlf . $crlf
+            . file_get_contents($image) . $crlf
+            . '--' . $limite . '--' . $crlf;
     } elseif ($corps !== null) {
         $args['body'] = wp_json_encode($corps, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
     }

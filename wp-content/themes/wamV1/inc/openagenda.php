@@ -11,8 +11,9 @@
  * - Garde-fou local : en environnement "local", rien n'est envoyé (une copie de prod
  *   publierait sur le vrai agenda), sauf si le fichier de secrets définit
  *   'allow_local' => true avec la clé d'un agenda de test.
- * - L'envoi passe par le cron WordPress (quelques secondes après l'enregistrement)
- *   pour ne pas ralentir l'admin. Le dernier résultat est dans la méta _wam_oa_status.
+ * - L'envoi part juste après la réponse au navigateur (hook shutdown), pas par le cron
+ *   WordPress, qui ne se déclenche pas de façon fiable en prod. Le dernier résultat est
+ *   dans la méta _wam_oa_status (encadré "OpenAgenda" de la fiche).
  * - Doc API : https://developers.openagenda.com/
  */
 
@@ -202,7 +203,7 @@ function wamv1_oa_token(array $cfg)
 /**
  * Appel de l'API événements. Retourne [code HTTP, corps décodé] ou WP_Error.
  */
-function wamv1_oa_request(string $methode, string $chemin, array $cfg, ?array $corps = null, string $ressource = 'events', string $image = '')
+function wamv1_oa_request(string $methode, string $chemin, array $cfg, ?array $corps = null, string $ressource = 'events', string $image = '', bool $relance = false)
 {
     $token = wamv1_oa_token($cfg);
     if (is_wp_error($token)) {
@@ -236,7 +237,13 @@ function wamv1_oa_request(string $methode, string $chemin, array $cfg, ?array $c
     if (is_wp_error($rep)) {
         return $rep;
     }
-    return [(int) wp_remote_retrieve_response_code($rep), json_decode(wp_remote_retrieve_body($rep), true)];
+    $code = (int) wp_remote_retrieve_response_code($rep);
+    // Jeton en cache expiré ou révoqué côté OpenAgenda : on en redemande un, une seule fois.
+    if (($code === 401 || $code === 403) && !$relance) {
+        delete_transient('wamv1_oa_token');
+        return wamv1_oa_request($methode, $chemin, $cfg, $corps, $ressource, $image, true);
+    }
+    return [$code, json_decode(wp_remote_retrieve_body($rep), true)];
 }
 
 /**
@@ -256,6 +263,10 @@ function wamv1_oa_image_jpeg(int $post_id): string
     }
     $editor->resize(1600, 1600, false);
     $editor->set_quality(85);
+    if (!function_exists('wp_tempnam')) {
+        // Absent hors de l'admin (publication programmée par le cron, par exemple).
+        require_once ABSPATH . 'wp-admin/includes/file.php';
+    }
     $dest = wp_tempnam('wam-oa-') . '.jpg';
     // Le thème force toutes les images générées en AVIF : on neutralise ce filtre pour ce JPEG.
     $neutre = static fn() => [];
@@ -365,7 +376,7 @@ function wamv1_oa_sync(int $post_id): void
         error_log('[wamv1 OpenAgenda] retrait #' . $post_id . ' : ' . wamv1_oa_erreur($rep));
     }
 }
-add_action('wamv1_oa_sync', 'wamv1_oa_sync');
+add_action('wamv1_oa_sync', 'wamv1_oa_sync'); // conservé pour d'éventuels envois encore planifiés par l'ancienne version
 
 function wamv1_oa_erreur($rep): string
 {
@@ -377,7 +388,7 @@ function wamv1_oa_erreur($rep): string
 }
 
 /**
- * Planifie la synchronisation (cron, dans 10 secondes) quand un contenu concerné change.
+ * Lance la synchronisation (en fin de requête) quand un contenu concerné change.
  */
 function wamv1_oa_planifier(int $post_id): void
 {
@@ -411,7 +422,7 @@ function wamv1_oa_planifier(int $post_id): void
 add_action('save_post', 'wamv1_oa_planifier', 30);
 add_action('wp_trash_post', 'wamv1_oa_planifier');
 
-// Suppression définitive : le contenu n'existera plus quand le cron passera, on retire tout de suite.
+// Suppression définitive : le contenu n'existera plus en fin de requête, on retire tout de suite.
 add_action('before_delete_post', static function ($post_id) {
     if (wamv1_oa_config() && in_array(get_post_type($post_id), WAMV1_OA_POST_TYPES, true)
         && get_post_meta($post_id, '_wam_oa_synced', true)) {
@@ -458,7 +469,7 @@ add_action('add_meta_boxes', static function () {
 
 /**
  * Action groupée "Envoyer à OpenAgenda" dans la liste des stages et des événements
- * (utile pour les contenus déjà publiés avant la mise en place). Envois étalés par le cron.
+ * (utile pour les contenus déjà publiés avant la mise en place).
  */
 foreach (WAMV1_OA_POST_TYPES as $type_oa) {
     add_filter("bulk_actions-edit-{$type_oa}", static function ($actions) {
@@ -503,7 +514,7 @@ add_action('admin_notices', static function () {
     if (isset($_GET['wamv1_oa_planifies'])) {
         $n = (int) $_GET['wamv1_oa_planifies'];
         echo '<div class="notice notice-success is-dismissible"><p>' . esc_html(sprintf(
-            '%d contenu(s) planifié(s) pour envoi à OpenAgenda (quelques secondes chacun). Le résultat s\'affiche dans l\'encadré OpenAgenda de chaque fiche.',
+            '%d contenu(s) en cours d\'envoi à OpenAgenda (quelques secondes chacun). Recharge la liste dans une minute : le résultat s\'affiche dans l\'encadré OpenAgenda de chaque fiche.',
             $n
         )) . '</p></div>';
     }

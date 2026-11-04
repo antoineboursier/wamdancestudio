@@ -471,13 +471,30 @@ foreach (WAMV1_OA_POST_TYPES as $type_oa) {
         if ($action !== 'wamv1_oa_send' || !wamv1_oa_config()) {
             return $redirect;
         }
-        $n = 0;
-        foreach ((array) $ids as $i => $id) {
+        $liste = [];
+        foreach ((array) $ids as $id) {
             $id = (int) $id;
-            if (current_user_can('edit_post', $id) && !wp_next_scheduled('wamv1_oa_sync', [$id])) {
-                wp_schedule_single_event(time() + 5 + $n * 6, 'wamv1_oa_sync', [$id]);
-                $n++;
+            if ($id && current_user_can('edit_post', $id)) {
+                $liste[] = $id;
+                update_post_meta($id, '_wam_oa_status', 'envoi en cours...');
             }
+        }
+        $n = count($liste);
+        // Envoi après la réponse au navigateur, l'un après l'autre (le cron WordPress, lui,
+        // ne se déclenche que sur une visite). Chaque fiche affiche son résultat.
+        if ($liste) {
+            add_action('shutdown', static function () use ($liste) {
+                if (function_exists('fastcgi_finish_request')) {
+                    fastcgi_finish_request();
+                } elseif (function_exists('litespeed_finish_request')) {
+                    litespeed_finish_request();
+                }
+                ignore_user_abort(true);
+                @set_time_limit(600);
+                foreach ($liste as $id) {
+                    wamv1_oa_sync($id);
+                }
+            });
         }
         return add_query_arg('wamv1_oa_planifies', $n, $redirect);
     }, 10, 3);

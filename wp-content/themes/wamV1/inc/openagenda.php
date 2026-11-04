@@ -6,7 +6,7 @@
  * identifiant externe "wp-{ID}" : crée l'événement s'il n'existe pas, le met à jour
  * sinon). Passé en brouillon, à la corbeille ou supprimé, il est retiré de l'agenda.
  *
- * - Secrets : fichier wam-openagenda-secrets.php à la racine du site (ignoré par git,
+ * - Secrets : fichier wam-openagenda-secrets.php à la racine du site ou dans son dossier parent (ignoré par git,
  *   modèle : inc/openagenda-secrets.sample.php). Sans ce fichier, rien ne part.
  * - Garde-fou local : en environnement "local", rien n'est envoyé (une copie de prod
  *   publierait sur le vrai agenda), sauf si le fichier de secrets définit
@@ -31,8 +31,15 @@ function wamv1_oa_config(): ?array
     static $cfg = false;
     if ($cfg === false) {
         $cfg = null;
-        $file = ABSPATH . 'wam-openagenda-secrets.php';
-        if (is_readable($file)) {
+        // Racine du site, ou dossier parent (hors du web en prod : /home/<compte>/, plus sûr).
+        $file = '';
+        foreach ([ABSPATH, dirname(untrailingslashit(ABSPATH)) . '/'] as $dossier) {
+            if (is_readable($dossier . 'wam-openagenda-secrets.php')) {
+                $file = $dossier . 'wam-openagenda-secrets.php';
+                break;
+            }
+        }
+        if ($file !== '') {
             $data = include $file;
             if (is_array($data) && !empty($data['agenda_uid']) && !empty($data['secret_key'])) {
                 $cfg = $data;

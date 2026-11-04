@@ -1,7 +1,8 @@
 <?php
 /**
- * Modèle. Copier à la RACINE du site (à côté de wp-config.php) sous le nom
- * wam-openagenda-secrets.php, puis renseigner les valeurs.
+ * Modèle. Copier sous le nom wam-openagenda-secrets.php, soit à la racine du site (à côté
+ * de wp-config.php), soit dans le dossier PARENT de la racine (en prod : /home/<compte>/,
+ * hors du web, à préférer), puis renseigner les valeurs.
  * Ce fichier réel est ignoré par git : ne jamais le versionner.
  *
  * - agenda_uid   : identifiant numérique de l'agenda (URL de l'agenda ou ses réglages).

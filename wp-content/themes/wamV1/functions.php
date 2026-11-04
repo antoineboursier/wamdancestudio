@@ -28,6 +28,7 @@ require_once get_template_directory() . '/inc/performance.php';
 require_once get_template_directory() . '/inc/google-business.php';
 require_once get_template_directory() . '/inc/llms-txt.php';
 require_once get_template_directory() . '/inc/seo-meta.php';
+require_once get_template_directory() . '/inc/openagenda.php';
 
 // -------------------------------------------------------
 // Setup

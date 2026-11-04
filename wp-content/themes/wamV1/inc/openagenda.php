@@ -355,6 +355,7 @@ function wamv1_oa_sync(int $post_id): void
 
     // Brouillon, corbeille ou suppression : retrait, seulement si déjà publié sur l'agenda.
     if ($post && !get_post_meta($post_id, '_wam_oa_synced', true)) {
+        update_post_meta($post_id, '_wam_oa_status', 'non publié : rien à envoyer');
         return;
     }
     $rep = wamv1_oa_request('DELETE', $chemin, $cfg);
@@ -391,9 +392,26 @@ function wamv1_oa_planifier(int $post_id): void
     if (!in_array(get_post_type($post_id), WAMV1_OA_POST_TYPES, true)) {
         return;
     }
-    if (!wp_next_scheduled('wamv1_oa_sync', [$post_id])) {
-        wp_schedule_single_event(time() + 10, 'wamv1_oa_sync', [$post_id]);
+    // Un seul envoi par contenu et par requête (save_post peut se déclencher plusieurs fois).
+    static $deja = [];
+    if (isset($deja[$post_id])) {
+        return;
     }
+    $deja[$post_id] = true;
+    update_post_meta($post_id, '_wam_oa_status', 'envoi en cours...');
+
+    // Envoi juste après la réponse au navigateur : pas d'attente du cron WordPress (qui ne
+    // se déclenche que sur une visite) et pas de ralentissement pour la personne qui enregistre.
+    add_action('shutdown', static function () use ($post_id) {
+        if (function_exists('fastcgi_finish_request')) {
+            fastcgi_finish_request();
+        } elseif (function_exists('litespeed_finish_request')) {
+            litespeed_finish_request();
+        }
+        ignore_user_abort(true);
+        @set_time_limit(90);
+        wamv1_oa_sync($post_id);
+    });
 }
 add_action('save_post', 'wamv1_oa_planifier', 30);
 add_action('wp_trash_post', 'wamv1_oa_planifier');
@@ -434,6 +452,10 @@ add_action('add_meta_boxes', static function () {
         add_meta_box('wamv1_oa', 'OpenAgenda', static function ($post) {
             $statut = (string) get_post_meta($post->ID, '_wam_oa_status', true);
             echo '<p>' . esc_html($statut !== '' ? $statut : 'Pas encore envoyé.') . '</p>';
+            if ($post->post_status === 'publish') {
+                $url = wp_nonce_url(admin_url('admin-post.php?action=wamv1_oa_now&post=' . (int) $post->ID), 'wamv1_oa_now_' . (int) $post->ID);
+                echo '<p><a class="button" href="' . esc_url($url) . '">Envoyer maintenant</a></p>';
+            }
             echo '<p class="description">Envoi automatique à l\'enregistrement (publié = ajouté à l\'agenda, brouillon ou corbeille = retiré).</p>';
         }, $type, 'side', 'default');
     }
@@ -472,5 +494,24 @@ add_action('admin_notices', static function () {
             '%d contenu(s) planifié(s) pour envoi à OpenAgenda (quelques secondes chacun). Le résultat s\'affiche dans l\'encadré OpenAgenda de chaque fiche.',
             $n
         )) . '</p></div>';
+    }
+});
+
+/**
+ * Bouton "Envoyer maintenant" de l'encadré : envoi immédiat, résultat visible tout de suite.
+ */
+add_action('admin_post_wamv1_oa_now', static function () {
+    $id = isset($_GET['post']) ? (int) $_GET['post'] : 0;
+    if (!$id || !current_user_can('edit_post', $id) || !wp_verify_nonce($_GET['_wpnonce'] ?? '', 'wamv1_oa_now_' . $id)) {
+        wp_die('Action non autorisée.', '', ['response' => 403]);
+    }
+    @set_time_limit(90);
+    wamv1_oa_sync($id);
+    wp_safe_redirect(add_query_arg('wamv1_oa_fait', 1, get_edit_post_link($id, 'raw')));
+    exit;
+});
+add_action('admin_notices', static function () {
+    if (isset($_GET['wamv1_oa_fait'])) {
+        echo '<div class="notice notice-info is-dismissible"><p>Envoi à OpenAgenda effectué : voir l\'encadré OpenAgenda, dans la colonne de droite.</p></div>';
     }
 });

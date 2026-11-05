@@ -137,3 +137,53 @@ function wamv1_seo_stage_metadesc_fallback($desc)
 add_filter('wpseo_metadesc', 'wamv1_seo_stage_metadesc_fallback', 20);
 add_filter('wpseo_opengraph_desc', 'wamv1_seo_stage_metadesc_fallback', 20);
 add_filter('wpseo_twitter_description', 'wamv1_seo_stage_metadesc_fallback', 20);
+
+/**
+ * Variables Yoast pour les titres des stages et événements : %%wam_type%% et %%wam_date%%.
+ * (Yoast sait lire un champ brut avec %%cf_...%% mais pas son libellé, ni une date mise en forme.)
+ * Réglage du gabarit : Yoast > Types de contenu > Stages > Modèle de titre SEO.
+ */
+function wamv1_seo_variable_post_id($args = null): int
+{
+    // Yoast transmet le contenu concerné (aperçu de l'éditeur compris) ; repli sur la page affichée.
+    if (is_object($args) && !empty($args->ID)) {
+        return (int) $args->ID;
+    }
+    $id = (int) get_queried_object_id();
+    return $id ?: (int) get_the_ID();
+}
+
+/** Libellé du type ("Stage", "Atelier", "Workshop"), vide si le titre le contient déjà. */
+function wamv1_seo_var_type($var = '', $args = null): string
+{
+    $id = wamv1_seo_variable_post_id($args);
+    if (!$id || get_post_type($id) !== 'stages') {
+        return '';
+    }
+    $libelles = ['type_stage' => 'Stage', 'type_atel' => 'Atelier', 'type_wshop' => 'Workshop'];
+    $brut = (string) get_post_meta($id, 'type_format', true);
+    $libelle = $libelles[$brut] ?? 'Stage';
+    $titre = html_entity_decode(wp_strip_all_tags(get_the_title($id)), ENT_QUOTES, 'UTF-8');
+    return stripos($titre, $libelle) !== false ? '' : $libelle;
+}
+
+/** Date du stage ou de l'événement, en toutes lettres ("25 octobre 2026"). */
+function wamv1_seo_var_date($var = '', $args = null): string
+{
+    $id = wamv1_seo_variable_post_id($args);
+    $cle = get_post_type($id) === 'stages' ? 'date_stage' : (get_post_type($id) === 'evenements' ? 'date_event' : '');
+    $date = $cle ? (string) get_post_meta($id, $cle, true) : '';
+    if (!preg_match('/^\d{8}$/', $date)) {
+        return '';
+    }
+    $dt = DateTimeImmutable::createFromFormat('Ymd', $date, wp_timezone());
+    return $dt ? wp_date('j F Y', $dt->getTimestamp()) : '';
+}
+
+add_action('wpseo_register_extra_replacements', static function () {
+    if (!function_exists('wpseo_register_var_replacement')) {
+        return;
+    }
+    wpseo_register_var_replacement('wam_type', 'wamv1_seo_var_type', 'advanced', 'WAM : type du stage (Stage, Atelier, Workshop), vide si déjà dans le titre');
+    wpseo_register_var_replacement('wam_date', 'wamv1_seo_var_date', 'advanced', 'WAM : date du stage ou de l\'événement (25 octobre 2026)');
+});

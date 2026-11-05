@@ -343,11 +343,29 @@ function wamv1_inscriptions_libelles(WC_Order_Item_Product $item): array
     $post_id = wamv1_inscriptions_post_lie($item);
 
     if ($post_id) {
-        $titre = get_the_title($post_id);
-        $sous_titre = function_exists('get_field') ? (string) get_field('sous_titre', $post_id) : '';
+        // Titre figé à l'achat quand la ligne le porte, pour qu'un cours renommé
+        // à la rentrée ne réécrive pas l'historique : meta `Cours` ("Titre -
+        // sous-titre") des inscriptions à un cours, ou nom de ligne
+        // "Stage (Titre - niveau - horaire)" des stages. Sans snapshot
+        // (préinscription, séance à la carte), on retombe sur la fiche actuelle.
+        $fige = trim((string) $item->get_meta('Cours'));
+        if ($fige === '' && preg_match('/^Stage \((.+)\)$/us', html_entity_decode($item->get_name(), ENT_QUOTES, 'UTF-8'), $m)) {
+            $fige = trim($m[1]);
+        }
+
+        if ($fige !== '') {
+            $morceaux   = explode(' - ', $fige, 2);
+            $titre      = $morceaux[0];
+            $sous_titre = $morceaux[1] ?? '';
+        } else {
+            $titre      = get_the_title($post_id);
+            $sous_titre = function_exists('get_field') ? (string) get_field('sous_titre', $post_id) : '';
+        }
+
         $horaire    = (string) $item->get_meta('Horaire');
         $date_stage = (string) $item->get_meta('Date');
         $precision  = trim(implode(' · ', array_filter([$sous_titre, $horaire, $date_stage])));
+        // La photo n'est pas figée à l'achat : elle reste celle de la fiche actuelle.
         $vignette_id = (int) get_post_thumbnail_id($post_id);
         if ($vignette_id) {
             $format = 'portrait';
@@ -363,13 +381,14 @@ function wamv1_inscriptions_libelles(WC_Order_Item_Product $item): array
     if (!empty($slot['slots'][0][2])) {
         $debut = date_create_immutable($slot['slots'][0][2], wp_timezone());
         if ($debut) {
-            $essai = 'Cours d\'essai le ' . wp_date('j F à G\hi', $debut->getTimestamp());
+            // Le vocabulaire suit le type d'offre : "Cours d'essai" seulement pour
+            // une préinscription, "Séance" pour une séance à la carte, et une
+            // simple date pour le reste (cours privé de groupe, EVJF...).
+            $type    = wamv1_inscriptions_type_offre($item);
+            $prefixe = $type === 'preinscription' ? 'Cours d\'essai le ' : ($type === 'seance_unique' ? 'Séance le ' : 'Le ');
+            $essai   = $prefixe . wp_date('j F à G\hi', $debut->getTimestamp());
             $precision = $precision ? $precision . ' · ' . $essai : $essai;
         }
-    }
-
-    if (wamv1_inscriptions_est_essai($item)) {
-        $nature .= ' · Essai';
     }
 
     return [
@@ -458,12 +477,47 @@ function wamv1_inscriptions_facture(WC_Order $order): ?array
 }
 
 /**
- * Préinscription à un cours d'essai (ligne Bookly) : affichée pour mémoire,
- * jamais modifiable — l'essai passé, ses données n'ont plus d'usage.
+ * Réservation Bookly (préinscription, séance à la carte, cours privé de
+ * groupe, EVJF...) : affichée pour mémoire, jamais modifiable en ligne. Le
+ * nom de l'élève y est celui du titulaire, et la séance passée, ces données
+ * n'ont plus d'usage.
+ */
+function wamv1_inscriptions_est_reservation_bookly(WC_Order_Item_Product $item): bool
+{
+    return is_array($item->get_meta('bookly'));
+}
+
+/**
+ * Type d'offre figé sur la ligne à l'achat (`_wam_offre_snapshot['type']`, posé
+ * par le tunnel) : `preinscription`, `seance_unique`, `periode`... Chaîne vide
+ * pour les lignes antérieures aux offres ou sans offre (cours privé, EVJF).
+ */
+function wamv1_inscriptions_type_offre(WC_Order_Item_Product $item): string
+{
+    $snapshot = $item->get_meta('_wam_offre_snapshot');
+    $type     = is_array($snapshot) ? (string) ($snapshot['type'] ?? '') : '';
+    if ($type !== '') {
+        return $type;
+    }
+
+    // Lignes antérieures au module Offres (pas de snapshot) : le nom du produit
+    // est le seul indice, et il est sans ambiguïté pour ces deux-là.
+    $produit = $item->get_product();
+    $nom     = mb_strtolower($produit ? $produit->get_name() : $item->get_name());
+    $connus  = ['préinscription' => 'preinscription', 'séance à la carte' => 'seance_unique'];
+
+    return $connus[$nom] ?? '';
+}
+
+/**
+ * Vrai cours d'essai : uniquement une préinscription. Avant, toute ligne Bookly
+ * était étiquetée « Essai », à tort pour les EVJF, anniversaires et séances à
+ * la carte.
  */
 function wamv1_inscriptions_est_essai(WC_Order_Item_Product $item): bool
 {
-    return is_array($item->get_meta('bookly'));
+    return wamv1_inscriptions_est_reservation_bookly($item)
+        && wamv1_inscriptions_type_offre($item) === 'preinscription';
 }
 
 /** Cours rattaché à un service Bookly (champ ACF `service_bookly`). */
@@ -529,7 +583,7 @@ function wamv1_inscriptions_enregistrer(): void
     $order    = $order_id ? wc_get_order($order_id) : null;
     $item     = $order ? $order->get_item($item_id) : null;
 
-    if (!$item instanceof WC_Order_Item_Product || wamv1_inscriptions_est_essai($item) || !wamv1_inscriptions_commande_modifiable($order, $user_id)) {
+    if (!$item instanceof WC_Order_Item_Product || wamv1_inscriptions_est_reservation_bookly($item) || !wamv1_inscriptions_commande_modifiable($order, $user_id)) {
         wc_add_notice('Cette inscription ne peut pas être modifiée depuis votre compte.', 'error');
         return;
     }

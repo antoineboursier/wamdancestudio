@@ -64,7 +64,7 @@ $commandes = wamv1_inscriptions_commandes($user_id);
                         $participants = [];
                     }
                     $essai        = wamv1_inscriptions_est_essai($item);
-                    $editable     = $modifiable && !$essai && $participants;
+                    $editable     = $modifiable && !wamv1_inscriptions_est_reservation_bookly($item) && $participants;
                     $saisie       = wamv1_inscriptions_saisie_en_erreur((int) $item_id);
                     $noms         = [];
                     foreach ($participants as $participant) {

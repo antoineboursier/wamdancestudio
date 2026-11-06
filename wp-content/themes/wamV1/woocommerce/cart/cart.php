@@ -31,18 +31,6 @@ do_action('woocommerce_before_cart');
 
                     <?php do_action('woocommerce_before_cart_contents'); ?>
 
-                    <?php
-                    // Élève stocké en session par le tunnel (pour les items Bookly)
-                    $tunnel_eleve = function_exists('WC') && WC()->session ? WC()->session->get('coulisses_eleve') : null;
-                    $tunnel_label = '';
-                    if ( ! empty( $tunnel_eleve ) ) {
-                        $te_enfant  = ! empty( $tunnel_eleve['pour_enfant'] );
-                        $te_prenom  = $te_enfant ? ( $tunnel_eleve['enfant_prenom'] ?? '' ) : ( $tunnel_eleve['prenom'] ?? '' );
-                        $te_nom     = $te_enfant ? ( $tunnel_eleve['enfant_nom']    ?? '' ) : ( $tunnel_eleve['nom']    ?? '' );
-                        $tunnel_label = trim( $te_prenom . ' ' . $te_nom );
-                    }
-                    ?>
-
                     <?php foreach (WC()->cart->get_cart() as $cart_item_key => $cart_item):
                         $_product = apply_filters('woocommerce_cart_item_product', $cart_item['data'], $cart_item, $cart_item_key);
                         $product_id = apply_filters('woocommerce_cart_item_product_id', $cart_item['product_id'], $cart_item, $cart_item_key);
@@ -77,6 +65,14 @@ do_action('woocommerce_before_cart');
                         $image_html = $course_thumb
                             ? '<img src="' . esc_url($course_thumb) . '" alt="' . esc_attr($course_title ?: $product_name) . '" width="120" height="120" loading="lazy">'
                             : null;
+                        // Image fournie par le filtre (plugin) quand la ligne n'est pas rattachée à un cours ici.
+                        if (!$image_html) {
+                            $filtre_image_id = (int) apply_filters('wamv1_cart_item_image', 0, $cart_item);
+                            $filtre_image_url = $filtre_image_id ? wp_get_attachment_image_url($filtre_image_id, 'medium') : '';
+                            if ($filtre_image_url) {
+                                $image_html = '<img src="' . esc_url($filtre_image_url) . '" alt="' . esc_attr($product_name) . '" width="120" height="120" loading="lazy">';
+                            }
+                        }
                         if (!$image_html && $is_wam_product && get_post_thumbnail_id($product_id)) {
                             $image_html = wp_get_attachment_image(get_post_thumbnail_id($product_id), 'woocommerce_thumbnail', false, [
                                 'alt'             => $product_name,
@@ -114,26 +110,12 @@ do_action('woocommerce_before_cart');
                             <!-- Infos principales -->
                             <div class="wam-cart-card__body">
 
-                                <?php
-                                $coulisses_eleve = $cart_item['coulisses_eleve'] ?? [];
-                                $coulisses_label = '';
-                                if ( ! empty( $coulisses_eleve ) ) {
-                                    $pour_enfant     = ! empty( $coulisses_eleve['pour_enfant'] );
-                                    $eleve_prenom    = $pour_enfant ? ( $coulisses_eleve['enfant_prenom'] ?? '' ) : ( $coulisses_eleve['prenom'] ?? '' );
-                                    $eleve_nom       = $pour_enfant ? ( $coulisses_eleve['enfant_nom']    ?? '' ) : ( $coulisses_eleve['nom']    ?? '' );
-                                    $coulisses_label = trim( $eleve_prenom . ' ' . $eleve_nom );
-                                }
-                                ?>
-
-                                <!-- Badge -->
+                                <!-- Badge : le texte vient du filtre (fourni par le plugin), repli sur le nom du produit -->
                                 <?php if ( $is_wam_product ): ?>
                                     <?php /* Produit WAM : le titre ci-dessous porte déjà le nom, pas de badge en doublon. */ ?>
-                                <?php elseif ( isset( $cart_item['bookly'] ) && $tunnel_eleve ): ?>
-                                    <span class="wam-cart-card__badge text-xs"><?php echo esc_html( wamv1_bookly_badge_label( $cart_item, $tunnel_label ) ); ?></span>
                                 <?php else: ?>
                                     <span class="wam-cart-card__badge text-xs">
-                                        <?php echo esc_html( $_product->get_name() ); ?>
-                                        <?php if ( $coulisses_label ): ?> — pour <?php echo esc_html( $coulisses_label ); ?><?php endif; ?>
+                                        <?php echo esc_html( apply_filters( 'wamv1_cart_item_badge', $_product->get_name(), $cart_item ) ); ?>
                                     </span>
                                 <?php endif; ?>
 

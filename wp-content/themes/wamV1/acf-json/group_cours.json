@@ -616,74 +616,6 @@
             "selected": 0
         },
         {
-            "key": "field_69c55f8b7ce7c",
-            "label": "Inscription définitive (produit WooCommerce)",
-            "name": "wc_product_id",
-            "aria-label": "",
-            "type": "select",
-            "instructions": "",
-            "required": 0,
-            "conditional_logic": 0,
-            "wrapper": {
-                "width": "",
-                "class": "",
-                "id": ""
-            },
-            "choices": {
-                "335": "Formule mariage",
-                "371": "Formule mariage 2",
-                "372": "Formule mariage 3",
-                "388": "Inscription définitive",
-                "391": "Inscription enfant",
-                "565": "Prestation sur mesure",
-                "336": "Reservation",
-                "321": "Reservation Stage"
-            },
-            "default_value": false,
-            "return_format": "value",
-            "multiple": 0,
-            "allow_null": 1,
-            "allow_in_bindings": 0,
-            "ui": 0,
-            "ajax": 0,
-            "placeholder": "— Défaut global : Inscription définitive —",
-            "create_options": 0,
-            "save_options": 0
-        },
-        {
-            "key": "field_wam_service_bookly",
-            "label": "Préinscription (service Bookly)",
-            "name": "service_bookly",
-            "aria-label": "",
-            "type": "select",
-            "instructions": "",
-            "required": 0,
-            "conditional_logic": 0,
-            "wrapper": {
-                "width": "",
-                "class": "",
-                "id": ""
-            },
-            "choices": {
-                "4": "Copie de EVJF",
-                "5": "Danse moderne 2",
-                "7": "Eveil",
-                "3": "EVJF",
-                "6": "Kpop 2",
-                "2": "Stage"
-            },
-            "default_value": false,
-            "return_format": "value",
-            "multiple": 0,
-            "allow_null": 1,
-            "allow_in_bindings": 0,
-            "ui": 0,
-            "ajax": 0,
-            "placeholder": "— Aucun —",
-            "create_options": 0,
-            "save_options": 0
-        },
-        {
             "key": "field_cours_complet",
             "label": "🚫 Cours complet",
             "name": "complete_cours",
@@ -744,6 +676,24 @@
             "message": "",
             "new_lines": "wpautop",
             "esc_html": 0
+        },
+        {
+            "key": "field_6ace2b64a7f46",
+            "label": "Offres proposées",
+            "name": "",
+            "aria-label": "",
+            "type": "message",
+            "instructions": "",
+            "required": 0,
+            "conditional_logic": 0,
+            "wrapper": {
+                "width": "",
+                "class": "",
+                "id": ""
+            },
+            "message": "",
+            "new_lines": "wpautop",
+            "esc_html": 0
         }
     ],
     "location": [
@@ -776,5 +726,5 @@
     "display_title": "",
     "allow_ai_access": false,
     "ai_description": "",
-    "modified": 1784202488
+    "modified": 1793895791
 }

@@ -486,7 +486,10 @@ get_header();
                                 // Vérifier qu'au moins un type d'inscription est configurable pour ce cours
                                 $cours_wc  = function_exists( 'coulisses_get_wc_product_id' ) ? coulisses_get_wc_product_id( get_the_ID() ) : 0;
                                 $cours_bkl = ( (int) get_field( 'service_bookly' ) ) ?: (int) get_option( 'wam_default_service_bookly', 0 );
-                                if ( ! $cours_wc && ! $cours_bkl ) : // rien de configuré → pas de bouton
+                                // Les offres du cours (plugin) suffisent : plus besoin des anciens champs produit / service Bookly.
+                                // Seules comptent les offres visibles du public (publiées, avec leur service si c'est une réservation).
+                                $cours_offres = function_exists( 'coulisses_offres_pour_cours' ) ? coulisses_offres_pour_cours( get_the_ID() ) : [];
+                                if ( ! $cours_wc && ! $cours_bkl && ! $cours_offres ) : // rien de configuré → pas de bouton
                             ?>
                                 <!-- Cours non configuré pour le tunnel — bouton masqué -->
                                 <?php else : ?>

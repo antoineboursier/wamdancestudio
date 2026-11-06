@@ -92,35 +92,11 @@ defined( 'ABSPATH' ) || exit;
 				</div>
 
 				<?php
-				$coulisses_eleve = $cart_item['coulisses_eleve'] ?? [];
-				$coulisses_label = '';
-				if ( ! empty( $coulisses_eleve ) ) {
-					$pour_enfant     = ! empty( $coulisses_eleve['pour_enfant'] );
-					$eleve_prenom    = $pour_enfant ? ( $coulisses_eleve['enfant_prenom'] ?? '' ) : ( $coulisses_eleve['prenom'] ?? '' );
-					$eleve_nom       = $pour_enfant ? ( $coulisses_eleve['enfant_nom']    ?? '' ) : ( $coulisses_eleve['nom']    ?? '' );
-					$coulisses_label = trim( $eleve_prenom . ' ' . $eleve_nom );
-				}
-				?>
-
-				<?php if ( ! empty( $cart_item['bookly'] ) ) :
-					$tunnel_eleve = function_exists('WC') && WC()->session ? WC()->session->get('coulisses_eleve') : null;
-					$tunnel_label = '';
-					if ( ! empty( $tunnel_eleve ) ) {
-						$te_enfant    = ! empty( $tunnel_eleve['pour_enfant'] );
-						$te_prenom    = $te_enfant ? ( $tunnel_eleve['enfant_prenom'] ?? '' ) : ( $tunnel_eleve['prenom'] ?? '' );
-						$te_nom       = $te_enfant ? ( $tunnel_eleve['enfant_nom']    ?? '' ) : ( $tunnel_eleve['nom']    ?? '' );
-						$tunnel_label = trim( $te_prenom . ' ' . $te_nom );
-					}
-				?>
-					<span class="wam-order-item__product text-xs color-subtext">
-						<?php echo esc_html( wamv1_bookly_badge_label( $cart_item, $tunnel_label ) ); ?>
-					</span>
-				<?php elseif ( $course_title ) : ?>
-					<span class="wam-order-item__product text-xs color-subtext">
-						<?php echo esc_html( $product_name ); ?><?php if ( $coulisses_label ) : ?> — pour <?php echo esc_html( $coulisses_label ); ?><?php endif; ?>
-					</span>
-				<?php elseif ( $coulisses_label ) : ?>
-					<span class="wam-order-item__product text-xs color-subtext">pour <?php echo esc_html( $coulisses_label ); ?></span>
+				// Sous-titre de la ligne : le texte vient du filtre (fourni par le plugin). Le nom du
+				// produit n'est proposé que s'il diffère du titre affiché (cas d'un cours).
+				$badge = apply_filters( 'wamv1_cart_item_badge', $course_title ? $product_name : '', $cart_item );
+				if ( $badge !== '' ) : ?>
+					<span class="wam-order-item__product text-xs color-subtext"><?php echo esc_html( $badge ); ?></span>
 				<?php endif; ?>
 
 				<?php if ( $variation_label ) : ?>
@@ -131,9 +107,13 @@ defined( 'ABSPATH' ) || exit;
 					<span class="wam-order-item__meta text-xs color-subtext"><?php echo esc_html( $wam_date ); ?></span>
 				<?php endif; ?>
 
-				<?php if ( ! empty( $cart_item['bookly'] ) ) : ?>
+				<?php
+				// Données de la ligne via le filtre WC standard (hors cours/stages WAM, qui ont leur
+				// propre affichage, et hors variations déjà montrées ci-dessus).
+				$donnees_item = ( ! $course_id && ! $variation_label ) ? trim( wc_get_formatted_cart_item_data( $cart_item ) ) : '';
+				if ( $donnees_item !== '' ) : ?>
 					<div class="wam-order-item__bookly-data">
-						<?php echo wc_get_formatted_cart_item_data( $cart_item ); ?>
+						<?php echo $donnees_item; ?>
 					</div>
 				<?php endif; ?>
 

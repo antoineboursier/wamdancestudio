@@ -28,6 +28,12 @@
  */
 if ( ! function_exists( 'wamv1_tarifs_prix_cours' ) ) {
     function wamv1_tarifs_prix_cours(): float {
+        // Le plugin fournit le prix de l'offre « Période fixe » principale ; sinon on retombe sur ce qui suit.
+        $offre = function_exists( 'coulisses_offre_periode_principale' ) ? coulisses_offre_periode_principale() : [];
+        if ( ! empty( $offre['prix'] ) ) {
+            return (float) $offre['prix'];
+        }
+
         $product_id = wamv1_tarifs_produit_cours_id();
 
         if ( $product_id && function_exists( 'wc_get_product' ) ) {
@@ -94,6 +100,10 @@ if ( ! function_exists( 'wamv1_tarifs_produit_cours_id' ) ) {
  */
 if ( ! function_exists( 'wamv1_tarifs_remise_multi_cours' ) ) {
     function wamv1_tarifs_remise_multi_cours(): float {
+        $offre = function_exists( 'coulisses_offre_periode_principale' ) ? coulisses_offre_periode_principale() : [];
+        if ( $offre ) {
+            return (float) $offre['remise'];
+        }
         return (float) get_option( 'coulisses_reduction_multi_cours', 90 );
     }
 }

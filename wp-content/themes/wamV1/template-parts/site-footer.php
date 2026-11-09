@@ -301,7 +301,7 @@ $icon_dir       = get_template_directory_uri() . '/assets/images/';
 
         <p id="footer-legal" class="wam-footer__legal">
             <?php 
-            $legal_text = __("Conception : %s. Toutes les photographies, textes et informations sur ce site appartiennent à l'association WAM Dance Studio. Studio de danse situé à Villeneuve-d'Ascq, proche de Lille, Roubaix, Mouvaux, Wattrelos, Croix et Wasquehal (Hauts de France, Nord Pas-de-Calais)", 'wamv1');
+            $legal_text = __("Conception : %s. Toutes les photographies, textes et informations sur ce site appartiennent à l’association ENTRE2DANSES (WAM Dance Studio), SIRET 751 410 531 00014. Studio de danse situé à Villeneuve-d'Ascq, proche de Lille, Roubaix, Mouvaux, Wattrelos, Croix et Wasquehal (Hauts de France, Nord Pas-de-Calais)", 'wamv1');
             $link = '<a href="https://www.linkedin.com/in/antoine-boursier-uxui/" target="_blank" rel="external">Antoine Boursier</a>';
             echo sprintf($legal_text, $link);
             ?>

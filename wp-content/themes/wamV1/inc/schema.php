@@ -507,10 +507,9 @@ if ( ! function_exists( 'wamv1_schema_person_from_acf_user' ) ) {
  */
 if ( ! function_exists( 'wamv1_schema_video_objects' ) ) {
     function wamv1_schema_video_objects( $post_id, $title, $permalink, $desc ): array {
-        $video_1 = get_field( 'video_1', $post_id );
-        $video_2 = get_field( 'video_2', $post_id );
-        $video_3 = get_field( 'video_3', $post_id );
-        $videos  = array_filter( [ $video_1, $video_2, $video_3 ] );
+        $videos = function_exists( 'wamv1_video_urls' )
+            ? wamv1_video_urls( $post_id )
+            : array_filter( [ get_field( 'video_1', $post_id ), get_field( 'video_2', $post_id ), get_field( 'video_3', $post_id ) ] );
         $video_schemas = [];
 
         if ( ! empty( $videos ) ) {

@@ -6,6 +6,34 @@
  */
 
 /**
+ * URLs des champs video_1/2/3 d'un contenu.
+ *
+ * Sur les stages, le groupe ACF « Vidéos » n'a pas de nom : les sous-champs sont alors
+ * enregistrés sous `_video_N` (et non `video_N`) et get_field('video_N') rend null.
+ * On lit donc `video_N`, puis `_video_N` (seulement si c'est une URL : sur les anciens
+ * contenus, `_video_N` contient la clé de champ ACF).
+ *
+ * @return string[]
+ */
+function wamv1_video_urls($post_id = 0) {
+    $post_id = $post_id ?: get_the_ID();
+    $urls    = [];
+    for ($i = 1; $i <= 3; $i++) {
+        $v = function_exists('get_field') ? get_field("video_$i", $post_id) : '';
+        if (!is_string($v) || $v === '') {
+            $v = get_post_meta($post_id, "video_$i", true);
+        }
+        if (!is_string($v) || $v === '') {
+            $v = get_post_meta($post_id, "_video_$i", true);
+        }
+        if (is_string($v) && preg_match('#^https?://#i', trim($v))) {
+            $urls[] = trim($v);
+        }
+    }
+    return $urls;
+}
+
+/**
  * 0. Média vidéo d'un champ URL (video_1/2/3) : externe (oEmbed) ou fichier de la médiathèque.
  *
  * @return array{html:string,is_shorts:bool}|null null si rien d'affichable
@@ -16,13 +44,28 @@ function wamv1_video_media($url) {
         return null;
     }
 
+    // L'URL peut être celle d'une page de pièce jointe (ex. /lou-bruston-demo/) :
+    // on retrouve alors le fichier vidéo réel dans la médiathèque.
+    $att_id = attachment_url_to_postid($url);
+    if (!$att_id) {
+        $pid = url_to_postid($url);
+        if ($pid && get_post_type($pid) === 'attachment') {
+            $att_id = $pid;
+        }
+    }
+    if ($att_id && strpos((string) get_post_mime_type($att_id), 'video/') === 0) {
+        $file_url = wp_get_attachment_url($att_id);
+        if ($file_url) {
+            $url = $file_url;
+        }
+    }
+
     $path = (string) wp_parse_url($url, PHP_URL_PATH);
     $ext  = strtolower(pathinfo($path, PATHINFO_EXTENSION));
 
     // Fichier vidéo hébergé dans WordPress (ou lien direct vers un fichier vidéo)
     if (in_array($ext, ['mp4', 'm4v', 'webm', 'ogv', 'mov'], true)) {
         $is_portrait = false;
-        $att_id      = attachment_url_to_postid($url);
         if ($att_id) {
             $meta = wp_get_attachment_metadata($att_id);
             if (!empty($meta['width']) && !empty($meta['height'])) {

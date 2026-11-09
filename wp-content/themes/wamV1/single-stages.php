@@ -8,7 +8,7 @@
  *   - cours-info-card / __row / __cell pour l'encart date/lieu/tarif
  *   - cours-complet pour le badge "complet" sur l'image
  *   - cours-ctas pour le bouton de réservation
- *   - template-parts/separator + related-content identiques
+ *   - related-content identique (plus de séparateur sur la fiche stage)
  *
  * Champs ACF spécifiques stages (en plus des champs communs) :
  *   intervenant·e    (group)   — stage_intervenant_inout, stage_intervenant (user), stage_intervenant_out (text)
@@ -144,12 +144,7 @@ get_header();
             $has_sidebar = ($has_photo || $complet);
 
             /* ---- Vidéos ---- */
-            $videos = [];
-            for ($i = 1; $i <= 3; $i++) {
-                $v = $has_acf ? get_field("video_$i") : '';
-                if ($v)
-                    $videos[] = $v;
-            }
+            $videos = wamv1_video_urls(get_the_ID());
             ?>
 
             <!-- Breadcrumb : Accueil > Stages > [Titre du stage] -->
@@ -429,7 +424,6 @@ get_header();
                     <?php echo wp_kses_post(wpautop($description)); ?>
                 </div>
             </div>
-            <?php get_template_part('template-parts/separator'); ?>
         <?php endif; ?>
 
         <!-- Vidéos -->

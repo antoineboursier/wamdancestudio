@@ -1434,6 +1434,12 @@
     border-radius: inherit;
 }
 
+/* Vidéo hébergée dans WordPress : image entière, sans recadrage */
+.cours-video video {
+    object-fit: contain;
+    background: var(--wam-color-card-bg);
+}
+
 /* S'assurer que la façade remplit tout le conteneur .cours-video */
 .cours-video .wam-video-facade {
     position: absolute;

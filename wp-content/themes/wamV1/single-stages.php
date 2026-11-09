@@ -376,13 +376,6 @@ get_header();
                         <?php endif; ?>
                     </div>
 
-                    <!-- Description courte (tronquée à 60 mots) -->
-                    <?php if ($description): ?>
-                        <div class="cours-description wam-prose mt-lg">
-                            <?php echo wp_kses_post(wpautop(wp_trim_words($description, 60))); ?>
-                        </div>
-                    <?php endif; ?>
-
                 </div><!-- /page-hero__content -->
 
                 <!-- Colonne droite : image à la une + badge complet -->
@@ -429,11 +422,8 @@ get_header();
 
         <?php endwhile; ?>
 
-        <!-- Séparateur -->
-        <?php get_template_part('template-parts/separator'); ?>
-
-        <!-- Description complète si > 60 mots -->
-        <?php if (!empty($description) && str_word_count(strip_tags($description)) > 60): ?>
+        <!-- Description complète, juste après le bouton de réservation -->
+        <?php if (!empty($description)): ?>
             <div class="stage-full-desc-section">
                 <div class="wam-prose">
                     <?php echo wp_kses_post(wpautop($description)); ?>
@@ -446,12 +436,11 @@ get_header();
         <?php if (!empty($videos)): ?>
             <div id="section-videos" class="cours-videos">
                 <?php foreach ($videos as $video_url):
-                    $embed = wp_oembed_get(esc_url($video_url), ['width' => 1200]);
-                    if ($embed): 
-                        $is_shorts = (strpos($video_url, '/shorts/') !== false);
-                        $extra_class = $is_shorts ? ' cours-video--shorts' : '';
+                    $media = wamv1_video_media($video_url);
+                    if ($media):
+                        $extra_class = $media['is_shorts'] ? ' cours-video--shorts' : '';
                         ?>
-                        <div class="cours-video<?php echo $extra_class; ?>"><?php echo $embed; ?></div>
+                        <div class="cours-video<?php echo $extra_class; ?>"><?php echo $media['html']; ?></div>
                     <?php endif;
                 endforeach; ?>
             </div>

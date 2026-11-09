@@ -6,6 +6,46 @@
  */
 
 /**
+ * 0. Média vidéo d'un champ URL (video_1/2/3) : externe (oEmbed) ou fichier de la médiathèque.
+ *
+ * @return array{html:string,is_shorts:bool}|null null si rien d'affichable
+ */
+function wamv1_video_media($url) {
+    $url = is_string($url) ? trim($url) : '';
+    if ($url === '') {
+        return null;
+    }
+
+    $path = (string) wp_parse_url($url, PHP_URL_PATH);
+    $ext  = strtolower(pathinfo($path, PATHINFO_EXTENSION));
+
+    // Fichier vidéo hébergé dans WordPress (ou lien direct vers un fichier vidéo)
+    if (in_array($ext, ['mp4', 'm4v', 'webm', 'ogv', 'mov'], true)) {
+        $is_portrait = false;
+        $att_id      = attachment_url_to_postid($url);
+        if ($att_id) {
+            $meta = wp_get_attachment_metadata($att_id);
+            if (!empty($meta['width']) && !empty($meta['height'])) {
+                $is_portrait = ((int) $meta['height'] > (int) $meta['width']);
+            }
+        }
+        $type = ($ext === 'mov') ? 'video/mp4' : ('video/' . ($ext === 'ogv' ? 'ogg' : ($ext === 'm4v' ? 'mp4' : $ext)));
+        $html = sprintf(
+            '<video controls playsinline preload="metadata"><source src="%s" type="%s"></video>',
+            esc_url($url),
+            esc_attr($type)
+        );
+        return ['html' => $html, 'is_shorts' => $is_portrait];
+    }
+
+    $embed = wp_oembed_get(esc_url($url), ['width' => 1200]);
+    if (!$embed) {
+        return null;
+    }
+    return ['html' => $embed, 'is_shorts' => (strpos($url, '/shorts/') !== false)];
+}
+
+/**
  * 1. Façade YouTube légère (Click-to-load)
  * Remplace l'iframe oEmbed lourde par une image et un script de chargement au clic.
  */

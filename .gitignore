@@ -5,9 +5,6 @@
 !/wp-content/
 !/.cpanel.yml
 !/.ddev/
-!/wp-config-ddev.php
-!/wp-config.php
-!/export-wam.sql
 
 # Dans wp-content on ignore tout...
 /wp-content/*
@@ -25,12 +22,13 @@
 # Identifiants FTP/MySQL de production : jamais versionnés
 /.ddev/o2switch.env
 
-# On ignore les fichiers de configuration et les dumps SQL !
-# *.sql (désactivé pour inclure export-wam.sql)
-# *.sql.gz
+# Configuration et dumps SQL : jamais versionnés (dépôt public)
+*.sql
+*.sql.gz
 *.tar.gz
 *.zip
-# wp-config.php (désactivé pour suivi)
+wp-config.php
+wp-config-ddev.php
 wp-config-local.php
 
 # Fichiers système mac/windows

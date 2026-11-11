@@ -5,8 +5,10 @@
  * Remplace l'onglet « Commandes » (retiré du menu, cf. inc/woocommerce.php) :
  * toutes les commandes de l'adhérent·e y sont listées, avec photo, statut,
  * total et facture le cas échéant. Permet en plus de corriger, pour les
- * inscriptions de la saison en cours, le prénom / nom de l'élève et ses
- * contacts d'urgence.
+ * inscriptions de la saison en cours, le prénom / nom de l'élève. Les contacts
+ * d'urgence ne se modifient plus ici : ils se gèrent dans « Mes contacts
+ * d'urgence » (entrée de menu ajoutée par wam-custom-plugin, source de vérité
+ * par élève).
  *
  * Source de vérité : les metas des lignes de commande WooCommerce. Le BO de
  * l'équipe (WAM Staff BO) les lit directement, une correction y est donc
@@ -202,7 +204,7 @@ function wamv1_inscriptions_participants(WC_Order_Item_Product $item): array
         // pas l'effacer, mais une clé restée vide au checkout (contact
         // d'urgence des préinscriptions et troupes) ne bloque pas les autres
         // corrections.
-        $ajouter = function (string $key, string $label, string $type, bool $requis, bool $modifiable = true) use (&$champs, $metas): void {
+        $ajouter = function (string $key, string $label, string $type, bool $requis, bool $modifiable = true, bool $masque = false) use (&$champs, $metas): void {
             if (array_key_exists($key, $metas)) {
                 $champs[$key] = [
                     'label'      => $label,
@@ -210,6 +212,7 @@ function wamv1_inscriptions_participants(WC_Order_Item_Product $item): array
                     'type'       => $type,
                     'requis'     => $requis && $metas[$key] !== '',
                     'modifiable' => $modifiable,
+                    'masque'     => $masque,
                 ];
             }
         };
@@ -217,15 +220,19 @@ function wamv1_inscriptions_participants(WC_Order_Item_Product $item): array
         $ajouter($p . 'Prénom', 'Prénom', 'text', true);
         $ajouter($p . 'Nom', 'Nom', 'text', true);
 
+        // Contacts d'urgence : lus pour savoir si la ligne en porte (fiche
+        // « utile »), mais ni affichés ni modifiables ici. Leur source de
+        // vérité est le carnet du plugin (Mon compte → « Mes contacts
+        // d'urgence »), la ligne n'en garde que la copie faite à l'inscription.
         if (array_key_exists($p . 'Urgence 1 - Nom', $metas)) {
-            $ajouter($p . 'Urgence 1 - Nom', "Contact d'urgence : nom", 'text', true);
-            $ajouter($p . 'Urgence 1 - Tél', "Contact d'urgence : téléphone", 'tel', true);
+            $ajouter($p . 'Urgence 1 - Nom', "Contact d'urgence : nom", 'text', false, false, true);
+            $ajouter($p . 'Urgence 1 - Tél', "Contact d'urgence : téléphone", 'tel', false, false, true);
         } elseif ($p === '') {
-            $ajouter("Contact d'urgence - Nom", "Contact d'urgence : nom", 'text', true);
-            $ajouter("Contact d'urgence - Tél", "Contact d'urgence : téléphone", 'tel', true);
+            $ajouter("Contact d'urgence - Nom", "Contact d'urgence : nom", 'text', false, false, true);
+            $ajouter("Contact d'urgence - Tél", "Contact d'urgence : téléphone", 'tel', false, false, true);
         }
-        $ajouter($p . 'Urgence 2 - Nom', "Second contact d'urgence : nom", 'text', false);
-        $ajouter($p . 'Urgence 2 - Tél', "Second contact d'urgence : téléphone", 'tel', false);
+        $ajouter($p . 'Urgence 2 - Nom', "Second contact d'urgence : nom", 'text', false, false, true);
+        $ajouter($p . 'Urgence 2 - Tél', "Second contact d'urgence : téléphone", 'tel', false, false, true);
 
         if ($p === '' && !empty($metas['Date de naissance'])) {
             $dob = DateTime::createFromFormat('Y-m-d', $metas['Date de naissance']);
@@ -235,6 +242,7 @@ function wamv1_inscriptions_participants(WC_Order_Item_Product $item): array
                 'type'       => 'text',
                 'requis'     => false,
                 'modifiable' => false,
+                'masque'     => false,
             ];
         }
 

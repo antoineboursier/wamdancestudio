@@ -41,7 +41,10 @@ $allowed_html = array(
 <p class="text-sm">
 	Dans votre espace, vous pouvez visualiser vos <a
 		href="<?php echo esc_url(wc_get_endpoint_url(WAMV1_INSCRIPTIONS_ENDPOINT)); ?>"
-		class="color-subtext">commandes et inscriptions</a> (élèves, contacts d'urgence, factures),
+		class="color-subtext">commandes et inscriptions</a> (élèves, factures),
+	gérer vos <?php if (function_exists('coulisses_contacts_url')) : ?><a
+		href="<?php echo esc_url(coulisses_contacts_url()); ?>"
+		class="color-subtext">contacts d'urgence</a><?php else : ?>contacts d'urgence<?php endif; ?>,
 	éditer vos informations personnelles dans vos cours, gérer votre adresse de facturation
 	et modifier votre mot de passe. Belle journée à vous !
 </p>

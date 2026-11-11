@@ -138,7 +138,11 @@ $commandes = wamv1_inscriptions_commandes($user_id);
                                             <?php endif; ?>
                                             <div class="wam-inscription__fields">
                                                 <?php foreach ($participant['champs'] as $key => $champ) :
-                                                    $id     = 'wam-insc-' . $item_id . '-' . md5($key);
+                                                    // Contacts d'urgence : gérés dans « Mes contacts d'urgence » (plugin).
+                                                    if (!empty($champ['masque'])) {
+                                                        continue;
+                                                    }
+                                                    $id     ='wam-insc-' . $item_id . '-' . md5($key);
                                                     $valeur = ($saisie !== null && array_key_exists($key, $saisie)) ? $saisie[$key] : $champ['value'];
                                                     // data-initial : valeur en base, comparée par
                                                     // assets/js/account-inscriptions.js pour afficher « Enregistrer ».

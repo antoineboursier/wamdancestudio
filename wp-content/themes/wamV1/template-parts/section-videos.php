@@ -3,7 +3,7 @@
  * Template Part : Section Vidéos — "We Are Move"
  * Grille collage Figma : 2 vidéos gauche / 2 droite, texte superposé centré
  * 
- * Version YouTube directe avec réglages temporels.
+ * Version YouTube directe : chaque vidéo tourne en boucle, en entier.
  *
  * @package wamv1
  */
@@ -11,35 +11,18 @@
 $icon_dir = get_template_directory_uri() . '/assets/images/';
 $site_url = home_url();
 
-// Configuration des vidéos YouTube : ID, début (sec), fin (sec)
+// Vidéos YouTube, lues en entier et en boucle.
 $video_configs = [
-    [
-        'id' => 'iiKvtJCalYU', // Vidéo 1 (Haut Gauche)
-        'start' => 30,
-        'end' => 120,
-    ],
-    [
-        'id' => '706_fuY_RdU', // Vidéo 2 (Haut Droite)
-        'start' => 20,
-        'end' => 60,
-    ],
-    [
-        'id' => 'Gj1RE28aURs', // Vidéo 3 (Bas Gauche)
-        'start' => 20,
-        'end' => 50,
-    ],
-    [
-        'id' => 'kuL9WnOYhrM', // Vidéo 4 (Bas Droite)
-        'start' => 3,
-        'end' => 30,
-    ],
+    ['id' => 'ZPHTfwnDMGM'], // Vidéo 1 (Haut Gauche, .video-card--v1)
+    ['id' => 'GpingOeeRjQ'], // Vidéo 2 (Haut Droite, .video-card--v2)
+    ['id' => '0HY6vrDpQ98'], // Vidéo 3 (Bas Gauche, .video-card--v3)
+    ['id' => 'TRG8vF-pOqc'], // Vidéo 4 (Bas Droite, .video-card--v4)
 ];
 
 /**
  * Génère l'URL d'embed YouTube avec les paramètres requis :
  * - autoplay=1 & mute=1 (nécessaire pour l'auto-lecture)
  * - loop=1 & playlist={id} (requis pour boucler sur une seule vidéo)
- * - start / end : timing spécifique par vidéo
  * - controls=0 & modestbranding=1 (aspect background épuré)
  * - enablejsapi=1 (pour le bouton pause via home.js)
  */
@@ -51,8 +34,6 @@ function wam_get_youtube_embed_url($config, $site_url)
         'mute' => 1,
         'loop' => 1,
         'playlist' => $id,
-        'start' => $config['start'],
-        'end' => $config['end'],
         'controls' => 0,
         'modestbranding' => 1,
         'enablejsapi' => 1,

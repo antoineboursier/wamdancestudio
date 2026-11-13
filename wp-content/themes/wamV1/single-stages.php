@@ -199,13 +199,13 @@ get_header();
                                             <span
                                                 class="date-number title-norm-lg <?php echo $is_enfant ? 'color-green' : 'color-yellow'; ?>"><?php echo $p_obj->format('d'); ?></span>
                                             <span
-                                                class="date-month text-md <?php echo $is_enfant ? 'color-green' : 'color-yellow'; ?>"><?php echo date_i18n('F', $p_obj->getTimestamp()); ?></span>
+                                                class="date-month text-md <?php echo $is_enfant ? 'color-green' : 'color-yellow'; ?>"><?php echo wamv1_stage_mois_html($p_obj); ?></span>
                                             <span
                                                 class="date-year text-xs color-subtext mt-3xs"><?php echo $p_obj->format('Y'); ?></span>
                                         </div>
                                         <?php if ($heure_debut): ?>
                                             <p class="stage-time-display text-lg fw-bold">
-                                                <?php echo esc_html($heure_debut . ($heure_fin ? ' – ' . $heure_fin : '')); ?>
+                                                <?php echo wamv1_stage_horaire_html($heure_debut, $heure_fin); ?>
                                             </p>
                                         <?php endif; ?>
                                     </div>
@@ -251,13 +251,13 @@ get_header();
                                                 <?php echo $l_obj->format('d'); ?></p>
                                             <p
                                                 class="mini-date-month text-md <?php echo $is_enfant ? 'color-green' : 'color-yellow'; ?>">
-                                                <?php echo date_i18n('F', $l_obj->getTimestamp()); ?></p>
+                                                <?php echo wamv1_stage_mois_html($l_obj); ?></p>
                                             <p class="text-xs color-subtext mt-3xs"><?php echo $l_obj->format('Y'); ?></p>
                                             <?php if ($l_complet): ?>
                                                 <span class="mini-badge text-md color-orange mt-2xs">Complet</span>
                                             <?php else: ?>
                                                 <p class="mini-date-time text-md fw-bold color-text">
-                                                    <?php echo esc_html($l_h_deb . ($l_h_fin ? '–' . $l_h_fin : '')); ?></p>
+                                                    <?php echo wamv1_stage_horaire_html($l_h_deb, $l_h_fin); ?></p>
                                             <?php endif; ?>
                                         </a>
                                     <?php endforeach; ?>
@@ -455,6 +455,9 @@ get_header();
  
         <div class="wam-tarif-selector-list">
             <?php
+            // Quantité 1 par défaut sur le premier tarif disponible (0 sur les autres,
+            // pour ne pas réserver une place de chaque tarif d'un coup).
+            $qty_defaut_posee = false;
             foreach ($tarifs_data as $index => $t):
                 // Places déjà dans le panier pour ce tarif
                 $en_panier = 0;
@@ -468,6 +471,11 @@ get_header();
                 }
                 $est_complet = ($t['total'] > 0 && ($t['reserve'] + $en_panier) >= $t['total']);
                 $dispo       = ($t['total'] > 0) ? max(0, $t['total'] - $t['reserve'] - $en_panier) : 999;
+                $qty_defaut  = 0;
+                if (!$qty_defaut_posee && !$est_complet && $dispo > 0) {
+                    $qty_defaut       = 1;
+                    $qty_defaut_posee = true;
+                }
                 ?>
                 <div class="wam-tarif-selector-item <?php echo $est_complet ? 'is-disabled' : ''; ?>">
                     <div class="wam-tarif-info">
@@ -481,7 +489,7 @@ get_header();
 
                     <div class="wam-qty-selector">
                         <button type="button" class="wam-qty-btn-circle" data-qty-minus aria-label="<?php echo esc_attr( sprintf( __( 'Diminuer la quantité pour %s', 'wamv1' ), $t['nom'] ) ); ?>">–</button>
-                        <span class="wam-qty-value" data-tarif-index="<?php echo $t['index']; ?>">0</span>
+                        <span class="wam-qty-value" data-tarif-index="<?php echo $t['index']; ?>"><?php echo $qty_defaut; ?></span>
                         <button type="button" class="wam-qty-btn-circle" data-qty-plus
                             data-max="<?php echo esc_attr( $dispo ); ?>"
                             aria-label="<?php echo esc_attr( sprintf( __( 'Augmenter la quantité pour %s', 'wamv1' ), $t['nom'] ) ); ?>"

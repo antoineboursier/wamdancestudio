@@ -1280,7 +1280,7 @@ html.wam-theme-light .wam-header--home {
    SÉPARATEUR — Pattern avec fondu vertical
    ===================================================== */
 .wam-separator {
-    height: 120px;
+    height: 80px;
     width: 100%;
     display: block;
     background-image: var(--wam-pattern-dark-url);
@@ -2285,6 +2285,11 @@ html.wam-no-graphical-fonts .title-sign-sm {
 
 .card-similaire--article .card-similaire__photo {
     aspect-ratio: 304 / 251;
+}
+
+/* Stages : affiches carrées, ne pas les recadrer en portrait */
+.card-similaire--stage .card-similaire__photo {
+    aspect-ratio: 1 / 1;
 }
 
 .card-similaire__img-wrapper {

@@ -804,6 +804,41 @@ if (!function_exists('wamv1_get_day_label')):
 endif;
 
 /**
+ * Mois d'une date de stage : nom complet + abréviation, l'une ou l'autre
+ * affichée selon l'écran (.mois-long / .mois-court, cf. programme.css).
+ * Abréviation sur 3 lettres, sauf Juin et Juil. pour les distinguer.
+ */
+if (!function_exists('wamv1_stage_mois_html')):
+    function wamv1_stage_mois_html(DateTimeInterface $date): string
+    {
+        $courts = [
+            1 => 'Jan.', 2 => 'Fév.', 3 => 'Mar.', 4 => 'Avr.', 5 => 'Mai', 6 => 'Juin',
+            7 => 'Juil.', 8 => 'Aoû.', 9 => 'Sep.', 10 => 'Oct.', 11 => 'Nov.', 12 => 'Déc.',
+        ];
+        return '<span class="mois-long">' . esc_html(date_i18n('F', $date->getTimestamp())) . '</span>'
+            . '<span class="mois-court">' . esc_html($courts[(int) $date->format('n')]) . '</span>';
+    }
+endif;
+
+/**
+ * Horaire d'un stage : "15:30 - 17:30" sur une ligne en desktop, les deux
+ * heures l'une sous l'autre sans tiret sur mobile (cf. .horaire-* dans programme.css).
+ */
+if (!function_exists('wamv1_stage_horaire_html')):
+    function wamv1_stage_horaire_html(?string $debut, ?string $fin): string
+    {
+        if (!$debut) {
+            return '';
+        }
+        $html = '<span class="horaire-heure">' . esc_html($debut) . '</span>';
+        if ($fin) {
+            $html .= '<span class="horaire-sep"> - </span><span class="horaire-heure">' . esc_html($fin) . '</span>';
+        }
+        return $html;
+    }
+endif;
+
+/**
  * Vérifie si le post courant (ou $post_id) appartient à la variante "Enfant"
  * (terme slug "enfants" dans la taxonomie cat_cours).
  * Utilisé dans card-cours.php, card-stage.php, single-cours.php,
@@ -870,6 +905,9 @@ if (!function_exists('wamv1_square_image_sizes_attr')):
             case 'hero':
                 // Colonne pleine largeur sous 1024px, moitié du hero au-delà.
                 return '(max-width: 1023px) 100vw, 50vw';
+            case 'card-similaire':
+                // .card-similaire : 320px max (components.css), pleine largeur sur petit mobile.
+                return '(max-width: 640px) 100vw, 320px';
             case 'card-event':
                 // .page-events__grid : 1 / 2 / 3 colonnes (events.css).
                 return '(max-width: 639px) 100vw, (max-width: 1023px) 50vw, 33vw';

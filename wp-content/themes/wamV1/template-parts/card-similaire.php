@@ -49,9 +49,19 @@ if (!$subtitle) {
     <?php $card_title = get_the_title(); ?>
 
     <!-- Photo (masquée si absente) -->
-    <?php if (has_post_thumbnail()) : ?>
+    <?php if (has_post_thumbnail()) :
+        $thumb_id = (int) get_post_thumbnail_id();
+        $img_size = 'medium_large';
+        $img_attr = ['class' => 'card-similaire__img'];
+        // Stages : visuels carrés (affiches avec texte), comme sur la liste des stages.
+        if ($variant === 'stage') {
+            wamv1_square_image_ensure_sizes($thumb_id);
+            $img_size = 'wam-square-md';
+            $img_attr['sizes'] = wamv1_square_image_sizes_attr('card-similaire');
+        }
+    ?>
         <div class="card-similaire__photo">
-            <?php echo wamv1_get_image_with_overlay(get_post_thumbnail_id(), 'medium_large', 'card-similaire__img-wrapper', ['class' => 'card-similaire__img']); ?>
+            <?php echo wamv1_get_image_with_overlay($thumb_id, $img_size, 'card-similaire__img-wrapper', $img_attr); ?>
         </div>
     <?php endif; ?>
 
@@ -107,7 +117,7 @@ if (!$subtitle) {
                     // Formatage horaires
                     $horaires_label = '';
                     if ($heure_deb && $heure_f) {
-                        $horaires_label = $heure_deb . ' – ' . $heure_f;
+                        $horaires_label = $heure_deb . ' - ' . $heure_f;
                     } elseif ($heure_deb) {
                         $horaires_label = $heure_deb;
                     }

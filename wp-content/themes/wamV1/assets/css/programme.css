@@ -1525,6 +1525,47 @@
     padding-left: var(--wam-spacing-lg);
 }
 
+/* Mois abrégé (Nov.) et horaire sur deux lignes sans tiret : mobile uniquement.
+   Markup produit par wamv1_stage_mois_html() / wamv1_stage_horaire_html(). */
+.mois-court {
+    display: none;
+}
+
+@media (max-width: 768px) {
+    .mois-long {
+        display: none;
+    }
+
+    .mois-court {
+        display: inline;
+    }
+
+    .stage-time-display,
+    .mini-date-time {
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+    }
+
+    .stage-time-display {
+        align-items: flex-start;
+    }
+
+    .mini-date-time {
+        align-items: center;
+    }
+
+    /* Tiret masqué visuellement mais conservé pour les lecteurs d'écran */
+    .horaire-sep {
+        position: absolute;
+        width: 1px;
+        height: 1px;
+        overflow: hidden;
+        clip: rect(0 0 0 0);
+        white-space: nowrap;
+    }
+}
+
 /* Multi-dates Toggle Button — aligné avec les icônes (pas d'indentation cellule) */
 .stage-dates-toggle-wrap {
     margin-top: calc(-1 * var(--wam-spacing-2xs));

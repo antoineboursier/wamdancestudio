@@ -59,7 +59,7 @@ do_action('woocommerce_before_cart');
                             $wam_jour  = function_exists('wamv1_get_day_label') ? wamv1_get_day_label($jour_slug) : $jour_slug;
                             $h_deb = get_field('heure_debut', $course_id);
                             $h_fin = get_field('heure_de_fin', $course_id);
-                            $wam_heure = $h_deb && $h_fin ? $h_deb . ' – ' . $h_fin : $h_deb;
+                            $wam_heure = $h_deb && $h_fin ? $h_deb . ' - ' . $h_fin : $h_deb;
                         }
 
                         $image_html = $course_thumb
@@ -151,8 +151,8 @@ do_action('woocommerce_before_cart');
                                             <span class="color-subtext text-sm">
                                                 <?php
                                                 $wam_date = $cart_item['wam_date'] ?? null;
-                                                if ($is_stage && $wam_date) echo esc_html($wam_date) . ' — ';
-                                                echo esc_html(($wam_jour && $wam_heure) ? $wam_jour . ' — ' . $wam_heure : $wam_jour . $wam_heure);
+                                                if ($is_stage && $wam_date) echo esc_html($wam_date) . ', ';
+                                                echo esc_html(($wam_jour && $wam_heure) ? $wam_jour . ', ' . $wam_heure : $wam_jour . $wam_heure);
                                                 ?>
                                             </span>
                                         </span>

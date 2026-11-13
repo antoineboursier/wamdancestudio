@@ -602,14 +602,17 @@
    ------------------------------------------------------- */
 .wam-cart-layout {
     display: grid;
-    grid-template-columns: 1fr 380px;
+    /* minmax(0, 1fr) et non 1fr : une colonne 1fr ne descend pas sous la
+       largeur de son contenu, ce qui faisait déborder la carte et le
+       récapitulatif à droite sur les petits mobiles (< 400px). */
+    grid-template-columns: minmax(0, 1fr) 380px;
     gap: var(--wam-spacing-2xl);
     align-items: start;
 }
 
 @media (max-width: 1024px) {
     .wam-cart-layout {
-        grid-template-columns: 1fr;
+        grid-template-columns: minmax(0, 1fr);
     }
 }
 
@@ -1022,6 +1025,14 @@
     text-decoration: none;
     transition: background-color var(--wam-transition), transform var(--wam-transition);
     cursor: pointer;
+}
+
+/* Le CSS WooCommerce (plus spécifique) passe le bouton en inline-flex nowrap :
+   sur un écran de 320px, le libellé débordait du récapitulatif. */
+.wam-cart-summary .wc-proceed-to-checkout a.checkout-button {
+    max-width: 100%;
+    white-space: normal;
+    justify-content: center;
 }
 
 .wam-cart-summary .checkout-button:hover {
@@ -3160,4 +3171,19 @@ p:has(label[for="mailpoet_woocommerce_checkout_optin"]) {
     position: static;
     width: 100%;
     box-sizing: border-box;
+}
+
+/* =====================================================
+   MOBILE : marges intérieures des cartes réduites
+   lg md au lieu de xl sur les cartes WooCommerce à fond de carte.
+   En fin de fichier pour passer après leurs règles de base.
+   ===================================================== */
+@media (max-width: 768px) {
+    .wam-cart-card__body,
+    .wam-cart-summary,
+    .woocommerce-account .woocommerce-MyAccount-content,
+    .woocommerce-account .u-column1,
+    .woocommerce-account .u-column2 {
+        padding: var(--wam-spacing-lg) var(--wam-spacing-md);
+    }
 }

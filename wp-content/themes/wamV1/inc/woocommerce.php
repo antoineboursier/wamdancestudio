@@ -600,7 +600,14 @@ add_action('wp_ajax_nopriv_wam_add_to_cart', 'wamv1_ajax_add_to_cart');
 
 function wamv1_ajax_add_to_cart(): void
 {
-    check_ajax_referer('wam_add_to_cart', 'nonce');
+    // Nonce vérifié uniquement pour les connectés : pour les visiteurs, la page
+    // est servie par LiteSpeed Cache (TTL 7 jours) avec un nonce figé qui expire
+    // au bout de 24 h, ce qui bloquait tout ajout au panier (403 "-1").
+    // Ajouter au panier d'un invité n'est pas une action sensible (le endpoint
+    // natif wc-ajax=add_to_cart de WooCommerce n'a pas de nonce non plus).
+    if (is_user_logged_in()) {
+        check_ajax_referer('wam_add_to_cart', 'nonce');
+    }
 
     // S'assurer que WC est chargé et que le panier est disponible
     if (!function_exists('WC') || !WC() || !WC()->session) {

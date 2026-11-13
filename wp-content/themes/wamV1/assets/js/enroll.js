@@ -269,9 +269,13 @@
                     }
                     if (onSuccess) onSuccess(res);
                 } else {
-                    setLabel(btn, res.data.message || 'Erreur');
+                    setLabel(btn, (res && res.data && res.data.message) || 'Erreur, veuillez recharger la page');
                     btn.classList.add('is-error');
                 }
+            })
+            .catch(function () {
+                setLabel(btn, 'Erreur, veuillez recharger la page');
+                btn.classList.add('is-error');
             })
             .finally(function() {
                 btn.classList.remove('is-loading');

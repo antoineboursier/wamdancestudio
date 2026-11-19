@@ -11,7 +11,7 @@
  *
  * @see https://woocommerce.com/document/template-structure/
  * @package wamv1
- * @version 5.2.0
+ * @version 11.2.2
  */
 
 defined( 'ABSPATH' ) || exit;
@@ -25,14 +25,17 @@ defined( 'ABSPATH' ) || exit;
 
 		foreach ( WC()->cart->get_cart() as $cart_item_key => $cart_item ) {
 			$_product     = apply_filters( 'woocommerce_cart_item_product', $cart_item['data'], $cart_item, $cart_item_key );
-			$product_name = apply_filters( 'woocommerce_cart_item_name', $_product->get_name(), $cart_item, $cart_item_key );
 
-			if ( ! $_product || ! $_product->exists() || $cart_item['quantity'] <= 0 ) {
+			if ( ! ( $_product instanceof WC_Product ) || ! $_product->exists() || $cart_item['quantity'] <= 0 ) {
 				continue;
 			}
 			if ( ! apply_filters( 'woocommerce_checkout_cart_item_visible', true, $cart_item, $cart_item_key ) ) {
 				continue;
 			}
+
+			// Nom de l'article : WC 11.2 passe par get_item_product_name() (et non plus get_name()).
+			$cart_item_name = WC()->cart->get_item_product_name( $cart_item, $_product );
+			$product_name   = apply_filters( 'woocommerce_cart_item_name', $cart_item_name, $cart_item, $cart_item_key );
 
 			// — Données WAM liées à l'article (même logique que cart.php) —
 			$course_id       = $cart_item['wam_course_id'] ?? null;
@@ -110,7 +113,7 @@ defined( 'ABSPATH' ) || exit;
 				<?php
 				// Données de la ligne via le filtre WC standard (hors cours/stages WAM, qui ont leur
 				// propre affichage, et hors variations déjà montrées ci-dessus).
-				$donnees_item = ( ! $course_id && ! $variation_label ) ? trim( wc_get_formatted_cart_item_data( $cart_item ) ) : '';
+				$donnees_item = ( ! $course_id && ! $variation_label ) ? trim( wc_get_formatted_cart_item_data( $cart_item, false, $cart_item_name ) ) : '';
 				if ( $donnees_item !== '' ) : ?>
 					<div class="wam-order-item__bookly-data">
 						<?php echo $donnees_item; ?>

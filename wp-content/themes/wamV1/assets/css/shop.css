@@ -2847,8 +2847,7 @@ p:has(label[for="mailpoet_woocommerce_checkout_optin"]) {
     color: var(--wam-color-yellow);
 }
 
-/* Participant·es en lecture seule (essai, saison passée, commande annulée) :
-   même traitement que le `legend` d'un participant dans la fiche éditable.
+/* Participant·es, toujours en lecture seule.
    Des `li` étaient décalés de 40 px par le `padding` de `.wam-prose ul`. */
 .wam-commande-item__participants {
     display: flex;
@@ -2858,149 +2857,6 @@ p:has(label[for="mailpoet_woocommerce_checkout_optin"]) {
 
 .wam-commande-item__participants .wam-commande-item__participant {
     margin: 0;
-}
-
-/* Fiche participant — affichée en lecture, le bouton icône en haut à droite
-   fait passer les champs en édition (et inversement). */
-/* Formulaire à gauche, bouton de bascule à droite, alignés en haut du bloc.
-   Le bouton est avant le formulaire dans le DOM (ordre de tabulation) et
-   remis à droite ici. */
-.wam-fiche {
-    display: flex;
-    align-items: flex-start;
-    gap: var(--wam-spacing-sm);
-}
-
-.wam-fiche .wam-inscription__form {
-    order: 1;
-    flex: 1;
-    min-width: 0;
-}
-
-.wam-fiche__toggle {
-    order: 2;
-    flex-shrink: 0;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    width: 40px;
-    height: 40px;
-    padding: 0;
-    background: transparent;
-    border: 1px solid var(--wam-color-subtext);
-    border-radius: var(--wam-radius-md);
-    color: var(--wam-color-subtext);
-    cursor: pointer;
-    transition: border-color var(--wam-transition), color var(--wam-transition), background var(--wam-transition);
-}
-
-.wam-fiche__toggle:hover,
-.wam-fiche__toggle:focus-visible {
-    border-color: var(--wam-color-yellow);
-    color: var(--wam-color-yellow);
-    background: var(--wam-color-glass-yellow);
-}
-
-.wam-fiche__toggle[aria-expanded="false"] .wam-fiche__icon--cancel,
-.wam-fiche__toggle[aria-expanded="true"] .wam-fiche__icon--edit {
-    display: none;
-}
-
-/* Le libellé n'accompagne l'icône qu'en mobile (cf. media query). */
-.wam-fiche__toggle-label {
-    display: none;
-}
-
-/* Champs verrouillés : lisibles, mais visiblement inertes — gris de charte,
-   sans bordure active ni curseur de saisie. */
-.wam-fiche .wam-inscription__field input[readonly] {
-    border-color: transparent !important;
-    background: var(--wam-color-input-bg) !important;
-    color: var(--wam-color-subtext) !important;
-    cursor: default;
-}
-
-.wam-fiche:not(.is-editing) .wam-inscription__field label {
-    color: var(--wam-color-disabled);
-}
-
-.wam-inscription__form {
-    display: flex;
-    flex-direction: column;
-    gap: var(--wam-spacing-md);
-}
-
-/* Double classe : `.woocommerce fieldset` (bloc mot de passe) est plus spécifique. */
-.wam-commande-item .wam-inscription__participant {
-    border: 0;
-    border-radius: 0;
-    margin: 0;
-    padding: 0;
-    min-width: 0;
-}
-
-.wam-commande-item .wam-inscription__participant + .wam-inscription__participant {
-    margin-top: var(--wam-spacing-md);
-}
-
-.wam-commande-item .wam-inscription__participant legend {
-    padding: 0;
-    margin-left: 0;
-    margin-bottom: var(--wam-spacing-xs);
-}
-
-.wam-inscription__fields {
-    display: grid;
-    grid-template-columns: minmax(0, 1fr);
-    gap: 0 var(--wam-spacing-md);
-}
-
-/* Les classes de grille WC (form-row-first/last) n'ont pas cours ici. */
-.wam-inscription__fields .form-row {
-    width: auto;
-    float: none;
-    margin: 0 0 var(--wam-spacing-sm);
-}
-
-.wam-inscription__fields .description {
-    display: block;
-    margin-top: var(--wam-spacing-3xs);
-    font-size: var(--wam-font-size-xs) !important;
-    color: var(--wam-color-disabled) !important;
-}
-
-/* Champ affiché pour information (date de naissance) : lisible mais inerte,
-   sans la mention « (facultatif) » que WooCommerce ajoute aux champs non requis. */
-.wam-inscription__fields .form-row:has(input:disabled) .optional {
-    display: none;
-}
-
-.wam-inscription__fields input:disabled {
-    color: var(--wam-color-disabled) !important;
-    cursor: not-allowed;
-}
-
-.wam-inscription__actions {
-    margin-top: calc(-1 * var(--wam-spacing-2xs));
-}
-
-.wam-inscription__actions[hidden] {
-    display: none;
-}
-
-.wam-inscription__actions .btn-primary {
-    width: 100%;
-    justify-content: center;
-}
-
-@media (min-width: 768px) {
-    .wam-inscription__fields {
-        grid-template-columns: repeat(2, minmax(0, 1fr));
-    }
-
-    .wam-inscription__actions .btn-primary {
-        width: fit-content;
-    }
 }
 
 /* Mobile — même point de rupture que .card-cours (programme.css) : la photo
@@ -3013,40 +2869,6 @@ p:has(label[for="mailpoet_woocommerce_checkout_optin"]) {
 
     .wam-commande-item {
         flex-direction: column;
-    }
-
-    /* Les champs sont repliés derrière un bouton pleine largeur : sur un
-       écran étroit, quatre champs en lecture poussent le reste de la
-       commande hors de vue. `is-enhanced` garantit que le repli n'a lieu
-       que si le JS peut le rouvrir. */
-    .wam-fiche {
-        flex-direction: column;
-        gap: var(--wam-spacing-sm);
-    }
-
-    .wam-fiche.is-enhanced:not(.is-editing) .wam-inscription__form {
-        display: none;
-    }
-
-    .wam-fiche .wam-inscription__form {
-        order: 2;
-    }
-
-    .wam-fiche__toggle {
-        order: 1;
-        width: 100%;
-        height: auto;
-        gap: var(--wam-spacing-2xs);
-        padding: 0 var(--wam-spacing-sm);
-        min-height: 44px;
-        border-radius: var(--wam-radius-md);
-        font-family: var(--wam-font-body);
-        font-size: var(--wam-font-size-sm);
-        font-weight: bold;
-    }
-
-    .wam-fiche__toggle-label {
-        display: inline;
     }
 
     .wam-commande-item__media {
